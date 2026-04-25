@@ -10,7 +10,9 @@
   "client_type": "game",
   "client_type_source": "confirmed",
   "skill_source": "gendoc-auto",
-  "completed_steps": [],
+  "completed_steps": [
+    "D01-IDEA"
+  ],
   "last_updated": "2026-04-25T19:43:03Z",
   "input_type": "doc_local+codebase_local",
   "input_source": "/Users/tobala/Downloads/GDD – Thunder Blessing Slot Game.pdf + /Users/tobala/projects/thunder-blessing-slot",
@@ -26,5 +28,7 @@
   "q4_scale": "中規模（生產環境，支援千~萬級並發玩家，需K8s部署）",
   "q5_additional": "需整合既有slot-engine工具鏈（Excel→build_config.js→engine_generator.js→GameConfig.generated.ts）；機率設計目標RTP 97.5%；四情境獨立平衡（Main/ExtraBet/BuyFG/EBBuyFG）",
   "input_summary": "Thunder Blessing（雷霆祝福）老虎機遊戲設計文件（GDD）。\n希臘神話主題，5滾輪×3~6列，基礎25條/最大57條連線。\n核心機制：Cascade連鎖消除→滾輪擴展（3→4→5→6列）→閃電標記累積→雷霆祝福Scatter觸發→Coin Toss硬幣翻轉→Free Game（×3→×7→×17→×27→×77）。\n符號：Wild/Scatter/P1-P4(Premium)/L1-L4(Low)。最大獎30,000倍。\n既有slot-engine工具鏈：Excel→engine_config.json→TypeScript程式碼生成，目標RTP 97.5%。\n後端：TypeScript/Fastify/Supabase/Redis，Clean Architecture。",
-  "research_summary": "## 競品/參考資源\n- Thunder Blessing既有GDD_Thunder_Blessing_Slot.md（開發者版本，含完整機制規格）\n- Probability_Design.md（機率設計文件，RTP 97.5%目標）\n- slot-engine EDD.md（工程設計文件，Excel→TypeScript工具鏈架構）\n- engine_config.json（實際引擎配置，含完整賠率/權重/機率參數）\n\n## 技術建議\n- 後端：TypeScript/Node.js + Fastify（已實作）\n- 資料庫：Supabase PostgreSQL（已實作）\n- 快取：Redis/Upstash（已實作）\n- 機率引擎：Excel DATA tab為唯一參數來源，透過build_config.js生成\n\n## 已知風險\n- 機率平衡複雜度：四個情境各自獨立RTP平衡\n- Cascade深度計算：需追蹤Lightning Mark位置跨多個cascade步驟\n- Free Game整合：一次spin回傳完整FG序列（最多5回合），需完整設計"
+  "research_summary": "## 競品/參考資源\n- Thunder Blessing既有GDD_Thunder_Blessing_Slot.md（開發者版本，含完整機制規格）\n- Probability_Design.md（機率設計文件，RTP 97.5%目標）\n- slot-engine EDD.md（工程設計文件，Excel→TypeScript工具鏈架構）\n- engine_config.json（實際引擎配置，含完整賠率/權重/機率參數）\n\n## 技術建議\n- 後端：TypeScript/Node.js + Fastify（已實作）\n- 資料庫：Supabase PostgreSQL（已實作）\n- 快取：Redis/Upstash（已實作）\n- 機率引擎：Excel DATA tab為唯一參數來源，透過build_config.js生成\n\n## 已知風險\n- 機率平衡複雜度：四個情境各自獨立RTP平衡\n- Cascade深度計算：需追蹤Lightning Mark位置跨多個cascade步驟\n- Free Game整合：一次spin回傳完整FG序列（最多5回合），需完整設計",
+  "idea_generated": true,
+  "idea_path": "docs/IDEA.md"
 }
