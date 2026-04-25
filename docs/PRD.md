@@ -257,6 +257,7 @@ C4Context
 - Lightning Mark 位置：每個 CascadeStep 的 grid[row][col] 有中獎時標記，不重複覆蓋
 - 0 獲獎時：Cascade 立即停止，不生成 Mark，不擴展
 - Cascade 最大深度上限：50 步；若超過，引擎強制終止該 Cascade 序列並寫入 ERROR log，視為異常 spin
+- Paylines 1-25：適用於 3 列（滾輪未擴展）的標準連線走法。Paylines 26-57：每新增一列（第 4/5/6 列），原有連線路徑在新增列中延伸一格，具體 rowPath 定義見 Payline Definition Document（§14 References，開發啟動前硬性 Gate）。
 
 ---
 
@@ -732,7 +733,7 @@ stateDiagram-v2
 | 指標名稱 | 類型 | 說明 | 告警觸發條件 |
 |---------|------|------|------------|
 | `slot_spin_request_total` | Counter | 所有 spin requests 總數（含 status_code label） | — |
-| `slot_spin_duration_seconds` | Histogram | Spin 請求延遲分佈（P50/P99） | P99 > 500ms |
+| `slot_spin_duration_seconds` | Histogram | Spin 請求延遲分佈（P50/P99）。建議加入 `spin_mode` label（值：`base` / `fg`），HighLatency（P99 > 500ms）僅適用於 spin_mode=base；FG spin 由 FGHighLatency（P99 > 800ms）獨立覆蓋，以避免 FG spin 耗時 501-800ms 觸發假警報。 | P99 > 500ms（spin_mode=base）|
 | `slot_error_rate` | Gauge | 5xx 錯誤比率 | > 1% 持續 5 分鐘 |
 | `slot_fg_trigger_rate` | Gauge | FG 觸發率（每 1000 spin 中觸發次數） | < 5 或 > 20（異常偏離）|
 | `slot_rtp_deviation` | Gauge | 即時 RTP 偏差監控（每 1 萬 spin 計算一次）| 偏差 > 2% |
@@ -1141,6 +1142,7 @@ stateDiagram-v2
 - 引擎配置參數：[docs/req/engine_config.json](req/engine_config.json)
 - 既有實作 codebase：/Users/tobala/projects/thunder-blessing-slot
 - 外部標準：IEEE 830（SRS）、WCAG 2.1
+- Payline Definition Document — 開發啟動前必須完成（硬性 Gate：Not-Go if Undefined）
 
 ---
 
@@ -1154,7 +1156,7 @@ stateDiagram-v2
 | US-COIN-001 | BR-04 | §5.4 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.5（FG 流程）| TC-016～TC-020 | DRAFT |
 | US-FGAM-001 | BR-05, KPI-02 | §5.5 | AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7 | 待 PDD 生成後補填 | EDD §4.5（FG 流程）, §5（BuyFG 保底）| TC-021～TC-027 | DRAFT |
 | US-EXBT-001 | BR-06 | §5.6 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.3（Input extraBet flag）| TC-027～TC-031 | DRAFT |
-| US-BUYF-001 | BR-07, KPI-04 | §5.7 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §5（BuyFG 保底規則）| TC-032～TC-036 | DRAFT |
+| US-BUYF-001 | BR-07, KPI-04 | §5.7 | AC-1, AC-2, AC-3, AC-4, AC-5, AC-6 | 待 PDD 生成後補填 | EDD §5（BuyFG 保底規則）| TC-032～TC-037 | DRAFT |
 | US-NRMS-001 | BR-08 | §5.8 | AC-1, AC-2, AC-3, AC-4 | 待 PDD 生成後補填 | EDD §3.2（Near Miss）| TC-037～TC-040 | DRAFT |
 | US-TOOL-001 | KPI-06 | §5.9 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §8（工具鏈架構）| TC-041～TC-045 | DRAFT |
 | US-RTPV-001 | KPI-01 | §5.10 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §9（測試要求）| TC-046～TC-050 | DRAFT |
@@ -1282,5 +1284,5 @@ CREATE TABLE user_consents (
 | Q1 | 雷霆祝福第一擊選定的「同一種高賠符號」是純隨機選取（均等機率 P1/P2/P3/P4），還是加權偏好高賠（P1 更高機率）？此決策直接影響 TB 期望值計算與 RTP 設計。 | §5.3 雷霆祝福 AC-3、機率設計、RTP 驗收 | 高 | 遊戲企劃 | Sprint 1 前 |
 | Q2 | 前端框架最終選擇（Cocos Creator 或 PixiJS）？影響動畫 API、事件系統設計，以及 FG 序列播放實作方案。 | §5.5, §6, Rollout Plan | 高 | PM + 前端架構師 | Sprint 1 結束前 |
 | Q3 | mgFgTriggerProb（0.009624）為 Main Game 進入 Coin Toss 的判定機率（非 Coin Toss Heads 本身），但 BRD §4.4 表格及 Probability_Design.md §5 描述方式不一致（後者寫「Coin Toss 50%」）。需明確澄清哪個值控制「6 列 Cascade 後是否進入 Coin Toss 流程」。 | §5.4 Coin Toss AC-1、引擎正確性 | 高 | 遊戲企劃 + Engineering | 開發啟動前 |
-| Q4 | Paylines 26–57 的完整走法定義（rowPath）尚未在現有文件中明確列出（Probability_Design.md §TODO 標記）。缺少此定義將阻礙 Cascade 擴展後的連線計算實作。 | §5.2 Cascade AC、US-SPIN-001 | 高 | 遊戲企劃 | 開發啟動前 |
+| Q4 | Paylines 26–57 的完整走法定義（rowPath）尚未在現有文件中明確列出（Probability_Design.md §TODO 標記）。缺少此定義將阻礙 Cascade 擴展後的連線計算實作。 | §5.2 Cascade AC、US-SPIN-001 | 高 | 遊戲企劃 | 硬性 Gate：Not-Go if Undefined |
 | Q5 | Analytics 工具最終選型（Mixpanel / Amplitude / 自建）？影響 §7.8 所有 Analytics Event 的 SDK 選擇與 Payload 格式。 | §7.8 Analytics Event Map | 中 | Engineering | Beta 前 |
