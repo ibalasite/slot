@@ -58,7 +58,7 @@
 |-----------|-------|----------|------|
 | `--color-marble-white` | `oklch(95% 0.01 80)` | `#F5F0E8` | 對話框文字、主文字 |
 | `--color-orange-thunder` | `oklch(68% 0.18 55)` | `#FF8C00` | Extra Bet ON、Near Miss 高亮 |
-| `--color-arc-white` | `oklch(96% 0.02 228)` | `#E8F4FF` | 電弧粒子、Scatter 外光 |
+| `--color-arc-white` | `oklch(96% 0.02 230)` | `#E8F4FF` | 電弧粒子、Scatter 外光 |
 | `--color-fg-blue` | `oklch(75% 0.12 220)` | `#00BFFF` | FG 倍率進度條填充 |
 
 #### Functional Palette（功能色）
@@ -76,7 +76,7 @@
 |------|-----------|-------|----------|
 | Wild（Divine Lightning）| `--color-sym-wild` | `oklch(88% 0.19 92)` | `#FFD700` |
 | P1 Zeus | `--color-sym-p1` | `oklch(88% 0.19 92)` | `#FFD700` |
-| Scatter | `--color-sym-scatter-inner` | `oklch(96% 0.02 228)` | `#E8F4FF` |
+| Scatter | `--color-sym-scatter-inner` | `oklch(96% 0.02 230)` | `#E8F4FF` |
 | Scatter 電弧 | `--color-sym-scatter-arc` | `oklch(52% 0.18 240)` | `#1A6EBF` |
 | P2 Pegasus | `--color-sym-p2` | `oklch(82% 0.08 300)` | `#D4BBFF` |
 | P3 Athena | `--color-sym-p3` | `oklch(77% 0.05 235)` | `#B0C4DE` |
@@ -103,8 +103,10 @@
   /* Functional */
   --color-marble-white:    oklch(95% 0.01 80);
   --color-orange-thunder:  oklch(68% 0.18 55);
-  --color-arc-white:       oklch(96% 0.02 228);
+  --color-arc-white:       oklch(96% 0.02 230);
   --color-fg-blue:         oklch(75% 0.12 220);
+  --color-success:         oklch(60% 0.16 145);
+  --color-warning:         oklch(75% 0.18 65);
   --color-error:           oklch(43% 0.18 28);
   --color-disabled:        oklch(50% 0 0);
 
@@ -354,7 +356,7 @@
 | 粒子生命週期 | 0.3s–1.0s |
 | 電弧連線效果 | SC 到每個標記格：Bezier 曲線電弧 renderer，寬度 2px，色 `--color-arc-white`，Additive Blend |
 | 背景白光閃爍 | `brightness: 1→3→1`，duration: 300ms，Overlay 層 |
-| 行動裝置降級 | 粒子數減半至最大 275 個；電弧連線省略（改為簡單 Flash） |
+| 行動裝置降級 | 粒子數減半至最大 240 個；電弧連線省略（改為簡單 Flash） |
 
 ### 5.2 符號 Win 高亮效果
 
