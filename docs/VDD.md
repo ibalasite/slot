@@ -45,7 +45,7 @@
 
 | Token 名稱 | OKLCH | sRGB HEX | CMYK（印刷參考） | 用途 |
 |-----------|-------|----------|----------------|------|
-| `--color-gold-primary` | `oklch(75% 0.14 80)` | `#C9A227` | C0 M37 Y85 K8 | 主框架、按鈕描邊、Win 連線 |
+| `--color-gold-primary` | `oklch(75% 0.14 80)` | `#DCA331` | C0 M37 Y78 K5 | 主框架、按鈕描邊、Win 連線 |
 | `--color-gold-bright` | `oklch(85% 0.17 88)` | `#FFD700` | C0 M16 Y100 K0 | Win 數字、閃電標記、HIGH LIGHT |
 | `--color-gold-divine` | `oklch(91% 0.14 88)` | `#FFE55C` | C0 M10 Y64 K0 | Divine Lightning Wild 外光暈 |
 | `--color-blue-olympus` | `oklch(22% 0.06 250)` | `#1B2A4A` | C64 M43 Y0 K71 | 主背景色、HUD 底色 |
@@ -116,7 +116,7 @@
   --duration-normal:       300ms;
   --duration-slow:         600ms;
   --duration-cascade-drop: 420ms;
-  --duration-coin-flip:    2800ms; /* nominal mid-range; actual random 2500–3500ms — see §4.5 */
+  --duration-coin-flip:    2800ms; /* nominal mid-range; actual random 3000–3500ms — see §4.5 */
 
   --ease-out-cubic:        cubic-bezier(0.33, 1, 0.68, 1);
   --ease-out-back:         cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -247,7 +247,8 @@
 | 動畫狀態 | 所有符號幀率 | 最大幀數（預算） | 備註 |
 |---------|:----------:|:-----------:|------|
 | Idle（loop） | 24fps | 96幀（4s@24fps）| 桌面播放；行動裝置降至 12fps |
-| Win | 60fps | 90幀（1.5s@60fps）| Wild=72幀(1.2s) / P1=90幀(1.5s) / P2=78幀(1.3s) / P3=72幀(1.2s) / P4=60幀(1.0s) / L1-L4=48幀(0.8s) |
+| Win（一般符號）| 60fps | 90幀（1.5s@60fps）| Wild=72幀(1.2s) / P1=90幀(1.5s) / P2=78幀(1.3s) / P3=72幀(1.2s) / P4=60幀(1.0s) / L1-L4=48幀(0.8s) |
+| Win（Scatter 觸發）| 60fps | 108幀（1.8s@60fps）| PDD §2.3：Scatter觸發後 Win 演出需 1.8s；此行為 Scatter 專屬預算上限 |
 | Special（升階） | 60fps | 150幀（2.5s@60fps）| Wild Special 最長 |
 
 > **Spine 版本要求**：≥ 4.1；Spine Runtime 需與前端框架（Cocos Creator 3.x / PixiJS 7.x）版本對齊。
@@ -280,12 +281,13 @@
 | `--ease-out-expo` | `cubic-bezier(0.16, 1, 0.3, 1)` | 符號擴展 |
 | `--ease-in-out-cubic` | `cubic-bezier(0.65, 0, 0.35, 1)` | 進度條填充 |
 | `--ease-coin-decel` | `cubic-bezier(0.05, 0.7, 0.1, 1.0)` | 硬幣翻轉減速（Y2=1.0 線性結尾，硬幣停止效果；需設計師在動畫工具預覽確認物理感）|
+| `--ease-out-bounce` | JS 自定義緩動（非 cubic-bezier） | Cascade 落下彈性碰撞感（PDD §5.2）；以 requestAnimationFrame 或 Spine custom curve 實現；不可用單一 cubic-bezier 替代 |
 
 ### 4.2 符號落下動畫（Cascade Drop）
 
 | 階段 | 屬性 | 起始值 | 結束值 | 時長 | Easing |
 |------|------|--------|--------|------|--------|
-| 落下 | `translateY` | -200px（滾輪頂端外） | 0px | 420ms | `--ease-out-cubic` |
+| 落下 | `translateY` | -200px（滾輪頂端外） | 0px | 420ms | `--ease-out-bounce`（PDD §5.2 彈性碰撞感，JS 自定義實現）|
 | 落下 | `opacity` | 0 | 1 | 100ms | linear |
 | 落定彈跳 | `scale` | 1.0 | 1.05 → 1.0 | 150ms | `--ease-out-back` |
 | 階梯延遲 | `delay` | col×20ms + row×30ms | — | — | — |
@@ -320,7 +322,7 @@
 | 加速旋轉 | `rotateY`: 0° → 2520°（7圈）| — | 800ms | `ease-in` |
 | 持續旋轉 | `rotateY`: 繼續旋轉（隨機圈數，使總時長落在範圍內）| — | 200ms–700ms（隨機）| linear |
 | 減速停止 | `rotateY`: 繼續至最終面 | — | 1500ms | `--ease-coin-decel` |
-| **總時長** | — | — | 2500ms–3500ms（隨機）| — |
+| **總時長** | — | — | 3000ms–3500ms（隨機）| — |
 | 結果爆光（Heads）| `scale`: 1.0 → 1.3 → 1.0 | `opacity` glow: 0→1→0 | 600ms | `--ease-out-back` |
 | 結果暗沉（Tails）| `brightness`: 1.0 → 0.6 | — | 400ms | `--ease-in-out-cubic` |
 
@@ -765,7 +767,7 @@ assets/
 #### 動畫系統
 
 - [ ] 所有 easing curve 使用 §4.1 Token（`--ease-out-cubic` 等），無自定義随意 curve
-- [ ] Coin Toss 翻轉總時長在 2500–3500ms 範圍（含隨機）
+- [ ] Coin Toss 翻轉總時長在 3000–3500ms 範圍（含隨機，500+800+200~700+1500ms 各階段確認）
 - [ ] Win roll-up 最長 ≤ 5000ms（計算：`min(totalWin/50, 5000)ms`）
 - [ ] Cascade drop 階梯延遲正確（`col×20ms + row×30ms`，最大 230ms）
 - [ ] FG 進度條過渡 500ms，easing `--ease-in-out-cubic`
