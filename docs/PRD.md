@@ -338,7 +338,7 @@ C4Context
 | US-FGAM-001 / AC-7 | 當前 FG 倍率 ×77 | 下一回合 FG Spin 開始前 Coin Toss Tails | FG 立即結束，所有 Lightning Mark 清除（`grid.lightningMarks = []`），totalWin 回傳至 FullSpinOutcome，回到主遊戲 | Unit |
 
 **邊界條件：**
-- FG Bonus ×100（機率 5/1000 = 0.5%）：整局 FG 總獎金 × 100，不超過 30,000× 上限
+- FG Bonus ×100（機率 5/1000 = 0.5%）：整局 FG 總獎金 × 100，不超過 30,000× baseBet（Main Game）或 90,000× baseBet（EBBuyFG）上限
 - Lightning Mark 跨 Spin 累積：FG 第 2 回合前，前一回合標記保留在 grid 中
 - FG 結束後 Lightning Mark 清除：`grid.lightningMarks = []`，不帶入下一次主遊戲 SPIN
 
@@ -709,7 +709,7 @@ stateDiagram-v2
 | `slot_fg_trigger_rate` | Gauge | FG 觸發率（每 1000 spin 中觸發次數） | < 5 或 > 20（異常偏離）|
 | `slot_rtp_deviation` | Gauge | 即時 RTP 偏差監控（每 1 萬 spin 計算一次）| 偏差 > 2% |
 | `slot_buy_feature_count` | Counter | Buy Feature 購買次數 | — |
-| `slot_max_win_hit_count` | Counter | 達到 30,000× 上限次數 | — |
+| `slot_max_win_hit_count` | Counter | 達到 30,000×（Main Game）或 90,000×（EBBuyFG）上限次數 | — |
 
 #### 7.7.3 Distributed Tracing 需求
 
@@ -727,6 +727,7 @@ stateDiagram-v2
 | ServiceDown | health check 連續失敗 3 次 | P0 | PagerDuty（電話）| 回應 5 分鐘 |
 | RTPAnomaly | slot_rtp_deviation > 2%（每 1 萬 spin）| P1 | PagerDuty + Slack | 回應 15 分鐘 |
 | DiskSpaceWarning | 磁碟使用率 > 80% | P3 | Slack | 回應 4 小時 |
+| FGHighLatency | FG sequence P99 > 800ms 持續 3 分鐘 | P2 | Slack | 回應 30 分鐘 |
 
 #### 7.7.5 Dashboard 要求
 
@@ -844,6 +845,7 @@ stateDiagram-v2
 | Buy Feature session floor 失效率 | 0% | < 0.1% | 立即停止 Buy Feature 功能，調查引擎 |
 | 最大獎金超限率（> 30,000×，Main Game）| 0% | 0%（嚴格） | 立即停機，引擎緊急審查 |
 | Extra Bet + Buy FG 最大獎金超限率（> 90,000×）| 0% | 0%（嚴格） | 立即停機，引擎緊急審查 |
+| FG 完整序列 P99 延遲 | 待壓測建立基準 | < 800ms @ 100 RPS | 降級模式（buyFG 限制），立即告警 |
 
 ### 9.3 Go-No-Go Launch Criteria
 
@@ -852,6 +854,7 @@ stateDiagram-v2
 - [ ] 單元測試覆蓋率 ≥ 80%（SlotEngine.ts 目標 100%）
 - [ ] 四情境 Monte Carlo 模擬各通過 verify.js（RTP ±1%）
 - [ ] API P99 < 500ms @ 100 RPS（壓測驗證）
+- [ ] FG 完整序列（buyFG 場景）P99 ≤ 800ms @ 100 RPS（壓測驗證）
 - [ ] 安全掃描無 CRITICAL / HIGH 漏洞
 - [ ] JWT 認證驗收通過（401 測試案例通過）
 - [ ] 幣種 USD / TWD 投注範圍正確（來自 BetRangeConfig.generated.ts）
