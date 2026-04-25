@@ -82,16 +82,17 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 
 ### BR-04 Coin Toss 硬幣翻轉
 
-- 觸發條件：滾輪已達 MAX_ROWS（6 列）且本次 Cascade 再次成功（Main Game 使用 `mgFgTriggerProb`；Buy FG 情境使用 `fgTriggerProb`；兩者互不混用）
+- 觸發條件（Main Game）：滾輪已達 MAX_ROWS（6 列）且本次 Cascade 再次成功，以 `mgFgTriggerProb`（0.009624）判定是否進入 Coin Toss
+- 觸發條件（Buy FG 模擬情境）：`fgTriggerProb`（0.009081）作為 Buy FG 符號池設計的參考參數，用於 Monte Carlo 模擬，**不用於** Buy Feature 入場判定
+- Buy Feature 入場：完全繞過 `fgTriggerProb` / `mgFgTriggerProb`，直接進入 Coin Toss（保證 Heads × 5）
 - **Heads（正面）**：進入 Free Game，初始倍率 ×3
 - **Tails（反面）**：本輪 SPIN 結束，不進入 FG
 - 進入 FG 的 Coin Toss Heads 機率：Main Game = 0.80；Buy Feature = 1.00（保證）
-- Buy Feature 不受 `fgTriggerProb` 限制，直接進入 Coin Toss
 
 ### BR-05 Free Game 免費遊戲
 
 - **進入倍率**：×3（首次 Coin Toss Heads 後）
-- **倍率升級序列**：每次 Spin 結束後再翻一次 Coin Toss
+- **倍率升級序列**：每局 FG Spin **開始前**翻一次 Coin Toss（第一次 Heads 已在 BR-04 觸發 FG 時完成，此後每輪 FG Spin 前翻一次）
   - Heads → 倍率升一級（×3 → ×7 → ×17 → ×27 → ×77）
   - ×77 為最高倍率，達到後維持不再升
   - Tails → FG 當輪結束（保留當前倍率至 FG 結束）
@@ -246,7 +247,7 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 
 | 參數 | 值 | 說明 |
 |------|:--:|------|
-| `fgTriggerProb` | 0.009081 | FG（Buy）觸發機率 |
+| `fgTriggerProb` | 0.009081 | Buy FG 情境符號池設計用（Monte Carlo 模擬參考值）；Buy Feature 入場不受此限制 |
 | `mgFgTriggerProb` | 0.009624 | Main Game FG 觸發機率 |
 | `tbSecondHit` | 0.40 | 雷霆祝福第二擊觸發機率 |
 | `extraBetMult` | 3 | Extra Bet 投注倍數 |
@@ -284,12 +285,14 @@ build_config.js
 
 **工具鏈黃金法則**：Excel DATA tab 是唯一合法的參數定義來源。所有機率邏輯、RTP 設計、保底規則，只在 Excel 中定義。
 
+> ⚠️ 步驟順序以本圖為準：slot-engine-EDD.md §8.2 的步驟列表中，engine_generator.js 排在 verify.js 之前（即先生成再驗收）。本 BRD 採更嚴格的 gating 要求（verify.js 通過後才執行 engine_generator.js），EDD §8.2 待同步修正。
+
 ### §5.2 禁止行為（Non-Negotiable）
 
 | # | 禁止事項 |
 |---|---------|
 | 1 | 禁止在程式碼中加入 payout scale 乘數（`PAYTABLE_SCALE` 僅限工具鏈內部計算使用）|
-| 2 | 禁止 retry loop 保底（保底邏輯只在 Excel 定義，不在遊戲執行期實作）|
+| 2 | 禁止 retry loop 保底（即禁止在遊戲執行期以重試循環強制達到目標 RTP；保底的機率設計只在 Excel 定義；session 級別的底線邏輯由 SlotEngine 實作，不視為 retry loop）|
 | 3 | 禁止 UI 層做任何 win 計算或修改（UI 只顯示引擎回傳的 `totalWin`）|
 | 4 | 禁止手動修改 `GameConfig.generated.ts`（需修改請從 Excel 重新執行 `engine_generator.js`）|
 | 5 | 禁止跨情境混用符號權重（四情境各自獨立，絕對不可混用）|
