@@ -1155,9 +1155,10 @@ stateDiagram-v2
 | US-TBSC-001 | BR-03, KPI-02 | §5.3 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4（TBStep 處理）| TC-011～TC-015 | DRAFT |
 | US-COIN-001 | BR-04 | §5.4 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.5（FG 流程）| TC-016～TC-020 | DRAFT |
 | US-FGAM-001 | BR-05, KPI-02 | §5.5 | AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7 | 待 PDD 生成後補填 | EDD §4.5（FG 流程）, §5（BuyFG 保底）| TC-021～TC-027 | DRAFT |
-| US-EXBT-001 | BR-06 | §5.6 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.3（Input extraBet flag）| TC-027～TC-031 | DRAFT |
+| US-FGREC-001 | BR-05 | §5.5.1 | AC-1, AC-2, AC-3, AC-4 | 待 PDD 生成後補填 | EDD §4.5 | TC-065～TC-068 | DRAFT |
+| US-EXBT-001 | BR-06 | §5.6 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.3（Input extraBet flag）| TC-028～TC-032 | DRAFT |
 | US-BUYF-001 | BR-07, KPI-04 | §5.7 | AC-1, AC-2, AC-3, AC-4, AC-5, AC-6 | 待 PDD 生成後補填 | EDD §5（BuyFG 保底規則）| TC-032～TC-037 | DRAFT |
-| US-NRMS-001 | BR-08 | §5.8 | AC-1, AC-2, AC-3, AC-4 | 待 PDD 生成後補填 | EDD §3.2（Near Miss）| TC-037～TC-040 | DRAFT |
+| US-NRMS-001 | BR-08 | §5.8 | AC-1, AC-2, AC-3, AC-4 | 待 PDD 生成後補填 | EDD §3.2（Near Miss）| TC-038～TC-041 | DRAFT |
 | US-TOOL-001 | KPI-06 | §5.9 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §8（工具鏈架構）| TC-041～TC-045 | DRAFT |
 | US-RTPV-001 | KPI-01 | §5.10 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §9（測試要求）| TC-046～TC-050 | DRAFT |
 | US-CURR-001 | §5.3 BRD | §5.11 | AC-1, AC-2, AC-3, AC-4 | 待 PDD 生成後補填 | EDD §10（幣種 Bet Range）| TC-051～TC-054 | DRAFT |
@@ -1286,3 +1287,5 @@ CREATE TABLE user_consents (
 | Q3 | mgFgTriggerProb（0.009624）為 Main Game 進入 Coin Toss 的判定機率（非 Coin Toss Heads 本身），但 BRD §4.4 表格及 Probability_Design.md §5 描述方式不一致（後者寫「Coin Toss 50%」）。需明確澄清哪個值控制「6 列 Cascade 後是否進入 Coin Toss 流程」。 | §5.4 Coin Toss AC-1、引擎正確性 | 高 | 遊戲企劃 + Engineering | 開發啟動前 |
 | Q4 | Paylines 26–57 的完整走法定義（rowPath）尚未在現有文件中明確列出（Probability_Design.md §TODO 標記）。缺少此定義將阻礙 Cascade 擴展後的連線計算實作。 | §5.2 Cascade AC、US-SPIN-001 | 高 | 遊戲企劃 | 硬性 Gate：Not-Go if Undefined |
 | Q5 | Analytics 工具最終選型（Mixpanel / Amplitude / 自建）？影響 §7.8 所有 Analytics Event 的 SDK 選擇與 Payload 格式。 | §7.8 Analytics Event Map | 中 | Engineering | Beta 前 |
+| Q6 | US-PRIV-001（user_consents Phase 1 合規 US）— 待 Legal 確認後補充至 §5 User Stories 及 §15 RTM | §5 User Stories、§15 RTM、§17 Privacy by Design | 中 | Legal | TBD |
+| Q7 | US-A11Y-001（P0 無障礙基礎）目前無 RTM 追溯行，待無障礙需求規格確認後補充至 §15 RTM | §15 RTM、§6 前端需求 | 低 | Engineering + Design | TBD |
