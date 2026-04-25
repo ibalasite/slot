@@ -45,12 +45,12 @@
 
 | Token 名稱 | OKLCH | sRGB HEX | CMYK（印刷參考） | 用途 |
 |-----------|-------|----------|----------------|------|
-| `--color-gold-primary` | `oklch(72% 0.14 82)` | `#C9A227` | C0 M37 Y85 K8 | 主框架、按鈕描邊、Win 連線 |
+| `--color-gold-primary` | `oklch(75% 0.14 80)` | `#C9A227` | C0 M37 Y85 K8 | 主框架、按鈕描邊、Win 連線 |
 | `--color-gold-bright` | `oklch(85% 0.17 88)` | `#FFD700` | C0 M16 Y100 K0 | Win 數字、閃電標記、HIGH LIGHT |
 | `--color-gold-divine` | `oklch(91% 0.14 88)` | `#FFE55C` | C0 M10 Y64 K0 | Divine Lightning Wild 外光暈 |
-| `--color-blue-olympus` | `oklch(22% 0.06 253)` | `#1B2A4A` | C64 M43 Y0 K71 | 主背景色、HUD 底色 |
+| `--color-blue-olympus` | `oklch(22% 0.06 250)` | `#1B2A4A` | C64 M43 Y0 K71 | 主背景色、HUD 底色 |
 | `--color-blue-deep` | `oklch(14% 0.04 253)` | `#0A0F1E` | C72 M55 Y0 K88 | 最深背景層、遮罩底色 |
-| `--color-purple-zeus` | `oklch(26% 0.12 303)` | `#4A1B6B` | C53 M83 Y0 K58 | FG 場景副色、Buy FG 按鈕 |
+| `--color-purple-zeus` | `oklch(25% 0.12 300)` | `#4A1B6B` | C53 M83 Y0 K58 | FG 場景副色、Buy FG 按鈕 |
 
 #### Secondary Palette（次色）
 
@@ -59,7 +59,7 @@
 | `--color-marble-white` | `oklch(95% 0.01 82)` | `#F5F0E8` | 對話框文字、主文字 |
 | `--color-orange-thunder` | `oklch(68% 0.18 55)` | `#FF8C00` | Extra Bet ON、Near Miss 高亮 |
 | `--color-arc-white` | `oklch(96% 0.02 228)` | `#E8F4FF` | 電弧粒子、Scatter 外光 |
-| `--color-fg-blue` | `oklch(72% 0.14 226)` | `#00BFFF` | FG 倍率進度條填充 |
+| `--color-fg-blue` | `oklch(75% 0.12 220)` | `#00BFFF` | FG 倍率進度條填充 |
 
 #### Functional Palette（功能色）
 
@@ -74,7 +74,8 @@
 
 | 符號 | Token 名稱 | OKLCH | sRGB HEX |
 |------|-----------|-------|----------|
-| Wild / P1 Zeus | `--color-sym-wild` | `oklch(88% 0.19 88)` | `#FFD700` |
+| Wild（Divine Lightning）| `--color-sym-wild` | `oklch(88% 0.19 92)` | `#FFD700` |
+| P1 Zeus | `--color-sym-p1` | `oklch(88% 0.19 92)` | `#FFD700` |
 | Scatter | `--color-sym-scatter-inner` | `oklch(96% 0.02 228)` | `#E8F4FF` |
 | Scatter 電弧 | `--color-sym-scatter-arc` | `oklch(52% 0.18 240)` | `#1A6EBF` |
 | P2 Pegasus | `--color-sym-p2` | `oklch(82% 0.08 300)` | `#D4BBFF` |
@@ -92,18 +93,18 @@
 ```css
 :root {
   /* Primary */
-  --color-gold-primary:    oklch(72% 0.14 82);
+  --color-gold-primary:    oklch(75% 0.14 80);
   --color-gold-bright:     oklch(85% 0.17 88);
   --color-gold-divine:     oklch(91% 0.14 88);
-  --color-blue-olympus:    oklch(22% 0.06 253);
+  --color-blue-olympus:    oklch(22% 0.06 250);
   --color-blue-deep:       oklch(14% 0.04 253);
-  --color-purple-zeus:     oklch(26% 0.12 303);
+  --color-purple-zeus:     oklch(25% 0.12 300);
 
   /* Functional */
   --color-marble-white:    oklch(95% 0.01 82);
   --color-orange-thunder:  oklch(68% 0.18 55);
   --color-arc-white:       oklch(96% 0.02 228);
-  --color-fg-blue:         oklch(72% 0.14 226);
+  --color-fg-blue:         oklch(75% 0.12 220);
   --color-error:           oklch(43% 0.18 28);
   --color-disabled:        oklch(50% 0 0);
 
@@ -142,11 +143,11 @@
 
 | 用途分組 | 字體名稱 | 格式 | Subset | font-display |
 |---------|---------|------|--------|-------------|
-| WIN 數字主字體 | Orbitron | WOFF2 | 數字 `0–9` + `$,. ×` | `swap` |
+| WIN 數字主字體 | Trajan Pro（若未取得授權，可以 Orbitron 作為備援；最終選型需 Art Director 確認）| WOFF2 | 數字 `0–9` + `$,. ×` | `swap` |
 | WIN 大獎展示備用 | Impact（系統字）| 系統 | — | — |
 | HUD 標籤 | Open Sans | WOFF2 | Latin + `$,.%×` | `swap` |
 | 符號銘文底部 | Cinzel | WOFF2 | A–Z uppercase only | `optional` |
-| BIG WIN / JACKPOT 特效文字 | 自訂 Display 字體（GreeK-Display） | WOFF2 | 大寫 A–Z + `!×` | `swap` |
+| BIG WIN / JACKPOT 特效文字 | 自訂 Display 字體（GreeK-Display）（佔位符命名，最終字體需確認商業授權，TBD 待 Art Director 確認）| WOFF2 | 大寫 A–Z + `!×` | `swap` |
 | 對話框內文 | Open Sans | WOFF2 | 同 HUD | `swap` |
 
 > **選型說明（WIN 數字）**：Orbitron 的幾何圓弧感與希臘神話的「電能科技」風格契合，同時在高對比背景下數字間距清晰，適合快速滾動的計數動畫。備選 Impact 作為系統字降級。
@@ -174,7 +175,7 @@
 
 ### 2.3 WIN 數字動畫字體規格
 
-使用 **Orbitron Bold** 配合以下動畫規格：
+使用 **Trajan Pro Bold**（備援字體 Orbitron Bold；最終選型需 Art Director 確認）配合以下動畫規格：
 
 - 數字 roll-up 期間啟用 `font-variant-numeric: tabular-nums`（等寬數字，防止版面抖動）
 - 計數器滾動結束後 0.1s 播放 `scale(1.0 → 1.08 → 1.0)` 彈跳（duration: 200ms，ease-out-back）
@@ -213,7 +214,7 @@
 | 動畫狀態 | 所有符號幀率 | 最大幀數（預算） | 備註 |
 |---------|:----------:|:-----------:|------|
 | Idle（loop） | 24fps | 96幀（4s@24fps）| 桌面播放；行動裝置降至 12fps |
-| Win | 60fps | 72幀（1.2s@60fps）| P 類最長；Wild 最長 1.5s = 90幀 |
+| Win | 60fps | 90幀（1.5s@60fps）| P1 Zeus 最長 1.5s = 90幀；Wild 最長 1.2s = 72幀 |
 | Special（升階） | 60fps | 150幀（2.5s@60fps）| Wild Special 最長 |
 
 > **Spine 版本要求**：≥ 4.1；Spine Runtime 需與前端框架（Cocos Creator 3.x / PixiJS 7.x）版本對齊。
@@ -245,7 +246,7 @@
 | `--ease-out-back` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | 彈跳落定 |
 | `--ease-out-expo` | `cubic-bezier(0.16, 1, 0.3, 1)` | 符號擴展 |
 | `--ease-in-out-cubic` | `cubic-bezier(0.65, 0, 0.35, 1)` | 進度條填充 |
-| `--ease-coin-decel` | `cubic-bezier(0.05, 0.7, 0.1, 1.0)` | 硬幣翻轉減速 |
+| `--ease-coin-decel` | `cubic-bezier(0.05, 0.7, 0.1, 1.0)` | 硬幣翻轉減速（Y2=1.0 線性結尾，硬幣停止效果；需設計師在動畫工具預覽確認物理感）|
 
 ### 4.2 符號落下動畫（Cascade Drop）
 
@@ -272,7 +273,7 @@
 
 | 階段 | 屬性 | 起始值 | 結束值 | 時長 | Easing |
 |------|------|--------|--------|------|--------|
-| 框架高度延伸 | `height`（via scaleY）| 當前 | 當前 + 200px | 300ms | `--ease-out-cubic` |
+| 框架高度延伸 | `scaleY` transform | 當前 | 當前 + 200px | 300ms | `--ease-out-cubic` |
 | 雲霧消散 | `opacity` | 1.0 | 0.0 | 250ms | linear |
 | 新列淡入 | `opacity` | 0.0 | 1.0 | 300ms（delay 200ms）| linear |
 | FREE 字母點亮 | `brightness` | 0.3 | 1.0 | 200ms | `--ease-out-cubic` |
@@ -393,7 +394,9 @@
 | Big Win / Mega Win 粒子 | 300 個 | 150 個 |
 | FG Bonus ×100 全屏特效 | 3000 個（3s 爆發，允許超預算）| 800 個 |
 | MAX WIN 30,000× 金幣雨 | 2000 個 | 600 個 |
-| **絕對瞬時上限** | **4000 個** | **1200 個** |
+| **絕對瞬時上限** | **500 個** | **200 個** |
+
+> **特殊例外**：FG Bonus ×100 特殊演出期間例外允許桌面最高 1000 粒子（短時間爆發，由效能測試驗證後可調整）。此上限對齊 PDD §14.2；Thunder Blessing 引爆場景的高粒子數為局部爆發峰值，瞬時超出後立即透過「舊粒子提前 fade-out」回收策略壓回上限。
 
 > 超出上限時，採用「舊粒子提前 fade-out」回收策略，禁止拒絕新粒子生成。
 
@@ -432,9 +435,9 @@
 | 列數 | 滾輪 H | Y 底邊 |
 |:----:|:------:|:------:|
 | 3 | 590px | 670px |
-| 4 | 790px | 870px |
-| 5 | 990px | 1070px |
-| 6 | 1190px | 1270px（超出 1080px → 底部遮罩 + 特效遮蔽）|
+| 4 | 780px | 860px |
+| 5 | 970px | 1050px |
+| 6 | 1160px | 1240px（超出 1080px → 底部遮罩 + 特效遮蔽）|
 
 > 6 列時底部超出屏幕，設計意圖：滾輪「突破天際」視覺效果，底部以雲霧遮蔽。
 
@@ -456,7 +459,7 @@
 | EXTRA BET 開關 | 1400px | 930px | 160px | 56px |
 | SPIN 按鈕（圓形）| 1630px（center）| 970px（center）| 100px（直徑）| 100px |
 | AUTO 按鈕 | 1760px | 944px | 80px | 48px |
-| BUY FG 按鈕 | 1830px | 940px | 140px | 50px |
+| BUY FG 按鈕 | 1760px | 940px | 140px | 50px |
 
 #### HUD 頂部工具列
 
@@ -658,6 +661,8 @@ symbol_[name].spine
 
 ### 9.4 命名與目錄結構（對齊 PDD §14.3）
 
+> **行動端背景命名說明**：行動端背景採 `.webp` 後綴，PDD §14.3 命名示例中的 `.png` 後綴為佔位符，實際交付以 `.webp` 為準。
+
 ```
 assets/
 ├── symbols/
@@ -742,7 +747,7 @@ assets/
 
 - [ ] 桌面 60fps 穩定（Chrome DevTools Performance，無 frame drop > 5ms）
 - [ ] 行動裝置 30fps 穩定（Cascade 消除 + 視差最差情況下）
-- [ ] 全盤粒子數在桌面不超過 4000 個瞬時上限，行動不超過 1200 個
+- [ ] 全盤粒子數在桌面不超過 500 個瞬時上限（FG Bonus ×100 演出期間例外允許最高 1000 個），行動不超過 200 個
 - [ ] Spine atlas 紋理已壓縮（Crunch 或 ETC2/ASTC for mobile）
 
 #### 視覺正確性
