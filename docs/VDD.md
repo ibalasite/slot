@@ -65,7 +65,7 @@
 
 | Token 名稱 | OKLCH | sRGB HEX | 用途 |
 |-----------|-------|----------|------|
-| `--color-error` | `oklch(43% 0.18 28)` | `#D32F2F` | 系統錯誤、Tails 文字 |
+| `--color-error` | `oklch(42% 0.18 28)` | `#D32F2F` | 系統錯誤、Tails 文字 |
 | `--color-disabled` | `oklch(50% 0 0)` | `#757575` | 禁用按鈕 |
 | `--color-success` | `oklch(60% 0.16 145)` | `#2E8B57` | 餘額增加提示 |
 | `--color-warning` | `oklch(75% 0.18 65)` | `#FFA500` | 低餘額警示、L2 符號色 |
@@ -107,7 +107,7 @@
   --color-fg-blue:         oklch(75% 0.12 220);
   --color-success:         oklch(60% 0.16 145);
   --color-warning:         oklch(75% 0.18 65);
-  --color-error:           oklch(43% 0.18 28);
+  --color-error:           oklch(42% 0.18 28);
   --color-disabled:        oklch(50% 0 0);
 
   /* Animation tokens */
@@ -116,13 +116,44 @@
   --duration-normal:       300ms;
   --duration-slow:         600ms;
   --duration-cascade-drop: 420ms;
-  --duration-coin-flip:    2800ms;
+  --duration-coin-flip:    2800ms; /* nominal mid-range; actual random 2500–3500ms — see §4.5 */
 
   --ease-out-cubic:        cubic-bezier(0.33, 1, 0.68, 1);
   --ease-out-back:         cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-expo:         cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-cubic:     cubic-bezier(0.65, 0, 0.35, 1);
   --ease-coin-decel:       cubic-bezier(0.05, 0.7, 0.1, 1.0);
+
+  /* Symbol palette tokens */
+  --color-sym-wild:          oklch(88% 0.19 92);
+  --color-sym-p1:            oklch(88% 0.19 92);
+  --color-sym-scatter-inner: oklch(96% 0.02 230);
+  --color-sym-scatter-arc:   oklch(52% 0.18 240);
+  --color-sym-p2:            oklch(82% 0.08 300);
+  --color-sym-p3:            oklch(77% 0.05 235);
+  --color-sym-p4:            oklch(70% 0.12 76);
+  --color-sym-l1:            oklch(88% 0.19 88);
+  --color-sym-l2:            oklch(72% 0.18 55);
+  --color-sym-l3:            oklch(60% 0.12 56);
+  --color-sym-l4:            oklch(46% 0.10 68);
+
+  /* Typography scale tokens (em, based on 16px root) */
+  --text-win-sm:      2.0em;   /* 32px */
+  --text-win-md:      3.5em;   /* 56px */
+  --text-win-lg:      7.5em;   /* 120px — PDD §9.1 Big Win min */
+  --text-win-xl:      9.0em;   /* 144px */
+  --text-win-2xl:    12.5em;   /* 200px */
+  --text-hud-value:   1.375em; /* 22px */
+  --text-hud-label:   0.875em; /* 14px */
+  --text-btn:         1.0em;   /* 16px */
+  --text-symbol:      0.8125em;/* 13px */
+  --text-free:        2.5em;   /* 40px */
+  --text-mult-mid:    3.25em;  /* 52px */
+  --text-mult-max:    4.5em;   /* 72px */
+  --text-cascade:     2.25em;  /* 36px */
+  --text-dialog-title:1.75em;  /* 28px */
+  --text-dialog-body: 1.125em; /* 18px */
+  --text-counter:     1.5em;   /* 24px */
 }
 ```
 
@@ -160,7 +191,7 @@
 |------|-------|------:|--------------------:|:----:|:-------------------:|:-----------------:|
 | WIN 數字 Small | `--text-win-sm` | 32px | 2.0em | 700 | 0.02em | 1.2 |
 | WIN 數字 Medium | `--text-win-md` | 56px | 3.5em | 700 | 0.01em | 1.1 |
-| WIN 數字 Big | `--text-win-lg` | 96px | 6.0em | 700 | 0em | 1.0 |
+| WIN 數字 Big | `--text-win-lg` | 120px | 7.5em | 700 | 0em | 1.0 |
 | WIN 數字 Mega | `--text-win-xl` | 144px | 9.0em | 700 | -0.01em | 1.0 |
 | WIN 數字 Jackpot | `--text-win-2xl` | 200px | 12.5em | 700 | -0.02em | 1.0 |
 | HUD 主要數值 | `--text-hud-value` | 22px | 1.375em | 600 | 0.02em | 1.4 |
@@ -203,7 +234,7 @@
 
 | 符號 | 主色 Token | 輔色 Token | 外光暈 | Bloom 半徑 | 陰影 |
 |------|-----------|-----------|-------|:----------:|------|
-| Wild（Divine Lightning）| `--color-gold-divine` | `--color-arc-white` | 白金放射光，半徑 24px | 16px | drop-shadow(0 4px 12px rgba(255,215,0,0.6)) |
+| Wild（Divine Lightning）| `--color-sym-wild` | `--color-arc-white` | 白金放射光（`--color-gold-divine`），半徑 24px | 16px | drop-shadow(0 4px 12px rgba(255,215,0,0.6)) |
 | Scatter | `--color-arc-white` | `--color-sym-scatter-arc` | 藍白電弧光，半徑 20px | 14px | drop-shadow(0 4px 16px rgba(26,110,191,0.7)) |
 | P1 Zeus | `--color-sym-p1` | `--color-gold-primary` | 帝王金放射光，半徑 18px | 12px | drop-shadow(0 3px 10px rgba(255,215,0,0.5)) |
 | P2 Pegasus | `--color-sym-p2` | `--color-purple-zeus` | 紫金柔光，半徑 14px | 8px | drop-shadow(0 3px 8px rgba(212,187,255,0.4)) |
@@ -398,7 +429,7 @@
 | MAX WIN 30,000× 金幣雨 | 2000 個 | 600 個 |
 | **絕對瞬時上限** | **500 個** | **200 個** |
 
-> **特殊例外**：FG Bonus ×100 特殊演出期間例外允許桌面最高 3000 粒子（3s 短時爆發，對齊 PDD §14.2「3000+ 粒子」規格，由效能測試驗證後可調整）。MAX WIN 金幣雨允許 2000 粒子（2s 爆發）。其餘場景須嚴格遵守 500 粒子絕對瞬時上限。
+> **特殊例外**：FG Bonus ×100 特殊演出期間例外允許桌面最高 3000 粒子 / 行動最高 800 粒子（3s 短時爆發，對齊 PDD §14.2「3000+ 粒子」規格，由效能測試驗證後可調整）。MAX WIN 金幣雨允許桌面 2000 粒子 / 行動 600 粒子（2s 爆發）。其餘場景須嚴格遵守桌面 500 / 行動 200 粒子絕對瞬時上限。
 
 > 超出上限時，採用「舊粒子提前 fade-out」回收策略，禁止拒絕新粒子生成。
 
@@ -496,7 +527,7 @@
 | 平台 | 上 | 下 | 左 | 右 |
 |------|:-:|:-:|:-:|:-:|
 | 桌面（1920×1080）| 20px | 20px | 20px | 20px |
-| iOS 橫屏（含 Home Indicator）| 20px | 54px | 44px | 44px |
+| iOS 橫屏（含 Home Indicator）| 34px | 34px | 44px | 44px |
 | iOS 直屏（含動態島）| 58px | 34px | 0px | 0px |
 | Android 橫屏 | 20px | 48px | 32px | 32px |
 
@@ -559,6 +590,8 @@ Animation: 1.5s ease-in-out infinite（持續至 FG 結束）
 ```
 
 ### 7.4 Thunder Blessing 觸發全域色彩動畫
+
+> **時序基準**：以引爆開始（PDD §4.3 步驟3，Scatter 落定後約 0.8s 後 SC 標記轉換完成）為 t=0，非 Scatter 落盤時刻。
 
 | 時序 | 效果 | 精確值 |
 |------|------|--------|
@@ -751,7 +784,7 @@ assets/
 
 - [ ] 桌面 60fps 穩定（Chrome DevTools Performance，無 frame drop > 5ms）
 - [ ] 行動裝置 30fps 穩定（Cascade 消除 + 視差最差情況下）
-- [ ] 全盤粒子數在桌面不超過 500 個瞬時上限（FG Bonus ×100 演出期間例外允許最高 3000 個，MAX WIN 例外 2000 個），行動不超過 200 個
+- [ ] 全盤粒子數在桌面不超過 500 個瞬時上限（FG Bonus ×100 例外最高 3000 個，MAX WIN 例外 2000 個）；行動不超過 200 個（FG Bonus ×100 例外 800 個，MAX WIN 例外 600 個）
 - [ ] Spine atlas 紋理已壓縮（Crunch 或 ETC2/ASTC for mobile）
 
 #### 視覺正確性
