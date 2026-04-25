@@ -345,6 +345,32 @@ C4Context
 
 ---
 
+### 5.5.1 Free Game 斷線恢復（P1）
+
+**REQ-ID：** US-FGREC-001（對應 US-FGAM-001 斷線恢復情境）
+
+**User Story：**
+> 作為 **玩家（Max）**，當我的 FG 進行中連線中斷並重新連線時，我希望系統自動還原我的 FG 進度（倍率、閃電標記、Bonus 倍數），讓我從中斷點繼續遊戲，而不是損失正在進行的 FG。
+
+**優先度：** P1（Should Have）
+**關聯 BRD 目標：** BR-05
+
+**Acceptance Criteria：**
+
+| REQ-ID / AC# | Given（前提） | When（行動） | Then（結果） | 測試類型 |
+|--------------|-------------|------------|------------|---------|
+| US-FGREC-001 / AC-1 | 玩家 FG 進行中（fg_in_progress = true）連線中斷，JWT 仍在有效期內 | 玩家重新連線並送出 reconnect / spin 請求 | 後端從 Redis player_sessions 讀取還原 FG 狀態（fg_multiplier、lightning_marks、fg_bonus_mult），回傳 pending FG resume response | Integration |
+| US-FGREC-001 / AC-2 | FG 狀態已還原（fg_multiplier、lightning_marks、fg_bonus_mult 均正確） | 前端收到 pending FG resume response | 前端從中斷點繼續播放 FG 動畫，不重置倍率，Lightning Mark 標記位置正確顯示 | E2E |
+| US-FGREC-001 / AC-3 | 玩家 JWT 已過期（reconnect 時 token invalid） | 玩家嘗試重新連線 | 後端返回 401 Unauthorized，不允許恢復 FG；FG 狀態不清除（等待有效 JWT 後可再恢復）| Unit |
+| US-FGREC-001 / AC-4 | 玩家 FG 未在進行中（fg_in_progress = false） | 玩家重新連線 | 後端不觸發 FG 恢復流程，正常初始化 session | Unit |
+
+**邊界條件：**
+- Redis player_sessions 保留 FG 狀態至 FG 正式結束（Coin Toss Tails 或 buyFG 5 回合完成）
+- FG 結束後 fg_in_progress 設為 false，fg_multiplier / lightning_marks / fg_bonus_mult 清除
+- 斷線期間 FG 結算不自動執行，必須等玩家重新連線後繼續正常 Coin Toss 流程
+
+---
+
 ### 5.6 Extra Bet 額外投注（P0）
 
 **REQ-ID：** US-EXBT-001（對應 BRD §3 BR-06）
@@ -712,6 +738,7 @@ stateDiagram-v2
 | `slot_rtp_deviation` | Gauge | 即時 RTP 偏差監控（每 1 萬 spin 計算一次）| 偏差 > 2% |
 | `slot_buy_feature_count` | Counter | Buy Feature 購買次數 | — |
 | `slot_max_win_hit_count` | Counter | 達到 30,000×（Main Game）或 90,000×（EBBuyFG）上限次數 | — |
+| `toolchain_run_status` | Counter | 記錄每次工具鏈執行結果（label: step=build_config/engine_generator/verify, result=pass/fail）| — |
 
 #### 7.7.3 Distributed Tracing 需求
 
@@ -730,6 +757,8 @@ stateDiagram-v2
 | RTPAnomaly | slot_rtp_deviation > 2%（每 1 萬 spin）| P1 | PagerDuty + Slack | 回應 15 分鐘 |
 | DiskSpaceWarning | 磁碟使用率 > 80% | P3 | Slack | 回應 4 小時 |
 | FGHighLatency | FG sequence P99 > 800ms 持續 3 分鐘 | P2 | Slack | 回應 30 分鐘 |
+| ToolchainBuildFail | build_config.js 執行失敗 | P2 | Slack（遊戲企劃頻道）| 回應 1 小時 |
+| ToolchainGenFail | engine_generator.js 失敗或被 verify.js 攔截 | P1 | PagerDuty + Slack | 回應 30 分鐘 |
 
 #### 7.7.5 Dashboard 要求
 
@@ -967,6 +996,15 @@ stateDiagram-v2
 | `player_sessions.lightning_marks` | JSONB | — | 否 | Lightning Mark 位置陣列（FG 期間累積）| `[[0,2],[1,4]]` | 否 |
 | `player_sessions.fg_multiplier` | INTEGER | — | 否 | 當前 FG 倍率（3/7/17/27/77）| 17 | 否 |
 | `player_sessions.fg_bonus_mult` | INTEGER | — | 否 | FG Bonus 額外倍數（1/5/20/100）| 1 | 否 |
+| `player_sessions.fg_in_progress` | BOOLEAN | — | 是 | FG 是否正在進行中（用於斷線恢復判斷）| false | 否 |
+| `buy_feature_logs.id` | UUID | — | 是 | 購買記錄唯一識別碼（PK）| "b1c2d3e4-..." | 否 |
+| `buy_feature_logs.player_id` | UUID | — | 是 | 玩家識別碼（FK → player_wallets，PII）| "p1q2r3s4-..." | 是（遮罩）|
+| `buy_feature_logs.session_id` | UUID | — | 是 | 對應 Redis session ID | "s1t2u3v4-..." | 否 |
+| `buy_feature_logs.cost_amount` | DECIMAL | 10,4 | 是 | 購買費用（= baseBet × 100 或 × 300，視 Extra Bet 開關）| 25.0000 | 否 |
+| `buy_feature_logs.extra_bet_on` | BOOLEAN | — | 是 | 購買時 Extra Bet 是否啟用 | false | 否 |
+| `buy_feature_logs.total_win` | DECIMAL | 15,4 | 是 | 整場 Buy Feature FG 最終 totalWin | 150.0000 | 否 |
+| `buy_feature_logs.session_floor_applied` | BOOLEAN | — | 是 | 是否觸發 20× baseBet 保底機制 | false | 否 |
+| `buy_feature_logs.created_at` | TIMESTAMPTZ | — | 是 | 購買時間戳（UTC）| "2026-04-26T10:00:00Z" | 否 |
 
 ### 11.3 資料品質要求
 
@@ -991,15 +1029,67 @@ stateDiagram-v2
 
 ---
 
-## 12. Open Questions
+## 12. Testing Strategy
 
-| # | 問題 | 影響範圍 | 影響層級 | 負責人 | 解決截止日 |
-|---|------|---------|---------|--------|-----------|
-| Q1 | 雷霆祝福第一擊選定的「同一種高賠符號」是純隨機選取（均等機率 P1/P2/P3/P4），還是加權偏好高賠（P1 更高機率）？此決策直接影響 TB 期望值計算與 RTP 設計。 | §5.3 雷霆祝福 AC-3、機率設計、RTP 驗收 | 高 | 遊戲企劃 | Sprint 1 前 |
-| Q2 | 前端框架最終選擇（Cocos Creator 或 PixiJS）？影響動畫 API、事件系統設計，以及 FG 序列播放實作方案。 | §5.5, §6, Rollout Plan | 高 | PM + 前端架構師 | Sprint 1 結束前 |
-| Q3 | mgFgTriggerProb（0.009624）為 Main Game 進入 Coin Toss 的判定機率（非 Coin Toss Heads 本身），但 BRD §4.4 表格及 Probability_Design.md §5 描述方式不一致（後者寫「Coin Toss 50%」）。需明確澄清哪個值控制「6 列 Cascade 後是否進入 Coin Toss 流程」。 | §5.4 Coin Toss AC-1、引擎正確性 | 高 | 遊戲企劃 + Engineering | 開發啟動前 |
-| Q4 | Paylines 26–57 的完整走法定義（rowPath）尚未在現有文件中明確列出（Probability_Design.md §TODO 標記）。缺少此定義將阻礙 Cascade 擴展後的連線計算實作。 | §5.2 Cascade AC、US-SPIN-001 | 高 | 遊戲企劃 | 開發啟動前 |
-| Q5 | Analytics 工具最終選型（Mixpanel / Amplitude / 自建）？影響 §7.8 所有 Analytics Event 的 SDK 選擇與 Payload 格式。 | §7.8 Analytics Event Map | 中 | Engineering | Beta 前 |
+### 12.1 四情境 RTP 驗收目標
+
+| 情境 | 說明 | 目標 RTP | 驗收容許範圍 |
+|------|------|---------|------------|
+| Main | 主遊戲（Extra Bet OFF，Buy Feature OFF）| 97.5% | 97.5% ±1%（96.5%–98.5%）|
+| ExtraBet | 額外投注開啟（Extra Bet ON，Buy Feature OFF）| 97.5% | 97.5% ±1%（96.5%–98.5%）|
+| BuyFG | 購買 FG（Extra Bet OFF，Buy Feature ON）| 97.5% | 97.5% ±1%（96.5%–98.5%）|
+| EBBuyFG | Extra Bet + Buy Feature 同時啟用 | 97.5% | 97.5% ±1%（96.5%–98.5%）|
+
+> 四情境獨立驗收，不可混算。任一情境超出 ±1% 容許即視為驗收失敗（No-Go）。
+
+### 12.2 Monte Carlo 模擬規格
+
+| 項目 | 規格 |
+|------|------|
+| 每情境模擬次數 | ≥ 100 萬次（1,000,000 spins）|
+| 執行工具 | `verify.js`（slot-engine 工具鏈自動執行）|
+| 隨機種子 | 每次執行使用不同種子，禁止固定種子（確保統計獨立性）|
+| 執行頻率 | 每次 engine_generator.js 生成後必須執行；CI/CD pipeline 中自動觸發 |
+| 輸出報告 | `verify_report.txt`，四情境各標記 ✅（通過）或 ❌（失敗）及實際 RTP 數值 |
+| 時間預算 | 四情境合計 < 30 分鐘（單機執行，工程評估值） |
+
+### 12.3 verify.js 通過標準
+
+| 驗收項目 | 通過條件 | 失敗處置 |
+|---------|---------|---------|
+| RTP 偏差 | 四情境各自實際 RTP 偏差 < ±1%（絕對值）| 禁止執行 `engine_generator.js`，觸發 ToolchainGenFail 告警 |
+| 強制 commit 禁止 | verify.js 不得以強制方式覆蓋 RTP 結果或跳過失敗情境 | 視為工具鏈安全性漏洞，立即停止並通知 Engineering Lead |
+| 輸出格式 | verify_report.txt 必須含四情境結果 | Pipeline 自動拒絕部署 |
+| 最大獎金上限 | 模擬中無單次 spin 超出 30,000× baseBet（Main/ExtraBet）或 90,000×（BuyFG/EBBuyFG）| 引擎緊急審查 |
+
+### 12.4 測試層次架構
+
+#### Unit Tests（機率邏輯層）
+
+- 測試目標：`SlotEngine.ts` 核心機率邏輯（符號生成、賠率計算、Cascade 擴展、Thunder Blessing、Coin Toss、FG 倍率序列）
+- 覆蓋率要求：SlotEngine.ts ≥ 100%；整體後端 ≥ 80%
+- 工具：Jest / Vitest
+- 關鍵測試案例：四情境符號權重邊界、Lightning Mark 累積與清除、FG Bonus 倍率分佈、session floor 觸發條件
+
+#### Integration Tests（API Endpoints + Supabase）
+
+- 測試目標：`POST /spin`（Main、ExtraBet、BuyFG、EBBuyFG 四情境）、Supabase spin_logs / player_sessions / buy_feature_logs 寫入正確性、JWT 驗證（401 測試案例）
+- 工具：Supertest / Fastify inject
+- 關鍵驗收點：spin_logs.total_win 與引擎 outcome.totalWin 100% 一致；buy_feature_logs.session_floor_applied 正確標記；player_sessions.fg_in_progress 斷線恢復正確更新
+
+#### E2E Tests（完整 spin 流程）
+
+- 測試目標：從玩家點擊 Spin 到 FullSpinOutcome 回傳的完整流程（含 FG 序列、Buy Feature、斷線恢復）
+- 工具：Playwright（API 層 E2E）+ 前端框架 E2E（待框架確認）
+- 關鍵場景：完整 FG 序列（5 回合 buyFG）、session floor 驗收（totalWin ≥ 20× baseBet）、US-FGREC-001 斷線恢復流程
+
+#### Performance Tests（P99 基準）
+
+| 場景 | P99 目標 | 工具 |
+|------|---------|------|
+| 基礎 Spin（無 FG）| < 500ms @ 100 RPS | k6 / Gatling |
+| FG 完整序列（buyFG 5 回合）| < 800ms @ 100 RPS | k6 / Gatling |
+| Monte Carlo 四情境合計 | < 30 分鐘 | verify.js 計時 |
 
 ---
 
@@ -1180,3 +1270,17 @@ CREATE TABLE user_consents (
 | A11y-08 | 錯誤訊息清楚識別（「餘額不足」、「JWT 過期」等錯誤有文字描述）| 3.3.1 / 3.3.3 | P1 |
 | A11y-09 | 避免使用高頻閃爍元素（Cascade 動畫、Lightning Mark 特效 < 3Hz 閃爍限制）| 2.3.1 | P0 |
 | A11y-10 | 支援減少動態效果（prefers-reduced-motion：Cascade 動畫替換為靜態過渡）| 2.3.3 | P1 |
+
+---
+
+## 19. Open Questions（未決問題）
+
+> 原 §12 內容移至此處保留，待各問題解決後更新狀態。
+
+| # | 問題 | 影響範圍 | 影響層級 | 負責人 | 解決截止日 |
+|---|------|---------|---------|--------|-----------|
+| Q1 | 雷霆祝福第一擊選定的「同一種高賠符號」是純隨機選取（均等機率 P1/P2/P3/P4），還是加權偏好高賠（P1 更高機率）？此決策直接影響 TB 期望值計算與 RTP 設計。 | §5.3 雷霆祝福 AC-3、機率設計、RTP 驗收 | 高 | 遊戲企劃 | Sprint 1 前 |
+| Q2 | 前端框架最終選擇（Cocos Creator 或 PixiJS）？影響動畫 API、事件系統設計，以及 FG 序列播放實作方案。 | §5.5, §6, Rollout Plan | 高 | PM + 前端架構師 | Sprint 1 結束前 |
+| Q3 | mgFgTriggerProb（0.009624）為 Main Game 進入 Coin Toss 的判定機率（非 Coin Toss Heads 本身），但 BRD §4.4 表格及 Probability_Design.md §5 描述方式不一致（後者寫「Coin Toss 50%」）。需明確澄清哪個值控制「6 列 Cascade 後是否進入 Coin Toss 流程」。 | §5.4 Coin Toss AC-1、引擎正確性 | 高 | 遊戲企劃 + Engineering | 開發啟動前 |
+| Q4 | Paylines 26–57 的完整走法定義（rowPath）尚未在現有文件中明確列出（Probability_Design.md §TODO 標記）。缺少此定義將阻礙 Cascade 擴展後的連線計算實作。 | §5.2 Cascade AC、US-SPIN-001 | 高 | 遊戲企劃 | 開發啟動前 |
+| Q5 | Analytics 工具最終選型（Mixpanel / Amplitude / 自建）？影響 §7.8 所有 Analytics Event 的 SDK 選擇與 Payload 格式。 | §7.8 Analytics Event Map | 中 | Engineering | Beta 前 |
