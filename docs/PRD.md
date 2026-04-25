@@ -29,7 +29,7 @@
 
 ## 1. Executive Summary
 
-Thunder Blessing 是一款希臘神話主題的高爆發老虎機遊戲，以「滾輪持續擴展 × 符號鍊式消除 × 閃電能量蓄積」為核心遊戲循環，面向 B2B 線上博弈平台市場。核心問題在於：現有市場缺乏工程可執行等級的完整 GDD，導致前後端規格不一致、機率錯誤難以追蹤。本產品以 RTP 97.5%（四情境獨立驗收）、最大獎金 30,000× baseBet 為設計目標，通過 Excel 驅動工具鏈（禁止人工調參）確保規格即文件即程式，供前後端工程師、遊戲企劃與 QA 均能 100% 按規格交付。
+Thunder Blessing 是一款希臘神話主題的高爆發老虎機遊戲，以「滾輪持續擴展 × 符號鍊式消除 × 閃電能量蓄積」為核心遊戲循環，面向 B2B 線上博弈平台市場。核心問題在於：現有市場缺乏工程可執行等級的完整 GDD，導致前後端規格不一致、機率錯誤難以追蹤。本產品以 RTP 97.5%（四情境獨立驗收）、最大獎金 30,000× baseBet（Main Game）為設計目標；啟用 Extra Bet + Buy Feature 情境下最大獎金上限為 90,000× baseBet。通過 Excel 驅動工具鏈（禁止人工調參）確保規格即文件即程式，供前後端工程師、遊戲企劃與 QA 均能 100% 按規格交付。
 
 ---
 
@@ -217,7 +217,7 @@ C4Context
 
 | REQ-ID / AC# | Given（前提） | When（行動） | Then（結果） | 測試類型 |
 |--------------|-------------|------------|------------|---------|
-| US-SPIN-001 / AC-1 | 玩家已登入，餘額 ≥ baseBet，Extra Bet OFF | 點擊 Spin | API 回傳完整 FullSpinOutcome，P99 ≤ 500ms，盤面 5×3 初始顯示 | E2E |
+| US-SPIN-001 / AC-1 | 玩家已登入，餘額 ≥ baseBet，Extra Bet OFF，無 FG 觸發 | 點擊 Spin | API 回傳完整 FullSpinOutcome，基礎 Spin P99 ≤ 500ms，盤面 5×3 初始顯示 | E2E |
 | US-SPIN-001 / AC-2 | 玩家餘額 < baseBet | 點擊 Spin | 顯示「餘額不足」錯誤，不發起 spin request | Unit |
 | US-SPIN-001 / AC-3 | JWT Token 過期或缺失 | 點擊 Spin | 返回 HTTP 401，顯示「請重新登入」提示 | Integration |
 | US-SPIN-001 / AC-4 | 玩家正在進行一次 spin | 再次點擊 Spin | Spin 按鈕鎖定，忽略重複請求，不重複扣款 | E2E |
@@ -247,7 +247,7 @@ C4Context
 | REQ-ID / AC# | Given（前提） | When（行動） | Then（結果） | 測試類型 |
 |--------------|-------------|------------|------------|---------|
 | US-CASC-001 / AC-1 | 本輪 spin 有中獎連線，當前 rows = 3 | 引擎執行 Cascade | 中獎位置生成 Lightning Mark，消除符號，rows 擴展至 4，連線數更新為 33 條 | Unit |
-| US-CASC-001 / AC-2 | 連續中獎，rows 已達 6（MAX_ROWS） | 再次觸發 Cascade | rows 維持 6，連線數保持 57 條，觸發 mgFgTriggerProb（0.009624）判定 Coin Toss | Unit |
+| US-CASC-001 / AC-2 | 連續中獎，rows 已達 6（MAX_ROWS） | 再次觸發 Cascade | rows 維持 6，連線數保持 57 條，Cascade 繼續消除符號並累積獎金（Coin Toss 判定由 US-COIN-001 處理） | Unit |
 | US-CASC-001 / AC-3 | Main Game：新 SPIN 開始前 | 初始化盤面 | Lightning Mark 清除，rows 重置為 3，連線數重置為 25 | Unit |
 | US-CASC-001 / AC-4 | Cascade 步驟中同一格多次中獎 | 計算獎金 | 同一連線只計最高獎金，不重複計算 | Unit |
 | US-CASC-001 / AC-5 | Cascade 深度測試 | 引擎執行 3 次以上連鎖消除 | 每步 CascadeStep 正確記錄 grid、wins、lightningMarks 位置 | Integration |
@@ -330,11 +330,12 @@ C4Context
 | REQ-ID / AC# | Given（前提） | When（行動） | Then（結果） | 測試類型 |
 |--------------|-------------|------------|------------|---------|
 | US-FGAM-001 / AC-1 | FG 剛觸發（Heads，倍率 ×3） | 第一回合 FG Spin | 以 FG 符號權重（freeGame）生成盤面，Lightning Mark 從主遊戲繼承，獎金 × 3 | Unit |
-| US-FGAM-001 / AC-2 | 倍率 ×3，Coin Toss Heads（機率 0.68） | FG Spin 結束後 | 倍率升至 ×7，繼續下一回合 | Unit |
-| US-FGAM-001 / AC-3 | 倍率 ×77，Coin Toss Heads（機率 0.40） | FG Spin 結束後 | 倍率維持 ×77（已最高），繼續下一回合 | Unit |
-| US-FGAM-001 / AC-4 | 任意 FG 回合，Coin Toss Tails | FG Spin 結束後 | FG 結束，Lightning Mark 清除，回到主遊戲，totalWin 已計算 | Unit |
+| US-FGAM-001 / AC-2 | 第 2 次 FG Coin Toss Heads（coinProbs[1] = 0.68，入場 coinProbs[0] = 0.80 已在 BR-04 完成），當前倍率 ×3 | 下一回合 FG Spin 開始前 | 倍率升至 ×7，繼續下一回合 | Unit |
+| US-FGAM-001 / AC-3 | 倍率 ×77，Coin Toss Heads（機率 0.40） | 下一回合 FG Spin 開始前 | 倍率維持 ×77（已最高），繼續下一回合 | Unit |
+| US-FGAM-001 / AC-4 | 任意 FG 回合，Coin Toss Tails | 下一回合 FG Spin 開始前 | FG 結束，Lightning Mark 清除，回到主遊戲，totalWin 已計算 | Unit |
 | US-FGAM-001 / AC-5 | FG 全程（buyFG mode，5 回合保證 Heads） | 執行完整 FG 序列 | FullSpinOutcome.fgSpins 包含 5 個 FGSpin，每個 multiplier 依序為 3/7/17/27/77 | Integration |
 | US-FGAM-001 / AC-6 | FG 觸發時 | 抽取 FG Bonus 倍數 | 從 fgBonus 表（×1/×5/×20/×100，權重 900/80/15/5）抽取一個倍數，套用於整局 FG 總獎金 | Unit |
+| US-FGAM-001 / AC-7 | 當前 FG 倍率 ×77 | 下一回合 FG Spin 開始前 Coin Toss Tails | FG 立即結束，所有 Lightning Mark 清除（`grid.lightningMarks = []`），totalWin 回傳至 FullSpinOutcome，回到主遊戲 | Unit |
 
 **邊界條件：**
 - FG Bonus ×100（機率 5/1000 = 0.5%）：整局 FG 總獎金 × 100，不超過 30,000× 上限
@@ -520,13 +521,40 @@ C4Context
 |--------------|-------------|------------|------------|---------|
 | US-APIV-001 / AC-1 | Main Game，FG 觸發（×3→×7→Tails 停止）| POST /api/v1/spin | 一次 response 包含 baseSpins、entryCoinToss、fgSpins（2 個 FGSpin），totalWin 已計算 | E2E |
 | US-APIV-001 / AC-2 | buyFG mode（5 回合保證）| POST /api/v1/spin | fgSpins 陣列包含 5 個 FGSpin，multiplier 依序 3/7/17/27/77 | E2E |
-| US-APIV-001 / AC-3 | spin request P99 回應時間 | 壓測（100 RPS） | P99 ≤ 500ms（含完整 FG 計算） | Performance |
+| US-APIV-001 / AC-3 | spin request P99 回應時間 | 壓測（100 RPS） | 基礎 Spin（無 FG）P99 ≤ 500ms；FG 完整序列（最多 5 回合）P99 ≤ 800ms | Performance |
 | US-APIV-001 / AC-4 | 無效 JWT Token | POST /api/v1/spin | 返回 401 Unauthorized，不執行任何遊戲邏輯 | Security |
 | US-APIV-001 / AC-5 | totalWin 計算 | 引擎輸出 FullSpinOutcome | UI 只顯示 outcome.totalWin，不得以 session.roundWin 作為入帳依據 | Unit |
 
 **邊界條件：**
 - FG 最多 5 回合（buyFG 保證），Main Game FG 最少 0 回合（Tails 直接結束）
 - 單次 response 最大 payload 估算：5 FGSpin × 6 CascadeStep × 5×6 grid ≈ 較大 JSON，需確認 Fastify 回應大小限制
+
+---
+
+### 5.13 前端動畫播放介面（P1）
+
+**REQ-ID：** US-FEND-001（對應 BRD §6.2）
+
+**User Story：**
+> 作為 **前端工程師**，我希望後端 API 回傳完整的 FullSpinOutcome JSON（含 cascadeSteps、lightningMarks、fgSpins），以便前端可以無狀態播放所有動畫序列，不需在動畫播放中途再次請求引擎。
+
+**優先度：** P1（Should Have）
+**關聯 BRD 目標：** §6.2、KPI-05
+**活動圖（Activity Diagram）：** [待生成：/gendoc-gen-diagrams] activity-frontend-animation.md
+
+**Acceptance Criteria：**
+
+| REQ-ID / AC# | Given（前提） | When（行動） | Then（結果） | 測試類型 |
+|--------------|-------------|------------|------------|---------|
+| US-FEND-001 / AC-1 | 後端回傳 FullSpinOutcome | 前端解析 response | FullSpinOutcome 包含 `cascadeSteps`（每步 grid、wins、lightningMarks）、`lightningMarks`（最終位置）、`fgSpins`（FGSpin 陣列，含 multiplier 與每 FG 回合的 cascadeSteps）| Unit |
+| US-FEND-001 / AC-2 | FG 觸發且有 3 回合 fgSpins | 前端依序播放 fgSpins | 前端按 fgSpins 陣列順序播放每回合動畫（Cascade → Lightning Mark → Coin Toss），不需額外 API 請求 | E2E |
+| US-FEND-001 / AC-3 | FullSpinOutcome.totalWin 已計算 | 前端顯示獎金 | UI 顯示 outcome.totalWin 數值，不得以前端累加各 step win 的方式計算 totalWin | Unit |
+| US-FEND-001 / AC-4 | 無 FG 觸發的普通 Spin | 前端播放 baseSpins | `fgSpins` 為空陣列（`[]`），前端正確處理空 fgSpins 不播放 FG 動畫 | Unit |
+| US-FEND-001 / AC-5 | FullSpinOutcome 欄位格式 | OpenAPI spec 驗證 | FullSpinOutcome JSON schema 符合 OpenAPI spec，所有必填欄位（totalWin、cascadeSteps、fgSpins、lightningMarks）均存在且型別正確 | Integration |
+
+**邊界條件：**
+- 前端在動畫播放中不可修改 lightningMarks 位置（只讀）
+- fgSpins 為空陣列時，FG 相關動畫模組不得初始化，以免報錯
 
 ---
 
@@ -607,8 +635,8 @@ stateDiagram-v2
 | 指標 | 目標值 | 量測方式 | 降級策略 |
 |------|--------|---------|---------|
 | API 回應時間 P50 | < 150ms | APM（Datadog 或同等工具） | Redis session cache |
-| API 回應時間 P99 | < 500ms @ 100 RPS | APM 壓測 | Circuit Breaker + 降級模式 |
-| FG 完整序列（5 回合）單次往返 P99 | < 800ms | APM 壓測（buyFG 場景） | 非同步預計算 |
+| API 回應時間 P99（基礎 Spin，無 FG）| < 500ms @ 100 RPS | APM 壓測 | Circuit Breaker + 降級模式 |
+| FG 完整序列（最多 5 回合）單次往返 P99 | < 800ms @ 100 RPS | APM 壓測（buyFG 場景） | 非同步預計算 |
 | 頁面 LCP（前端） | < 2.5s | Lighthouse / RUM | CDN + 靜態資源預載 |
 | Monte Carlo 模擬（100 萬次，四情境）| < 30 分鐘 | 工具鏈計時 | 分批平行模擬 |
 
@@ -743,6 +771,8 @@ stateDiagram-v2
 | C-08 | TWD maxLevel = 320（以 engine_config.json 為準） | 技術 | BRD §5.3 |
 | C-09 | 最大獎金上限：Main Game 30,000× baseBet；Extra Bet + Buy FG 90,000× baseBet | 業務 | BRD §7 |
 | C-10 | RTP 驗收標準：100 萬次 Monte Carlo，四情境各 ±1% 容許 | 業務 | BRD §7 |
+| C-11 | 禁止 retry loop 保底：後端不得以重試 spin 方式保證特定 totalWin 結果；每次 spin 均須為獨立隨機結果 | 技術 | BRD §5.2 |
+| C-12 | 禁止 UI 層 win 計算：totalWin 唯一來源為引擎 outcome.totalWin；UI 不得自行計算、修改或覆蓋 win 數值 | 技術 | BRD §5.2 |
 
 **軟性限制（Soft Constraints）：**
 
@@ -812,7 +842,8 @@ stateDiagram-v2
 | 5xx 錯誤率 | 0%（初始）| < 1% | 立即 Rollback |
 | RTP 偏差（即時監控）| 目標 97.5% | 偏差 < ±2% | 暫停 spin，通知遊戲企劃 |
 | Buy Feature session floor 失效率 | 0% | < 0.1% | 立即停止 Buy Feature 功能，調查引擎 |
-| 最大獎金超限率（> 30,000×）| 0% | 0%（嚴格） | 立即停機，引擎緊急審查 |
+| 最大獎金超限率（> 30,000×，Main Game）| 0% | 0%（嚴格） | 立即停機，引擎緊急審查 |
+| Extra Bet + Buy FG 最大獎金超限率（> 90,000×）| 0% | 0%（嚴格） | 立即停機，引擎緊急審查 |
 
 ### 9.3 Go-No-Go Launch Criteria
 
@@ -1024,7 +1055,7 @@ stateDiagram-v2
 | US-CASC-001 | BR-02, KPI-03 | §5.2 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.2（Cascade 流程）| TC-006～TC-010 | DRAFT |
 | US-TBSC-001 | BR-03, KPI-02 | §5.3 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4（TBStep 處理）| TC-011～TC-015 | DRAFT |
 | US-COIN-001 | BR-04 | §5.4 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.5（FG 流程）| TC-016～TC-020 | DRAFT |
-| US-FGAM-001 | BR-05, KPI-02 | §5.5 | AC-1, AC-2, AC-3, AC-4, AC-5, AC-6 | 待 PDD 生成後補填 | EDD §4.5（FG 流程）, §5（BuyFG 保底）| TC-021～TC-026 | DRAFT |
+| US-FGAM-001 | BR-05, KPI-02 | §5.5 | AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7 | 待 PDD 生成後補填 | EDD §4.5（FG 流程）, §5（BuyFG 保底）| TC-021～TC-027 | DRAFT |
 | US-EXBT-001 | BR-06 | §5.6 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.3（Input extraBet flag）| TC-027～TC-031 | DRAFT |
 | US-BUYF-001 | BR-07, KPI-04 | §5.7 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §5（BuyFG 保底規則）| TC-032～TC-036 | DRAFT |
 | US-NRMS-001 | BR-08 | §5.8 | AC-1, AC-2, AC-3, AC-4 | 待 PDD 生成後補填 | EDD §3.2（Near Miss）| TC-037～TC-040 | DRAFT |
@@ -1032,6 +1063,7 @@ stateDiagram-v2
 | US-RTPV-001 | KPI-01 | §5.10 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §9（測試要求）| TC-046～TC-050 | DRAFT |
 | US-CURR-001 | §5.3 BRD | §5.11 | AC-1, AC-2, AC-3, AC-4 | 待 PDD 生成後補填 | EDD §10（幣種 Bet Range）| TC-051～TC-054 | DRAFT |
 | US-APIV-001 | KPI-05, §6.2 BRD | §5.12 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.2（單次往返 API）| TC-055～TC-059 | DRAFT |
+| US-FEND-001 | §6.2 BRD | §5.13 | AC-1, AC-2, AC-3, AC-4, AC-5 | 待 PDD 生成後補填 | EDD §4.2（FullSpinOutcome schema）| TC-060～TC-064 | DRAFT |
 
 ---
 
