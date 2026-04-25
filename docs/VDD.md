@@ -116,7 +116,7 @@
   --duration-normal:       300ms;
   --duration-slow:         600ms;
   --duration-cascade-drop: 420ms;
-  --duration-coin-flip:    2800ms; /* nominal mid-range; actual random 3000–3500ms — see §4.5 */
+  --duration-coin-flip:    3250ms; /* mid-range of 3000–3500ms; actual duration randomized per §4.5 */
 
   --ease-out-cubic:        cubic-bezier(0.33, 1, 0.68, 1);
   --ease-out-back:         cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -431,7 +431,7 @@
 | MAX WIN 30,000× 金幣雨 | 2000 個 | 600 個 |
 | **絕對瞬時上限** | **500 個** | **200 個** |
 
-> **特殊例外**：FG Bonus ×100 特殊演出期間例外允許桌面最高 3000 粒子 / 行動最高 800 粒子（3s 短時爆發，對齊 PDD §14.2「3000+ 粒子」規格，由效能測試驗證後可調整）。MAX WIN 金幣雨允許桌面 2000 粒子 / 行動 600 粒子（2s 爆發）。其餘場景須嚴格遵守桌面 500 / 行動 200 粒子絕對瞬時上限。
+> **特殊例外**：FG Bonus ×100 特殊演出期間例外允許桌面最高 3000 粒子 / 行動最高 800 粒子（3s 短時爆發，對齊 PDD §7.4「3000+ 粒子」規格，由效能測試驗證後可調整）。MAX WIN 金幣雨允許桌面 2000 粒子 / 行動 600 粒子（2s 爆發）。其餘場景須嚴格遵守桌面 500 / 行動 200 粒子絕對瞬時上限。
 
 > 超出上限時，採用「舊粒子提前 fade-out」回收策略，禁止拒絕新粒子生成。
 
@@ -689,7 +689,7 @@ symbol_[name].spine
 │   └── glow（光暈層，IK 跟隨 body）
 ├── animations
 │   ├── idle（loop: true，duration: 4s 以內）
-│   ├── win（loop: false，duration: ≤ 1.5s）
+│   ├── win（loop: false，duration: ≤ 1.8s）  // Scatter 觸發 Win 最長 1.8s；其他符號最長 1.5s（見 §3.3）
 │   └── special（loop: false，duration: ≤ 2.5s）
 └── atlas
     └── symbol_[name]_2x.atlas（2× 為主 atlas）
