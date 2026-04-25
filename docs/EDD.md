@@ -400,6 +400,12 @@ classDiagram
         +drawBonusMultiplier(weights: FGBonusWeight[]): number
     }
 
+    class BaseUseCase {
+        <<abstract>>
+        #logger: ILogger
+        +execute(input: unknown): Promise~unknown~
+    }
+
     class SpinUseCase {
         <<service>>
         +execute(request: SpinRequest): FullSpinOutcome
@@ -535,10 +541,22 @@ classDiagram
         +maxWinEBBuyFG: number
     }
 
+    class SpinEntity {
+        <<entity>>
+        +sessionId: string
+        +playerId: string
+        +baseBet: number
+        +totalWin: number
+        +cascadeSequence: CascadeSequence
+    }
+
     %% Inheritance / Realization
     SupabaseWalletRepository ..|> IWalletRepository
     SupabaseSessionRepository ..|> ISessionRepository
     RedisSessionCache ..|> ISessionCache
+    BaseUseCase <|-- SpinUseCase
+    BaseUseCase <|-- BuyFeatureUseCase
+    BaseUseCase <|-- GetSessionStateUseCase
 
     %% Composition
     FreeGameSession *-- FGRound
@@ -585,6 +603,7 @@ classDiagram
 | `IWalletRepository` | Domain/Ports | Port interface for wallet persistence | `getBalance()`, `debit()`, `credit()` | `src/domain/ports/IWalletRepository.ts` | `src/domain/ports/__tests__/IWalletRepository.test.ts` |
 | `ISessionRepository` | Domain/Ports | Port interface for session persistence | `findById()`, `save()` | `src/domain/ports/ISessionRepository.ts` | `src/domain/ports/__tests__/ISessionRepository.test.ts` |
 | `ISessionCache` | Domain/Ports | Port interface for session cache | `get()`, `set()`, `del()`, `acquireLock()` | `src/domain/ports/ISessionCache.ts` | `src/domain/ports/__tests__/ISessionCache.test.ts` |
+| `BaseUseCase` | Application | Abstract base for all use cases; provides logger and execute contract | `execute()` | `src/application/use-cases/BaseUseCase.ts` | `src/application/use-cases/__tests__/BaseUseCase.test.ts` |
 | `SpinUseCase` | Application | Wallet debit/credit, orchestrate full spin | `execute()`, `debitWallet()`, `creditWallet()` | `src/application/use-cases/SpinUseCase.ts` | `src/application/use-cases/__tests__/SpinUseCase.test.ts` |
 | `BuyFeatureUseCase` | Application | Buy Feature with guaranteed Heads×5 | `execute()`, `ensureHeads()` | `src/application/use-cases/BuyFeatureUseCase.ts` | `src/application/use-cases/__tests__/BuyFeatureUseCase.test.ts` |
 | `GetSessionStateUseCase` | Application | Retrieve current FG session state for reconnect | `execute()` | `src/application/use-cases/GetSessionStateUseCase.ts` | `src/application/use-cases/__tests__/GetSessionStateUseCase.test.ts` |
@@ -597,6 +616,7 @@ classDiagram
 | `Grid` | Domain Value Object | Immutable 5×N grid | `withCell()`, `withRows()` | `src/domain/entities/Grid.ts` | `src/domain/entities/__tests__/Grid.test.ts` |
 | `CascadeSequence` | Domain Value Object | Sequence of cascade steps + totalWin | — | `src/domain/entities/CascadeSequence.ts` | `src/domain/entities/__tests__/CascadeSequence.test.ts` |
 | `CascadeStep` | Domain Value Object | Single cascade step state snapshot | — | `src/domain/entities/CascadeStep.ts` | `src/domain/entities/__tests__/CascadeStep.test.ts` |
+| `SpinEntity` | Domain Entity | Single spin record (sessionId, playerId, baseBet, totalWin, cascadeSequence) | — | `src/domain/entities/SpinEntity.ts` | `src/domain/entities/__tests__/SpinEntity.test.ts` |
 | `FreeGameSession` | Domain Entity | FG session state (rounds, multiplier, marks) | `isComplete()` | `src/domain/entities/FreeGameSession.ts` | `src/domain/entities/__tests__/FreeGameSession.test.ts` |
 | `GameConfig` | Config | Generated game configuration | — | `src/config/GameConfig.generated.ts` | — (generated; verified by toolchain) |
 
@@ -1563,6 +1583,12 @@ All secrets are managed via **Kubernetes Secrets** (or Supabase environment vari
 | `REDIS_URL` | `thunder-secrets` | `redis-url` | Redis adapter (session cache, rate limiter) |
 | `DATABASE_URL` | `thunder-secrets` | `database-url` | Supabase client (wallet, spin_logs, fg_sessions) |
 
+**K8s ConfigMap Reference (configMapKeyRef format):**
+
+| Env Var | K8s ConfigMap Name | Key | Used By |
+|---------|--------------------|-----|---------|
+| `SUPABASE_URL` | `thunder-config` | `supabase-url` | Supabase client (public project URL; not a secret) |
+
 > **RBAC Note:** K8s RBAC restricts Secret reads to only the `thunder-api` ServiceAccount. No other service accounts or pods in the namespace may read from `thunder-secrets`.
 
 Example `secretKeyRef` usage in pod spec:
@@ -1862,14 +1888,29 @@ spec:
           env:
             - name: SUPABASE_URL
               valueFrom:
+                configMapKeyRef:
+                  name: thunder-config
+                  key: supabase-url
+            - name: SUPABASE_SERVICE_KEY
+              valueFrom:
                 secretKeyRef:
                   name: thunder-secrets
-                  key: SUPABASE_URL
+                  key: supabase-service-key
+            - name: SUPABASE_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: thunder-secrets
+                  key: supabase-jwt-secret
             - name: REDIS_URL
               valueFrom:
                 secretKeyRef:
                   name: thunder-secrets
-                  key: REDIS_URL
+                  key: redis-url
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: thunder-secrets
+                  key: database-url
 ```
 
 ### 13.2 HorizontalPodAutoscaler
