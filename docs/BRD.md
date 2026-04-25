@@ -82,7 +82,7 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 
 ### BR-04 Coin Toss 硬幣翻轉
 
-- 觸發條件：滾輪已達 MAX_ROWS（6 列）且本次 Cascade 再次成功（由 `fgTriggerProb` 控制）
+- 觸發條件：滾輪已達 MAX_ROWS（6 列）且本次 Cascade 再次成功（Main Game 使用 `mgFgTriggerProb`；Buy FG 情境使用 `fgTriggerProb`；兩者互不混用）
 - **Heads（正面）**：進入 Free Game，初始倍率 ×3
 - **Tails（反面）**：本輪 SPIN 結束，不進入 FG
 - 進入 FG 的 Coin Toss Heads 機率：Main Game = 0.80；Buy Feature = 1.00（保證）
@@ -97,7 +97,7 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
   - Tails → FG 當輪結束（保留當前倍率至 FG 結束）
 - **Coin Toss Heads 機率序列（各回合）**：[0.80, 0.68, 0.56, 0.48, 0.40]（對應倍率階段）
 - 整個 FG 期間閃電標記跨 Spin 累積不清除，FG 全部結束後才清除
-- **FG Spin 次數**：由 FG Bonus 表決定（見 §4.5）
+- **FG 總獎金額外乘數**：進入 FG 時由 FG Bonus 表隨機抽取乘數（×1/×5/×20/×100），套用於整局 FG 總獎金（見 §4.5）
 - **Buy Free Game 特例**：5 回合 Coin Toss 均保證 Heads，不受 `fgTriggerProb` 限制
 
 ### BR-06 Extra Bet（額外投注）
@@ -113,7 +113,7 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 - **費用**：100× baseBet（Extra Bet 開啟時：300× baseBet）
   - `buyCostMult: 100`，Extra Bet 疊加時再乘以 `extraBetMult: 3`
 - **效果**：直接進入 Coin Toss 流程，5 回合均保證 Heads（`entryBuy: 1.0`）
-- **保底機制**：整場 session totalWin ≥ 20× baseBet（`buyFGMinWin: 20`）
+- **保底機制**：整場 session totalWin ≥ 20× baseBet（`buyFGMinWin: 20`）；Extra Bet ON 時保底為 20 × baseBet × extraBetMult（3）= 60× baseBet
 - Buy Feature 使用獨立符號權重表（`buyFG` 權重組）
 
 ---
@@ -123,7 +123,7 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 ### §4.1 目標 RTP
 
 - **整體目標 RTP**：97.5%
-- 四情境各自獨立平衡，每情境 target RTP = 100%（引擎內部正規化後，整體對應 97.5%）
+- 各情境 target RTP 各自設計為 100%，整體產品設計目標 RTP 為 97.5%（四情境獨立平衡，非合併後正規化）
 
 | 情境 | 模式 | Extra Bet |
 |------|------|-----------|
@@ -270,16 +270,16 @@ build_config.js
     └──► ENG_TOOLS tab（驗收指標）
             │
             ▼
-        engine_generator.js
-            │
-            ▼
-        GameConfig.generated.ts（禁止手動修改）
-            │
-            ▼
         excel_simulator.js（100 萬次 Monte Carlo 模擬）
             │
             ▼
         verify.js（RTP 驗收，四情境各 ±1% 容許）
+            │  ← ⚠️ 必須通過 verify.js，才可繼續執行下方步驟
+            ▼
+        engine_generator.js
+            │
+            ▼
+        GameConfig.generated.ts（禁止手動修改）
 ```
 
 **工具鏈黃金法則**：Excel DATA tab 是唯一合法的參數定義來源。所有機率邏輯、RTP 設計、保底規則，只在 Excel 中定義。
@@ -293,6 +293,7 @@ build_config.js
 | 3 | 禁止 UI 層做任何 win 計算或修改（UI 只顯示引擎回傳的 `totalWin`）|
 | 4 | 禁止手動修改 `GameConfig.generated.ts`（需修改請從 Excel 重新執行 `engine_generator.js`）|
 | 5 | 禁止跨情境混用符號權重（四情境各自獨立，絕對不可混用）|
+| 6 | 禁止以 `session.roundWin` 作為入帳或最終顯示依據（`session.roundWin` 是動畫顯示計數器；入帳唯一依據為引擎輸出 `outcome.totalWin`）|
 
 ### §5.3 Bet Range 規格
 
@@ -301,7 +302,8 @@ build_config.js
 | USD | $0.25 | $10.00 | $0.25 |
 | TWD | TWD 10 | TWD 320 | TWD 10 |
 
-> 幣種投注範圍從 `BetRangeConfig.generated.ts` 讀取，**禁止硬編碼**。
+> 幣種投注範圍從 `BetRangeConfig.generated.ts` 讀取，**禁止硬編碼**。  
+> ⚠️ TWD 上限以 `engine_config.json`（`maxLevel: 320`）為準；若 slot-engine-EDD.md 中出現 TWD 300 的描述，以本文件（TWD 320）為準，EDD 待同步修正。
 
 ---
 
