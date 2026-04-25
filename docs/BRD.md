@@ -130,7 +130,7 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 |------|------|-----------|
 | 1 | Main Game | Off |
 | 2 | Main Game | On |
-| 3 | Buy Free Game | Off |
+| 3 | Free Game | Off |
 | 4 | Buy Free Game | On |
 
 ### §4.2 賠率表（Paytable）
@@ -357,7 +357,7 @@ build_config.js
 | KPI-03 | Cascade 連鎖消除正確率 | Unit test 100% 通過（含邊界：6 列上限、閃電標記跨步驟追蹤）|
 | KPI-04 | Buy Feature 保底 | 整場 session totalWin ≥ 20× baseBet（session 級別保底）|
 | KPI-05 | API 往返效率 | 單次 spin response 包含完整 FG 序列，≤ 1 次 API 往返 |
-| KPI-06 | 工具鏈自動化 | Excel 修改後，執行 `engine_generator.js` 即可重新生成 `GameConfig.generated.ts`，無需人工介入 |
+| KPI-06 | 工具鏈自動化 | Excel 修改後，依 §5.1 流程：`build_config.js` → `excel_simulator.js` → `verify.js`（通過後）→ `engine_generator.js`，即可重新生成 `GameConfig.generated.ts`，無需人工介入 |
 
 ---
 
