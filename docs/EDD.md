@@ -61,9 +61,9 @@ The backend is implemented in **TypeScript/Node.js** using **Fastify** as the HT
 | REQ-ID | Description | EDD Section | Implementation Component |
 |--------|-------------|-------------|--------------------------|
 | US-SPIN-001 | Base spin, P99 ≤ 500ms, 5×3 grid | §5.1, §6.1 | `SpinUseCase`, `SlotEngine.spin()` |
-| US-CASC-001 | Cascade chain elimination + Lightning Mark | §5.2, §5.3 | `CascadeEngine`, `LightningMarkTracker` |
+| US-CASC-001 | Cascade chain elimination + Lightning Mark | §5.2, §5.3 | `CascadeEngine`, `CascadeEngine` (handles Lightning Mark generation) |
 | US-TBSC-001 | Thunder Blessing Scatter dual-hit upgrade | §5.4 | `ThunderBlessingHandler` |
-| US-COIN-001 | Coin Toss Heads (p=0.80) → FG entry | §5.5 | `CoinTossEvaluator` |
+| US-COIN-001 | Coin Toss per-stage probability (coinProbs[stage]) → FG entry | §5.5 | `CoinTossEvaluator` |
 | US-FGAM-001 | Free Game ×3→×7→×17→×27→×77 multiplier sequence | §5.6 | `FreeGameOrchestrator` |
 | US-EXBT-001 | Extra Bet ×3 cost, guaranteed SC appearance | §5.7 | `ExtraBetModifier` |
 | US-BUYF-001 | Buy Feature 100× baseBet, guaranteed Heads×5, floor ≥ 20× baseBet | §5.8 | `BuyFeatureUseCase`, `SessionFloorGuard` |
@@ -362,12 +362,14 @@ graph TB
 ```mermaid
 classDiagram
     class SlotEngine {
+        <<service>>
         +spin(request: SpinRequest): FullSpinOutcome
         +generateGrid(config: GameConfig, extraBet: boolean): Grid
         -selectSymbols(weights: SymbolWeight[]): Symbol[][]
     }
 
     class CascadeEngine {
+        <<service>>
         +runCascade(grid: Grid, config: GameConfig): CascadeSequence
         +detectWinLines(grid: Grid, paylines: Payline[]): WinLine[]
         +eliminateSymbols(grid: Grid, winLines: WinLine[]): Grid
@@ -376,6 +378,7 @@ classDiagram
     }
 
     class ThunderBlessingHandler {
+        <<service>>
         +evaluate(grid: Grid, marks: LightningMarkSet, hasScatter: boolean): ThunderBlessingResult
         +applyFirstHit(grid: Grid, marks: LightningMarkSet): Grid
         +applySecondHit(grid: Grid, marks: LightningMarkSet, rng: number): Grid
@@ -383,17 +386,22 @@ classDiagram
     }
 
     class CoinTossEvaluator {
-        +evaluate(rng: number, config: CoinTossConfig): CoinTossResult
-        +isHeads(rng: number): boolean
+        <<service>>
+        +evaluate(rng: number, config: CoinTossConfig, stage: number): CoinTossResult
+        +isHeads(rng: number, prob: number): boolean
     }
+    %% stage: 0=entry(coinProbs[0]=0.80), 1=×7(0.68), 2=×17(0.56), 3=×27(0.48), 4=×77(0.40)
+    %% evaluate() performs coinProbs[stage] lookup from GameConfig to get per-stage probability
 
     class FreeGameOrchestrator {
+        <<service>>
         +runSequence(session: FreeGameSession, config: GameConfig): FGSequenceResult
         +runSingleRound(round: FGRound, config: GameConfig): FGRoundResult
         +drawBonusMultiplier(weights: FGBonusWeight[]): number
     }
 
     class SpinUseCase {
+        <<service>>
         +execute(request: SpinRequest): FullSpinOutcome
         -validateBalance(playerId: string, cost: number): void
         -debitWallet(playerId: string, cost: number): void
@@ -401,31 +409,75 @@ classDiagram
     }
 
     class BuyFeatureUseCase {
+        <<service>>
         +execute(request: BuyFeatureRequest): FullSpinOutcome
         -validateFloor(session: SpinSession, baseBet: number): void
         -ensureHeads(session: SpinSession): void
     }
 
+    class GetSessionStateUseCase {
+        <<service>>
+        +execute(sessionId: string): SpinSession
+    }
+
     class SessionFloorGuard {
+        <<service>>
         +applyFloor(session: SpinSession, baseBet: number): number
         +isFloorActive(session: SpinSession): boolean
     }
 
+    class ConcurrencyLockGuard {
+        <<service>>
+        +acquire(sessionId: string): string
+        +release(sessionId: string, lockToken: string): void
+    }
+
     class NearMissSelector {
+        <<service>>
         +select(grid: Grid, config: NearMissConfig): Grid
     }
 
     class JwtAuthGuard {
+        <<service>>
         +verify(token: string): PlayerClaims
     }
 
-    class SupabaseWalletRepository {
+    class IWalletRepository {
+        <<interface>>
         +getBalance(playerId: string): number
         +debit(playerId: string, amount: number): void
         +credit(playerId: string, amount: number): void
     }
 
+    class ISessionRepository {
+        <<interface>>
+        +findById(sessionId: string): SpinSession
+        +save(session: SpinSession): void
+    }
+
+    class ISessionCache {
+        <<interface>>
+        +get(sessionId: string): SpinSession
+        +set(sessionId: string, session: SpinSession): void
+        +del(sessionId: string): void
+        +acquireLock(sessionId: string): boolean
+    }
+
+    class SupabaseWalletRepository {
+        <<service>>
+        +getBalance(playerId: string): number
+        +debit(playerId: string, amount: number): void
+        +credit(playerId: string, amount: number): void
+    }
+
+    class SupabaseSessionRepository {
+        <<service>>
+        +findById(sessionId: string): SpinSession
+        +save(session: SpinSession): void
+    }
+
     class RedisSessionCache {
+        <<service>>
         +get(sessionId: string): SpinSession
         +set(sessionId: string, session: SpinSession): void
         +del(sessionId: string): void
@@ -433,6 +485,7 @@ classDiagram
     }
 
     class Grid {
+        <<valueobject>>
         +cells: Symbol[][]
         +rows: number
         +cols: number
@@ -441,6 +494,7 @@ classDiagram
     }
 
     class CascadeSequence {
+        <<valueobject>>
         +steps: CascadeStep[]
         +totalWin: number
         +finalGrid: Grid
@@ -449,6 +503,7 @@ classDiagram
     }
 
     class CascadeStep {
+        <<valueobject>>
         +index: number
         +grid: Grid
         +winLines: WinLine[]
@@ -458,6 +513,7 @@ classDiagram
     }
 
     class FreeGameSession {
+        <<entity>>
         +sessionId: string
         +rounds: FGRound[]
         +currentMultiplier: number
@@ -468,6 +524,7 @@ classDiagram
     }
 
     class GameConfig {
+        <<valueobject>>
         +symbols: SymbolDefinition[]
         +paylines: Payline[]
         +coinToss: CoinTossConfig
@@ -478,6 +535,19 @@ classDiagram
         +maxWinEBBuyFG: number
     }
 
+    %% Inheritance / Realization
+    SupabaseWalletRepository ..|> IWalletRepository
+    SupabaseSessionRepository ..|> ISessionRepository
+    RedisSessionCache ..|> ISessionCache
+
+    %% Composition
+    FreeGameSession *-- FGRound
+    CascadeSequence *-- CascadeStep
+
+    %% Aggregation
+    SpinEntity o-- CascadeStep
+
+    %% Association
     SlotEngine --> CascadeEngine
     SlotEngine --> ThunderBlessingHandler
     SlotEngine --> CoinTossEvaluator
@@ -485,39 +555,50 @@ classDiagram
     SlotEngine --> NearMissSelector
     SlotEngine --> GameConfig
     SpinUseCase --> SlotEngine
-    SpinUseCase --> SupabaseWalletRepository
-    SpinUseCase --> RedisSessionCache
+    SpinUseCase --> IWalletRepository
+    SpinUseCase --> ISessionCache
     SpinUseCase --> SessionFloorGuard
+    SpinUseCase --> ConcurrencyLockGuard
     BuyFeatureUseCase --> SpinUseCase
     BuyFeatureUseCase --> SessionFloorGuard
+    GetSessionStateUseCase --> ISessionRepository
     CascadeEngine --> Grid
     CascadeEngine --> CascadeSequence
-    CascadeSequence --> CascadeStep
     FreeGameOrchestrator --> FreeGameSession
     JwtAuthGuard --> SpinUseCase
+
+    %% Dependency
+    SpinUseCase ..> SupabaseWalletRepository
+    GetSessionStateUseCase ..> SupabaseSessionRepository
 ```
 
 #### Class Inventory Table
 
-| Class | Layer | Responsibility | Key Methods |
-|-------|-------|---------------|-------------|
-| `SlotEngine` | Domain | Top-level spin orchestration | `spin()`, `generateGrid()` |
-| `CascadeEngine` | Domain | Chain elimination, row expansion, Lightning Mark generation | `runCascade()`, `detectWinLines()`, `eliminateSymbols()`, `expandRows()` |
-| `ThunderBlessingHandler` | Domain | SC + mark upgrade logic (first hit + second hit) | `evaluate()`, `applyFirstHit()`, `applySecondHit()` |
-| `CoinTossEvaluator` | Domain | RNG-based Heads/Tails determination (Heads p=0.80) | `evaluate()`, `isHeads()` |
-| `FreeGameOrchestrator` | Domain | FG multiplier sequence (×3→×7→×17→×27→×77), round management | `runSequence()`, `runSingleRound()`, `drawBonusMultiplier()` |
-| `NearMissSelector` | Domain | Near-miss grid adjustment per config | `select()` |
-| `SpinUseCase` | Application | Wallet debit/credit, orchestrate full spin | `execute()`, `debitWallet()`, `creditWallet()` |
-| `BuyFeatureUseCase` | Application | Buy Feature with guaranteed Heads×5 | `execute()`, `ensureHeads()` |
-| `SessionFloorGuard` | Application | Buy Feature session floor ≥ 20× baseBet | `applyFloor()`, `isFloorActive()` |
-| `JwtAuthGuard` | Interface | JWT RS256 verification | `verify()` |
-| `SupabaseWalletRepository` | Infrastructure | PostgreSQL wallet CRUD | `getBalance()`, `debit()`, `credit()` |
-| `RedisSessionCache` | Infrastructure | Redis FG session state + concurrency lock | `get()`, `set()`, `del()`, `acquireLock()` |
-| `Grid` | Domain Value Object | Immutable 5×N grid | `withCell()`, `withRows()` |
-| `CascadeSequence` | Domain Value Object | Sequence of cascade steps + totalWin | — |
-| `CascadeStep` | Domain Value Object | Single cascade step state snapshot | — |
-| `FreeGameSession` | Domain Entity | FG session state (rounds, multiplier, marks) | `isComplete()` |
-| `GameConfig` | Config | Generated game configuration | — |
+| Class | Layer | Responsibility | Key Methods | Inferred src/ path | Inferred test/ path |
+|-------|-------|---------------|-------------|---------------------|----------------------|
+| `SlotEngine` | Domain | Top-level spin orchestration | `spin()`, `generateGrid()` | `src/domain/engine/SlotEngine.ts` | `src/domain/engine/__tests__/SlotEngine.test.ts` |
+| `CascadeEngine` | Domain | Chain elimination, row expansion, Lightning Mark generation | `runCascade()`, `detectWinLines()`, `eliminateSymbols()`, `expandRows()` | `src/domain/engine/CascadeEngine.ts` | `src/domain/engine/__tests__/CascadeEngine.test.ts` |
+| `ThunderBlessingHandler` | Domain | SC + mark upgrade logic (first hit + second hit) | `evaluate()`, `applyFirstHit()`, `applySecondHit()` | `src/domain/engine/ThunderBlessingHandler.ts` | `src/domain/engine/__tests__/ThunderBlessingHandler.test.ts` |
+| `CoinTossEvaluator` | Domain | RNG-based stage-aware Heads/Tails determination (coinProbs[stage]) | `evaluate(rng, config, stage)`, `isHeads()` | `src/domain/engine/CoinTossEvaluator.ts` | `src/domain/engine/__tests__/CoinTossEvaluator.test.ts` |
+| `FreeGameOrchestrator` | Domain | FG multiplier sequence (×3→×7→×17→×27→×77), round management | `runSequence()`, `runSingleRound()`, `drawBonusMultiplier()` | `src/domain/engine/FreeGameOrchestrator.ts` | `src/domain/engine/__tests__/FreeGameOrchestrator.test.ts` |
+| `NearMissSelector` | Domain | Near-miss grid adjustment per config | `select()` | `src/domain/engine/NearMissSelector.ts` | `src/domain/engine/__tests__/NearMissSelector.test.ts` |
+| `IWalletRepository` | Domain/Ports | Port interface for wallet persistence | `getBalance()`, `debit()`, `credit()` | `src/domain/ports/IWalletRepository.ts` | `src/domain/ports/__tests__/IWalletRepository.test.ts` |
+| `ISessionRepository` | Domain/Ports | Port interface for session persistence | `findById()`, `save()` | `src/domain/ports/ISessionRepository.ts` | `src/domain/ports/__tests__/ISessionRepository.test.ts` |
+| `ISessionCache` | Domain/Ports | Port interface for session cache | `get()`, `set()`, `del()`, `acquireLock()` | `src/domain/ports/ISessionCache.ts` | `src/domain/ports/__tests__/ISessionCache.test.ts` |
+| `SpinUseCase` | Application | Wallet debit/credit, orchestrate full spin | `execute()`, `debitWallet()`, `creditWallet()` | `src/application/use-cases/SpinUseCase.ts` | `src/application/use-cases/__tests__/SpinUseCase.test.ts` |
+| `BuyFeatureUseCase` | Application | Buy Feature with guaranteed Heads×5 | `execute()`, `ensureHeads()` | `src/application/use-cases/BuyFeatureUseCase.ts` | `src/application/use-cases/__tests__/BuyFeatureUseCase.test.ts` |
+| `GetSessionStateUseCase` | Application | Retrieve current FG session state for reconnect | `execute()` | `src/application/use-cases/GetSessionStateUseCase.ts` | `src/application/use-cases/__tests__/GetSessionStateUseCase.test.ts` |
+| `SessionFloorGuard` | Application | Buy Feature session floor ≥ 20× baseBet | `applyFloor()`, `isFloorActive()` | `src/application/guards/SessionFloorGuard.ts` | `src/application/guards/__tests__/SessionFloorGuard.test.ts` |
+| `ConcurrencyLockGuard` | Application | Redis optimistic lock acquire/release | `acquire()`, `release()` | `src/application/guards/ConcurrencyLockGuard.ts` | `src/application/guards/__tests__/ConcurrencyLockGuard.test.ts` |
+| `JwtAuthGuard` | Interface | JWT RS256 verification | `verify()` | `src/interface/auth/JwtAuthGuard.ts` | `src/interface/auth/__tests__/JwtAuthGuard.test.ts` |
+| `SupabaseWalletRepository` | Infrastructure | PostgreSQL wallet CRUD; implements IWalletRepository | `getBalance()`, `debit()`, `credit()` | `src/infrastructure/repositories/SupabaseWalletRepository.ts` | `src/infrastructure/repositories/__tests__/SupabaseWalletRepository.test.ts` |
+| `SupabaseSessionRepository` | Infrastructure | PostgreSQL session CRUD; implements ISessionRepository | `findById()`, `save()` | `src/infrastructure/repositories/SupabaseSessionRepository.ts` | `src/infrastructure/repositories/__tests__/SupabaseSessionRepository.test.ts` |
+| `RedisSessionCache` | Infrastructure | Redis FG session state + concurrency lock; implements ISessionCache | `get()`, `set()`, `del()`, `acquireLock()` | `src/infrastructure/cache/RedisSessionCache.ts` | `src/infrastructure/cache/__tests__/RedisSessionCache.test.ts` |
+| `Grid` | Domain Value Object | Immutable 5×N grid | `withCell()`, `withRows()` | `src/domain/entities/Grid.ts` | `src/domain/entities/__tests__/Grid.test.ts` |
+| `CascadeSequence` | Domain Value Object | Sequence of cascade steps + totalWin | — | `src/domain/entities/CascadeSequence.ts` | `src/domain/entities/__tests__/CascadeSequence.test.ts` |
+| `CascadeStep` | Domain Value Object | Single cascade step state snapshot | — | `src/domain/entities/CascadeStep.ts` | `src/domain/entities/__tests__/CascadeStep.test.ts` |
+| `FreeGameSession` | Domain Entity | FG session state (rounds, multiplier, marks) | `isComplete()` | `src/domain/entities/FreeGameSession.ts` | `src/domain/entities/__tests__/FreeGameSession.test.ts` |
+| `GameConfig` | Config | Generated game configuration | — | `src/config/GameConfig.generated.ts` | — (generated; verified by toolchain) |
 
 ### 4.5.3 Object Diagram — Example Spin State
 
@@ -958,8 +1039,10 @@ SlotEngine.spin(request):
            - if SC present AND lightningMarks > 0: applyFirstHit(); if RNG < tbSecondHit: applySecondHit()
            - continue loop after upgrade
         viii.cascadeDepth++
-     c. if rows = 6 AND lastCascadeHadWin: evaluateCoinToss()
-  4. if CoinToss = Heads: runFGSequence()
+     c. if rows = 6 AND lastCascadeHadWin: evaluateCoinToss(stage)
+           - stage is the current FG multiplier index (0=entry p=0.80, 1=×7 p=0.68, 2=×17 p=0.56, 3=×27 p=0.48, 4=×77 p=0.40)
+           - CoinTossEvaluator.evaluate(rng, config, stage) looks up coinProbs[stage] from GameConfig
+  4. if CoinToss = Heads: runFGSequence(); advance stage by 1 for next Coin Toss in sequence
   5. computeTotalWin() = mainCascadeWin + fgWin (× fgMultiplier × bonusMultiplier)
   6. enforce maxWin cap (30,000× main; 90,000× EB+BuyFG)
   7. return FullSpinOutcome
@@ -1418,6 +1501,33 @@ COMMIT;
 - Expired tokens → HTTP 401 with `code: "UNAUTHORIZED"`
 - Tokens are never stored; only the public key is held by the backend
 
+**Token TTLs:**
+
+| Token Type | TTL | Notes |
+|------------|-----|-------|
+| Access Token | 3600s (1 hour) | Supabase default; configurable via Supabase Auth settings |
+| Refresh Token | 604800s (7 days) | Rotated on each refresh; single-use |
+
+**Role Definitions:**
+
+| Role | Description |
+|------|-------------|
+| `player` | End user; can spin, view own session/balance |
+| `operator` | Game designer / admin; can read aggregate stats, manage config |
+| `service_role` | Backend service account; full DB access via RLS bypass |
+
+**Role × Permission × Endpoint Matrix:**
+
+| Endpoint | `player` | `operator` | `service_role` | Notes |
+|----------|----------|------------|----------------|-------|
+| `POST /v1/spin` | ✅ | ❌ | ✅ | Players and service role only |
+| `GET /v1/session/:sessionId` | ✅ (own) | ❌ | ✅ | Players see own sessions only (RLS) |
+| `GET /v1/config` | ✅ | ✅ | ✅ | Public bet/currency config |
+| `GET /health` | ✅ | ✅ | ✅ | No auth required |
+| `GET /ready` | ✅ | ✅ | ✅ | No auth required |
+| `GET /v1/admin/stats` | ❌ | ✅ | ✅ | Operator analytics only |
+| Direct DB (spin_logs, wallets) | ❌ | ❌ | ✅ | service_role bypasses RLS |
+
 ### 8.2 OWASP Top 10 Mitigations
 
 | OWASP | Threat | Mitigation |
@@ -1443,6 +1553,27 @@ All secrets are managed via **Kubernetes Secrets** (or Supabase environment vari
 | `SUPABASE_JWT_SECRET` (public key) | K8s ConfigMap | On key rotation |
 | `REDIS_URL` | K8s Secret | On credential change |
 | `DATABASE_URL` | K8s Secret | 90 days |
+
+**K8s Secret Path Reference (secretKeyRef format):**
+
+| Secret Name | K8s Secret Name | Key | Used By |
+|-------------|-----------------|-----|---------|
+| `SUPABASE_SERVICE_KEY` | `thunder-secrets` | `supabase-service-key` | API service (Supabase client init) |
+| `SUPABASE_JWT_SECRET` | `thunder-secrets` | `supabase-jwt-secret` | Auth middleware (JWT public key verification) |
+| `REDIS_URL` | `thunder-secrets` | `redis-url` | Redis adapter (session cache, rate limiter) |
+| `DATABASE_URL` | `thunder-secrets` | `database-url` | Supabase client (wallet, spin_logs, fg_sessions) |
+
+> **RBAC Note:** K8s RBAC restricts Secret reads to only the `thunder-api` ServiceAccount. No other service accounts or pods in the namespace may read from `thunder-secrets`.
+
+Example `secretKeyRef` usage in pod spec:
+```yaml
+env:
+  - name: SUPABASE_SERVICE_KEY
+    valueFrom:
+      secretKeyRef:
+        name: thunder-secrets
+        key: supabase-service-key
+```
 
 **No secrets in source code, `.env` files committed to git, or environment variable logs.**
 
@@ -1806,11 +1937,19 @@ Thunder_Config.xlsx
          ▼
     engine_config.json
          │
+    excel_simulator.js
+         │  Runs 100万次 (1,000,000) Monte Carlo simulations:
+         │  Writes results to Thunder_Config.xlsx:
+         │    → SIMULATION tab (raw RTP, win-frequency, max-win data)
+         │    → DESIGN_VIEW tab (formatted summary for Game Designer review)
+         │
     verify.js ←── HARD GATE (must PASS before next step)
-         │  Runs 1,000,000 Monte Carlo simulations per scenario:
+         │  Reads SIMULATION tab output from excel_simulator.js
+         │  Checks: RTP ±1% tolerance for all 4 scenarios
          │  [Main, EB, BuyFG, EB+BuyFG]
-         │  Checks: RTP ±1%, max win cap, no floor violations
+         │  Checks: max win cap, no floor violations
          │  Output: PASS (all 4 green) or FAIL (with error report)
+         │  (only proceeds if PASS)
          │
     engine_generator.js ←── Only runs after verify.js PASS
          │  Generates TypeScript from verified config:
@@ -1827,26 +1966,50 @@ Thunder_Config.xlsx
 - Emit `engine_config.json` with schema version tag
 - Log: `[build_config] engine_config.json written (schema v{X})`
 
-### 14.3 verify.js Responsibilities
+### 14.3 excel_simulator.js Responsibilities
 
-- Load `engine_config.json`
+`excel_simulator.js` runs immediately after `build_config.js` emits `engine_config.json` and **before** `verify.js` runs. It bridges the simulation results back into the Excel workbook so Game Designers can review outcomes in a familiar spreadsheet environment.
+
+**Responsibilities:**
+
+- Load `engine_config.json` (emitted by `build_config.js`)
+- Execute **100万次 (1,000,000) Monte Carlo spin simulations** for each of the 4 scenarios (Main, EB, BuyFG, EB+BuyFG) using the same RNG interface as the production engine
+- Write simulation output back to `Thunder_Config.xlsx` in two tabs:
+  - **SIMULATION tab**: Raw per-scenario data: actual RTP, win-frequency distribution, max win observed, session floor compliance rate, FG trigger rate, Coin Toss Heads rate per stage
+  - **DESIGN_VIEW tab**: Human-readable summary table formatted for Game Designer review (scenario name, target RTP, actual RTP, delta, PASS/FAIL status per scenario)
+- Does **not** make a PASS/FAIL decision — that is `verify.js`'s responsibility
+- Log: `[excel_simulator] Simulation complete. Results written to Thunder_Config.xlsx (SIMULATION, DESIGN_VIEW tabs)`
+
+**Position in pipeline:**
+
+```
+build_config.js → engine_config.json
+     ↓
+excel_simulator.js (100万次 Monte Carlo → SIMULATION tab + DESIGN_VIEW tab)
+     ↓
+verify.js (reads SIMULATION output, checks ±1% tolerance)
+     ↓ (only if PASS)
+engine_generator.js → GameConfig.generated.ts
+```
+
+### 14.4 verify.js Responsibilities
+
+- Load `engine_config.json` and read SIMULATION tab results written by `excel_simulator.js`
 - For each of 4 scenarios (Main, EB, BuyFG, EB+BuyFG):
-  - Run 1,000,000 Monte Carlo spin simulations using the config
-  - Compute: actual RTP, max win observed, session floor compliance rate
-  - Assert: `|actual_RTP - target_RTP| <= 0.01` (±1%)
-  - Assert: `max_win_observed <= max_win_cap_configured`
-  - Assert: Buy Feature floor applied correctly in all BuyFG simulations
+  - Validate: `|actual_RTP - target_RTP| <= 0.01` (±1%)
+  - Validate: `max_win_observed <= max_win_cap_configured`
+  - Validate: Buy Feature floor applied correctly in all BuyFG simulations
 - Output on PASS: `✅ All 4 scenarios passed. RTP: [Main: X%, EB: Y%, BuyFG: Z%, EB+BuyFG: W%]`
 - Output on FAIL: `❌ FAIL [scenario]: actual RTP X%, expected Y% ±1%`; exit code 1
 
-### 14.4 engine_generator.js Responsibilities
+### 14.5 engine_generator.js Responsibilities
 
 - Only invoked after `verify.js` exits with code 0
 - Read `engine_config.json`
 - Generate `GameConfig.generated.ts` with:
   - All symbol definitions and weights
   - Payline definitions (full `rowPath` arrays — see Payline Definition Document)
-  - Coin Toss config (Heads p=0.80)
+  - Coin Toss config (`coinProbs` array: [0.80, 0.68, 0.56, 0.48, 0.40] indexed by stage)
   - FG multiplier sequence [3, 7, 17, 27, 77]
   - FG Bonus weights table
   - Near Miss config
@@ -1856,7 +2019,7 @@ Thunder_Config.xlsx
   - TWD bet ranges with `maxLevel: 320`
 - Embed schema version and toolchain run timestamp in generated file header comment
 
-### 14.5 CI Guard for Generated Files
+### 14.6 CI Guard for Generated Files
 
 CI pipeline step (runs after code generation):
 
@@ -1868,7 +2031,7 @@ git diff --exit-code src/config/BetRangeConfig.generated.ts
 
 If diff detected → pipeline fails with message: `ERROR: Generated config files modified manually. Re-run toolchain.`
 
-### 14.6 Near Miss Configuration
+### 14.7 Near Miss Configuration
 
 Near Miss parameters are defined in the `NEAR_MISS` tab of `Thunder_Config.xlsx` and encoded into `GameConfig.generated.ts`. The `NearMissSelector` reads:
 - `nearMissFrequency`: probability of near-miss presentation (0–1)
@@ -1892,6 +2055,71 @@ Near Miss is a **display-only** mechanic — it does not affect RTP or actual pa
 | `CIRCUIT_BREAKER_ENABLED` | `true` | Enable Redis/DB circuit breakers | Engineering |
 
 Feature flags are stored as environment variables (K8s ConfigMap). Changes require redeployment; no runtime flag toggling to prevent mid-session state inconsistency.
+
+---
+
+## §16 Appendix: Data Model & Migration Notes
+
+### 16.1 Initial DB Seed (Development Environment)
+
+For the development environment, seed test player wallets before running integration tests:
+
+```sql
+-- Seed test players and wallets for dev environment
+INSERT INTO players (id, email, display_name) VALUES
+  ('00000000-0000-0000-0000-000000000001', 'testplayer1@dev.local', 'Test Player 1'),
+  ('00000000-0000-0000-0000-000000000002', 'testplayer2@dev.local', 'Test Player 2');
+
+INSERT INTO wallets (player_id, currency, balance) VALUES
+  ('00000000-0000-0000-0000-000000000001', 'USD', 10000.00),
+  ('00000000-0000-0000-0000-000000000001', 'TWD', 320000.00),
+  ('00000000-0000-0000-0000-000000000002', 'USD', 10000.00);
+```
+
+Seed script is located at `toolchain/db/seed-dev.sql` and is executed automatically in the `docker-compose.dev.yml` startup sequence.
+
+### 16.2 GameConfig.generated.ts Checksum Verification in CI
+
+The CI pipeline enforces that `GameConfig.generated.ts` is never modified manually. After each toolchain run, a SHA-256 checksum of the generated file is embedded in its header comment and stored in `toolchain/.gameconfig.checksum`:
+
+```bash
+# CI verification step
+EXPECTED=$(cat toolchain/.gameconfig.checksum)
+ACTUAL=$(sha256sum src/config/GameConfig.generated.ts | awk '{print $1}')
+if [ "$EXPECTED" != "$ACTUAL" ]; then
+  echo "ERROR: GameConfig.generated.ts checksum mismatch — file may have been manually edited"
+  exit 1
+fi
+```
+
+This runs as a pre-deploy quality gate (see §12.3).
+
+### 16.3 Near Miss Configuration Flow (Excel → GameConfig)
+
+Near Miss parameters flow from the `NEAR_MISS` tab of `Thunder_Config.xlsx` through the toolchain to `GameConfig.generated.ts`:
+
+```
+Thunder_Config.xlsx (NEAR_MISS tab)
+  │  nearMissFrequency, nearMissSymbols[], nearMissPositions[]
+  ▼
+build_config.js
+  │  Parses NEAR_MISS tab, validates frequency 0–1, validates symbol IDs exist
+  ▼
+engine_config.json  (nearMiss: { frequency, symbols, positions })
+  ▼
+excel_simulator.js
+  │  Confirms near-miss does NOT alter RTP (display-only assertion)
+  ▼
+verify.js
+  │  Asserts nearMiss has zero impact on any of the 4 scenario RTPs
+  ▼
+engine_generator.js
+  │  Emits nearMiss config block into GameConfig.generated.ts
+  ▼
+NearMissSelector.ts reads GameConfig.nearMiss at runtime
+```
+
+**Important:** Near Miss is a display-only mechanic. The `NearMissSelector` adjusts grid presentation only after the RTP-determining outcome has already been computed by `SlotEngine`. It must never alter `totalWin` or any win-line computation.
 
 ---
 
