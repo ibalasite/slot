@@ -484,13 +484,13 @@ Coin Toss 舞台下方展示倍率進度條（Heads 時驅動進度）：
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ FREE GAME     [×3 MULTIPLIER]                   [SPIN COUNT] │
+│ FREE GAME     [×3 MULTIPLIER]                   [SPIN COUNT]  │
 │                                                              │
 │           ← 滾輪主體（FG 場景背景）→                           │
 │         [F] [R] [E] [E]  FREE 字母進度                       │
 │                                                              │
 ├──────────────────────────────────────────────────────────────┤
-│ BALANCE        WIN              TOTAL BET      REMAINING FG  │
+│ BALANCE        WIN              TOTAL BET      SPIN COUNT    │
 │ $1,000.00      $0.00            $0.25          ——            │
 │                                                              │
 │           [EXTRA BET OFF/ON]     [AUTO SPIN]                 │
@@ -501,7 +501,7 @@ Coin Toss 舞台下方展示倍率進度條（Heads 時驅動進度）：
 
 ### 7.2 FG 計數器
 
-- 位置：HUD 右下角（「REMAINING FG」標籤）
+- 位置：HUD 右下角（「SPIN COUNT」標籤）
 - 顯示：每一輪 FG Spin 完成後更新（顯示當前 FG 是否仍在進行中）
 - 樣式：金色數字，Coin Toss Tails 後顯示「FINAL」並閃爍
 
@@ -511,6 +511,7 @@ Coin Toss 舞台下方展示倍率進度條（Heads 時驅動進度）：
 
 | 時機 | 計數器顯示 | 視覺效果 |
 |------|----------|---------|
+| FG 剛進入（首次 Coin Toss 前）| 顯示「——」| 暗色待機，等待首次 Coin Toss 結果 |
 | 每局 FG Spin 開始前（Coin Toss 執行前）| 「Spin #N」（N 為當前局數）| 金色數字常亮 |
 | Coin Toss Heads（繼續 FG）| 計數器 +1，顯示「Spin #(N+1)」 | 數字翻轉更新動畫（0.3s） |
 | Coin Toss Tails（FG 結束）| 計數器顯示「FINAL」| 金色閃爍 2 秒後靜止 |
@@ -646,7 +647,8 @@ Loading  →  Restored（從中斷局繼續 FG）
 | Big Win | 20× ≤ win < 100× BET | 全屏「BIG WIN」橫幅，計數器滾動至最終值，金幣雨效果 | 3.0s |
 | Mega Win | 100× ≤ win < 500× BET | 全屏「MEGA WIN」橫幅，閃電特效，計數器快速滾動 | 4.0s |
 | Jackpot | win ≥ 500× BET | 全屏「JACKPOT!」特效，Zeus 出現，雷霆降臨演出 | 5.0s |
-| Max Win（30,000×）| 達到上限 | 「MAX WIN 30,000×」特殊彩虹演出，所有特效疊加 | 6.0s |
+| Max Win（30,000×）| 達到上限（Main Game 上限；Extra Bet + Buy FG 場景上限為 90,000×，詳見 §9.4）| 「MAX WIN 30,000×」特殊彩虹演出，所有特效疊加 | 6.0s |
+| Max Win（90,000×）| Extra Bet + Buy FG 場景達上限 | 同 30,000× 演出 + LEGENDARY WIN 疊加彩虹光環，Zeus、Pegasus、Athena 三主角同台 | 10 秒+，見 §9.4 |
 
 **Big Win 及以上展示通用規格**
 - 背景：全屏暗化遮罩（opacity 0.8）
@@ -878,7 +880,8 @@ Loading  →  Restored（從中斷局繼續 FG）
 | SFX_EXTRA_BET_ON | Extra Bet 開啟 | Toggle 點亮動畫 | 電弧啟動聲 |
 | SFX_BUY_FG_CONFIRM | Buy FG 確認購買 | 對話框關閉動畫 | 金幣重量感點擊聲 |
 | SFX_NEAR_MISS | Near Miss 符號排列 | 格子邊框閃爍 | 輕微懸念弦音（0.5s）|
-| SFX_MAX_WIN | Max Win 30,000× 達成 | Zeus 角色演出 | 最終大獎史詩音效（6s）|
+| SFX_MAX_WIN | 達到 30,000× 上限（Main Game）| Zeus 角色演出 | 最終大獎史詩音效（6s）|
+| SFX_MAX_WIN_LEGENDARY | 達到 90,000× 上限（Extra Bet + Buy FG）| §9.4 LEGENDARY WIN 演出同步（Zeus + Pegasus + Athena 三角色出現）| 完整勝利曲（加長版，10s+）|
 
 ### 13.2 背景音樂（BGM）觸發點
 
