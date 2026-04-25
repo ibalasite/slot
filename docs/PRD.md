@@ -256,6 +256,7 @@ C4Context
 - rows 上限 6：達到後繼續 Cascade 不再擴展，但繼續消除累積
 - Lightning Mark 位置：每個 CascadeStep 的 grid[row][col] 有中獎時標記，不重複覆蓋
 - 0 獲獎時：Cascade 立即停止，不生成 Mark，不擴展
+- Cascade 最大深度上限：50 步；若超過，引擎強制終止該 Cascade 序列並寫入 ERROR log，視為異常 spin
 
 ---
 
@@ -391,6 +392,7 @@ C4Context
 | US-BUYF-001 / AC-3 | Extra Bet ON + Buy Feature | 費用計算 | 費用 = 300 × baseBet，session floor = 60 × baseBet（20 × extraBetMult 3） | Unit |
 | US-BUYF-001 / AC-4 | 玩家餘額 < 100 × baseBet | 點擊 Buy Feature | 顯示「餘額不足」錯誤，不發起 buyFG request | Unit |
 | US-BUYF-001 / AC-5 | Buy Feature 使用 buyFG 符號權重表 | 引擎生成盤面 | 嚴格使用 weights.buyFG，不混用 mainGame 或 freeGame 符號權重 | Unit |
+| US-BUYF-001 / AC-6 | 玩家 Extra Bet ON 且餘額 < 300 × baseBet | 點擊 Buy Feature | 顯示「餘額不足」錯誤，不發起 buyFG request | Unit |
 
 **邊界條件：**
 - Per-spin floor 已移除（EDD §5.2）：只有 session floor（整場 ≥ 20× baseBet），不做每 spin 保底
@@ -912,6 +914,8 @@ stateDiagram-v2
 | Beta | 封閉測試 | 選定 B2B 平台夥伴（1–3 家）| 2 週 | API P99 < 500ms，Error Rate < 0.5%，RTP 監控偏差 < 1% | Error Rate > 1% 或 RTP 偏差 > 2% 立即 Rollback |
 | GA | 全面上線 | 所有 B2B 合作平台 | 持續 | KPI-01～KPI-06 達標 | — |
 
+> **Buy Feature 司法管轄區合規要求：** Buy Feature 功能需依各 B2B 平台夥伴所屬轄區合規要求動態啟停（由 `buy_feature_enabled` Feature Flag 控制），GA 前需確認各平台的適用市場白名單，部分轄區（如 UKGC）明確限制 Buy Feature。
+
 ### 10.2 Feature Flag 規格
 
 | Flag 名稱 | 預設值 | 目標群組 | 啟用條件 | Kill Switch | 管理工具 | 預計移除日 |
@@ -953,7 +957,7 @@ stateDiagram-v2
 | `spin_logs.bet_amount` | DECIMAL | 10,4 | 是 | 實際扣款金額（幣值）| 0.25 | 否 |
 | `spin_logs.total_win` | DECIMAL | 15,4 | 是 | 引擎回傳 totalWin（唯一入帳依據）| 12.50 | 否 |
 | `spin_logs.fg_triggered` | BOOLEAN | — | 是 | 本輪是否觸發 FG | true | 否 |
-| `spin_logs.cascade_depth` | INTEGER | — | 是 | Cascade 最大深度（0–N）| 3 | 否 |
+| `spin_logs.cascade_depth` | INTEGER | — | 是 | Cascade 最大深度（0–50，上限 50 步）| 3 | 否 |
 | `spin_logs.extra_bet_on` | BOOLEAN | — | 是 | Extra Bet 是否開啟 | false | 否 |
 | `spin_logs.created_at` | TIMESTAMPTZ | — | 是 | Spin 時間戳（UTC）| "2026-04-26T10:00:00Z" | 否 |
 | `player_wallets.player_id` | UUID | — | 是 | 玩家識別碼（PK）| "p1q2r3s4-..." | 是（遮罩）|
