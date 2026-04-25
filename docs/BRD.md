@@ -59,7 +59,7 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 - 初始連線數：25 條；最大連線數：57 條（6 列時）
 - 連線判定：從最左滾輪往右，同一連線只計最高獎金，不重複計算
 - Wild（W）可代替除 SC 外所有符號
-- 符號升級路徑（雷霆祝福第二擊）：L4/L3/L2/L1 → P4 → P3 → P2 → P1（最高，不再升）
+- 符號升級路徑（雷霆祝福第二擊）：L1/L2/L3/L4 → P4（所有 L 級符號一步直升 P4，不經中間階）→ P3 → P2 → P1（最高，不再升）
 
 ### BR-02 Cascade 連鎖消除
 
@@ -96,6 +96,7 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
   - Heads → 倍率升一級（×3 → ×7 → ×17 → ×27 → ×77）
   - ×77 為最高倍率，達到後維持不再升
   - Tails → FG 當輪結束（保留當前倍率至 FG 結束）
+  - 達到 ×77 後，每局 FG Spin 開始前仍翻一次 Coin Toss（機率 coinProbs[4] = 0.40）；Tails 即結束整場 FG，允許連續多局 ×77 FGSpin
 - **Coin Toss Heads 機率序列（各回合）**：[0.80, 0.68, 0.56, 0.48, 0.40]（對應倍率階段）
 - 整個 FG 期間閃電標記跨 Spin 累積不清除，FG 全部結束後才清除
 - **FG 總獎金額外乘數**：進入 FG 時由 FG Bonus 表隨機抽取乘數（×1/×5/×20/×100），套用於整局 FG 總獎金（見 §4.5）
@@ -117,6 +118,13 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 - **保底機制**：整場 session totalWin ≥ 20× baseBet（`buyFGMinWin: 20`）；Extra Bet ON 時保底為 20 × baseBet × extraBetMult（3）= 60× baseBet
 - Buy Feature 使用獨立符號權重表（`buyFG` 權重組）
 
+### BR-08 Near Miss（視覺張力機制）
+
+- **定義**：接近中獎但實際獲獎為 0 的特殊符號排列，在 Excel DATA tab 中獨立設計
+- **效果**：純視覺特效，不計入 RTP，不產生任何 win，用於增加遊戲緊張感
+- **工具鏈**：Near Miss 配置由 `build_config.js` 自動寫入 ENG_TOOLS tab 及 DESIGN_VIEW tab；`engine_generator.js` 生成對應的 `GameConfig.generated.ts` 欄位
+- **實作限制**：Near Miss 邏輯只在 Excel 定義，遊戲引擎只讀取生成後的 GameConfig，禁止在程式碼中客製 Near Miss 排列
+
 ---
 
 ## §4 機率設計需求
@@ -132,6 +140,8 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 | 2 | Main Game | On |
 | 3 | Free Game | Off |
 | 4 | Buy Free Game | On |
+
+> ⚠️ EDD §2 將情境 3 標記為「Buy Free Game Off」，正確名稱應為「Free Game（Buy FG Off）」，使用 `freeGame` 符號權重組，EDD §2 待同步修正。
 
 ### §4.2 賠率表（Paytable）
 
@@ -230,7 +240,10 @@ Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪
 
 > `fgMults: [3, 7, 17, 27, 77]`  
 > `coinProbs: [0.80, 0.68, 0.56, 0.48, 0.40]`  
-> `entryMain: 0.80`，`entryBuy: 1.00`
+> `entryMain: 0.80`，`entryBuy: 1.00`  
+> ⚠️ **coinProbs[0]（0.80）即為 entryMain，是 BR-04 入場 Coin Toss 的機率**，與 entryMain 數值相同且角色相同。  
+> 入場 Heads 後，×3 FGSpin **無條件開始**（不再需要額外 toss）。  
+> coinProbs[1..4]（0.68 / 0.56 / 0.48 / 0.40）分別對應每局 FGSpin **開始前**的倍率升級 Coin Toss（×7 / ×17 / ×27 / ×77 升階門檻）。
 
 ### §4.5 FG Bonus 額外倍數
 
@@ -372,6 +385,7 @@ build_config.js
 - 前端遊戲邏輯實作（Cocos Creator 或 PixiJS）
 - 幣種支援（USD / TWD）
 - Buy Feature 與 Extra Bet 完整機制
+- Near Miss 視覺機制規格（BR-08）
 - 所有機制的 Unit Test 與 E2E 驗收
 
 ### Out Scope
