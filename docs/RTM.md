@@ -110,7 +110,7 @@ Maps each PRD requirement / Acceptance Criteria to the EDD section and API endpo
 | US-RTPV-001 / AC-3 | Scenario 3 (FG, BuyFG Off): RTP 96.5%–98.5% | `verify.js` scenario 3 | N/A | `verify_report.txt` ✅ |
 | US-RTPV-001 / AC-4 | Scenario 4 (Buy Free Game): RTP 96.5%–98.5% | `verify.js` scenario 4 | N/A | `verify_report.txt` ✅ |
 | US-RTPV-001 / AC-5 | Any scenario fails → verify.js outputs ❌, blocks engine_generator.js | `verify.js` + CI gate | N/A | CI pipeline gate QG-06 |
-| **US-CURR-001** | USD / TWD currency — from BetRangeConfig.generated.ts, no hardcoded values | §6.3: `CurrencyFormatter` | `GET /v1/config` | `BetRangeConfig.generated.ts` |
+| **US-CURR-001** | USD / TWD currency — from BetRangeConfig.generated.ts, no hardcoded values | §6.5: `CurrencyFormatter` | `GET /v1/config` | `BetRangeConfig.generated.ts` |
 | US-CURR-001 / AC-1 | USD fetchBetRange: min $0.25, max $10.00, step $0.25 | `CurrencyFormatter`, `BetRangeConfig` | `GET /v1/config` | `betRange.USD.levels[]` |
 | US-CURR-001 / AC-2 | TWD fetchBetRange: min 10, max 320, step 10 | `CurrencyFormatter`, `BetRangeConfig` | `GET /v1/config` | `betRange.TWD.levels[]` |
 | US-CURR-001 / AC-3 | No hardcoded bet range in BetRangeService.ts | Code review gate | N/A | `BetRangeConfig.generated.ts` only source |
@@ -220,6 +220,11 @@ Maps each requirement to the BDD scenario tags that test it. Server BDD tags are
 | US-APIV-001 / AC-4 | Invalid JWT → 401, no game logic | `TC-SEC-AUTH-001`, `TC-INT-API-002-ERROR` | `TC-E2E-ERR-004` | COVERED |
 | US-APIV-001 / AC-5 | totalWin sole authority | `TC-INT-API-019`, `TC-INT-API-020` | — | PARTIAL |
 | **US-FEND-001** (P1) | Frontend — FullSpinOutcome includes all animation data | — | `TC-E2E-SPIN-001`, `TC-E2E-CASC-001`, `TC-E2E-FG-001` | PARTIAL |
+| US-FEND-001 / AC-1 | FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins with correct structure | — | `TC-E2E-SPIN-001`, `TC-E2E-CASC-001` | PARTIAL |
+| US-FEND-001 / AC-2 | FG triggered: frontend plays fgSpins sequentially without extra API requests | — | `TC-E2E-FG-001` | PARTIAL |
+| US-FEND-001 / AC-3 | Frontend shows outcome.totalWin, not client-computed sum | — | `TC-E2E-SPIN-001` | PARTIAL |
+| US-FEND-001 / AC-4 | No FG: fgRounds = [] handled gracefully | — | `TC-E2E-SPIN-002` | PARTIAL |
+| US-FEND-001 / AC-5 | FullSpinOutcome matches OpenAPI spec | — | `TC-E2E-SPIN-001` | PARTIAL |
 
 ---
 
@@ -232,7 +237,7 @@ Maps each API endpoint to the BDD scenarios that test it.
 | `/v1/spin` | POST | Execute a spin — core game endpoint | `TC-INT-API-001-HAPPY`, `TC-INT-API-002-ERROR`, `TC-INT-API-003-ERROR`, `TC-INT-API-004-ERROR`, `TC-INT-API-005-ERROR`, `TC-INT-API-006-ERROR`, `TC-INT-API-010-HAPPY`, `TC-INT-API-011`, `TC-INT-API-012`, `TC-INT-API-013`, `TC-INT-API-014`, `TC-INT-API-016`, `TC-INT-API-017`, `TC-INT-API-019`, `TC-INT-API-020`, `TC-INT-API-021`, `TC-INT-BUYF-001-HAPPY`, `TC-INT-BUYF-002-HAPPY`, `TC-INT-BUYF-002b-HAPPY`, `TC-INT-BUYF-003`, `TC-INT-BUYF-004`, `TC-INT-FG-001-HAPPY`, `TC-INT-FG-002-HAPPY`, `TC-INT-FG-003-HAPPY`, `TC-SEC-AUTH-001`, `TC-SEC-AUTH-001b`, `TC-SEC-AUTH-001c`, `TC-SEC-AUTH-002`, `TC-SEC-AUTH-003`, `TC-SEC-AUTH-004`, `TC-SEC-AUTH-005`, `TC-SEC-AUTH-007`, `TC-SEC-BET-001`, `TC-SEC-BET-002`, `TC-SEC-BET-003`, `TC-SEC-INJ-001`, `TC-SEC-INJ-002`, `TC-SEC-CORS-001`, `TC-SEC-CORS-001b`, `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-001b-HAPPY`, `TC-UNIT-EXBT-002-HAPPY`, `TC-UNIT-EXBT-003-HAPPY`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-004b-HAPPY`, `TC-UNIT-TB-001-HAPPY`, `TC-UNIT-TB-002-HAPPY`, `TC-UNIT-COIN-004-HAPPY`, `TC-UNIT-COIN-006-BOUNDARY`, `TC-UNIT-FG-002-HAPPY`, `TC-UNIT-FG-003-HAPPY`, `TC-UNIT-FG-004-BOUNDARY`, `TC-UNIT-FLOOR-001-HAPPY`, `TC-UNIT-MAXWIN-001-BOUNDARY`, `TC-UNIT-PROB-001-HAPPY`, `TC-UNIT-PROB-002-BOUNDARY`, `TC-INT-API-009-HAPPY` | `TC-E2E-SPIN-001` through `TC-E2E-SPIN-009`, `TC-E2E-CASC-001` through `TC-E2E-CASC-008`, `TC-E2E-TB-001` through `TC-E2E-TB-006`, `TC-E2E-COIN-001` through `TC-E2E-COIN-007`, `TC-E2E-FG-001` through `TC-E2E-FG-009`, `TC-E2E-EXBT-001` through `TC-E2E-EXBT-006`, `TC-E2E-BUY-001` through `TC-E2E-BUY-007`, `TC-E2E-ERR-001` through `TC-E2E-ERR-007`, `TC-E2E-BET-001` through `TC-E2E-BET-007` | COVERED |
 | `/v1/session/:sessionId` | GET | FG reconnect / session state retrieval | `TC-INT-API-012-HAPPY`, `TC-INT-API-012b-HAPPY`, `TC-INT-API-013-ERROR`, `TC-SEC-SESSION-001`, `TC-SEC-SESSION-AUTH-001`, `TC-SEC-AUTH-006` | `TC-E2E-SESS-001` through `TC-E2E-SESS-006` | COVERED |
 | `/v1/config` | GET | Game config + bet ranges (USD/TWD) | `TC-INT-API-014-HAPPY`, `TC-INT-CURR-001-HAPPY`, `TC-INT-CURR-001b-HAPPY`, `TC-INT-CURR-001c-HAPPY`, `TC-SEC-CONFIG-AUTH-001` | `TC-E2E-BET-001` through `TC-E2E-BET-007` | COVERED |
-| `/health` | GET | Health probe (no auth required) | `TC-INT-API-018` (via probability-engine config check) | — | PARTIAL |
+| `/health` | GET | Health probe (no auth required) | — (TC-INT-API-018 tests Near Miss behavior in probability-engine.feature, not the /health probe) | — | NOT-COVERED |
 | `/ready` | GET | Readiness probe (DB + Redis healthy) | — | — | NOT-COVERED |
 
 ---
@@ -243,39 +248,39 @@ Maps each API endpoint to the BDD scenarios that test it.
 
 | Metric | Count | Percentage |
 |--------|------:|----------:|
-| Total top-level requirements (PRD US-IDs) | 13 | 100% |
-| Total AC-level requirements (all sub-ACs) | 60 | 100% |
-| **US-ID level: COVERED** | 9 | 69% |
-| **US-ID level: PARTIAL** | 3 | 23% |
-| **US-ID level: NOT-COVERED** | 1 | 8% |
-| **AC level: COVERED** | 35 | 58% |
-| **AC level: PARTIAL** | 14 | 23% |
-| **AC level: NOT-COVERED** | 11 | 18% |
+| Total top-level requirements (PRD US-IDs) | 14 | 100% |
+| Total AC-level requirements (all sub-ACs) | 70 | 100% |
+| **US-ID level: COVERED** | 10 | 71% |
+| **US-ID level: PARTIAL** | 3 | 21% |
+| **US-ID level: NOT-COVERED** | 1 | 7% |
+| **AC level: COVERED** | 36 | 51% |
+| **AC level: PARTIAL** | 23 | 33% |
+| **AC level: NOT-COVERED** | 11 | 16% |
 
 ### 4.2 BDD Scenario Count
 
 | Category | Count |
 |----------|------:|
-| **Server BDD tags (unique, non-client features/)** | 73 |
-| **Client BDD tags (unique, features/client/)** | 76 |
-| **Total unique TC tags** | 149 |
+| **Server BDD tags (unique, non-client features/)** | 75 |
+| **Client BDD tags (unique, features/client/)** | 72 |
+| **Total unique TC tags** | 147 |
 
 ### 4.3 Server BDD Tags Breakdown
 
 | Module | Count | Tags |
 |--------|------:|------|
-| API integration (TC-INT-API-*) | 21 | `TC-INT-API-001` through `TC-INT-API-021` |
-| Buy Feature integration (TC-INT-BUYF-*) | 7 | `TC-INT-BUYF-001` through `TC-INT-BUYF-004` |
-| Free Game integration (TC-INT-FG-*) | 3 | `TC-INT-FG-001`, `TC-INT-FG-002`, `TC-INT-FG-003` |
-| Currency integration (TC-INT-CURR-*) | 3 | `TC-INT-CURR-001`, `TC-INT-CURR-001b`, `TC-INT-CURR-001c` |
+| API integration (TC-INT-API-*) | 22 | `TC-INT-API-001` through `TC-INT-API-021` (non-contiguous: 008 absent; includes variant suffixes -HAPPY, -ERROR, -012-HAPPY, -012b-HAPPY, -013-ERROR, -014-HAPPY) |
+| Buy Feature integration (TC-INT-BUYF-*) | 6 | `TC-INT-BUYF-001-HAPPY`, `TC-INT-BUYF-002`, `TC-INT-BUYF-002-HAPPY`, `TC-INT-BUYF-003`, `TC-INT-BUYF-003-HAPPY`, `TC-INT-BUYF-004` |
+| Free Game integration (TC-INT-FG-*) | 3 | `TC-INT-FG-001-HAPPY`, `TC-INT-FG-002-HAPPY`, `TC-INT-FG-003-HAPPY` |
+| Currency integration (TC-INT-CURR-*) | 2 | `TC-INT-CURR-001`, `TC-INT-CURR-001-HAPPY` |
 | Probability integration (TC-INT-PROB-*) | 1 | `TC-INT-PROB-001` |
-| Security (TC-SEC-*) | 22 | Auth, BET, INJ, CORS, SESSION, CONFIG-AUTH |
-| Unit — Extra Bet (TC-UNIT-EXBT-*) | 6 | `TC-UNIT-EXBT-001` through `TC-UNIT-EXBT-004b` |
-| Unit — Cascade (TC-UNIT-CASC-*) | 1 | `TC-UNIT-CASC-002-HAPPY` |
-| Unit — Thunder Blessing (TC-UNIT-TB-*) | 2 | `TC-UNIT-TB-001`, `TC-UNIT-TB-002` |
-| Unit — Coin Toss (TC-UNIT-COIN-*) | 2 | `TC-UNIT-COIN-004`, `TC-UNIT-COIN-006` |
-| Unit — Free Game (TC-UNIT-FG-*) | 3 | `TC-UNIT-FG-002`, `TC-UNIT-FG-003`, `TC-UNIT-FG-004` |
-| Unit — Floor/MaxWin/Prob (misc) | 4 | `TC-UNIT-FLOOR-001`, `TC-UNIT-MAXWIN-001`, `TC-UNIT-PROB-001`…`003` |
+| Security (TC-SEC-*) | 17 | Auth (001–007), BET (001–003), INJ (001–002), CORS-001, SESSION-001, SESSION-AUTH-001, CONFIG-AUTH-001, RATE-001 |
+| Unit — Extra Bet (TC-UNIT-EXBT-*) | 7 | `TC-UNIT-EXBT-001`, `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-002-HAPPY`, `TC-UNIT-EXBT-003-HAPPY`, `TC-UNIT-EXBT-004`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-005-HAPPY` |
+| Unit — Cascade (TC-UNIT-CASC-*) | 2 | `TC-UNIT-CASC-001-HAPPY`, `TC-UNIT-CASC-002-HAPPY` |
+| Unit — Thunder Blessing (TC-UNIT-TB-*) | 2 | `TC-UNIT-TB-001-HAPPY`, `TC-UNIT-TB-002-HAPPY` |
+| Unit — Coin Toss (TC-UNIT-COIN-*) | 4 | `TC-UNIT-COIN-001-HAPPY`, `TC-UNIT-COIN-003-BOUNDARY`, `TC-UNIT-COIN-004-HAPPY`, `TC-UNIT-COIN-006-BOUNDARY` |
+| Unit — Free Game (TC-UNIT-FG-*) | 4 | `TC-UNIT-FG-001-HAPPY`, `TC-UNIT-FG-002-HAPPY`, `TC-UNIT-FG-003-HAPPY`, `TC-UNIT-FG-004-BOUNDARY` |
+| Unit — Floor/MaxWin/Prob (misc) | 5 | `TC-UNIT-FLOOR-001-HAPPY`, `TC-UNIT-MAXWIN-001-BOUNDARY`, `TC-UNIT-PROB-001-HAPPY`, `TC-UNIT-PROB-002-BOUNDARY`, `TC-UNIT-PROB-003-ERROR` |
 
 ### 4.4 Client BDD Tags Breakdown
 
@@ -288,10 +293,10 @@ Maps each API endpoint to the BDD scenarios that test it.
 | `TC-E2E-FG-*` | 9 |
 | `TC-E2E-EXBT-*` | 6 |
 | `TC-E2E-BUY-*` | 7 |
-| `TC-E2E-ERR-*` | 8 |
+| `TC-E2E-ERR-*` | 7 |
 | `TC-E2E-BET-*` | 7 |
 | `TC-E2E-SESS-*` | 6 |
-| **Total** | **76** |
+| **Total** | **72** |
 
 ---
 
@@ -330,7 +335,7 @@ The following requirements have NO BDD coverage or only PARTIAL coverage. Each i
 | US-RTPV-001 / AC-1 to AC-4 | 4-scenario RTP via verify.js | `TC-INT-PROB-001` covers all 4 scenarios in one tag | Individual per-scenario FAIL isolation is not separately tagged | MEDIUM |
 | US-APIV-001 / AC-3 | P99 latency targets | `TC-INT-API-016`, `TC-INT-API-017` (listed in test plan) | No separate k6 BDD scenario tags; performance tests are k6 scripts outside BDD | LOW |
 | US-APIV-001 / AC-5 | totalWin sole authority | `TC-INT-API-019`, `TC-INT-API-020` | No client-side E2E asserting `window.__debug_clientComputedWin` undefined | MEDIUM |
-| `/health` | Health probe | `TC-INT-API-018` (indirectly via config test) | No dedicated health probe BDD scenario | LOW |
+| `/health` | Health probe | None (TC-INT-API-018 tests Near Miss / probability-engine behavior, not the health probe) | No dedicated health probe BDD scenario exists | LOW |
 | `/ready` | Readiness probe | None | No BDD coverage for readiness (DB+Redis healthy path or 503 path) | MEDIUM |
 
 ### 5.3 Priority Remediation Plan
