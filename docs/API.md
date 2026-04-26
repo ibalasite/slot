@@ -100,8 +100,11 @@ All error responses from `/v1/*` endpoints use this envelope:
 | `message` | `string` | Human-readable message; never exposes raw DB errors or internal stack traces |
 | `requestId` | `string` (UUID) | Unique identifier for log correlation; matches `X-Request-Id` response header |
 | `timestamp` | `string` (ISO 8601) | Server time when error was generated |
+| `retryAfter` | `integer` | (optional) Seconds to wait before retrying; present only on 429 and 503 responses |
 
 ### 1.8 All Error Codes
+
+> **Note on VALIDATION_ERROR**: This code appears on both HTTP 400 (malformed JSON or schema violation) and HTTP 422 (semantically invalid parameters). Clients must inspect the HTTP status code to distinguish them.
 
 | HTTP Status | Code | Trigger Endpoint(s) | Description |
 |-------------|------|---------------------|-------------|
@@ -119,6 +122,100 @@ All error responses from `/v1/*` endpoints use this envelope:
 | 500 | `INTERNAL_ERROR` | All /v1/* | Unexpected engine or infrastructure error not matching any specific code |
 | 503 | `SERVICE_UNAVAILABLE` | POST /v1/spin | Circuit breaker OPEN on PostgreSQL or Redis (cascading failure protection) |
 | 504 | `ENGINE_TIMEOUT` | POST /v1/spin | Spin engine took > 2000ms; wallet IS debited before engine runs; a compensating credit is issued automatically (see ARCH §6 Partial Failure Compensation) |
+
+### 1.9 Error Response Examples
+
+The following compact examples illustrate the error envelope for each major error code.
+
+```json
+{
+  "_comment": "HTTP 402 — balance check occurs before spin; returned as HTTP 400 INSUFFICIENT_FUNDS",
+  "success": false,
+  "code": "INSUFFICIENT_FUNDS",
+  "message": "Insufficient balance to cover the spin cost",
+  "requestId": "550e8400-e29b-41d4-a716-446655440001",
+  "timestamp": "2026-04-26T12:00:00.000Z",
+  "data": null,
+  "error": { "code": "INSUFFICIENT_FUNDS", "message": "Insufficient balance", "balance": 0.50, "required": 1.00 }
+}
+```
+
+```json
+{
+  "_comment": "HTTP 400 INVALID_BET_LEVEL",
+  "success": false,
+  "code": "INVALID_BET_LEVEL",
+  "message": "betLevel 25 is outside the valid range for USD (1–20)",
+  "requestId": "550e8400-e29b-41d4-a716-446655440002",
+  "timestamp": "2026-04-26T12:00:01.000Z"
+}
+```
+
+```json
+{
+  "_comment": "HTTP 400 BUY_FEATURE_NOT_ALLOWED",
+  "success": false,
+  "code": "BUY_FEATURE_NOT_ALLOWED",
+  "message": "Buy Feature is not available for the current bet level or game configuration",
+  "requestId": "550e8400-e29b-41d4-a716-446655440003",
+  "timestamp": "2026-04-26T12:00:02.000Z"
+}
+```
+
+```json
+{
+  "_comment": "HTTP 401 UNAUTHORIZED",
+  "success": false,
+  "code": "UNAUTHORIZED",
+  "message": "JWT is missing, malformed, or expired",
+  "requestId": "550e8400-e29b-41d4-a716-446655440004",
+  "timestamp": "2026-04-26T12:00:03.000Z"
+}
+```
+
+```json
+{
+  "_comment": "HTTP 403 FORBIDDEN",
+  "success": false,
+  "code": "FORBIDDEN",
+  "message": "Player account is suspended or access to this resource is denied",
+  "requestId": "550e8400-e29b-41d4-a716-446655440005",
+  "timestamp": "2026-04-26T12:00:04.000Z"
+}
+```
+
+```json
+{
+  "_comment": "HTTP 404 SESSION_NOT_FOUND",
+  "success": false,
+  "code": "SESSION_NOT_FOUND",
+  "message": "Session not found or expired (TTL 300s)",
+  "requestId": "550e8400-e29b-41d4-a716-446655440006",
+  "timestamp": "2026-04-26T12:00:05.000Z"
+}
+```
+
+```json
+{
+  "_comment": "HTTP 409 SPIN_IN_PROGRESS",
+  "success": false,
+  "code": "SPIN_IN_PROGRESS",
+  "message": "A spin is already in progress for this player. Retry after the lock TTL (up to 10 seconds).",
+  "requestId": "550e8400-e29b-41d4-a716-446655440007",
+  "timestamp": "2026-04-26T12:00:06.000Z"
+}
+```
+
+```json
+{
+  "_comment": "HTTP 504 ENGINE_TIMEOUT",
+  "success": false,
+  "code": "ENGINE_TIMEOUT",
+  "message": "Spin engine timed out. Your bet has been refunded automatically.",
+  "requestId": "550e8400-e29b-41d4-a716-446655440008",
+  "timestamp": "2026-04-26T12:00:07.000Z"
+}
+```
 
 ---
 
@@ -291,13 +388,16 @@ In development, `Access-Control-Allow-Origin: *` is permitted. In production, on
 
 **Bet Level to baseBet Mapping (examples):**
 
+> **Note:** The mapping is non-linear; the canonical mapping is in the `GET /v1/config` response. The table below shows representative examples only.
+
 | betLevel | USD baseBet | TWD baseBet | USD totalBet (extraBet=false) | USD totalBet (extraBet=true) |
 |----------|-------------|-------------|-------------------------------|------------------------------|
 | 1 | $0.10 | TWD 3 | $0.10 | $0.30 |
 | 5 | $0.50 | TWD 15 | $0.50 | $1.50 |
-| 10 | $1.00 | TWD 30 | $1.00 | $3.00 |
-| 15 | $1.50 | TWD 45 | $1.50 | $4.50 |
-| 20 | $2.00 | TWD 60 | $2.00 | $6.00 |
+| 7 | $1.00 | TWD 30 | $1.00 | $3.00 |
+| 10 | $2.00 | TWD 60 | $2.00 | $6.00 |
+| 15 | $5.00 | TWD 150 | $5.00 | $15.00 |
+| 20 | $10.00 | TWD 300 | $10.00 | $30.00 |
 
 Full bet table is available via `GET /v1/config`.
 
@@ -466,8 +566,8 @@ Full bet table is available via `GET /v1/config`.
     "totalWin": { "type": "number", "description": "Total win credited to wallet. SOLE ACCOUNTING AUTHORITY. 0 if no win." },
     "newBalance": { "type": "number", "description": "Player wallet balance after this spin (post-credit)" },
     "currency": { "type": "string", "enum": ["USD", "TWD"] },
-    "extraBetActive": { "type": "boolean" },
-    "buyFeatureActive": { "type": "boolean" },
+    "extraBetActive": { "type": "boolean", "description": "true when Extra Bet (3× cost) is active for this spin" },
+    "buyFeatureActive": { "type": "boolean", "description": "true when Buy Feature (100× cost) is active for this spin" },
     "initialGrid": {
       "type": "array",
       "description": "5×3 initial grid before Cascade. Outer array = rows (0-indexed top to bottom), inner = columns (left to right).",
@@ -486,9 +586,9 @@ Full bet table is available via `GET /v1/config`.
     },
     "finalRows": { "type": "integer", "enum": [3, 4, 5, 6], "description": "Final row count after Cascade expansion" },
     "cascadeSequence": { "$ref": "#/definitions/CascadeSequence" },
-    "thunderBlessingTriggered": { "type": "boolean" },
-    "thunderBlessingFirstHit": { "type": "boolean" },
-    "thunderBlessingSecondHit": { "type": "boolean" },
+    "thunderBlessingTriggered": { "type": "boolean", "description": "true when Thunder Blessing (dual-hit Scatter) was triggered during this spin" },
+    "thunderBlessingFirstHit": { "type": "boolean", "description": "true when first Scatter hit occurred (all Lightning Mark positions converted to premium symbol)" },
+    "thunderBlessingSecondHit": { "type": "boolean", "description": "true when second Scatter hit occurred (Coin Toss triggered)" },
     "upgradedSymbol": {
       "type": ["string", "null"],
       "enum": ["P1", "P2", "P3", "P4", null],
@@ -500,12 +600,12 @@ Full bet table is available via `GET /v1/config`.
         { "type": "null" }
       ]
     },
-    "coinTossTriggered": { "type": "boolean" },
+    "coinTossTriggered": { "type": "boolean", "description": "true when Coin Toss was triggered (requires 6 reels rows AND winning cascade on 6-row grid)" },
     "coinTossResult": {
       "type": ["string", "null"],
       "enum": ["HEADS", "TAILS", null]
     },
-    "fgTriggered": { "type": "boolean" },
+    "fgTriggered": { "type": "boolean", "description": "true when Free Game sequence was entered (requires coinTossResult = HEADS)" },
     "fgMultiplier": {
       "type": ["integer", "null"],
       "enum": [3, 7, 17, 27, 77, null],
@@ -523,14 +623,14 @@ Full bet table is available via `GET /v1/config`.
     },
     "totalFGWin": {
       "type": ["number", "null"],
-      "description": "Sum of raw round wins across all FG rounds, before applying fgMultiplier and bonusMultiplier. Effective FG win = totalFGWin × fgMultiplier × bonusMultiplier (capped by maxWin). totalWin is the sole accounting authority. Null if FG not triggered."
+      "description": "Sum of raw round wins across all FG rounds, before applying fgMultiplier and bonusMultiplier. effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier. totalWin = min(mainCascadeWin + effectiveFGWin, maxWin × baseBet). totalWin is the sole accounting authority. Null if FG not triggered."
     },
     "sessionFloorApplied": { "type": "boolean", "description": "True if Buy Feature session floor (≥ 20× baseBet) was applied" },
     "sessionFloorValue": {
       "type": ["number", "null"],
       "description": "Floor value applied (20 × baseBet). Null if not a Buy Feature spin."
     },
-    "nearMissApplied": { "type": "boolean" },
+    "nearMissApplied": { "type": "boolean", "description": "true when near-miss weighting was applied to the reel stop positions" },
     "engineVersion": { "type": "string", "description": "Version of GameConfig.generated.ts used" },
     "timestamp": { "type": "string", "format": "date-time" },
     "rngSeed": { "type": ["string", "null"], "description": "RNG seed for this spin; used for audit replay" }
@@ -669,6 +769,7 @@ Full bet table is available via `GET /v1/config`.
 | 422 | `VALIDATION_ERROR` | Semantically invalid payload: `betLevel` out of range for currency, or `extraBet`/`buyFeature` unavailable in this game config. Note: `extraBet: true` + `buyFeature: true` is a **valid** combination (costs 300× baseBet); `INSUFFICIENT_FUNDS` is returned when balance < 300× baseBet for this combination. |
 | 429 | `RATE_LIMITED` | More than 5 req/s per player |
 | 500 | `INTERNAL_ERROR` | Unexpected server-side error |
+| 503 | `SERVICE_UNAVAILABLE` | Circuit breaker open — database or cache unavailable |
 | 504 | `ENGINE_TIMEOUT` | Engine took > 2000ms; compensating credit issued automatically |
 
 #### Example — Free Game Triggered Spin
@@ -683,14 +784,14 @@ Content-Type: application/json
 {
   "playerId": "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
   "sessionId": null,
-  "betLevel": 10,
+  "betLevel": 7,
   "currency": "USD",
   "extraBet": false,
   "buyFeature": false
 }
 ```
 
-**Response 200 (FG triggered, multiplier ×17, bonusMultiplier ×5):**
+**Response 200 (FG triggered, multiplier ×17, bonusMultiplier ×5, betLevel 7 → baseBet $1.00):**
 
 ```json
 {
@@ -701,11 +802,11 @@ Content-Type: application/json
     "spinId": "spin-4c2a8e91-3b7f-4d1c-9a5b-2e6f78901234",
     "sessionId": "sess-b1c2d3e4-f5a6-4b7c-8d9e-0f1234567890",
     "playerId": "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
-    "betLevel": 10,
+    "betLevel": 7,
     "baseBet": 1.00,
     "totalBet": 1.00,
-    "totalWin": 255.00,
-    "newBalance": 1254.00,
+    "totalWin": 173.00,
+    "newBalance": 1172.00,
     "currency": "USD",
     "extraBetActive": false,
     "buyFeatureActive": false,
@@ -770,13 +871,14 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
         "cascadeSequence": {
-          "steps": [], // steps abbreviated for brevity; actual response contains cascade step details
-          "totalWin": 12.00,
+          "_stepsNote": "abbreviated for brevity; actual response contains cascade step details",
+          "steps": [],
+          "totalWin": 0.50,
           "finalGrid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
           "finalRows": 3,
           "lightningMarks": {"positions":[{"row":0,"col":4},{"row":2,"col":0}],"count":2}
         },
-        "roundWin": 12.00,
+        "roundWin": 0.50,
         "coinTossResult": "HEADS",
         "lightningMarksBefore": {"positions":[{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}],"count":3},
         "lightningMarksAfter": {"positions":[{"row":0,"col":0},{"row":0,"col":4},{"row":1,"col":1},{"row":2,"col":0},{"row":2,"col":2}],"count":5}
@@ -787,13 +889,14 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]],
         "cascadeSequence": {
-          "steps": [], // steps abbreviated for brevity; actual response contains cascade step details
-          "totalWin": 8.00,
+          "_stepsNote": "abbreviated for brevity; actual response contains cascade step details",
+          "steps": [],
+          "totalWin": 0.75,
           "finalGrid": [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]],
           "finalRows": 3,
           "lightningMarks": {"positions":[{"row":1,"col":3}],"count":1}
         },
-        "roundWin": 8.00,
+        "roundWin": 0.75,
         "coinTossResult": "HEADS",
         "lightningMarksBefore": {"positions":[{"row":0,"col":0},{"row":0,"col":4},{"row":1,"col":1},{"row":2,"col":0},{"row":2,"col":2}],"count":5},
         "lightningMarksAfter": {"positions":[{"row":0,"col":0},{"row":0,"col":4},{"row":1,"col":1},{"row":1,"col":3},{"row":2,"col":0},{"row":2,"col":2}],"count":6}
@@ -804,20 +907,21 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["P1","W","L3","P2","L1"],["L4","P3","P1","L2","P4"],["P2","L1","L4","P3","W"]],
         "cascadeSequence": {
-          "steps": [], // steps abbreviated for brevity; actual response contains cascade step details
-          "totalWin": 30.00,
+          "_stepsNote": "abbreviated for brevity; actual response contains cascade step details",
+          "steps": [],
+          "totalWin": 0.75,
           "finalGrid": [["P1","W","L3","P2","L1"],["L4","P3","P1","L2","P4"],["P2","L1","L4","P3","W"]],
           "finalRows": 3,
           "lightningMarks": {"positions":[],"count":0}
         },
-        "roundWin": 30.00,
+        "roundWin": 0.75,
         "coinTossResult": "TAILS",
         "lightningMarksBefore": {"positions":[{"row":0,"col":0},{"row":0,"col":4},{"row":1,"col":1},{"row":1,"col":3},{"row":2,"col":0},{"row":2,"col":2}],"count":6},
         "lightningMarksAfter": {"positions":[],"count":0}
       }
     ],
     "fgBonusMultiplier": 5,
-    "totalFGWin": 50.00,
+    "totalFGWin": 2.00,
     "sessionFloorApplied": false,
     "sessionFloorValue": null,
     "nearMissApplied": false,
@@ -827,7 +931,7 @@ Content-Type: application/json
 }
 ```
 
-_Note: `totalWin = mainCascadeWin + (totalFGWin × fgMultiplier × bonusMultiplier)` = `3.00 + (50.00 × 17 × 5)` = `3.00 + 4250.00`, capped to `255.00` by `enforceMaxWin()` in this example (maxWin cap applied). The exact calculation is `effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier`, then `totalWin = mainCascadeWin + min(effectiveFGWin, maxWin × baseBet)`. `outcome.totalWin` is the sole accounting authority._
+_Note: `effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier` = `2.00 × 17 × 5` = `170.00`. `totalWin = min(mainCascadeWin + effectiveFGWin, maxWin × baseBet)` = `min(3.00 + 170.00, 30000 × 1.00)` = `min(173.00, 30000.00)` = `173.00` (no cap applied in this example). `outcome.totalWin` is the sole accounting authority._
 
 ---
 
@@ -876,7 +980,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
     "fgRound": 2,
     "fgMultiplier": 7,
     "fgBonusMultiplier": 5,
-    "totalFGWin": 12.00,
+    "totalFGWin": 0.50,
     "lightningMarks": {
       "positions": [
         { "row": 0, "col": 0 },
@@ -895,13 +999,14 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
         "bonusMultiplier": 5,
         "grid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
         "cascadeSequence": {
-          "steps": [], // steps abbreviated for brevity; actual response contains cascade step details
-          "totalWin": 12.00,
+          "_stepsNote": "abbreviated for brevity; actual response contains cascade step details",
+          "steps": [],
+          "totalWin": 0.50,
           "finalGrid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
           "finalRows": 3,
           "lightningMarks": {"positions":[{"row":0,"col":4},{"row":2,"col":0}],"count":2}
         },
-        "roundWin": 12.00,
+        "roundWin": 0.50,
         "coinTossResult": "HEADS",
         "lightningMarksBefore": {"positions":[{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}],"count":3},
         "lightningMarksAfter": {"positions":[{"row":0,"col":0},{"row":0,"col":4},{"row":1,"col":1},{"row":2,"col":0},{"row":2,"col":2}],"count":5}
@@ -918,7 +1023,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 ```json
 {
   "type": "object",
-  "required": ["sessionId", "playerId", "status", "baseBet", "currency", "extraBet", "buyFeature", "fgRound", "fgMultiplier", "totalFGWin", "lightningMarks", "floorValue", "completedRounds", "remainingMaxRounds", "ttlSeconds"],
+  "required": ["sessionId", "playerId", "status", "baseBet", "currency", "extraBet", "buyFeature", "fgRound", "fgMultiplier", "fgBonusMultiplier", "totalFGWin", "lightningMarks", "floorValue", "completedRounds", "remainingMaxRounds", "ttlSeconds"],
   "properties": {
     "sessionId": { "type": "string", "description": "Session identifier (format: sess-{uuid})" },
     "playerId": { "type": "string", "format": "uuid" },
@@ -1062,9 +1167,10 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
       },
       "maxWin": {
         "mainGame":   30000,
+        "buyFeature": 90000,
         "extraBetBuyFeature": 90000,
-        "unit": "× baseBet"
-        // extraBetBuyFeature: Maximum win cap when both Extra Bet and Buy Feature are active simultaneously.
+        "unit": "× baseBet",
+        "_note": "buyFeature and extraBetBuyFeature share the same 90000× cap. extraBetBuyFeature is the cap when both Extra Bet and Buy Feature are active simultaneously."
       },
       "buyFeatureSessionFloor": 20,
       "extraBetCostMultiplier": 3,
@@ -1075,6 +1181,128 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
       "extraBet":    { "target": 97.5, "tolerance": 1.0, "unit": "%" },
       "buyFeature":  { "target": 97.5, "tolerance": 1.0, "unit": "%" },
       "ebBuyFeature":{ "target": 97.5, "tolerance": 1.0, "unit": "%" }
+    }
+  }
+}
+```
+
+#### Config Response JSON Schema
+
+```json
+{
+  "type": "object",
+  "required": ["engineVersion", "betRange", "gameParameters", "rtpTargets"],
+  "properties": {
+    "engineVersion": { "type": "string", "description": "Version of GameConfig.generated.ts in use" },
+    "betRange": {
+      "type": "object",
+      "required": ["USD", "TWD"],
+      "properties": {
+        "USD": {
+          "type": "object",
+          "required": ["minBetLevel", "maxBetLevel", "levels"],
+          "properties": {
+            "minBetLevel": { "type": "integer", "minimum": 1 },
+            "maxBetLevel": { "type": "integer", "maximum": 20 },
+            "levels": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["level", "baseBet", "extraBetCost", "buyFeatureCost"],
+                "properties": {
+                  "level": { "type": "integer" },
+                  "baseBet": { "type": "number", "description": "Base bet amount in USD" },
+                  "extraBetCost": { "type": "number", "description": "Extra Bet cost (baseBet × 3)" },
+                  "buyFeatureCost": { "type": "number", "description": "Buy Feature cost (baseBet × 100)" }
+                }
+              }
+            }
+          }
+        },
+        "TWD": {
+          "type": "object",
+          "required": ["minBetLevel", "maxBetLevel", "levels"],
+          "properties": {
+            "minBetLevel": { "type": "integer", "minimum": 1 },
+            "maxBetLevel": { "type": "integer", "maximum": 320 },
+            "levels": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["level", "baseBet", "extraBetCost", "buyFeatureCost"],
+                "properties": {
+                  "level": { "type": "integer" },
+                  "baseBet": { "type": "number" },
+                  "extraBetCost": { "type": "number" },
+                  "buyFeatureCost": { "type": "number" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "gameParameters": {
+      "type": "object",
+      "required": ["reels", "initialRows", "maxRows", "paylines", "symbols", "fgMultiplierSequence", "fgBonusMultipliers", "coinTossProbabilities", "maxWin", "buyFeatureSessionFloor", "extraBetCostMultiplier", "buyFeatureCostMultiplier"],
+      "properties": {
+        "reels": { "type": "integer", "enum": [5] },
+        "initialRows": { "type": "integer", "enum": [3] },
+        "maxRows": { "type": "integer", "enum": [6] },
+        "paylines": {
+          "type": "object",
+          "required": ["at3Rows", "at4Rows", "at5Rows", "at6Rows"],
+          "properties": {
+            "at3Rows": { "type": "integer" },
+            "at4Rows": { "type": "integer" },
+            "at5Rows": { "type": "integer" },
+            "at6Rows": { "type": "integer" }
+          }
+        },
+        "symbols": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "isWild", "isScatter"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "isWild": { "type": "boolean" },
+              "isScatter": { "type": "boolean" },
+              "tier": { "type": "string", "enum": ["premium", "low"] }
+            }
+          }
+        },
+        "fgMultiplierSequence": { "type": "array", "items": { "type": "integer" } },
+        "fgBonusMultipliers": { "type": "array", "items": { "type": "integer" } },
+        "coinTossProbabilities": { "type": "object" },
+        "maxWin": {
+          "type": "object",
+          "required": ["mainGame", "buyFeature", "extraBetBuyFeature", "unit"],
+          "properties": {
+            "mainGame": { "type": "integer", "description": "Max win cap for main game and Extra Bet (× baseBet)" },
+            "buyFeature": { "type": "integer", "description": "Max win cap when Buy Feature is active (× baseBet)" },
+            "extraBetBuyFeature": { "type": "integer", "description": "Max win cap when both Extra Bet and Buy Feature are active (× baseBet)" },
+            "unit": { "type": "string" }
+          }
+        },
+        "buyFeatureSessionFloor": { "type": "integer", "description": "Session floor multiplier for Buy Feature (20 means floor = 20 × baseBet)" },
+        "extraBetCostMultiplier": { "type": "integer", "enum": [3] },
+        "buyFeatureCostMultiplier": { "type": "integer", "enum": [100] }
+      }
+    },
+    "rtpTargets": {
+      "type": "object",
+      "description": "RTP targets per game scenario",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["target", "tolerance", "unit"],
+        "properties": {
+          "target": { "type": "number" },
+          "tolerance": { "type": "number" },
+          "unit": { "type": "string", "enum": ["%"] }
+        }
+      }
     }
   }
 }
@@ -1222,6 +1450,8 @@ type SymbolId =
 - `P2` → `P1`
 - `P1` → `P1` (ceiling; no change)
 
+> Note: L-symbol entries in the second-hit path are a defensive no-op. After a valid first hit, all Lightning Mark positions already hold premium symbols (P1–P4). The L-symbol case can only trigger if the implementation encounters an unexpected symbol state.
+
 ### 4.2 Grid
 
 ```typescript
@@ -1334,7 +1564,7 @@ interface FGRound {
 ```
 totalFGWin = sum(round.roundWin for all rounds)
 effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier
-totalWin = mainCascadeWin + effectiveFGWin  (capped by maxWin)
+totalWin = min(mainCascadeWin + effectiveFGWin, maxWin × baseBet)
 ```
 
 ### 4.10 BetLevel
@@ -1348,15 +1578,16 @@ interface BetLevel {
 }
 ```
 
-**USD Bet Level Summary:**
+**USD Bet Level Summary (representative; non-linear — see `GET /v1/config` for full table):**
 
 | Level | baseBet |
 |-------|---------|
 | 1 | $0.10 |
 | 5 | $0.50 |
-| 10 | $1.00 |
-| 15 | $1.50 |
-| 20 | $2.00 |
+| 7 | $1.00 |
+| 10 | $2.00 |
+| 15 | $5.00 |
+| 20 | $10.00 |
 
 _Full table of 20 levels served by `GET /v1/config`._
 
@@ -1376,7 +1607,8 @@ interface SessionStateDTO {
   extraBet: boolean;
   buyFeature: boolean;
   fgRound: number;                // 0-based; current FG round index
-  fgMultiplier: number;           // 3 | 7 | 17 | 27 | 77
+  fgMultiplier: number | null;    // 3 | 7 | 17 | 27 | 77 — null when no active FG sequence
+  fgBonusMultiplier: number | null; // 1 | 5 | 20 | 100 — drawn once at FG sequence start; null if no active FG
   totalFGWin: number;
   lightningMarks: LightningMarkSet;
   floorValue: number;             // 20 × baseBet if buyFeature; 0 otherwise
@@ -1392,16 +1624,24 @@ interface SessionStateDTO {
 
 ### 5.1 Rate Limit Headers
 
-Every response from `/v1/*` includes the following headers:
+Every response from `/v1/*` includes the following rate-limiting headers:
 
 | Header | Type | Description |
 |--------|------|-------------|
 | `X-RateLimit-Limit` | integer | Maximum requests allowed per window (5) |
 | `X-RateLimit-Remaining` | integer | Requests remaining in the current window |
 | `X-RateLimit-Reset` | integer | Unix timestamp (seconds) when the window resets |
-| `X-Request-Id` | string (UUID) | Unique identifier for this request (for log correlation) |
+| `Retry-After` | integer | Seconds before next retry allowed; present on 429 and 503 responses |
 
-### 5.2 HTTP 429 Response
+### 5.2 Common Response Headers
+
+The following general response headers are included on all `/v1/*` responses (beyond rate-limiting headers):
+
+| Header | Type | Description |
+|--------|------|-------------|
+| `X-Request-Id` | string (UUID) | Unique identifier for this request (for log correlation); echoed from client `X-Request-Id` if provided |
+
+### 5.3 HTTP 429 Response
 
 When a player exceeds 5 requests/second, the server returns:
 
@@ -1425,13 +1665,13 @@ X-RateLimit-Reset: 1745713261
 }
 ```
 
-### 5.3 Retry-After
+### 5.4 Retry-After
 
 - `Retry-After` header value is always `1` second for game spin endpoints (matches the sliding window size)
 - Clients should implement exponential backoff if they receive multiple consecutive 429 responses
 - The Supabase Auth endpoint has a separate rate limit (not managed by this API)
 
-### 5.4 Circuit Breaker 503 Response
+### 5.5 Circuit Breaker 503 Response
 
 When the circuit breaker is OPEN (PostgreSQL or Redis unavailable), spins are rejected before any wallet debit:
 
@@ -1519,6 +1759,7 @@ The backend verifies the following claims on every `/v1/*` request:
 | Signature (RS256) | Validated against Supabase public key | 401 UNAUTHORIZED |
 | `exp` | Must be in the future | 401 UNAUTHORIZED |
 | `sub` | Must be a valid UUID; used as `playerId` | 401 UNAUTHORIZED |
+| `aud` | Must equal `"authenticated"` | 401 UNAUTHORIZED |
 | `role` | Must be `player`, `operator`, or `service_role` | 403 FORBIDDEN |
 | `playerId` match | JWT `sub` must match `playerId` in request body | 403 FORBIDDEN |
 
@@ -1639,7 +1880,7 @@ X-Request-Id: my-client-generated-uuid-here
 | `INSUFFICIENT_FUNDS` | Show balance warning; update balance display; do NOT retry |
 | `INVALID_BET_LEVEL` | Clamp bet selector to valid range; should not occur if UI is initialized from `/v1/config` |
 | `UNAUTHORIZED` | Refresh token; retry once; show login if still unauthorized |
-| `SPIN_IN_PROGRESS` | Show "spin in progress" UI state; poll `/v1/session/:sessionId` to check completion |
+| `SPIN_IN_PROGRESS` | On 409 SPIN_IN_PROGRESS, the client should wait for the Redis lock TTL (up to 10 seconds) before retrying. Polling GET /v1/session/:sessionId is appropriate only when a Free Game sequence is in progress (the session endpoint returns FG state). For base spins, retry the spin request after the lock TTL expires. |
 | `RATE_LIMITED` | Wait `retryAfter` seconds; do not retry faster |
 | `ENGINE_TIMEOUT` | Show error; do NOT retry — compensating credit already issued |
 | `INTERNAL_ERROR` | Show generic error message; log `requestId` for support |

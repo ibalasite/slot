@@ -528,13 +528,19 @@ classDiagram
 
     class FGRound {
         <<entity>>
-        +index: number
+        +round: number
         +grid: Grid
         +win: number
         +multiplier: number
+        +bonusMultiplier: number
+        +coinTossResult: string
         +lightningMarksBefore: LightningMarkSet
         +lightningMarksAfter: LightningMarkSet
     }
+    %% FGRound domain entity note: round is 1-based (1–5).
+    %% The API Response DTO (API.md §4.9) includes additional fields:
+    %% bonusMultiplier, coinTossResult ("HEADS"|"TAILS"|null), cascadeSequence.
+    %% coinTossResult is null only for incomplete rounds; "HEADS" or "TAILS" when round is resolved.
 
     class GameConfig {
         <<valueobject>>
@@ -625,7 +631,7 @@ classDiagram
 | `CascadeStep` | Domain Value Object | Single cascade step state snapshot | — | `src/domain/entities/CascadeStep.ts` | `src/domain/entities/__tests__/CascadeStep.test.ts` |
 | `SpinEntity` | Domain Entity | Single spin record (sessionId, playerId, baseBet, totalWin, cascadeSequence) | — | `src/domain/entities/SpinEntity.ts` | `src/domain/entities/__tests__/SpinEntity.test.ts` |
 | `FreeGameSession` | Domain Entity | FG session state (rounds, multiplier, marks) | `isComplete()` | `src/domain/entities/FreeGameSession.ts` | `src/domain/entities/__tests__/FreeGameSession.test.ts` |
-| `FGRound` | Domain Entity | Single FG round snapshot (grid, win, multiplier, marks before/after) | — | `src/domain/entities/FGRound.ts` | `src/domain/entities/__tests__/FGRound.test.ts` |
+| `FGRound` | Domain Entity | Single FG round snapshot (grid, win, multiplier, bonusMultiplier, coinTossResult, marks before/after). `round` is 1-based. API Response DTO (API.md §4.9) is a superset, adding `cascadeSequence`. | — | `src/domain/entities/FGRound.ts` | `src/domain/entities/__tests__/FGRound.test.ts` |
 | `GameConfig` | Config | Generated game configuration | — | `src/config/GameConfig.generated.ts` | — (generated; verified by toolchain) |
 
 ### 4.5.3 Object Diagram — Example Spin State
@@ -1261,7 +1267,7 @@ interface SpinRequest {
 
 **TWD Bet Level Constraint:** `betLevel` max = **320** for TWD currency.
 
-**Rate Limit:** 5 requests/second per player (`X-Player-Id` header). Excess → HTTP 429 with `Retry-After` header.
+**Rate Limit:** 5 requests/second per player. Rate limiting is keyed by JWT `sub` claim (player UUID). Falls back to client IP address for unauthenticated requests. See API.md §1.4 for algorithm details. Excess → HTTP 429 with `Retry-After` header.
 
 ### 6.3 Error Codes
 
@@ -1274,6 +1280,10 @@ interface SpinRequest {
 | 403 | `FORBIDDEN` | JWT valid but player account suspended |
 | 409 | `SPIN_IN_PROGRESS` | Concurrent spin detected (lock held) |
 | 429 | `RATE_LIMITED` | Exceeds 5 req/s per player |
+| 400 | `BUY_FEATURE_NOT_ALLOWED` | Buy Feature requested but unavailable (game config or jurisdiction restriction) |
+| 404 | `SESSION_NOT_FOUND` | Spin session not found or expired (TTL 300s) |
+| 422 | `VALIDATION_ERROR` | Semantically invalid spin parameters (e.g., extraBet requested but unavailable) |
+| 503 | `SERVICE_UNAVAILABLE` | Downstream database or Redis unavailable (circuit breaker open) |
 | 504 | `ENGINE_TIMEOUT` | Spin took > 2000ms; wallet IS debited before engine; compensating credit issued (see ARCH §6 Partial Failure Compensation) |
 | 500 | `INTERNAL_ERROR` | Unexpected engine error |
 
