@@ -688,7 +688,7 @@ sequenceDiagram
     participant WR as WalletRepository
     participant RC as RedisSessionCache
 
-    C->>R: POST /spin {playerId, baseBet, extraBet=false}
+    C->>R: POST /spin {playerId, betLevel: 7, extraBet: false}
     R->>A: verify(jwt)
     A-->>R: PlayerClaims
     R->>SU: execute(SpinRequest)
@@ -757,7 +757,7 @@ sequenceDiagram
     participant RC as RedisSessionCache
     participant WR as WalletRepository
 
-    C->>R: POST /spin {buyFeature: true, baseBet: 100}
+    C->>R: POST /spin {betLevel: 7, buyFeature: true}
     R->>BU: execute(BuyFeatureRequest)
     BU->>WR: debit(playerId, 100 × baseBet = 10000)
     BU->>RC: set(sessionId, BuyFGSession{floor: 20 × baseBet = 2000})
@@ -1087,12 +1087,16 @@ SlotEngine.spin(request):
 ### 5.2 FullSpinOutcome Schema
 
 ```typescript
+// Domain interface — API wire DTO (API.md §3.1) is the authoritative response shape. Field names differ from this domain interface.
 interface FullSpinOutcome {
+  spinId: string;            // format: spin-{uuid}
   sessionId: string;
   playerId: string;
+  betLevel: number;
+  totalBet: number;
   baseBet: number;
-  extraBet: boolean;
-  buyFeature: boolean;
+  extraBetActive: boolean;   // API DTO: extraBetActive (not extraBet)
+  buyFeatureActive: boolean; // API DTO: buyFeatureActive (not buyFeature)
   currency: "USD" | "TWD";
 
   // Grid state
@@ -1101,8 +1105,8 @@ interface FullSpinOutcome {
   finalRows: number;         // 3–6
 
   // Cascade
-  cascadeSteps: CascadeStep[];
-  lightningMarks: Position[]; // accumulated across all steps
+  cascadeSequence: CascadeSequence; // API DTO field name (was: cascadeSteps: CascadeStep[])
+  // Note: lightningMarks at top level moved to cascadeSequence.lightningMarks: LightningMarkSet in API DTO (see API.md §4.4)
 
   // Thunder Blessing
   thunderBlessingTriggered: boolean;
@@ -1127,9 +1131,10 @@ interface FullSpinOutcome {
 
   // Accounting — SOLE AUTHORITY
   totalWin: number;            // outcome.totalWin is the ONLY source for wallet credit
+  newBalance: number;          // player wallet balance after this spin (post-credit)
 
   // Near Miss
-  nearMiss: boolean;
+  nearMissApplied: boolean;   // API DTO: nearMissApplied (not nearMiss)
 
   // Metadata
   rngSeed?: string;            // for audit/replay

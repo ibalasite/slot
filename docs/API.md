@@ -127,16 +127,15 @@ All error responses from `/v1/*` endpoints use this envelope:
 
 The following compact examples illustrate the error envelope for each major error code.
 
+> Note: HTTP 402 (Payment Required) is not used. Balance failures return HTTP 400 with code INSUFFICIENT_FUNDS.
+
 ```json
 {
-  "_comment": "HTTP 402 — balance check occurs before spin; returned as HTTP 400 INSUFFICIENT_FUNDS",
   "success": false,
   "code": "INSUFFICIENT_FUNDS",
   "message": "Insufficient balance to cover the spin cost",
   "requestId": "550e8400-e29b-41d4-a716-446655440001",
-  "timestamp": "2026-04-26T12:00:00.000Z",
-  "data": null,
-  "error": { "code": "INSUFFICIENT_FUNDS", "message": "Insufficient balance", "balance": 0.50, "required": 1.00 }
+  "timestamp": "2026-04-26T12:00:00.000Z"
 }
 ```
 
@@ -395,9 +394,11 @@ In development, `Access-Control-Allow-Origin: *` is permitted. In production, on
 | 1 | $0.10 | TWD 3 | $0.10 | $0.30 |
 | 5 | $0.50 | TWD 15 | $0.50 | $1.50 |
 | 7 | $1.00 | TWD 30 | $1.00 | $3.00 |
-| 10 | $2.00 | TWD 60 | $2.00 | $6.00 |
+| 10 | $2.00 | TWD 30 | $2.00 | $6.00 |
 | 15 | $5.00 | TWD 150 | $5.00 | $15.00 |
-| 20 | $10.00 | TWD 300 | $10.00 | $30.00 |
+| 20 | $10.00 | TWD 60 | $10.00 | $30.00 |
+
+> Note: USD and TWD use independent level→baseBet mappings; the same betLevel integer maps to different baseBet amounts per currency.
 
 Full bet table is available via `GET /v1/config`.
 
@@ -562,7 +563,7 @@ Full bet table is available via `GET /v1/config`.
     "playerId": { "type": "string", "format": "uuid" },
     "betLevel": { "type": "integer", "minimum": 1, "maximum": 320 },
     "baseBet": { "type": "number", "description": "Base bet amount in player's currency" },
-    "totalBet": { "type": "number", "description": "Actual amount debited: baseBet × 1 (normal), × 3 (extraBet), × 100 (buyFeature)" },
+    "totalBet": { "type": "number", "description": "Actual amount debited: baseBet × 1 (normal), × 3 (extraBet), × 100 (buyFeature); × 300 (extraBet + buyFeature combined, costs 300× baseBet)" },
     "totalWin": { "type": "number", "description": "Total win credited to wallet. SOLE ACCOUNTING AUTHORITY. 0 if no win." },
     "newBalance": { "type": "number", "description": "Player wallet balance after this spin (post-credit)" },
     "currency": { "type": "string", "enum": ["USD", "TWD"] },
@@ -588,7 +589,7 @@ Full bet table is available via `GET /v1/config`.
     "cascadeSequence": { "$ref": "#/definitions/CascadeSequence" },
     "thunderBlessingTriggered": { "type": "boolean", "description": "true when Thunder Blessing (dual-hit Scatter) was triggered during this spin" },
     "thunderBlessingFirstHit": { "type": "boolean", "description": "true when first Scatter hit occurred (all Lightning Mark positions converted to premium symbol)" },
-    "thunderBlessingSecondHit": { "type": "boolean", "description": "true when second Scatter hit occurred (Coin Toss triggered)" },
+    "thunderBlessingSecondHit": { "type": "boolean", "description": "true when second Thunder Blessing hit applied — all converted mark positions upgraded one symbol tier higher (e.g., P4→P3→P2→P1). Applied when RNG draw < 0.40." },
     "upgradedSymbol": {
       "type": ["string", "null"],
       "enum": ["P1", "P2", "P3", "P4", null],
@@ -600,7 +601,7 @@ Full bet table is available via `GET /v1/config`.
         { "type": "null" }
       ]
     },
-    "coinTossTriggered": { "type": "boolean", "description": "true when Coin Toss was triggered (requires 6 reels rows AND winning cascade on 6-row grid)" },
+    "coinTossTriggered": { "type": "boolean", "description": "true when Coin Toss was triggered (requires grid expanded to 6 rows AND at least one winning cascade step on the 6-row grid)" },
     "coinTossResult": {
       "type": ["string", "null"],
       "enum": ["HEADS", "TAILS", null]
@@ -953,7 +954,7 @@ _Note: `effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier` = `2.00 
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `sessionId` | string (UUID) | Yes | Session ID previously returned in a `POST /v1/spin` response |
+| `sessionId` | string (format: sess-{uuid}) | Yes | Session ID previously returned in a `POST /v1/spin` response |
 
 #### Request Example
 
@@ -1423,6 +1424,40 @@ HTTP status is 200 when `status = "ready"`, 503 when `status = "not_ready"`.
 
 ## §4 Data Types (Shared Schemas)
 
+### 4.0 FullSpinOutcome
+
+```typescript
+// Authoritative wire contract. See §3.1 for full JSON Schema.
+interface FullSpinOutcome {
+  spinId: string;          // format: spin-{uuid}
+  sessionId: string;       // format: sess-{uuid}
+  betLevel: number;
+  totalBet: number;
+  mainCascadeWin: number;
+  totalFGWin: number;
+  totalWin: number;
+  newBalance: number;
+  extraBetActive: boolean;
+  buyFeatureActive: boolean;
+  cascadeSequence: CascadeSequence;
+  lightningMarkCount: number;
+  thunderBlessingTriggered: boolean;
+  thunderBlessingFirstHit: boolean;
+  thunderBlessingSecondHit: boolean;
+  thunderBlessingResult: ThunderBlessingResult | null;
+  upgradedSymbol: string | null;   // P1|P2|P3|P4|null
+  coinTossTriggered: boolean;
+  coinTossResult: "HEADS" | "TAILS" | null;
+  fgTriggered: boolean;
+  fgMultiplier: 3 | 7 | 17 | 27 | 77 | null;
+  fgBonusMultiplier: 1 | 5 | 20 | 100 | null;
+  fgRounds: FGRound[];
+  totalFGRounds: number;
+  nearMissApplied: boolean;
+  rngSeed?: string | null;
+}
+```
+
 ### 4.1 SymbolId Enumeration
 
 Thunder Blessing uses 10 distinct symbol identifiers (2 special + 4 premium + 4 low):
@@ -1695,9 +1730,9 @@ Retry-After: 30
 
 ## §6 WebSocket API
 
-**No WebSocket API.** Per ADR-003 (ARCH.md §1.2 / EDD.md §3.2), the game uses a **single-trip REST design**. One `POST /v1/spin` returns the complete `FullSpinOutcome` including all FG rounds, Cascade steps, and the final `totalWin`. The frontend plays back the animation sequence locally using the returned data, requiring no persistent connection.
+**No WebSocket API.** Per ADR-002 (ARCH.md §1.2 / EDD.md §3.2), the game uses a **single-trip REST design**. One `POST /v1/spin` returns the complete `FullSpinOutcome` including all FG rounds, Cascade steps, and the final `totalWin`. The frontend plays back the animation sequence locally using the returned data, requiring no persistent connection.
 
-**Rationale (ADR-003):**
+**Rationale (ADR-002):**
 - Eliminates client-server round trips during FG
 - Simplifies state management (no partial state to synchronize)
 - Reduces reconnect risk during animations
