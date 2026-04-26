@@ -748,23 +748,24 @@ During `FREE_GAME`, the internal sub-state sequence per round is:
 FG_ENTRY (bonus multiplier reveal)
     │
     ▼
-FG_COIN_TOSS_PRE_ROUND (show Coin Toss for this round)
+FG_SPINNING (play round cascade from fgRounds[i])
     │
-    ├── TAILS ──────────────────────────────► FG_RESULT (final summary)
+    ▼
+FG_CASCADE_RESOLVE (process CascadeSteps in fgRounds[i].cascadeSequence)
     │
-    └── HEADS ──► FG_SPINNING (play round cascade from fgRounds[i])
-                        │
-                        ▼
-                  FG_CASCADE (process CascadeSteps in fgRounds[i].cascadeSequence)
-                        │
-                        ▼
-                  (loop back to FG_COIN_TOSS_PRE_ROUND for next round)
+    ▼
+FG_COIN_TOSS_POST_ROUND (show Coin Toss for completed round)
+    │
+    ├── HEADS ──► (increment stage, update multiplier display, next round → FG_SPINNING)
+    │
+    └── TAILS ──────────────────────────────► FG_RESULT (final summary)
 ```
 
 **Key rules:**
+- The cascade (`fgRounds[i].cascadeSequence`) always plays first — coin toss result is revealed after the cascade completes.
 - `fgRounds[i].multiplier` sets the active multiplier for that round's win calculation display.
 - `fgRounds[i].roundWin` is the raw win (before multiplier) displayed during the round.
-- `fgRounds[i].coinTossResult === 'TAILS'` terminates the FG loop.
+- `fgRounds[i].coinTossResult === 'TAILS'` terminates the FG loop after the round's cascade has fully played.
 - Lightning Marks from `lightningMarksBefore`/`lightningMarksAfter` track cumulative marks per round.
 
 ---
@@ -1171,11 +1172,12 @@ Driven by `FreeGameComponent`:
 1. **FG Entry (cross-dissolve 800ms):** Scene transitions to Sky Temple background (night, starfield particles).
 2. **FG Bonus Reveal (always shown):** Banner from top reveals the bonus multiplier ("×1 BONUS", "×5 BONUS!", "×20 BONUS!", "×100 BONUS!" etc.) before the first FG round begins. ×1 shows a standard reveal animation with no particle fanfare; higher values add proportionally larger particle bursts.
 3. **Per-round loop:** For each `FGRound` in `fgRounds`:
-   a. Show pre-round Coin Toss (CoinTossComponent.playToss).
-   b. If TAILS: skip to FG summary.
-   c. If HEADS: update multiplier display (old number explodes, new number scales in from center, 2s).
-   d. Play `round.cascadeSequence` through `AnimationQueue` (same cascade step logic as §6.2).
-   e. Update spin counter display.
+   a. Play `round.cascadeSequence` animations through `AnimationQueue` (all cascade steps, lightning marks, symbol falls, etc. — same cascade step logic as §6.2).
+   b. Display `round.roundWin` accumulation as cascade steps resolve.
+   c. Show Coin Toss: `CoinTossComponent.playToss(round.coinTossResult, currentStage)`.
+   d. If TAILS: break loop → proceed to FG summary.
+   e. If HEADS: increment stage, update multiplier display (old number explodes, new number scales in from center, 2s), continue to next round.
+   f. Update spin counter display.
 4. **FG Complete:** Summary panel shows total FG win, final multiplier, bonus multiplier. Win roll-up to `totalFGWin × fgMultiplier × bonusMultiplier`.
 
 **Animation time budget:**
@@ -1301,13 +1303,44 @@ class AudioManager {
     source.start();
   }
 
-  async crossfadeBGM(newSoundId: string, durationMs = 1000): Promise<void> {
-    const oldNode = this.bgmNode;
-    // play() assigns this.bgmNode to the new source via the loop=true branch
-    await this.play(newSoundId, 'BGM', true);
-    // Fade out old node over durationMs (ramp gain to 0, then stop)
-    if (oldNode) setTimeout(() => oldNode.stop(), durationMs);
+  async crossfadeBGM(newSoundId: SoundId, durationMs = 1000): Promise<void> {
+    const ctx = this.context;
+    const now = ctx.currentTime;
+    const endTime = now + durationMs / 1000;
+
+    // Ramp out old BGM via BGM gain node
+    if (this.bgmNode) {
+      this.gainNodes.BGM.gain.setValueAtTime(this.gainNodes.BGM.gain.value, now);
+      this.gainNodes.BGM.gain.linearRampToValueAtTime(0, endTime);
+      const dyingNode = this.bgmNode;
+      setTimeout(() => dyingNode.stop(), durationMs + 50);
+      this.bgmNode = null;
+    }
+
+    // Start new BGM at gain 0 and ramp up
+    const buffer = await this.loadBuffer(newSoundId);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const fadeInGain = ctx.createGain();
+    fadeInGain.gain.setValueAtTime(0, now);
+    fadeInGain.gain.linearRampToValueAtTime(this.config.volume.bgm, endTime);
+    source.connect(fadeInGain);
+    fadeInGain.connect(ctx.destination);
+
+    source.start();
+    this.bgmNode = source;
+
+    // After fade-in complete, re-wire to the shared BGM gain node
+    setTimeout(() => {
+      source.disconnect(fadeInGain);
+      source.connect(this.gainNodes.BGM);
+      fadeInGain.disconnect();
+      this.gainNodes.BGM.gain.setValueAtTime(this.config.volume.bgm, ctx.currentTime);
+    }, durationMs + 50);
   }
+  // Note: A simpler implementation may hard-cut BGM between scenes where a crossfade is not aesthetically required.
 
   setMuted(muted: boolean): void {
     this.muted = muted;
