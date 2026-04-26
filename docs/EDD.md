@@ -1160,7 +1160,7 @@ Fields:
   baseBet        number
   extraBet       boolean
   buyFeature     boolean
-  fgRound        number (current FG round index, 0-based)
+  fgRound        number (1-indexed: 0=FG not yet entered, N=Nth round upcoming; 1=about to play round 1; 2=about to play round 2, i.e. 1 round completed)
   fgMultiplier   number
   fgBonusMultiplier number
   totalFGWin     number

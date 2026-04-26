@@ -116,7 +116,7 @@ All error responses from `/v1/*` endpoints use this envelope:
 | 401 | `UNAUTHORIZED` | POST /v1/spin, GET /v1/session/:sessionId, GET /v1/config | JWT is missing, malformed, expired, or signature invalid |
 | 403 | `FORBIDDEN` | POST /v1/spin, GET /v1/session/:sessionId | JWT is valid but the player's account is suspended, or the player is attempting to access another player's session |
 | 404 | `SESSION_NOT_FOUND` | GET /v1/session/:sessionId | Session ID does not exist in Redis (expired after 300s TTL or never created) |
-| 409 | `SPIN_IN_PROGRESS` | POST /v1/spin | A concurrent spin is already in progress for this player (Redis NX lock is held); request is rejected without debiting wallet |
+| 409 | `SPIN_IN_PROGRESS` | POST /v1/spin | A concurrent spin is already in progress for this session (Redis NX lock `session:{sessionId}:lock` is held). Wait for the lock TTL (≤10s) before retrying. |
 | 422 | `VALIDATION_ERROR` | POST /v1/spin | Semantically invalid payload: betLevel out of currency-specific range, or extraBet/buyFeature unavailable per game config. |
 | 429 | `RATE_LIMITED` | POST /v1/spin | Player has exceeded 5 requests/second |
 | 500 | `INTERNAL_ERROR` | All /v1/* | Unexpected engine or infrastructure error not matching any specific code |
@@ -597,7 +597,7 @@ Full bet table is available via `GET /v1/config`.
     },
     "finalRows": { "type": "integer", "enum": [3, 4, 5, 6], "description": "Final row count after Cascade expansion" },
     "cascadeSequence": { "$ref": "#/definitions/CascadeSequence" },
-    "thunderBlessingTriggered": { "type": "boolean", "description": "true when Thunder Blessing (dual-hit Scatter) was triggered during this spin" },
+    "thunderBlessingTriggered": { "type": "boolean", "description": "true when Thunder Blessing was triggered (SC Scatter landed while at least one Lightning Mark existed). First hit is always applied. Check `thunderBlessingSecondHit` to determine if the conditional second hit (RNG < 0.40) also occurred." },
     "thunderBlessingFirstHit": { "type": "boolean", "description": "true when first Scatter hit occurred (all Lightning Mark positions converted to premium symbol)" },
     "thunderBlessingSecondHit": { "type": "boolean", "description": "true when second Thunder Blessing hit applied — all converted mark positions upgraded one symbol tier higher (e.g., P4→P3→P2→P1). Applied when RNG draw < 0.40." },
     "upgradedSymbol": {
@@ -634,12 +634,12 @@ Full bet table is available via `GET /v1/config`.
     },
     "totalFGWin": {
       "type": ["number", "null"],
-      "description": "Sum of raw round wins across all FG rounds, before applying fgMultiplier and bonusMultiplier. effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier. totalWin = min(mainCascadeWin + effectiveFGWin, maxWin × baseBet). totalWin is the sole accounting authority. Null if FG not triggered."
+      "description": "Sum of raw round wins across all FG rounds, before applying fgMultiplier and bonusMultiplier. effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier. flooredFGWin = max(effectiveFGWin, sessionFloorValue) — only when sessionFloorApplied=true. totalWin = min(mainCascadeWin + flooredFGWin, maxWin × baseBet). When `sessionFloorApplied=true` (Buy Feature spin), the effective FG win is raised to at least `sessionFloorValue` before applying the max-win cap. totalWin is the sole accounting authority. Null if FG not triggered."
     },
     "sessionFloorApplied": { "type": "boolean", "description": "True if Buy Feature session floor (≥ 20× baseBet) was applied" },
     "sessionFloorValue": {
       "type": ["number", "null"],
-      "description": "Floor value applied (20 × baseBet). Null if not a Buy Feature spin."
+      "description": "Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin."
     },
     "nearMissApplied": { "type": "boolean", "description": "true when near-miss weighting was applied to the reel stop positions" },
     "engineVersion": { "type": "string", "description": "Version of GameConfig.generated.ts used" },
@@ -690,7 +690,7 @@ Full bet table is available via `GET /v1/config`.
       "required": ["paylineId", "symbolId", "matchCount", "positions", "payout"],
       "properties": {
         "paylineId": { "type": "integer", "minimum": 1, "maximum": 57, "description": "Payline identifier (1–25 at 3 rows; up to 57 at 6 rows)" },
-        "symbolId": { "type": "string", "enum": ["W", "SC", "P1", "P2", "P3", "P4", "L1", "L2", "L3", "L4"] },
+        "symbolId": { "type": "string", "enum": ["W", "P1", "P2", "P3", "P4", "L1", "L2", "L3", "L4"] },
         "matchCount": { "type": "integer", "minimum": 3, "maximum": 5 },
         "positions": { "type": "array", "items": { "$ref": "#/definitions/Position" } },
         "payout": { "type": "number", "description": "Win amount for this payline in the player's currency" }
@@ -1049,9 +1049,9 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
     "fgMultiplier": { "type": ["integer", "null"], "enum": [3, 7, 17, 27, 77, null], "description": "Current FG multiplier; null when no active FG sequence" },
     "fgBonusMultiplier": { "type": ["integer", "null"], "enum": [1, 5, 20, 100, null], "description": "Bonus multiplier drawn at FG sequence start. Null if no FG sequence is active or bonus multiplier has not yet been determined." },
     "totalFGWin": { "type": "number" },
-    "lightningMarks": { "$ref": "#/definitions/LightningMarkSet" }, // See §3.1 definitions
-    "floorValue": { "type": "number", "description": "20 × baseBet if buyFeature; 0 otherwise" },
-    "completedRounds": { "type": "array", "items": { "$ref": "#/definitions/FGRound" } }, // See §3.1 definitions
+    "lightningMarks": { "$ref": "#/definitions/LightningMarkSet" },
+    "floorValue": { "type": "number", "description": "Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin." },
+    "completedRounds": { "type": "array", "items": { "$ref": "#/definitions/FGRound" } },
     "remainingMaxRounds": { "type": "integer", "minimum": 0, "maximum": 5 },
     "ttlSeconds": { "type": "integer", "description": "Seconds remaining before this Redis session key expires" }
   }
@@ -1289,7 +1289,7 @@ The `maxWin` object in the game config contains three cap values: `mainGame` (30
         },
         "fgMultiplierSequence": { "type": "array", "items": { "type": "integer" } },
         "fgBonusMultipliers": { "type": "array", "items": { "type": "integer" } },
-        "coinTossProbabilities": { "type": "object" },
+        "coinTossProbabilities": { "type": "object", "description": "Per-stage Coin Toss HEADS probabilities. stage0_entry: probability of HEADS at FG entry stage (awards ×3 FG multiplier). stage1_x7 through stage4_x77: probabilities for advancing to the ×7, ×17, ×27, and ×77 multiplier tiers respectively." },
         "maxWin": {
           "type": "object",
           "required": ["mainGame", "buyFeature", "extraBetBuyFeature", "unit"],
@@ -1470,7 +1470,7 @@ interface FullSpinOutcome {
   fgRounds: FGRound[];
   totalFGWin: number | null;
   sessionFloorApplied: boolean;
-  sessionFloorValue: number | null; // 20 × baseBet; null if not a Buy Feature spin
+  sessionFloorValue: number | null; // Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin.
   nearMissApplied: boolean;
   engineVersion: string;
   timestamp: string;        // ISO 8601
@@ -1619,8 +1619,11 @@ interface FGRound {
 ```
 totalFGWin = sum(round.roundWin for all rounds)
 effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier
-totalWin = min(mainCascadeWin + effectiveFGWin, maxWin × baseBet)
+flooredFGWin = max(effectiveFGWin, sessionFloorValue)  // only when sessionFloorApplied=true
+totalWin = min(mainCascadeWin + flooredFGWin, maxWin × baseBet)
 ```
+
+When `sessionFloorApplied=true` (Buy Feature spin), the effective FG win is raised to at least `sessionFloorValue` before applying the max-win cap.
 
 ### 4.10 BetLevel
 
@@ -1661,12 +1664,12 @@ interface SessionStateDTO {
   currency: "USD" | "TWD";
   extraBet: boolean;
   buyFeature: boolean;
-  fgRound: number;                // 0-based; current FG round index
+  fgRound: number;                // 1-indexed: 0=not entered, N=Nth round upcoming
   fgMultiplier: number | null;    // 3 | 7 | 17 | 27 | 77 — null when no active FG sequence
   fgBonusMultiplier: number | null; // 1 | 5 | 20 | 100 — drawn once at FG sequence start; null if no active FG
   totalFGWin: number;
   lightningMarks: LightningMarkSet;
-  floorValue: number;             // 20 × baseBet if buyFeature; 0 otherwise
+  floorValue: number;             // Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin.
   completedRounds: FGRound[];     // FG rounds already resolved
   remainingMaxRounds: number;     // max rounds still possible
   ttlSeconds: number;             // seconds until Redis key expires
