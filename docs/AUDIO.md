@@ -71,7 +71,7 @@ The audio layer mirrors the game state machine defined in FRONTEND.md §4.2. Eac
 | `THUNDER_BLESSING` | `BGM_MAIN` (no change) | Thunder Blessing SFX foreground |
 | `COIN_TOSS` | `BGM_COIN_TOSS` | Coin toss SFX |
 | `FREE_GAME` | `BGM_FREE_GAME` (or `BGM_77X` at ×77) | All SFX layers |
-| `RESULT_DISPLAY` | `BGM_MAIN` | Win tier SFX |
+| `RESULT_DISPLAY` | `BGM_MAIN` (non-FG) or `BGM_FREE_GAME` / `BGM_77X` (post-FG, until `RESULT_DISMISSED`) | Win tier SFX |
 | `NETWORK_ERROR` | `BGM_MAIN` (continues at -3dB) | Error UI sound only |
 
 **Ducking rule:** During Big Win / Mega Win / Max Win events, BGM gain is reduced by −6 dB (linear gain factor 0.5) for the duration of the foreground SFX event. BGM gain is restored after the event resolves. This is implemented by temporarily adjusting `gainNodes.BGM.gain.value` rather than modifying the stored `config.volume.bgm`. The `THUNDER_BLESSING` state does **not** duck the BGM — per FRONTEND.md §7.3, no BGM change occurs during the Thunder Blessing sequence; the SFX foreground is sufficiently impactful without reducing BGM.
@@ -305,7 +305,7 @@ The following Sound IDs appear in FRONTEND.md §7's preload list (`MobileAudioUn
 
 | Sound ID | File | Duration (ms) | Trigger | Notes |
 |----------|------|:-------------:|---------|-------|
-| `SFX_WIN_SMALL` | `audio/sfx_win_small.ogg` | 600 | Small win (0 < win < 5× baseBet); WIN counter starts | Light chime; coin clink. Confirmed in FRONTEND.md §7.2 as `SFX_WIN_MEDIUM` category split. |
+| `SFX_WIN_SMALL` | `audio/sfx_win_small.ogg` | 600 | Small win (0 < win < 5× baseBet); WIN counter starts | Light chime; coin clink. Confirmed in FRONTEND.md §7.2 as `SFX_WIN_SMALL`. |
 | `SFX_WIN_MEDIUM` | `audio/sfx_win_medium.ogg` | 900 | Medium win (5× ≤ win < 20× baseBet) | Brighter chime cluster; brief string swell |
 | `SFX_WIN_BIG` | `audio/sfx_win_big.ogg` | 2000 | Big Win (20×–100×); "BIG WIN" banner drops | Brass hit + choir exclaim + coin shower begins. Confirmed in FRONTEND.md §7.2. |
 | `SFX_WIN_MEGA` | `audio/sfx_win_mega.ogg` | 3000 | Mega Win (100×–500×); "MEGA WIN" effect | Extended brass fanfare; choir builds; lightning crack underneath |
@@ -460,17 +460,19 @@ AudioState = {
 
 ### 4.2 Full State Transition Table
 
+> **Delegation note:** Rows marked `[AQ]` in the SFX column indicate audio events that are dispatched by `AnimationQueue.play()` (§5), not by the state-machine observer directly. The state-machine observer is responsible only for the BGM crossfade on these transitions; it must **not** also fire the SFX directly (that would cause double-fire). Rows without `[AQ]` are fired directly by the state-machine observer.
+
 | From State | To State | Trigger | BGM Action | BGM Duration | SFX Fired |
 |------------|----------|---------|------------|:------------:|-----------|
 | `IDLE` | `SPINNING` | `SPIN_PRESSED` | Continue `BGM_MAIN` | — | `SFX_SPIN_START` (immediate) |
 | `SPINNING` | `CASCADE_RESOLVING` | `SPIN_RESPONSE_OK` | Continue `BGM_MAIN` | — | `SFX_REEL_STOP_1`–`5` (staggered 120ms) |
-| `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | Continue current BGM | — | Per-step SFX (see §5) |
-| `CASCADE_RESOLVING` | `THUNDER_BLESSING` | `TB_TRIGGERED` | Continue current BGM (no change) | — | `SFX_LIGHTNING_ACTIVATE` |
-| `CASCADE_RESOLVING` | `COIN_TOSS` | `CASCADE_COMPLETE_COIN_TOSS` | Crossfade to `BGM_COIN_TOSS` | 800ms | `SFX_COIN_TOSS_START` |
+| `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | Continue current BGM | — | Per-step SFX (see §5) `[AQ]` |
+| `CASCADE_RESOLVING` | `THUNDER_BLESSING` | `TB_TRIGGERED` | Continue current BGM (no change) | — | `SFX_LIGHTNING_ACTIVATE` `[AQ]` |
+| `CASCADE_RESOLVING` | `COIN_TOSS` | `CASCADE_COMPLETE_COIN_TOSS` | Crossfade to `BGM_COIN_TOSS` (BGM only; SFX via AQ) | 800ms | `SFX_COIN_TOSS_START` `[AQ]` |
 | `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`, duck −6dB during win tier SFX | 200ms duck | Win tier SFX (see §3.2) |
 | `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_NO_WIN` | Continue `BGM_MAIN` | — | None |
 | `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Continue current BGM (no gain change needed) | — | `SFX_TB_SETTLE` |
-| `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM()` | 800ms | `SFX_FG_ENTER` |
+| `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM()` (BGM only; SFX via AQ) | 800ms | `SFX_FG_ENTER` `[AQ]` |
 | `COIN_TOSS` | `RESULT_DISPLAY` | `COIN_TOSS_TAILS` | Crossfade to `BGM_MAIN` | 500ms | `SFX_COIN_TAILS` |
 | `FREE_GAME` | `FREE_GAME` | `FG_ROUND_START` | Continue `BGM_FREE_GAME` (or `BGM_77X`) | — | `SFX_FG_ROUND_START` |
 | `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult=77 | Crossfade to `BGM_77X` | 800ms | `SFX_FG_MULT_77` |
@@ -554,7 +556,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 |:-----------------:|-----------|
 | 0 | None |
 | > 0 and < 5 | `SFX_WIN_SMALL` |
-| 5–19 | `SFX_WIN_MEDIUM` |
+| 5 ≤ ratio < 20 | `SFX_WIN_MEDIUM` |
 | ≥ 20 | `SFX_WIN_BIG` or higher (evaluated on final `WIN_DISPLAY` step, not per cascade step) |
 
 > **Important:** Per-cascade-step SFX uses only `SFX_WIN_SMALL` / `SFX_WIN_MEDIUM` for in-step feedback. The major win tier SFX (`SFX_WIN_BIG`, `SFX_WIN_MEGA`, `SFX_WIN_JACKPOT`, `SFX_MAX_WIN`) are reserved exclusively for the `WIN_DISPLAY` step evaluated against the cumulative `totalWin`.
@@ -589,7 +591,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | 500ms | `SFX_COIN_TOSS_FLIP` [loop starts] — spinning metal sound |
 | 500ms–2000ms | `SFX_COIN_TOSS_FLIP` loop continues for 1000–1500ms (spin phase) |
 | ~2000ms | `SFX_COIN_TOSS_FLIP` loop stops |
-| 3000ms–3500ms (on deceleration settle) | `SFX_COIN_HEADS` or `SFX_COIN_TAILS` — result reveal |
+| ~3500ms (deceleration complete; coin face fully settled) | `SFX_COIN_HEADS` or `SFX_COIN_TAILS` — result reveal |
 | On HEADS: deceleration settle + 0ms | `SFX_COIN_MULT_PROGRESS` — progress bar animates |
 | On TAILS: deceleration settle + 0ms | BGM crossfade to `BGM_MAIN` (500ms) |
 | On HEADS (FG entry): +0ms | BGM crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM('BGM_FREE_GAME', 800)` (800ms) |
@@ -653,7 +655,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | `totalWin / baseBet` | Time Offset | Audio Action |
 |:-------------------:|:-----------:|-------------|
 | < 5 | 0ms | `SFX_WIN_SMALL` |
-| 5–19 | 0ms | `SFX_WIN_MEDIUM` |
+| 5 ≤ ratio < 20 | 0ms | `SFX_WIN_MEDIUM` |
 | 20–99 | 0ms | `SFX_WIN_BIG` + BGM duck −6dB for 2000ms |
 | 100–499 | 0ms | `SFX_WIN_MEGA` + BGM duck −6dB for 3000ms |
 | 500–29999 | 0ms | `SFX_WIN_JACKPOT` + BGM duck −6dB for 4000ms |
