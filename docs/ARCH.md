@@ -28,6 +28,7 @@
 | v1.2 | 2026-04-26 | gendoc review | R2 fixes: ADR §1.2 titles corrected (ADR-005=verify.js hard gate, ADR-006=totalWin accounting authority, ADR-009=Excel as sole probability source); duplicate ADR-009 replaced with distinct Excel-as-source ADR; Partial Failure Compensation table added to §6; xlsx added to §11 tech stack; CDN section added to §13. |
 | v1.3 | 2026-04-26 | gendoc review | R3 fixes: C4 L2 INFRA→SupaDB labeled "SQL / TLS :5432", INFRA→RedisDB labeled "Redis Protocol / TLS :6379"; CDN node (Cloudflare/CloudFront) added to C4 L1 System Context with Player→CDN→TB_Frontend static asset path. |
 | v1.4 | 2026-04-26 | gendoc review | R4 fixes: §5.1/§15 D-02/F-03/ADR-003 corrected — wallet IS debited before engine; engine timeout requires compensating credit per §6; C4 L3 HC and DTOS nodes connected (Client→HC, GC→DTOS); BetRangeConfig.generated.ts node added to C4 L3 with GC→BCF arrow; §11 frontend version placeholder standardized; EDD §2.1 synchronized with CDN node addition. |
+| v1.5 | 2026-04-26 | gendoc review | R5 fixes: C4 L3 AC (authController future node) removed (orphaned); GSU→ISC arrow added (Redis primary for GET /v1/session); §9.2 NetworkPolicy egress adds port 4317 (OTLP gRPC); §9.2 monitoring namespace label corrected to kubernetes.io/metadata.name:monitoring; EDD §1.1 layer order corrected (Adapters←Infrastructure). |
 
 ---
 
@@ -425,7 +426,6 @@ graph TD
     subgraph Interface["Interface Layer"]
         GC["gameController\nPOST /v1/spin\nGET /v1/session/:id\nGET /v1/config"]
         HC["healthController\nGET /health\nGET /ready"]
-        AC["authController\n(future: auth flow)"]
         JWG["JwtAuthGuard\nFastify preHandler\nRS256 verify"]
         EM["DomainErrorMapper\nDomain → HTTP error codes"]
         DTOS["SpinRequest DTO\nSpinResponse DTO"]
@@ -475,6 +475,7 @@ graph TD
     SU --> IWR
     SU --> ISC
     BU --> SU
+    GSU --> ISC
     GSU --> ISR
     SE --> CE
     SE --> TBH
@@ -1002,16 +1003,17 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              name: monitoring
+              kubernetes.io/metadata.name: monitoring
       ports:
         - protocol: TCP
           port: 9090    # Prometheus metrics scrape only
   egress:
-    - to: []            # allow all egress (Supabase + Upstash external endpoints)
+    - to: []            # allow all egress (Supabase + Upstash external endpoints + OTEL Collector)
       ports:
         - port: 443     # HTTPS to Supabase + Upstash
         - port: 6379    # Redis protocol (TLS via Upstash)
         - port: 5432    # PostgreSQL via Supabase (TLS)
+        - port: 4317    # OTLP gRPC to OpenTelemetry Collector
 ```
 
 **Service-to-service authentication matrix:**

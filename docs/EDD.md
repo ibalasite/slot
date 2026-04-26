@@ -24,6 +24,7 @@
 |---------|------|--------|---------|
 | v1.0 | 2026-04-26 | AI Generated (gendoc-gen-edd) | Initial generation |
 | v1.1 | 2026-04-26 | gendoc review (D07-ARCH R4 sync) | §2.1 C4 L1: Added CDN (Cloudflare/CloudFront) system node and relationships (Player→CDN→Frontend) to align with ARCH.md v1.3 |
+| v1.2 | 2026-04-26 | gendoc review (D07-ARCH R5 sync) | §1.1: Corrected Clean Architecture layer order from "Infrastructure ← Interface" to "Adapters ← Infrastructure" (Infrastructure is outermost, per Clean Architecture Dependency Rule) |
 
 ---
 
@@ -33,7 +34,7 @@
 
 Thunder Blessing is a Greek-mythology-themed, high-volatility online slot game delivered as a B2B backend service. The game features a 5×3 expanding-reel grid (expanding to 5×6 during Cascade), chain elimination (Cascade), the Thunder Blessing Scatter upgrade mechanic, Coin Toss, Free Game (FG), Extra Bet, and Buy Feature.
 
-The backend is implemented in **TypeScript/Node.js** using **Fastify** as the HTTP framework, **Supabase PostgreSQL** for persistence, and **Redis** for FG session state. The architecture follows **Clean Architecture** (Dependency Rule: Domain ← Application ← Infrastructure ← Interface). All game-probability parameters originate from a single Excel workbook (`Thunder_Config.xlsx`) and flow through an automated toolchain to the generated `GameConfig.generated.ts` — never touched by hand.
+The backend is implemented in **TypeScript/Node.js** using **Fastify** as the HTTP framework, **Supabase PostgreSQL** for persistence, and **Redis** for FG session state. The architecture follows **Clean Architecture** (Dependency Rule: Domain ← Application ← Adapters ← Infrastructure; Infrastructure is the outermost layer). All game-probability parameters originate from a single Excel workbook (`Thunder_Config.xlsx`) and flow through an automated toolchain to the generated `GameConfig.generated.ts` — never touched by hand.
 
 **Key constraints:**
 - Single-trip API: one POST `/spin` returns the complete `FullSpinOutcome`, including all FG rounds, Coin Toss result, and final `totalWin`.
