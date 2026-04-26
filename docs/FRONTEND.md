@@ -1186,11 +1186,14 @@ class AnimationQueue {
 
   async play(dispatcher: AnimationDispatcher): Promise<void> {
     this.isPlaying = true;
-    for (const step of this.queue) {
-      await dispatcher.dispatch(step);
+    try {
+      for (const step of this.queue) {
+        await dispatcher.dispatch(step);
+      }
+    } finally {
+      this.isPlaying = false;
+      this.queue = [];
     }
-    this.isPlaying = false;
-    this.queue = [];
   }
 
   clear(): void {
@@ -1572,6 +1575,21 @@ class MobileAudioUnlock {
     // Defer remaining loads without blocking gameplay
     setTimeout(() => this.loadRemainingAudio(manager), 0);
   }
+
+  private static loadRemainingAudio(manager: AudioManager): void {
+    // Fire-and-forget: preload SFX and secondary BGM tracks in background
+    const remaining: Array<[SoundId, string]> = [
+      ['BGM_FREEGAME', 'audio/bgm_freegame.ogg'],
+      ['SFX_CASCADE', 'audio/sfx_cascade.ogg'],
+      ['SFX_WIN', 'audio/sfx_win.ogg'],
+      ['SFX_LIGHTNING', 'audio/sfx_lightning.ogg'],
+      ['SFX_COIN_TOSS', 'audio/sfx_coin_toss.ogg'],
+      ['SFX_SCATTER', 'audio/sfx_scatter.ogg'],
+    ];
+    for (const [id, url] of remaining) {
+      manager.preload(id, url).catch(() => { /* non-critical: game proceeds without pre-cached SFX */ });
+    }
+  }
 }
 ```
 
@@ -1782,6 +1800,14 @@ Symbol metadata from `config.gameParameters.symbols` is used only for display in
 ```typescript
 // src/pools/SymbolPool.ts
 
+// ConcreteSymbolComponent is the engine-specific implementation of the SymbolComponent interface
+// (e.g., a Cocos Creator Node wrapper or PixiJS Sprite wrapper — engine-specific file)
+declare class ConcreteSymbolComponent implements SymbolComponent {
+  onReused(symbolId: SymbolId): void;
+  onRecycled(): void;
+  // ... remaining interface methods implemented by engine adapter
+}
+
 class SymbolPool {
   private readonly POOL_SIZE = 35;  // 30 active + 5 buffer
   private available: SymbolComponent[] = [];
@@ -1791,7 +1817,7 @@ class SymbolPool {
     let symbol = this.available.pop();
     if (!symbol) {
       // Pool exhausted — create new instance (should not happen in normal play)
-      symbol = new SymbolComponent();
+      symbol = new ConcreteSymbolComponent();
     }
     symbol.onReused(symbolId);
     this.inUse.add(symbol);
@@ -1806,7 +1832,7 @@ class SymbolPool {
 
   prewarm(): void {
     for (let i = 0; i < this.POOL_SIZE; i++) {
-      this.available.push(new SymbolComponent());
+      this.available.push(new ConcreteSymbolComponent());
     }
   }
 }
