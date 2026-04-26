@@ -1,0 +1,304 @@
+@spin
+Feature: POST /v1/spin — Core Spin Mechanics
+  As a player
+  I want to execute a spin via POST /v1/spin
+  So that I receive a complete FullSpinOutcome with correct accounting and game state
+
+  Background:
+    Given a player "player_001" exists with balance 1000.00 USD
+    And the player has a valid RS256 JWT token with sub "player_001"
+    And the slot game is configured with standard bet levels
+    And no active FG session exists for "player_001"
+
+  # ─────────────────────────────────────────────
+  # Happy Path — Basic Spin
+  # ─────────────────────────────────────────────
+
+  @smoke @contract @TC-INT-API-001-HAPPY
+  Scenario: Happy path spin with no special features triggered
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "success" should be true
+    And the response body field "data.totalWin" should be a number greater than or equal to 0
+    And the response body field "data.totalBet" should equal 0.50
+    And the response body field "data.baseBet" should equal 0.50
+    And the response body field "data.currency" should equal "USD"
+    And the response body field "data.extraBetActive" should be false
+    And the response body field "data.buyFeatureActive" should be false
+    And the response body field "data.fgTriggered" should be false
+    And the response body field "data.fgRounds" should be an empty array
+    And the response body field "data.initialGrid" should be a 3-row by 5-column array
+    And the response body field "data.spinId" should match pattern "spin-[uuid]"
+    And the response body field "data.sessionId" should match pattern "sess-[uuid]"
+    And the player balance should be decreased by 0.50 USD
+    And the "spins" table should have a new record with player_id "player_001" and bet_level 5
+
+  @smoke @TC-UNIT-EXBT-004-HAPPY
+  Scenario: Extra Bet OFF spin uses standard bet deduction and mainGame weights
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.totalBet" should equal 0.50
+    And the response body field "data.extraBetActive" should be false
+    And the player balance should be decreased by exactly 0.50 USD
+
+  @contract @TC-UNIT-EXBT-001-HAPPY
+  Scenario: Extra Bet ON spin deducts 3× baseBet and guarantees SC in grid
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | true       |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.totalBet" should equal 1.50
+    And the response body field "data.baseBet" should equal 0.50
+    And the response body field "data.extraBetActive" should be true
+    And the response body field "data.initialGrid" should contain at least one "SC" symbol in rows 0 to 2
+    And the player balance should be decreased by exactly 1.50 USD
+
+  # ─────────────────────────────────────────────
+  # Cascade Chain
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-CASC-001-HAPPY @TC-INT-API-010-HAPPY
+  Scenario: Cascade chain executes multiple steps with correct balance after all cascades
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to "seed-002"
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 7          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.cascadeSequence.steps" should have at least 3 elements
+    And each cascade step should have an "index" field incrementing from 0
+    And each cascade step should have a "stepWin" field greater than or equal to 0
+    And each cascade step should have a "rows" field between 3 and 6
+    And the response body field "data.cascadeSequence.totalWin" should equal the sum of all step "stepWin" values
+    And the response body field "data.finalRows" should be between 3 and 6
+    And the player balance should equal 1000.00 minus 1.00 plus data.totalWin
+
+  @TC-UNIT-CASC-001-HAPPY
+  Scenario: Lightning Marks accumulate correctly across multiple cascade steps
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to "seed-002"
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 7          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.cascadeSequence.lightningMarks.count" should be greater than 0
+    And each cascade step's "newLightningMarks" positions should not contain duplicates
+    And the total accumulated lightning mark positions should not contain duplicate grid coordinates
+    And the response body field "data.cascadeSequence.lightningMarks.positions" should be an array of objects with "row" and "col" fields
+
+  # ─────────────────────────────────────────────
+  # Thunder Blessing
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-TB-001-HAPPY
+  Scenario: Thunder Blessing triggers when SC lands on a grid with Lightning Marks
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to "seed-003"
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 7          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.thunderBlessingTriggered" should be true
+    And the response body field "data.thunderBlessingFirstHit" should be true
+    And the response body field "data.upgradedSymbol" should be one of "P1", "P2", "P3", "P4"
+    And the response body field "data.thunderBlessingResult.convertedSymbol" should match "data.upgradedSymbol"
+    And the response body field "data.thunderBlessingResult.marksConverted" should be a non-empty array
+    And the response body field "data.thunderBlessingResult.firstHitApplied" should be true
+    And the "spins" table should have thunder_blessing_triggered set to true for this spin
+
+  @TC-UNIT-TB-002-HAPPY @TC-UNIT-TB-003-HAPPY
+  Scenario: Thunder Blessing second hit applies when RNG is below 0.40 threshold
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to "seed-004"
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 7          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.thunderBlessingTriggered" should be true
+    And the response body field "data.thunderBlessingSecondHit" should be true
+    And the response body field "data.thunderBlessingResult.secondHitApplied" should be true
+
+  # ─────────────────────────────────────────────
+  # Coin Toss
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-COIN-001-HAPPY @TC-INT-FG-001-HAPPY
+  Scenario: Coin Toss triggers after grid reaches 6 rows with a cascade win
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to "seed-005"
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 7          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.coinTossTriggered" should be true
+    And the response body field "data.coinTossResult" should be one of "HEADS", "TAILS"
+    And the response body field "data.finalRows" should equal 6
+
+  @TC-INT-FG-001-HAPPY
+  Scenario: Coin Toss Heads triggers Free Game and returns FG rounds in single response
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to "seed-005"
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 7          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.coinTossResult" should equal "HEADS"
+    And the response body field "data.fgTriggered" should be true
+    And the response body field "data.fgMultiplier" should be one of 3, 7, 17, 27, 77
+    And the response body field "data.fgRounds" should have at least 1 element
+    And the response body field "data.fgBonusMultiplier" should be one of 1, 5, 20, 100
+    And the response body field "data.totalFGWin" should be a number greater than or equal to 0
+    And each FG round should have fields "round", "multiplier", "bonusMultiplier", "grid", "cascadeSequence", "roundWin", "coinTossResult", "lightningMarksBefore", "lightningMarksAfter"
+
+  # ─────────────────────────────────────────────
+  # Free Game — Lightning Marks Across Rounds
+  # ─────────────────────────────────────────────
+
+  @TC-INT-FG-002-HAPPY
+  Scenario: Lightning Marks accumulate and persist across Free Game rounds
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to "seed-006"
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 7          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.fgTriggered" should be true
+    And for each FG round after the first, "lightningMarksBefore.count" should be greater than or equal to the previous round's "lightningMarksAfter.count"
+    And the last FG round with coinTossResult "TAILS" should have "lightningMarksAfter.count" equal to 0
+
+  # ─────────────────────────────────────────────
+  # Error Scenarios
+  # ─────────────────────────────────────────────
+
+  @TC-INT-API-004-ERROR
+  Scenario: Insufficient balance returns 400 INSUFFICIENT_FUNDS
+    Given the player balance is 0.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 400
+    And the response body field "success" should be false
+    And the response body field "code" should equal "INSUFFICIENT_FUNDS"
+    And the response body field "message" should be a non-empty string
+    And the response body field "requestId" should be a UUID string
+    And the player balance should remain 0.00 USD
+    And no new record should be inserted into the "spins" table
+
+  @TC-INT-API-005-ERROR
+  Scenario: Invalid betLevel outside USD range returns 400 INVALID_BET_LEVEL
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 999        |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 400
+    And the response body field "success" should be false
+    And the response body field "code" should equal "INVALID_BET_LEVEL"
+
+  @TC-INT-API-002-ERROR @TC-SEC-AUTH-001
+  Scenario: Missing JWT returns 401 UNAUTHORIZED
+    Given no Authorization header is included
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 401
+    And the response body field "success" should be false
+    And the response body field "code" should equal "UNAUTHORIZED"
+
+  @TC-INT-API-003-ERROR @TC-SEC-AUTH-003
+  Scenario: Expired JWT returns 401 UNAUTHORIZED
+    Given the player has a JWT token with exp claim set 1 second in the past
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 401
+    And the response body field "success" should be false
+    And the response body field "code" should equal "UNAUTHORIZED"
+
+  @TC-INT-API-006-ERROR
+  Scenario: Invalid currency returns 400 INVALID_CURRENCY
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | EUR        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 400
+    And the response body field "success" should be false
+    And the response body field "code" should equal "INVALID_CURRENCY"
+
+  @TC-INT-API-008-ERROR @performance
+  Scenario: Rate limit exceeded returns 429 RATE_LIMITED
+    Given the player has a valid JWT token
+    When I send 6 POST /v1/spin requests within 1 second from player "player_001"
+    Then the 6th response status should be 429
+    And the response body field "success" should be false
+    And the response body field "code" should equal "RATE_LIMITED"
+    And the response header "Retry-After" should be present
+
+  # ─────────────────────────────────────────────
+  # Max Win Cap
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-MAXWIN-001-BOUNDARY
+  Scenario: Main Game totalWin is capped at 30,000× baseBet
+    Given the player balance is 50000.00 USD
+    And the RNG seed is set to "seed-010"
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field "data.totalWin" should be less than or equal to 15000.00
+    And the "spins" table record for this spin should have total_win at most 15000.00
