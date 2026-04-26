@@ -67,7 +67,7 @@ The audio layer mirrors the game state machine defined in FRONTEND.md §4.2. Eac
 |------------|-----------|-----------------|
 | `IDLE` | `BGM_MAIN` | UI sounds only |
 | `SPINNING` | `BGM_MAIN` (continues) | Spin start, reel stop SFX |
-| `CASCADE_RESOLVING` | `BGM_MAIN` (continues) | Cascade, lightning mark, expansion SFX |
+| `CASCADE_RESOLVING` | `BGM_MAIN` (continues; or `BGM_ANTICIPATION` when all 4 FREE letters lit) | Cascade, lightning mark, expansion SFX |
 | `THUNDER_BLESSING` | `BGM_MAIN` (no change) | Thunder Blessing SFX foreground |
 | `COIN_TOSS` | `BGM_COIN_TOSS` | Coin toss SFX |
 | `FREE_GAME` | `BGM_FREE_GAME` (or `BGM_77X` at ×77) | All SFX layers |
@@ -307,9 +307,9 @@ The following Sound IDs appear in FRONTEND.md §7's preload list (`MobileAudioUn
 |----------|------|:-------------:|---------|-------|
 | `SFX_WIN_SMALL` | `audio/sfx_win_small.ogg` | 600 | Small win (0 < win < 5× baseBet); WIN counter starts | Light chime; coin clink. Confirmed in FRONTEND.md §7.2 as `SFX_WIN_SMALL`. |
 | `SFX_WIN_MEDIUM` | `audio/sfx_win_medium.ogg` | 900 | Medium win (5× ≤ win < 20× baseBet) | Brighter chime cluster; brief string swell |
-| `SFX_WIN_BIG` | `audio/sfx_win_big.ogg` | 2000 | Big Win (20×–100×); "BIG WIN" banner drops | Brass hit + choir exclaim + coin shower begins. Confirmed in FRONTEND.md §7.2. |
+| `SFX_WIN_BIG` | `audio/sfx_win_big.ogg` | 2000 | Big Win (20× ≤ win < 100×); "BIG WIN" banner drops | Brass hit + choir exclaim + coin shower begins. Confirmed in FRONTEND.md §7.2. |
 | `SFX_WIN_MEGA` | `audio/sfx_win_mega.ogg` | 3000 | Mega Win (100×–500×); "MEGA WIN" effect | Extended brass fanfare; choir builds; lightning crack underneath |
-| `SFX_WIN_JACKPOT` | `audio/sfx_win_jackpot.ogg` | 4000 | Jackpot (≥500×); Zeus character animation | Full orchestral + choir peak; Zeus thunder signature. Confirmed in FRONTEND.md §7.2. |
+| `SFX_WIN_JACKPOT` | `audio/sfx_win_jackpot.ogg` | 4000 | Jackpot (500× ≤ win < 30,000×); Zeus character animation | Full orchestral + choir peak; Zeus thunder signature. Confirmed in FRONTEND.md §7.2. |
 | `SFX_MAX_WIN` | `audio/sfx_max_win.ogg` | 6000 | 30,000× cap reached (Main Game) | Wall-of-sound climax. Golden coin rain. Choir sustain. Confirmed in FRONTEND.md §7.2. |
 | `SFX_MAX_WIN_LEGENDARY` | `audio/sfx_max_win_legendary.ogg` | 10000 | 90,000× cap reached (Extra Bet + Buy Feature) | Extended legendary win signature; separate mastering from `SFX_MAX_WIN`. Confirmed in FRONTEND.md §7.2. |
 | `SFX_WIN_ROLLUP_TICK` | `audio/sfx_win_rollup_tick.ogg` | 80 | Each tick of WIN counter animation (throttled) | Light coin click; fired at most every 80ms during roll-up to prevent audio spam |
@@ -474,7 +474,7 @@ AudioState = {
 | `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Continue current BGM (no gain change needed) | — | `SFX_TB_SETTLE` `[AQ]` |
 | `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM()` (BGM only; SFX via AQ) | 800ms | `SFX_FG_ENTER` `[AQ]` |
 | `COIN_TOSS` | `RESULT_DISPLAY` | `COIN_TOSS_TAILS` | Crossfade to `BGM_MAIN` | 500ms | `SFX_COIN_TAILS` `[AQ]` |
-| `FREE_GAME` | `FREE_GAME` | `FG_ROUND_START` | Continue `BGM_FREE_GAME` (or `BGM_77X`) | — | `SFX_FG_ROUND_START` |
+| `FREE_GAME` | `FREE_GAME` | `FG_ROUND_START` | Continue `BGM_FREE_GAME` (or `BGM_77X`) | — | `SFX_FG_ROUND_START` `[AQ]` |
 | `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult=77 | Crossfade to `BGM_77X` | 800ms | `SFX_FG_MULT_77` `[AQ]` |
 | `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult≠77 | Continue current BGM | — | `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` `[AQ]` |
 | `FREE_GAME` | `RESULT_DISPLAY` | `FG_ROUND_COMPLETE_TAILS` | Continue until FG_COMPLETE fires | — | `SFX_FG_COMPLETE` `[AQ]`, then win tier SFX `[AQ]` |
@@ -594,7 +594,6 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | ~3500ms (deceleration complete; coin face fully settled) | `SFX_COIN_HEADS` or `SFX_COIN_TAILS` — result reveal |
 | On HEADS: deceleration settle + 0ms | `SFX_COIN_MULT_PROGRESS` — progress bar animates |
 | On TAILS: deceleration settle + 0ms | BGM crossfade to `BGM_MAIN` (500ms) |
-| On HEADS (FG entry): +0ms | BGM crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM('BGM_FREE_GAME', 800)` (800ms) |
 
 ---
 
@@ -604,8 +603,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 
 | Time Offset | Audio Action |
 |:-----------:|-------------|
-| 0ms | `SFX_FG_ENTER` — full fanfare; plays over BGM crossfade |
-| 0ms | BGM crossfade to `BGM_FREE_GAME` (800ms) |
+| 0ms | `SFX_FG_ENTER` — full fanfare; plays over BGM crossfade (BGM_COIN_TOSS → BGM_FREE_GAME crossfade is state-observer owned per §4.2) |
 | 800ms | Scene cross-dissolve to Sky Temple background |
 | 1800ms (banner drop + multiplier reveal) | `SFX_FG_BONUS_REVEAL` (for ×1), or `SFX_FG_BONUS_5X` / `SFX_FG_BONUS_20X` / `SFX_FG_BONUS_100X` based on `fgBonusMultiplier` value |
 
