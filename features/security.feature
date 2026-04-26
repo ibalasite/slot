@@ -26,14 +26,14 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
     And the response body field "success" should be false
     And the response body field "code" should equal "UNAUTHORIZED"
 
-  @TC-SEC-AUTH-001
+  @TC-SEC-AUTH-001b
   Scenario: GET /v1/session/:sessionId requires JWT — missing Authorization header returns 401
     Given no Authorization header is included
     When I send GET /v1/session/sess-abc123 without any Authorization header
     Then the response status should be 401
     And the response body field "code" should equal "UNAUTHORIZED"
 
-  @TC-SEC-AUTH-001
+  @TC-SEC-AUTH-001c
   Scenario: GET /v1/config requires JWT — missing Authorization header returns 401
     Given no Authorization header is included
     When I send GET /v1/config without any Authorization header
@@ -123,7 +123,7 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
   # Rate Limiting
   # ─────────────────────────────────────────────
 
-  @TC-INT-API-008-ERROR @performance
+  @TC-SEC-RATE-001 @performance
   Scenario: More than 5 spin requests per second from one player returns 429 RATE_LIMITED
     Given the player has a valid JWT token
     When I send 6 POST /v1/spin requests within a 1-second window for "player_001"
@@ -162,7 +162,7 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
     Then the response header "Access-Control-Allow-Origin" should not equal "*"
     And the response header "Access-Control-Allow-Origin" should be restricted to a configured allowlist
 
-  @TC-SEC-CORS-001
+  @TC-SEC-CORS-001b
   Scenario: GET /v1/config does not return CORS wildcard in production
     When I send a GET /v1/config request from an untrusted cross-origin
     Then the response header "Access-Control-Allow-Origin" should not equal "*"

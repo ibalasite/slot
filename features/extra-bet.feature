@@ -14,7 +14,7 @@ Feature: Extra Bet Mechanics — POST /v1/spin with extraBet=true
   # Happy Path
   # ─────────────────────────────────────────────
 
-  @smoke @TC-UNIT-EXBT-001-HAPPY
+  @smoke @TC-UNIT-EXBT-001b-HAPPY
   Scenario: Extra Bet ON deducts 3× baseBet from player balance
     Given the player balance is 1000.00 USD
     When I send POST /v1/spin with body:
@@ -58,7 +58,7 @@ Feature: Extra Bet Mechanics — POST /v1/spin with extraBet=true
     And the response body field "data.extraBetActive" should be true
     And the response body field "data.initialGrid" should contain exactly one "SC" symbol in rows 0 to 2
 
-  @TC-UNIT-EXBT-004-HAPPY
+  @TC-UNIT-EXBT-004b-HAPPY
   Scenario: Extra Bet OFF spin uses standard mainGame weights and standard baseBet cost
     Given the player balance is 1000.00 USD
     When I send POST /v1/spin with body:
@@ -72,7 +72,7 @@ Feature: Extra Bet Mechanics — POST /v1/spin with extraBet=true
     And the response body field "data.extraBetActive" should be false
     And the player balance should be decreased by exactly 0.50 USD
 
-  @TC-UNIT-EXBT-005-HAPPY @TC-INT-BUYF-002-HAPPY
+  @TC-UNIT-EXBT-005-HAPPY @TC-INT-BUYF-002b-HAPPY
   Scenario: Extra Bet ON combined with Buy Feature deducts 300× baseBet
     Given the player balance is 5000.00 USD
     When I send POST /v1/spin with body:

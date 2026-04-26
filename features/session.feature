@@ -33,7 +33,7 @@ Feature: GET /v1/session/:sessionId — FG Session State
     And the response body field "data.lightningMarks.positions" should be an array of 5 position objects
     And each position object should have integer fields "row" and "col"
 
-  @TC-INT-API-012-HAPPY
+  @TC-INT-API-012b-HAPPY
   Scenario: Session returns correct FG round number and accumulated marks
     Given an active FG session exists for "player_001" with session ID "sess-def456"
     And the session has fg_multiplier 17
@@ -71,7 +71,7 @@ Feature: GET /v1/session/:sessionId — FG Session State
     And the response body field "requestId" should be a UUID string
     And the response body field "timestamp" should be a valid ISO 8601 datetime string
 
-  @TC-INT-API-015-ERROR @TC-SEC-AUTH-001
+  @TC-SEC-AUTH-001b
   Scenario: Missing JWT on session endpoint returns 401 UNAUTHORIZED
     Given no Authorization header is included
     When I send GET /v1/session/sess-abc123 without any Authorization header
@@ -79,7 +79,7 @@ Feature: GET /v1/session/:sessionId — FG Session State
     And the response body field "success" should be false
     And the response body field "code" should equal "UNAUTHORIZED"
 
-  @contract @TC-SEC-AUTH-003
+  @contract @TC-SEC-AUTH-006
   Scenario: Player "player_002" cannot access session belonging to "player_001"
     Given a player "player_002" has a valid JWT token
     And an active FG session "sess-player001-session" exists belonging to "player_001"

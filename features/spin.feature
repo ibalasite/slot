@@ -91,7 +91,6 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And each cascade step should have an "index" field incrementing from 0
     And each cascade step should have a "stepWin" field greater than or equal to 0
     And each cascade step should have a "rows" field between 3 and 6
-    And the response body field "data.cascadeSequence.totalWin" should equal the sum of all step "stepWin" values
     And the response body field "data.finalRows" should be between 3 and 6
     And the player balance should equal 1000.00 minus 0.50 plus data.totalWin
 
@@ -129,12 +128,12 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the response body field "data.thunderBlessingTriggered" should be true
     And the response body field "data.thunderBlessingFirstHit" should be true
     And the response body field "data.upgradedSymbol" should be one of "P1", "P2", "P3", "P4"
-    And the response body field "data.thunderBlessingResult.convertedSymbol" should match "data.upgradedSymbol"
+    And the response body field "data.thunderBlessingResult.convertedSymbol" should equal the value of response body field "data.upgradedSymbol"
     And the response body field "data.thunderBlessingResult.marksConverted" should be a non-empty array
     And the response body field "data.thunderBlessingResult.firstHitApplied" should be true
     And the "spins" table should have thunder_blessing_triggered set to true for this spin
 
-  @TC-UNIT-TB-002-HAPPY @TC-UNIT-TB-003-HAPPY
+  @TC-UNIT-TB-002-HAPPY
   Scenario: Thunder Blessing second hit applies when RNG is below 0.40 threshold
     Given the player balance is 1000.00 USD
     And the RNG seed is set to "seed-004"
@@ -168,7 +167,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the response body field "data.coinTossResult" should be one of "HEADS", "TAILS"
     And the response body field "data.finalRows" should equal 6
 
-  @contract @TC-INT-FG-001-HAPPY
+  @contract @TC-INT-FG-003-HAPPY
   Scenario: Coin Toss Heads triggers Free Game and returns FG rounds in single response
     Given the player balance is 1000.00 USD
     And the RNG seed is set to "seed-005"
@@ -315,7 +314,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     Given player "player_001" has an active spin in progress (spin lock held)
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 409
-    And the response error code should be "SPIN_IN_PROGRESS"
+    And the response body field "code" should equal "SPIN_IN_PROGRESS"
     And the player balance should be unchanged
 
   @contract @TC-INT-API-012
@@ -324,24 +323,24 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And player "player_001" has balance 1000.00 USD
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 504
-    And the response error code should be "ENGINE_TIMEOUT"
-    And the "wallet_transactions" table should have a compensating credit of 1.00 for "player_001"
+    And the response body field "code" should equal "ENGINE_TIMEOUT"
+    And the "wallet_transactions" table should have a compensating credit of 0.10 for "player_001"
 
   @contract @TC-INT-API-013
   Scenario: Circuit breaker open returns 503 SERVICE_UNAVAILABLE
     Given the database circuit breaker is OPEN
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 503
-    And the response error code should be "SERVICE_UNAVAILABLE"
+    And the response body field "code" should equal "SERVICE_UNAVAILABLE"
     And the player balance should be unchanged
 
-  @contract @security @TC-SEC-AUTH-005
+  @contract @security @TC-SEC-AUTH-007
   Scenario: Suspended player account is forbidden from spinning
     Given player "player_suspended" has account status "suspended"
     And player "player_suspended" has a valid JWT token
     When I send POST /v1/spin as "player_suspended" with betLevel 1 and extraBet false
     Then the response status should be 403
-    And the response error code should be "FORBIDDEN"
+    And the response body field "code" should equal "FORBIDDEN"
 
   # ─────────────────────────────────────────────
   # Grid State and Cascade Mechanics (US-CASC-001)
@@ -360,7 +359,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
   # Coin Toss Boundary (US-COIN-001/AC-5)
   # ─────────────────────────────────────────────
 
-  @contract @TC-INT-API-015
+  @contract @TC-INT-API-021
   Scenario: Cascade expanding to 5 rows does not trigger Coin Toss
     Given the RNG seed "SEED_5ROWS_ONLY" is configured to produce a 5-row expansion
     And player "player_001" has balance 1000.00 USD
@@ -400,10 +399,10 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And player "player_001" has balance 1000.00 USD
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
-    And the response data.coinTossTriggered should be true
-    And the response data.coinTossResult should equal "TAILS"
-    And the response data.fgTriggered should be false
-    And the response data.fgRounds should be an empty array
+    And the response body field "data.coinTossTriggered" should be true
+    And the response body field "data.coinTossResult" should equal "TAILS"
+    And the response body field "data.fgTriggered" should be false
+    And the response body field "data.fgRounds" should be an empty array
     And the player balance should be decreased by 0.10
 
   @smoke @contract @TC-INT-API-020

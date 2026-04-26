@@ -19,11 +19,11 @@ Feature: GET /v1/config — Game Configuration
     And the response body field "success" should be true
     And the response body field "data" should contain a bet range configuration
     And the response body field "data.betRange" should be a non-empty object
-    And the response data.betRange should contain key "USD"
-    And the response data.betRange should contain key "TWD"
+    And the response body field "data.betRange" should contain key "USD"
+    And the response body field "data.betRange" should contain key "TWD"
     And the response body field "data.engineVersion" should be a non-empty string
 
-  @TC-INT-CURR-001-HAPPY
+  @TC-INT-CURR-001b-HAPPY
   Scenario: Config returns correct USD bet level range with min $0.10 and max $10.00
     When I send GET /v1/config with valid JWT for "player_001"
     Then the response status should be 200
@@ -33,7 +33,7 @@ Feature: GET /v1/config — Game Configuration
     And each USD bet level should be a positive number
     And the USD bet levels should be in ascending order
 
-  @TC-INT-CURR-001-HAPPY
+  @TC-INT-CURR-001c-HAPPY
   Scenario: Config returns correct TWD bet level range with min baseBet 3 TWD and max baseBet 600 TWD
     When I send GET /v1/config with valid JWT for "player_001"
     Then the response status should be 200
@@ -47,7 +47,7 @@ Feature: GET /v1/config — Game Configuration
   # Error Scenarios
   # ─────────────────────────────────────────────
 
-  @TC-INT-API-015-ERROR @TC-SEC-AUTH-001
+  @TC-SEC-AUTH-001c
   Scenario: Config endpoint without JWT returns 401 UNAUTHORIZED
     Given no Authorization header is included
     When I send GET /v1/config without any Authorization header
