@@ -195,12 +195,12 @@ All idle animations are Spine 2D looping sequences at 24fps on desktop, 12fps on
 
 **Wild (Divine Lightning) — `symbol_wild.spine` `idle`:**
 - Duration: 4.0s loop (96 frames @ 24fps)
-- Effect: Pulsing gold-white outer glow (`--color-gold-divine`, Bloom radius 16px) cycling from 80% → 120% → 80% brightness over 2.0s; lightning arc micro-sparks (2–4 particles per second, Additive, `--color-arc-white`, 0.4s lifetime) drift upward from the lightning bolt prop.
+- Effect: Pulsing gold-white outer glow (`--color-gold-divine`, Bloom radius 16px) cycling from 80% → 120% → 80% brightness over 2.0s; lightning arc micro-sparks (`PS_WILD_IDLE_ARC` — see §8.1; 2–4 particles per second, Additive, `--color-arc-white`, 0.4s lifetime) drift upward from the lightning bolt prop.
 - `scale`: 1.0 → 1.02 → 1.0 breathing cycle (4.0s, `ease-in-out-cubic`).
 
 **Scatter (SC) — `symbol_sc.spine` `idle`:**
 - Duration: 3.0s loop (72 frames @ 24fps)
-- Effect: Rotating blue-white electric arc ring around the symbol perimeter (3–6 arc particles per second, Additive, `--color-sym-scatter-arc`). Outer glow pulses at 0.8× the Wild intensity (Bloom radius 14px, cycling 0.8s period).
+- Effect: Rotating blue-white electric arc ring around the symbol perimeter (`PS_SC_IDLE_ARC` — see §8.1; 3–6 arc particles per second, Additive, `--color-sym-scatter-arc`). Outer glow pulses at 0.8× the Wild intensity (Bloom radius 14px, cycling 0.8s period).
 - `scale`: 1.0 constant (no breathing; SC is defined by arcs, not breathing).
 
 **P1 Zeus — `symbol_p1.spine` `idle`:**
@@ -274,7 +274,7 @@ Triggered when `step.rows > previousRows` within a `CASCADE_STEP`. Expansion add
 | Frame height extension | 300ms | `--ease-out-cubic` | Reel container `scaleY` expands to accommodate new row (+200px); existing rows compress momentarily then relax | `SFX_REEL_EXPAND` at t=0ms |
 | Cloud dissipation | 250ms (delay 50ms) | `linear` | Cloud/mist layer over the new row area fades out (`opacity` 1.0 → 0.0) | — |
 | New row fade-in | 300ms (delay 200ms) | `linear` | New row symbols appear at opacity 0 → 1.0 | — |
-| FREE letter illuminate | 200ms (delay 100ms) | `--ease-out-cubic` | Corresponding FREE letter brightens (see §9.4) | `SFX_FREE_LETTER` concurrent with expansion |
+| FREE letter illuminate | 200ms (delay 100ms) | `--ease-out-cubic` | Corresponding FREE letter brightens (see §3.4) | `SFX_FREE_LETTER` concurrent with expansion |
 
 **Total visual impact window:** 0ms–850ms from expansion trigger.
 
@@ -532,6 +532,7 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 | Parameter | Value |
 |-----------|-------|
 | SFX | `SFX_COIN_TOSS_FLIP` [LOOP] starts at t=500ms |
+| CSS perspective | `perspective: 800px` applied to `CoinTossComponent` container (from VDD §4.5); required for realistic 3D foreshortening on rotateY — without this value the rotation appears flat |
 | Acceleration phase | 0°→2520° `rotateY` (7 full Y-axis rotations) over 800ms, `ease-in` |
 | Sustained phase | Continue rotateY at constant angular velocity; duration 200ms–700ms (randomized to create suspense — total flip + sustained = 1000ms–1500ms) |
 | Loop stops | At t≈2000ms (start of deceleration) |
@@ -826,6 +827,8 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 | End effect | No bounce (balance update is informational, not celebratory) |
 | Color | `--color-marble-white` at all times; brief `--color-success` (`oklch(60% 0.16 145)`) tint on increase (150ms, fade back to white) |
 | SFX | None — balance update is silent |
+
+**No-win and bet-deduction path:** When `outcome.totalWin = 0`, the bet was already deducted from balance before the spin. `BalanceComponent.setBalance(newBalance)` is called instantly (no roll animation, no tint) once the spin result is received. No color indication is applied to a decrease — the balance number updates immediately and silently (`ease-in-out-cubic` is NOT used; the call is synchronous/instant). This matches FRONTEND.md §3.8 `setBalance` interface contract.
 
 ### 9.2 Bet/Line Selector
 
