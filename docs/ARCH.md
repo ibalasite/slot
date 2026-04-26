@@ -25,6 +25,8 @@
 |---------|------|--------|---------|
 | v1.0 | 2026-04-26 | AI Generated | Initial generation covering all 16 sections |
 | v1.1 | 2026-04-26 | gendoc review | R1 fixes: APP→INFRA arrow labeled; ADR-007/008/009 full entries added; ADR numbering note; FinOps multi-scale projections; frontend version clarified. Note: EDD §1.1 states layer order as "Domain←Application←Infrastructure←Interface" — this is a typo in EDD. Correct order (confirmed here and in ARCH §2) is Domain←Application←Adapters←Infrastructure (Infrastructure is outermost). EDD §1.1 should be corrected in next EDD update. |
+| v1.2 | 2026-04-26 | gendoc review | R2 fixes: ADR §1.2 titles corrected (ADR-005=verify.js hard gate, ADR-006=totalWin accounting authority, ADR-009=Excel as sole probability source); duplicate ADR-009 replaced with distinct Excel-as-source ADR; Partial Failure Compensation table added to §6; xlsx added to §11 tech stack; CDN section added to §13. |
+| v1.3 | 2026-04-26 | gendoc review | R3 fixes: C4 L2 INFRA→SupaDB labeled "SQL / TLS :5432", INFRA→RedisDB labeled "Redis Protocol / TLS :6379"; CDN node (Cloudflare/CloudFront) added to C4 L1 System Context with Player→CDN→TB_Frontend static asset path. |
 
 ---
 
@@ -346,6 +348,7 @@ graph TD
     Player["Player\n(Browser / Native App)"]
     Operator["Game Designer / Operator\n(Probability config owner)"]
 
+    CDN["CDN\n(Cloudflare / CloudFront)\nStatic asset cache\nDDoS mitigation"]
     TB_Backend["Thunder Blessing Backend\nFastify REST API + SlotEngine\nSpin logic · Wallet · Session"]
     TB_Frontend["Thunder Blessing Frontend\nCocos Creator / PixiJS\nDisplay layer · Animation · totalWin"]
 
@@ -354,6 +357,8 @@ graph TD
     Supabase_Auth["Supabase Auth (JWT RS256)\n(External)\nPlayer identity verification"]
     Excel_Toolchain["Excel + slot-engine Toolchain\n(External process)\nThunder_Config.xlsx\n→ GameConfig.generated.ts"]
 
+    Player -->|"Static assets\nHTTPS"| CDN
+    CDN -->|"Cache miss / origin pull\nHTTPS"| TB_Frontend
     Player -->|"Plays game\nHTTPS / WebSocket"| TB_Frontend
     TB_Frontend -->|"POST /v1/spin\nGET /v1/session/:id\nREST / HTTPS"| TB_Backend
     TB_Backend -->|"Read/write wallet\nand spin_logs\nSQL / Supabase Client"| Supabase_DB
@@ -398,8 +403,8 @@ graph TD
     APP --> DOMAIN
     APP -->|"via Domain Port interfaces"| INFRA
     DOMAIN --> CONFIG
-    INFRA --> SupaDB
-    INFRA --> RedisDB
+    INFRA -->|"SQL / TLS :5432"| SupaDB
+    INFRA -->|"Redis Protocol / TLS :6379"| RedisDB
     API -->|"JWT verify"| SupaAuth
     XLSX --> BUILD
     BUILD --> SIM
