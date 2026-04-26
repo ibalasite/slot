@@ -147,7 +147,7 @@ All BGM tracks loop seamlessly. Loop points are specified in seconds from the st
 | **Mood** | Tension and held breath. Minimal instrumentation — solo pizzicato strings, heartbeat-like low bass pulse every 2 beats, silence between. Does not resolve harmonically. Designed to sustain unresolved tension for the 3.0–3.5s coin flip duration. |
 | **Trigger condition** | `COIN_TOSS` state entry — `CoinTossComponent` overlay opens. |
 | **Transition in** | Crossfade 800ms from `BGM_MAIN` or `BGM_ANTICIPATION`. |
-| **Transition out** | Hard-cut to `BGM_FREE_GAME` on HEADS (FG entry). Crossfade 500ms back to `BGM_MAIN` on TAILS. |
+| **Transition out** | Crossfade via `crossfadeBGM('BGM_FREE_GAME', 800)` (800ms) on HEADS (FG entry). Crossfade 500ms back to `BGM_MAIN` on TAILS. |
 | **Priority** | Overrides `BGM_MAIN` and `BGM_ANTICIPATION`. |
 | **Volume (normalized)** | 0.70 |
 
@@ -306,7 +306,7 @@ The following Sound IDs appear in FRONTEND.md §7's preload list (`MobileAudioUn
 | Sound ID | File | Duration (ms) | Trigger | Notes |
 |----------|------|:-------------:|---------|-------|
 | `SFX_WIN_SMALL` | `audio/sfx_win_small.ogg` | 600 | Small win (0 < win < 5× baseBet); WIN counter starts | Light chime; coin clink. Confirmed in FRONTEND.md §7.2 as `SFX_WIN_MEDIUM` category split. |
-| `SFX_WIN_MEDIUM` | `audio/sfx_win_medium.ogg` | 900 | Medium win (5×–20× baseBet) | Brighter chime cluster; brief string swell |
+| `SFX_WIN_MEDIUM` | `audio/sfx_win_medium.ogg` | 900 | Medium win (5× ≤ win < 20× baseBet) | Brighter chime cluster; brief string swell |
 | `SFX_WIN_BIG` | `audio/sfx_win_big.ogg` | 2000 | Big Win (20×–100×); "BIG WIN" banner drops | Brass hit + choir exclaim + coin shower begins. Confirmed in FRONTEND.md §7.2. |
 | `SFX_WIN_MEGA` | `audio/sfx_win_mega.ogg` | 3000 | Mega Win (100×–500×); "MEGA WIN" effect | Extended brass fanfare; choir builds; lightning crack underneath |
 | `SFX_WIN_JACKPOT` | `audio/sfx_win_jackpot.ogg` | 4000 | Jackpot (≥500×); Zeus character animation | Full orchestral + choir peak; Zeus thunder signature. Confirmed in FRONTEND.md §7.2. |
@@ -477,8 +477,8 @@ AudioState = {
 | `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult≠77 | Continue current BGM | — | `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` |
 | `FREE_GAME` | `RESULT_DISPLAY` | `FG_ROUND_COMPLETE_TAILS` | Continue until FG_COMPLETE fires | — | `SFX_FG_COMPLETE`, then win tier SFX |
 | `RESULT_DISPLAY` | `IDLE` | `RESULT_DISMISSED` | Crossfade to `BGM_MAIN` (if not already playing) | 800ms | None |
-| `IDLE` | `IDLE` | All FREE letters lit (cascade ≥ 4) | Crossfade to `BGM_ANTICIPATION` | 300ms | — |
-| `IDLE` | `IDLE` | FREE letters reset | Crossfade to `BGM_MAIN` | 800ms | — |
+| `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | All FREE letters lit (cascade count ≥ 4; `HUDComponent.setFreeLetterProgress(4)`) | Crossfade to `BGM_ANTICIPATION` | 300ms | — |
+| `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | FREE letters reset (cascade ends without FG) | Crossfade to `BGM_MAIN` | 800ms | — |
 | Any | `NETWORK_ERROR` | `NETWORK_OFFLINE` or API error | Continue current BGM, reduce −3dB | 300ms | `SFX_ERROR` |
 | `NETWORK_ERROR` | `IDLE` | `RETRY_CLICKED` | Restore BGM gain; crossfade to `BGM_MAIN` if needed | 500ms | None |
 | `SESSION_RECONNECT` | `FREE_GAME` | `SESSION_RESTORED_FG` | Crossfade to `BGM_FREE_GAME` | 800ms | `SFX_SESSION_RESTORE` |
@@ -540,8 +540,8 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | Symbol win animation starts | 0ms | `SFX_WIN` (generic chime, if `step.stepWin > 0`) |
 | Scatter win (if SC in win line) | 0ms | `SFX_SCATTER_WIN` (layered with `SFX_WIN`) |
 | WIN counter starts | 0ms | `SFX_WIN_ROLLUP_TICK` (throttled — fire at most every 80ms during roll-up) |
-| Symbol elimination starts | ~800ms (after slowest win anim — 1.8s for SC adjusted to elimination start) | `SFX_CASCADE` (base cascade layer; played once per step, concurrent with `SFX_CASCADE_EXPLODE`) |
-| Symbol elimination starts | ~800ms | `SFX_CASCADE_EXPLODE` (per symbol; pitch ±1 semitone randomized; layered over `SFX_CASCADE`) |
+| Symbol elimination starts | ~800ms for non-SC symbols; ~1800ms when SC present (waits for 1.8s SC win animation before elimination) | `SFX_CASCADE` (base cascade layer; played once per step, concurrent with `SFX_CASCADE_EXPLODE`) |
+| Symbol elimination starts | ~800ms / ~1800ms (same timing as `SFX_CASCADE`) | `SFX_CASCADE_EXPLODE` (per symbol; pitch ±1 semitone randomized; layered over `SFX_CASCADE`) |
 | Lightning Mark appears | concurrent with elimination | `SFX_LIGHTNING_MARK` (per new mark; pitch +2st × mark count) |
 | Reel expansion (if `step.rows > prev`) | ~1000ms | `SFX_REEL_EXPAND` |
 | FREE letter lights | concurrent with expansion | `SFX_FREE_LETTER` (per letter lit; pitch shifts by letter position) |
@@ -641,7 +641,8 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | 0ms | `SFX_FG_COMPLETE` — summary panel appears |
 | 0ms | WIN roll-up to `outcome.totalWin` begins; `SFX_WIN_ROLLUP_TICK` fires throttled |
 | End of roll-up | Win tier SFX (evaluated against `totalWin / baseBet`): `SFX_WIN_BIG` / `SFX_WIN_MEGA` / `SFX_WIN_JACKPOT` / `SFX_MAX_WIN` / `SFX_MAX_WIN_LEGENDARY` |
-| End of win tier SFX + 800ms | BGM crossfade back to `BGM_MAIN` (800ms) |
+
+> **BGM after FG_COMPLETE:** BGM (`BGM_FREE_GAME` or `BGM_77X`) continues playing through the FG summary panel. The crossfade back to `BGM_MAIN` occurs on `RESULT_DISPLAY → IDLE` (`RESULT_DISMISSED` event, i.e. when the player dismisses the result), as specified in §4.2. This avoids an abrupt BGM change while the player is still reading the win summary.
 
 ---
 
@@ -678,7 +679,7 @@ All audio interactions go through `AudioManager.getInstance()` (FRONTEND.md §7.
    - `BGM_FREE_GAME`
    - `SFX_CASCADE`, `SFX_WIN`, `SFX_LIGHTNING`, `SFX_COIN_TOSS`, `SFX_SCATTER`
 
-   > These IDs correspond exactly to `loadRemainingAudio()` in FRONTEND.md §7.4 (`MobileAudioUnlock` post-unlock deferred load). Do not add new IDs to Tier 2 without updating `loadRemainingAudio()`.
+   > These IDs correspond exactly to `loadRemainingAudio()` in FRONTEND.md §7.4 (`MobileAudioUnlock` post-unlock deferred load). FRONTEND.md §7.4 is the **authoritative implementation** of the load order. Do not add new IDs to Tier 2 without updating `loadRemainingAudio()`. Note: `BGM_FREE_GAME` is loaded at Tier 2 (post-unlock deferred) even though it is first needed at FG entry — pre-loading it reduces first-FG-entry latency.
 
 3. **Tier 3 — Deferred (loaded on-demand at first state approach):**
    - `BGM_COIN_TOSS` — loaded when `CASCADE_RESOLVING` → `COIN_TOSS` transition first occurs
@@ -718,7 +719,7 @@ As defined in FRONTEND.md §7.4, the `MobileAudioUnlock` class handles iOS Safar
 - `MobileAudioUnlock.setup(audioManager)` is called once at app initialization (before any audio plays).
 - On first gesture: `audioManager.unlock()` creates `AudioContext`, initializes `gainNodes`, calls `context.resume()`.
 - After unlock: `BGM_MAIN` is preloaded immediately; remaining assets deferred.
-- The `once: true` option on event listeners prevents double-invocation.
+- Double-invocation is prevented by the `unlocked` boolean guard in the handler (set to `true` after first invocation; handler returns early on subsequent calls). The `once: true` option on each individual listener additionally prevents that specific listener from firing more than once, but since both `touchstart` and `click` listeners are registered, the boolean guard is the primary double-invocation fence.
 - If the player mutes before the first interaction, `muted = true` is set in `AudioManager` config; the unlock still runs but gain stays at 0.
 
 **Pre-unlock state:** No audio plays. The SOUND toggle button is visible and functional (sets the `muted` flag) before unlock, so when unlock occurs, the muted state is already correct.
@@ -848,8 +849,8 @@ For players who are deaf or hard of hearing, every significant audio cue has a c
 ### 7.4 Volume Controls (Future v1.1)
 
 A dedicated settings panel (planned for v1.1) will expose:
-- BGM volume slider (0–100%, maps to `gainNodes.BGM.gain.value` × `config.volume.bgm`).
-- SFX volume slider (0–100%, maps to `gainNodes.SFX.gain.value` × `config.volume.sfx`).
+- BGM volume slider (0–100%, sets `config.volume.bgm`, which is applied directly as `gainNodes.BGM.gain.value` when not muted).
+- SFX volume slider (0–100%, sets `config.volume.sfx`, which is applied directly as `gainNodes.SFX.gain.value`).
 - Both sliders persist to `localStorage` and are restored on load.
 
 The `AudioManager.config.volume` fields support these controls natively — no architectural changes are required.
