@@ -395,6 +395,8 @@ Once placed, marks emit a continuous low-intensity electric arc particle loop (`
 
 The Thunder Blessing sequence is driven by `ThunderBlessingComponent.playSequence()`, inserted into the `AnimationQueue` immediately after the `CASCADE_STEP` where `thunderBlessingTriggeredAfterStep = true`. All timings are absolute from t=0 (the moment `dispatcher.dispatch({ type: 'THUNDER_BLESSING' })` is called).
 
+**SC win animation placement:** The Scatter symbol's 1800ms win animation runs entirely within the preceding `CASCADE_STEP` (not at t=0ms of the `THUNDER_BLESSING` step). Specifically, `SFX_CASCADE_EXPLODE` fires at ~1800ms in steps where SC is in a winning line (per §10.1 and AUDIO.md §5.2) — the CASCADE_STEP waits for the SC win animation to complete before the step concludes. The THUNDER_BLESSING AQ step begins only after the CASCADE_STEP finishes. The Scatter symbol at its cell position is the arc-line source (§4.2) but no SC win replay occurs inside the THUNDER_BLESSING step.
+
 ```
 t=0ms       TB sequence begins
               - Reel grid overlay dims to 85% brightness (300ms, ease-in)
@@ -638,15 +640,15 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 
 `SFX_FG_MULT_77` fires (3000ms maximum intensity, AUDIO.md §3.2). `SFX_FG_MULT_UP` does NOT fire on this branch.
 
-| Phase | Duration | Easing | Effect |
-|-------|:--------:|--------|--------|
-| Old number explode | 400ms | `ease-out-expo` | Same as normal but 400ms |
-| Lightning strike visual | 600ms | — | Full-width lightning bolt descends from screen top to multiplier display area; 2px → 8px stroke width; `--color-gold-divine`; white bloom at impact |
-| "×77" number scale-in | 800ms | `--ease-out-back` | `scale`: 0 → 1.8 → 1.0; color: `--color-gold-divine`; text size increases to `--text-mult-max` (72px) |
-| Screen gold flash | 300ms | `ease-out-expo` | `rgba(255,200,0,0.4)` overlay flash, fade to 0 |
-| All progress nodes illuminate | 500ms | `ease-out-cubic` | All 5 nodes reach maximum brightness simultaneously |
-| Particle burst (`PS_FG_MULT_77`) | 0ms (concurrent with node illuminate) | — | 200–300 particles desktop / 100–150 mobile; `--color-gold-divine`; Additive blend; 1000ms lifetime; spawn from multiplier display area (screen center, same Y as multiplier number) |
-| BGM crossfade begins | 0ms (concurrent) | — | `BGM_FREE_GAME` → `BGM_77X` over 800ms (state-observer-owned) |
+| Phase | Start Offset | Duration | Easing | Effect |
+|-------|:-----------:|:--------:|--------|--------|
+| Old number explode | t=0ms | 400ms | `ease-out-expo` | Same as normal but 400ms |
+| Lightning strike visual | t=400ms | 600ms | — | Full-width lightning bolt descends from screen top to multiplier display area; 2px → 8px stroke width; `--color-gold-divine`; white bloom at impact |
+| "×77" number scale-in | t=700ms (delay 300ms, overlaps strike) | 800ms | `--ease-out-back` | `scale`: 0 → 1.8 → 1.0; color: `--color-gold-divine`; text size increases to `--text-mult-max` (72px) |
+| Screen gold flash | t=1000ms (concurrent with scale-in peak) | 300ms | `ease-out-expo` | `rgba(255,200,0,0.4)` overlay flash, fade to 0 |
+| All progress nodes illuminate | t=1000ms (concurrent with flash) | 500ms | `ease-out-cubic` | All 5 nodes reach maximum brightness simultaneously |
+| Particle burst (`PS_FG_MULT_77`) | t=1000ms (concurrent with node illuminate) | — | — | 200–300 particles desktop / 100–150 mobile; `--color-gold-divine`; Additive blend; 1000ms lifetime; spawn from multiplier display area (screen center, same Y as multiplier number) |
+| BGM crossfade begins | t=0ms (concurrent with sequence start) | — | — | `BGM_FREE_GAME` → `BGM_77X` over 800ms (state-observer-owned) |
 
 ### 6.4 FG Complete (AQ Step: `FG_COMPLETE`)
 
@@ -718,7 +720,11 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 | Max Win (30,000×) | win = 30,000× baseBet | 6000ms | See §7.3 | See §7.3 |
 | Max Win Legendary (90,000×) | win = 90,000× baseBet | 10000ms+ | See §7.3 | See §7.3 |
 
-**Tier overlay dismiss:** Player tap/click on overlay dismisses it at any time after 1500ms minimum display. Overlay fades out (`opacity` 1.0 → 0.0, 400ms, `ease-in-out-cubic`).
+**Tier overlay dismiss rules:**
+- All overlays **auto-dismiss** after their listed duration if the player takes no action; the SPIN button re-enables at auto-dismiss.
+- Player tap/click dismisses the overlay **early**, but only after the 1500ms minimum mandatory display has elapsed.
+- Overlay fade-out on dismiss (auto or manual): `opacity` 1.0 → 0.0, 400ms, `ease-in-out-cubic`.
+- **Medium Win (1500ms duration):** The overlay auto-dismisses at exactly 1500ms; since the minimum mandatory display is also 1500ms, players effectively cannot dismiss Medium Win early — the auto-dismiss fires at the same time as the earliest manual-dismiss window opens. SPIN button re-enables at 1500ms (auto-dismiss fires automatically if not manually dismissed at that moment).
 
 ### 7.3 Max Win Celebration
 
