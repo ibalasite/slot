@@ -173,6 +173,9 @@ CREATE TABLE spins (
 
     -- Thunder Blessing
     thunder_blessing_triggered BOOLEAN      NOT NULL DEFAULT FALSE,
+    thunder_blessing_first_hit   BOOLEAN     NOT NULL DEFAULT FALSE,
+    thunder_blessing_second_hit  BOOLEAN     NOT NULL DEFAULT FALSE,
+    upgraded_symbol              TEXT        CHECK (upgraded_symbol IN ('P1', 'P2', 'P3', 'P4') OR upgraded_symbol IS NULL),
 
     -- Coin Toss
     coin_toss_result          TEXT          CHECK (coin_toss_result IN ('HEADS', 'TAILS') OR coin_toss_result IS NULL),
@@ -213,6 +216,10 @@ CREATE TABLE spins (
         (coin_toss_result IS NULL AND fg_triggered = FALSE) OR
         (coin_toss_result = 'HEADS' AND fg_triggered = TRUE) OR
         (coin_toss_result = 'TAILS' AND fg_triggered = FALSE)
+    ),
+    CONSTRAINT chk_thunder_blessing_hits CHECK (
+        (thunder_blessing_triggered = FALSE AND thunder_blessing_first_hit = FALSE AND thunder_blessing_second_hit = FALSE AND upgraded_symbol IS NULL) OR
+        (thunder_blessing_triggered = TRUE AND thunder_blessing_first_hit = TRUE)
     )
 
 ) PARTITION BY RANGE (created_at);
@@ -345,7 +352,12 @@ CREATE TABLE fg_sessions (
     total_fg_rounds     INTEGER           NOT NULL DEFAULT 0
                                           CHECK (total_fg_rounds >= 0 AND total_fg_rounds <= 5),
 
-    CONSTRAINT chk_fg_round_bounds CHECK (fg_round >= 0 AND (total_fg_rounds = 0 OR fg_round <= total_fg_rounds)),
+    CONSTRAINT chk_fg_round_bounds CHECK (
+      fg_round >= 0 AND (
+        (total_fg_rounds = 0 AND fg_round = 0) OR
+        (total_fg_rounds > 0 AND fg_round <= total_fg_rounds)
+      )
+    ),
 
     -- Completed rounds: array of FGRound snapshots for reconnect
     completed_rounds    JSONB             NOT NULL DEFAULT '[]',
@@ -682,6 +694,14 @@ CREATE POLICY "game_config_update_service_only"
     USING (FALSE); -- service_role bypasses
 ```
 
+**Auto-Update Trigger:**
+
+```sql
+CREATE TRIGGER game_config_versions_updated_at
+  BEFORE UPDATE ON game_config_versions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+```
+
 > **Note:** `config_data` JSONB (here `config`) is validated at application layer against ConfigSchema (see EDD §5.5) before INSERT. Consider adding a CHECK constraint with a custom PL/pgSQL validator in future iterations.
 
 ---
@@ -716,6 +736,9 @@ erDiagram
         BOOLEAN extra_bet_active
         BOOLEAN buy_feature_active
         BOOLEAN thunder_blessing_triggered
+        BOOLEAN thunder_blessing_first_hit
+        BOOLEAN thunder_blessing_second_hit
+        TEXT upgraded_symbol
         TEXT coin_toss_result
         BOOLEAN coin_toss_triggered
         BOOLEAN fg_triggered
