@@ -470,7 +470,7 @@ AudioState = {
 | `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | Continue current BGM | — | Per-step SFX (see §5) `[AQ]` |
 | `CASCADE_RESOLVING` | `THUNDER_BLESSING` | `TB_TRIGGERED` | Continue current BGM (no change) | — | `SFX_LIGHTNING_ACTIVATE` `[AQ]` |
 | `CASCADE_RESOLVING` | `COIN_TOSS` | `CASCADE_COMPLETE_COIN_TOSS` | Crossfade to `BGM_COIN_TOSS` (BGM only; SFX via AQ) | 800ms | `SFX_COIN_TOSS_START` `[AQ]` |
-| `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`; duck only if win tier ≥ Big Win (≥ 20× baseBet) — see §4.3 | — (Small/Medium: no duck; Big Win/Mega/Jackpot: 200ms linear ramp; Max Win 30,000×/90,000×: 300ms linear ramp — see §4.3) | Win tier SFX (see §3.2) `[AQ]` |
+| `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`; duck only if win tier ≥ Big Win (≥ 20× baseBet) — see §4.3 | — (see §4.3 for per-tier duck ramp durations) | Win tier SFX (see §3.2) `[AQ]` |
 | `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_NO_WIN` | Continue `BGM_MAIN` | — | None |
 | `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Continue current BGM (no gain change needed) | — | `SFX_TB_SETTLE` `[AQ]` |
 | `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM()` (BGM only; SFX via AQ) | 800ms | `SFX_FG_ENTER` `[AQ]` |
@@ -563,7 +563,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | 5 ≤ ratio < 20 | `SFX_WIN_MEDIUM` |
 | ≥ 20 | None (cumulative totalWin evaluated at WIN_DISPLAY step only — see §5.8) |
 
-> **Important:** Per-cascade-step SFX uses only `SFX_WIN_SMALL` / `SFX_WIN_MEDIUM` for in-step feedback. The major win tier SFX (`SFX_WIN_BIG`, `SFX_WIN_MEGA`, `SFX_WIN_JACKPOT`, `SFX_MAX_WIN`) are reserved exclusively for the `WIN_DISPLAY` step evaluated against the cumulative `totalWin`.
+> **Important:** Per-cascade-step SFX uses only `SFX_WIN_SMALL` / `SFX_WIN_MEDIUM` for in-step feedback. The major win tier SFX (`SFX_WIN_BIG`, `SFX_WIN_MEGA`, `SFX_WIN_JACKPOT`, `SFX_MAX_WIN`, `SFX_MAX_WIN_LEGENDARY`) are reserved for the `WIN_DISPLAY` step (non-FG path — see §5.8) and the `FG_COMPLETE` step (FG path — see §5.7), both evaluated against the cumulative `totalWin`.
 
 ---
 
@@ -896,6 +896,8 @@ The following tests must pass before any audio-inclusive build is signed off.
 - [ ] On ×77 multiplier transition: `SFX_FG_MULT_UP` does **NOT** fire; `SFX_FG_MULT_77` fires exactly once (within-AQ mutual exclusion — per §5.6 split branches)
 - [ ] `SFX_COIN_TAILS`: fires exactly once at coin settle (§5.4 result row); NOT again from TAILS note row
 - [ ] `SFX_FG_ROUND_START`: fires exactly once per FG round (AnimationQueue via §5.6)
+- [ ] `SFX_TB_SETTLE`: fires exactly once per TB sequence at 3000ms (AnimationQueue via §5.3); state observer `THUNDER_BLESSING→CASCADE_RESOLVING` row must NOT fire it separately
+- [ ] `SFX_FG_COMPLETE`: fires exactly once per FG end (AnimationQueue via §5.7 at 0ms); state observer `FG_ROUND_COMPLETE_TAILS` row must NOT double-fire it
 
 #### SFX Throttle and Gain Calibration
 - [ ] `SFX_WIN_ROLLUP_TICK` fires at most once per 80ms during WIN counter roll-up — verify via AudioContext event log that no two fire events occur within an 80ms window
@@ -909,6 +911,9 @@ The following tests must pass before any audio-inclusive build is signed off.
 - [ ] BGM_FREE_GAME or BGM_77X → BGM_MAIN: fires on RESULT_DISMISSED, not FG_COMPLETE; smooth 800ms
 - [ ] BGM_MAIN → BGM_ANTICIPATION: smooth 300ms crossfade when all 4 FREE letters lit
 - [ ] BGM_ANTICIPATION → BGM_MAIN: cascade resolves without FG — smooth 800ms crossfade back to BGM_MAIN
+
+#### SFX Functional Correctness
+- [ ] `SFX_NEAR_MISS`: fires exactly once at grid-stop when `nearMissApplied = true`; does NOT fire when `nearMissApplied = false`; BGM gain unchanged (no duck applied)
 
 #### Cross-Browser Playback
 - [ ] Chrome (latest): all BGM and SFX play without error; no AudioContext suspension issues
