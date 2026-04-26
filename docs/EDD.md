@@ -25,6 +25,7 @@
 | v1.0 | 2026-04-26 | AI Generated (gendoc-gen-edd) | Initial generation |
 | v1.1 | 2026-04-26 | gendoc review (D07-ARCH R4 sync) | §2.1 C4 L1: Added CDN (Cloudflare/CloudFront) system node and relationships (Player→CDN→Frontend) to align with ARCH.md v1.3 |
 | v1.2 | 2026-04-26 | gendoc review (D07-ARCH R5 sync) | §1.1: Corrected Clean Architecture layer order from "Infrastructure ← Interface" to "Adapters ← Infrastructure" (Infrastructure is outermost, per Clean Architecture Dependency Rule) |
+| v1.3 | 2026-04-26 | gendoc review (D07-ARCH R6 sync) | §6.3 error code table and §10.3 error handling table: corrected stale "wallet NOT debited" to "wallet IS debited before engine; compensating credit issued" — aligns with ARCH §5.1, §6, §15 D-02/F-03 |
 
 ---
 
@@ -1273,7 +1274,7 @@ interface SpinRequest {
 | 403 | `FORBIDDEN` | JWT valid but player account suspended |
 | 409 | `SPIN_IN_PROGRESS` | Concurrent spin detected (lock held) |
 | 429 | `RATE_LIMITED` | Exceeds 5 req/s per player |
-| 504 | `ENGINE_TIMEOUT` | Spin took > 2000ms; wallet not debited |
+| 504 | `ENGINE_TIMEOUT` | Spin took > 2000ms; wallet IS debited before engine; compensating credit issued (see ARCH §6 Partial Failure Compensation) |
 | 500 | `INTERNAL_ERROR` | Unexpected engine error |
 
 **Error Response Envelope:**
@@ -1713,7 +1714,7 @@ State: CLOSED → OPEN (after 5 consecutive failures) → HALF_OPEN (after 30s) 
 | Failure | Detection | Recovery |
 |---------|-----------|---------|
 | Wallet debit failure | DB error on UPDATE | Rollback; return 400 |
-| Engine timeout (>2000ms) | Fastify `requestTimeout` | Return 504; wallet NOT debited |
+| Engine timeout (>2000ms) | Fastify `requestTimeout` | Return 504; wallet IS debited before engine call; compensating credit issued immediately (see ARCH §6 Partial Failure Compensation — engine failure path) |
 | Redis lock timeout | TTL expiry | Auto-release after 10s; next spin can proceed |
 | Concurrent spin detected | NX lock fail | Return 409 |
 | FG session TTL expiry | Redis key not found | Return 404 from GET /session; player must restart |
