@@ -1178,8 +1178,8 @@ class AnimationQueue {
       });
     }
 
-    // Final win display
-    if (outcome.totalWin > 0) {
+    // Final win display — skip for FG outcomes since FG_COMPLETE already rolled up to outcome.totalWin
+    if (outcome.totalWin > 0 && !outcome.fgTriggered) {
       this.queue.push({ type: 'WIN_DISPLAY', data: { totalWin: outcome.totalWin, baseBet: outcome.baseBet } });
     }
   }
@@ -2066,9 +2066,10 @@ describe('Spin flow integration', () => {
   it('plays cascade steps sequentially from FullSpinOutcome', async () => {
     const mockOutcome = loadFixture('cascade_3_steps.json');
     const playedSteps: number[] = [];
+    let stepCount = 0;
 
     const dispatcher = createMockDispatcher({
-      'CASCADE_STEP': (data) => playedSteps.push(data.index),
+      'CASCADE_STEP': () => playedSteps.push(stepCount++), // CascadeStep has no index field; track order with counter
     });
 
     const queue = new AnimationQueue();
