@@ -1437,37 +1437,36 @@ class AudioManager {
     const now = ctx.currentTime;
     const endTime = now + durationMs / 1000;
 
-    // Ramp out old BGM via BGM gain node
+    // Move old BGM to a temporary fade-out gain so gainNodes.BGM is immediately free for the new track
     if (this.bgmNode) {
-      this.gainNodes.BGM.gain.setValueAtTime(this.gainNodes.BGM.gain.value, now);
-      this.gainNodes.BGM.gain.linearRampToValueAtTime(0, endTime);
+      const fadeOutGain = ctx.createGain();
+      fadeOutGain.gain.setValueAtTime(this.gainNodes.BGM.gain.value, now);
+      fadeOutGain.gain.linearRampToValueAtTime(0, endTime);
+      this.bgmNode.disconnect(this.gainNodes.BGM);
+      this.bgmNode.connect(fadeOutGain);
+      fadeOutGain.connect(ctx.destination);
       const dyingNode = this.bgmNode;
-      setTimeout(() => dyingNode.stop(), durationMs + 50);
+      const dyingGain = fadeOutGain;
+      setTimeout(() => { dyingNode.stop(); dyingGain.disconnect(); }, durationMs + 50);
       this.bgmNode = null;
     }
 
-    // Start new BGM at gain 0 and ramp up
+    // Route new BGM through gainNodes.BGM from the start so setMuted() stays effective
     const buffer = await this.loadBuffer(newSoundId);
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.loop = true;
+    source.connect(this.gainNodes.BGM);
 
-    const fadeInGain = ctx.createGain();
-    fadeInGain.gain.setValueAtTime(0, now);
-    fadeInGain.gain.linearRampToValueAtTime(this.config.volume.bgm, endTime);
-    source.connect(fadeInGain);
-    fadeInGain.connect(ctx.destination);
+    // Ramp up via the shared BGM gain node; respect current mute state
+    this.gainNodes.BGM.gain.setValueAtTime(0, now);
+    this.gainNodes.BGM.gain.linearRampToValueAtTime(
+      this.muted ? 0 : this.config.volume.bgm,
+      endTime
+    );
 
     source.start();
     this.bgmNode = source;
-
-    // After fade-in complete, re-wire to the shared BGM gain node
-    setTimeout(() => {
-      source.disconnect(fadeInGain);
-      source.connect(this.gainNodes.BGM);
-      fadeInGain.disconnect();
-      this.gainNodes.BGM.gain.setValueAtTime(this.config.volume.bgm, ctx.currentTime);
-    }, durationMs + 50);
   }
   // Note: A simpler implementation may hard-cut BGM between scenes where a crossfade is not aesthetically required.
 
@@ -2092,8 +2091,12 @@ describe('Spin flow integration', () => {
     await queue.play(dispatcher);
 
     const tbIndex = played.indexOf('tb');
-    const lastCascadeIndex = played.lastIndexOf('cascade');
-    expect(tbIndex).toBeGreaterThan(lastCascadeIndex);
+    // TB was dispatched
+    expect(tbIndex).toBeGreaterThanOrEqual(0);
+    // TB fires immediately after the triggering cascade step (mid-cascade split)
+    expect(played[tbIndex - 1]).toBe('cascade');
+    // All cascade steps are accounted for — some before TB, remainder may follow TB
+    expect(played.filter(e => e === 'cascade').length).toBe(mockOutcome.cascadeSequence.steps.length);
   });
 
   it('plays all FG rounds in order from fgRounds array', async () => {
