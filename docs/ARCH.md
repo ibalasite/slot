@@ -30,6 +30,7 @@
 | v1.4 | 2026-04-26 | gendoc review | R4 fixes: §5.1/§15 D-02/F-03/ADR-003 corrected — wallet IS debited before engine; engine timeout requires compensating credit per §6; C4 L3 HC and DTOS nodes connected (Client→HC, GC→DTOS); BetRangeConfig.generated.ts node added to C4 L3 with GC→BCF arrow; §11 frontend version placeholder standardized; EDD §2.1 synchronized with CDN node addition. |
 | v1.5 | 2026-04-26 | gendoc review | R5 fixes: C4 L3 AC (authController future node) removed (orphaned); GSU→ISC arrow added (Redis primary for GET /v1/session); §9.2 NetworkPolicy egress adds port 4317 (OTLP gRPC); §9.2 monitoring namespace label corrected to kubernetes.io/metadata.name:monitoring; EDD §1.1 layer order corrected (Adapters←Infrastructure). |
 | v1.6 | 2026-04-26 | gendoc review | R7 fix: ADR-003 and ADR-005 Options Considered tables added (single-trip vs multi-trip vs WebSocket for ADR-003; hard gate vs ungated vs manual vs post-generation for ADR-005). |
+| v1.7 | 2026-04-26 | gendoc review | R8 fix: ADR-006 Options Considered table added (totalWin vs roundWin vs cascade stepWin vs per-round credit). |
 
 ---
 
@@ -1586,6 +1587,15 @@ The Cascade sequence accumulates `stepWin` across multiple cascade steps. Additi
 - Double-counting: UI summing cascade steps and also showing `totalWin`
 - Under-crediting: Crediting `session.roundWin` instead of `outcome.totalWin` (may differ due to floor guard)
 - Over-crediting: `session.roundWin` not capped at `maxWin`
+
+**Options Considered:**
+
+| Option | Double-count Risk | MaxWin Cap | Floor Guard Compatibility | Decision |
+|--------|------------------|-----------|--------------------------|----------|
+| `outcome.totalWin` (SlotEngine output, post-cap) | None — single computation path | Applied before setting totalWin | Fully compatible (SessionFloorGuard reads totalWin) | **Selected** |
+| `session.roundWin` (UI animation counter) | High — accumulates across FG rounds without cap | Not applied | Incompatible — roundWin bypasses enforceMaxWin() | Rejected |
+| Sum of cascade `stepWin` values | High — Cascade steps summed multiple times across FG rounds | Not applied | Incompatible | Rejected |
+| Per-round credit (credit after each FG round) | Low but complex | Must be re-applied per round | Complex — floor guard applies at session end only | Rejected (violates single-trip design) |
 
 **Decision:**
 
