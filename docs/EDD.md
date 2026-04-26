@@ -211,23 +211,12 @@ C4Container
 
 ### 3.5 Environment Matrix
 
-| Environment | Replicas (API) | PostgreSQL | Redis | HPA Min/Max | Notes |
-|------------|---------------|-----------|-------|-------------|-------|
-| Development | 1 | Supabase Free | localhost:6379 | N/A | `NODE_ENV=development` |
-| Staging | 2 | Supabase Pro | Upstash Hobby | 2/4 | Mirror prod config |
-| Production | 3 | Supabase Pro | Upstash Standard | 3/10 | PDB minAvailable=2 |
-
-**K8s Resource Specs (Production):**
-
-```yaml
-resources:
-  requests:
-    cpu: "250m"
-    memory: "256Mi"
-  limits:
-    cpu: "1000m"
-    memory: "512Mi"
-```
+| Environment | K8s Namespace | Replicas (API) | CPU Request/Limit | Memory Request/Limit | PostgreSQL | Redis | DB Host | HPA Min/Max | Notes |
+|------------|---------------|---------------|-------------------|----------------------|-----------|-------|---------|-------------|-------|
+| Local | N/A (docker-compose) | 1 | 250m / 1000m | 256Mi / 512Mi | Supabase local (docker) | localhost:6379 | localhost:54322 | N/A | `NODE_ENV=development`; `docker compose up` |
+| Development | `thunder-dev` | 1 | 250m / 1000m | 256Mi / 512Mi | Supabase Free | localhost:6379 | db.xxx.supabase.co | N/A | CI deploy on `staging` branch push |
+| Staging | `thunder-staging` | 2 | 250m / 1000m | 256Mi / 512Mi | Supabase Pro | Upstash Hobby | db.yyy.supabase.co | 2/4 | Mirror prod config; Blue-Green deploy |
+| Production | `thunder-prod` | 3 | 250m / 1000m | 256Mi / 512Mi | Supabase Pro | Upstash Standard | db.zzz.supabase.co | 3/10 | PDB minAvailable=2; Canary deploy |
 
 ---
 
@@ -1781,6 +1770,12 @@ OpenTelemetry traces with spans for:
 
 Trace exporter: OpenTelemetry Collector → Grafana Tempo.
 
+**Sampling strategy (head-based):**
+- **5%** of normal traffic (random sampling)
+- **100%** for all error traces (status code 4xx/5xx or `error` span attribute set)
+- **100%** for requests with latency > 500ms (tail-based via Tempo tail sampling processor)
+- Configurable via environment variable: `OTEL_TRACES_SAMPLER=parentbased_traceidratio`, `OTEL_TRACES_SAMPLER_ARG=0.05`
+
 ### 11.4 Alerting Rules
 
 | Alert | Condition | Severity | Action |
@@ -1807,21 +1802,27 @@ Push to branch
   ↓
 3. Integration Tests (Supertest against local Supabase + Redis)
   ↓
-4. Toolchain Verification:
+4. Security Scan — SAST (semgrep/CodeQL; block on CRITICAL findings)
+  ↓
+5. Toolchain Verification:
    a. build_config.js (parse Excel, emit engine_config.json)
-   b. verify.js (4-scenario RTP check — MUST PASS)
-   c. engine_generator.js (generate GameConfig.generated.ts)
-   d. CI checksum guard (diff generated file vs committed)
+   b. excel_simulator.js (100万次 Monte Carlo simulation)
+   c. verify.js (4-scenario RTP check — MUST PASS)
+   d. engine_generator.js (generate GameConfig.generated.ts)
+   e. CI checksum guard (diff generated file vs committed)
   ↓
-5. Docker Build & Push (tagged with git SHA)
+6. Docker Build & Push (tagged with git SHA)
   ↓
-6. Staging Deploy (kubectl apply)
+7. Dev Deploy — namespace: thunder-dev [Rolling strategy]
   ↓
-7. Smoke Tests (E2E against staging)
+8. Staging Deploy — namespace: thunder-staging [Blue-Green strategy]
   ↓
-8. Production Deploy (manual gate on main branch)
+9. Smoke Tests (E2E against staging)
   ↓
-9. Production Smoke Tests
+10. Production Deploy — namespace: thunder-prod [Canary strategy, manual gate on main branch]
+    (traffic: 5% → 25% → 100%, with automated rollback on error rate > 1%)
+  ↓
+11. Production Smoke Tests
 ```
 
 ### 12.2 Branch Strategy
@@ -1839,6 +1840,7 @@ Push to branch
 |------|-----------|----------------|
 | TypeScript compilation | 0 errors | Block merge |
 | Unit test coverage | ≥ 80% | Block merge |
+| SAST scan (semgrep/CodeQL) | No CRITICAL findings | Block merge |
 | verify.js (4 scenarios) | All PASS | Block deploy |
 | GameConfig checksum | No diff | Block deploy |
 | Docker image scan | No CRITICAL CVEs | Block deploy |
