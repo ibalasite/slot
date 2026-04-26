@@ -67,7 +67,7 @@ Maps each PRD requirement / Acceptance Criteria to the EDD section and API endpo
 | US-COIN-001 / AC-3 | Coin Toss Tails → no FG, spin ends | `CoinTossEvaluator.evaluate()` | `POST /v1/spin` | `fgTriggered = false` |
 | US-COIN-001 / AC-4 | buyFG mode → entryBuy=1.00, bypasses mgFgTriggerProb | `BuyFeatureUseCase`, `CoinTossEvaluator` | `POST /v1/spin` (buyFeature=true) | `spins.buy_feature_active` |
 | US-COIN-001 / AC-5 | rows < 6 → Coin Toss never triggered | `SlotEngine.spin()` rows guard | `POST /v1/spin` | `coinTossTriggered = false` when `finalRows < 6` |
-| **US-FGAM-001** | Free Game — Lightning Marks persist cross-Spin, ×3→×7→×17→×27→×77 sequence | §1.3: `FreeGameOrchestrator`, §5.6 | `POST /v1/spin` | `spins.fg_triggered`, `spins.fg_multiplier`, `fg_sessions` table (SCHEMA §2.4) |
+| **US-FGAM-001** | Free Game — Lightning Marks persist cross-Spin, ×3→×7→×17→×27→×77 sequence | §1.3: `FreeGameOrchestrator`, §5.6 | `POST /v1/spin` | `spins.fg_triggered`, `spins.fg_multiplier`, `fg_sessions` table (SCHEMA §2.3) |
 | US-FGAM-001 / AC-1 | FG round 1 uses freeGame weights, inherits marks from main game, win × 3 | `FreeGameOrchestrator.runSingleRound()` | `POST /v1/spin` | `fgRounds[0].lightningMarksBefore`, `fgRounds[0].multiplier = 3` |
 | US-FGAM-001 / AC-2 | 2nd FG Coin Toss Heads → multiplier upgrades ×3→×7 | `FreeGameOrchestrator.runSequence()` stage progression | `POST /v1/spin` | `fgRounds[1].multiplier = 7` |
 | US-FGAM-001 / AC-3 | Multiplier at ×77 with Heads → stays at ×77 | `FreeGameOrchestrator` max multiplier guard | `POST /v1/spin` | `fgMultiplier` enum [3,7,17,27,77] |
@@ -75,7 +75,7 @@ Maps each PRD requirement / Acceptance Criteria to the EDD section and API endpo
 | US-FGAM-001 / AC-5 | buyFG mode → exactly 5 FG rounds, multipliers [3,7,17,27,77] | `BuyFeatureUseCase`, `FreeGameOrchestrator` | `POST /v1/spin` (buyFeature=true) | `fgRounds.length === 5` |
 | US-FGAM-001 / AC-6 | FG Bonus multiplier drawn once (×1/×5/×20/×100) from fgBonus weights | `FreeGameOrchestrator.drawBonusMultiplier()` | `POST /v1/spin` | `fgBonusMultiplier`, `spins.bonus_multiplier` |
 | US-FGAM-001 / AC-7 | ×77 + Tails → FG ends immediately, marks cleared, totalWin returned | `FreeGameOrchestrator` termination + `SessionFloorGuard` | `POST /v1/spin` | `totalWin` in response |
-| **US-FGREC-001** | FG disconnection recovery — restore from Redis/PostgreSQL | §4.1: `RedisSessionCache`, `SupabaseSessionRepository` | `GET /v1/session/:sessionId` | `fg_sessions` table (SCHEMA §2.4); Redis `player_sessions` |
+| **US-FGREC-001** | FG disconnection recovery — restore from Redis/PostgreSQL | §4.1: `RedisSessionCache`, `SupabaseSessionRepository` | `GET /v1/session/:sessionId` | `fg_sessions` table (SCHEMA §2.3); Redis `session:{sessionId}:state` |
 | US-FGREC-001 / AC-1 | FG in progress + valid JWT → backend restores FG state from Redis | `RedisSessionCache.get()`, `GetSessionStateUseCase` | `GET /v1/session/:sessionId` → 200 | `fg_sessions.fg_multiplier`, `fg_sessions.lightning_marks` |
 | US-FGREC-001 / AC-2 | FG state restored → frontend resumes from breakpoint | `GetSessionStateUseCase` → `SessionStateDTO` | `GET /v1/session/:sessionId` | `status = "FG_ACTIVE"`, `completedRounds[]` |
 | US-FGREC-001 / AC-3 | JWT expired on reconnect → 401, FG state preserved | `JwtAuthGuard` | `GET /v1/session/:sessionId` → 401 | Session TTL not reset on auth failure |

@@ -115,7 +115,7 @@ All error responses from `/v1/*` endpoints use this envelope:
 | 400 | `VALIDATION_ERROR` | POST /v1/spin | Request body fails JSON schema validation (missing required field, wrong type, out-of-range value) |
 | 401 | `UNAUTHORIZED` | POST /v1/spin, GET /v1/session/:sessionId, GET /v1/config | JWT is missing, malformed, expired, or signature invalid |
 | 403 | `FORBIDDEN` | POST /v1/spin, GET /v1/session/:sessionId | JWT is valid but the player's account is suspended, or the player is attempting to access another player's session |
-| 404 | `SESSION_NOT_FOUND` | GET /v1/session/:sessionId | Session ID does not exist in Redis (expired after 300s TTL or never created) |
+| 404 | `SESSION_NOT_FOUND` | GET /v1/session/:sessionId | Session ID does not exist in Redis (expired after 1800s TTL or never created) |
 | 409 | `SPIN_IN_PROGRESS` | POST /v1/spin | A concurrent spin is already in progress for this session (Redis NX lock `session:{sessionId}:lock` is held). Wait for the lock TTL (≤10s) before retrying. |
 | 422 | `VALIDATION_ERROR` | POST /v1/spin | Semantically invalid payload: structurally valid but semantically unsupported combinations, such as extraBet/buyFeature unavailable per game config. |
 | 429 | `RATE_LIMITED` | POST /v1/spin | Player has exceeded 5 requests/second |
@@ -195,7 +195,7 @@ The following compact examples illustrate the error envelope for each major erro
 {
   "success": false,
   "code": "SESSION_NOT_FOUND",
-  "message": "Session not found or expired (TTL 300s)",
+  "message": "Session not found or expired (TTL 1800s)",
   "requestId": "550e8400-e29b-41d4-a716-446655440006",
   "timestamp": "2026-04-26T12:00:05.000Z"
 }
@@ -946,7 +946,7 @@ _Note: `effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier` = `2.00 
 
 ### 3.2 GET /v1/session/:sessionId
 
-**Summary:** Reconnect endpoint. Returns the current in-progress FG session state from Redis. Used when the client disconnects mid-FG sequence and needs to resume. The session expires after 300s of inactivity (TTL auto-renewed on each FG round).
+**Summary:** Reconnect endpoint. Returns the current in-progress FG session state from Redis. Used when the client disconnects mid-FG sequence and needs to resume. The session expires after 1800s of inactivity (TTL auto-renewed on each FG round).
 
 **Authentication required:** Yes — JWT Bearer token. Player may only access their own sessions (403 if `playerId` in session does not match JWT `sub`).
 

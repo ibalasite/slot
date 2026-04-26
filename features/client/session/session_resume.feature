@@ -6,7 +6,7 @@ Feature: Session Resume — FG Reconnection UI Behavior
 
   Background:
     Given the game client is fully loaded in a browser
-    And the player had previously been in an active Free Game session with multiplier ×5
+    And the player had previously been in an active Free Game session with multiplier ×7
     And the player's browser was closed or the connection dropped during Free Game
 
   # ---------------------------------------------------------------------------
@@ -25,10 +25,10 @@ Feature: Session Resume — FG Reconnection UI Behavior
   @TC-E2E-SESS-002
   Scenario: Successful restore — FG state is visually rebuilt from server data
     Given the "Restoring Session..." indicator is shown
-    And a valid Free Game session is detected with multiplier ×5 and 2 accumulated Lightning Marks
+    And a valid Free Game session is detected with multiplier ×7 and 2 accumulated Lightning Marks
     When the session restore completes successfully
     Then the loading spinner disappears
-    And the FG multiplier display animates to ×5 using an Ease Out Cubic update (0.5 s)
+    And the FG multiplier display animates to ×7 using an Ease Out Cubic update (0.5 s)
     And the two Lightning Marks are redrawn on the grid at their correct positions
     And the Lightning Mark counter shows "⚡ × 2"
     And the SPIN COUNT label shows the most recently completed round number
@@ -36,11 +36,11 @@ Feature: Session Resume — FG Reconnection UI Behavior
 
   @TC-E2E-SESS-003
   Scenario: Restored FG session continues with correct multiplier in HUD
-    Given the FG session has been successfully restored with multiplier ×10
+    Given the FG session has been successfully restored with multiplier ×17
     When the player continues the Free Game
-    Then the multiplier HUD label shows "×10" in gold-orange text with arc glow
-    And the multiplier progress bar shows nodes ×3, ×5, and ×10 all filled in gold
-    And the remaining nodes (×25, ×50, ×100) remain dimmed
+    Then the multiplier HUD label shows "×17" in gold-orange text with arc glow
+    And the multiplier progress bar shows nodes ×3, ×7, and ×17 all filled in gold
+    And the remaining nodes (×27, ×77) remain dimmed
 
   # ---------------------------------------------------------------------------
   # Error / Expired Session Flow

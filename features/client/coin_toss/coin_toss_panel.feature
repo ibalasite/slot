@@ -6,9 +6,9 @@ Feature: Coin Toss Panel — UI Behavior
 
   Background:
     Given the game client is fully loaded in a browser
-    And the player is authenticated and the game is in IDLE state
-    And the player triggered a spin that revealed an SC (Scatter) symbol
-    And the Thunder Blessing sequence activated the Coin Toss overlay
+    And the player is authenticated and the game is in Free Game state
+    And the reels have expanded to 6 rows and a cascade win occurred
+    And the game triggered the Coin Toss overlay
 
   # ---------------------------------------------------------------------------
   # Happy Path — Coin Toss Heads (multiplier applied to Lightning Marks)
@@ -67,20 +67,20 @@ Feature: Coin Toss Panel — UI Behavior
     Given the Coin Toss overlay is active
     When the player views the multiplier progress bar
     Then the multiplier progress bar is visible at the bottom of the overlay
-    And the bar shows six multiplier nodes: ×3, ×5, ×10, ×25, ×50, ×100 from left to right
+    And the bar shows five multiplier nodes: ×3, ×7, ×17, ×27, ×77 from left to right
     And the current (highest achieved) node is filled with gold
     And un-reached nodes are displayed in a dimmed state
-    And the connecting segments use a color gradient from green (×3) through yellow, orange, and red (×100)
+    And the connecting segments use a color gradient from green (×3) through yellow, orange, and red (×77)
 
   @TC-E2E-COIN-006
-  Scenario: Reaching ×100 multiplier shows MAX MULTIPLIER banner
-    Given the player has previously earned ×50 in this FG sequence
+  Scenario: Reaching ×77 multiplier shows MAX MULTIPLIER banner
+    Given the player has previously earned ×27 in this FG sequence
     And the current Coin Toss resolves to Heads
-    When the multiplier advances from ×50 to ×100
-    Then all six progress nodes simultaneously pulse gold
+    When the multiplier advances from ×27 to ×77
+    Then all five progress nodes simultaneously pulse gold
     And the progress bar background shows a rainbow shimmer effect (~0.5 s)
-    And a "MAX MULTIPLIER ×100" banner slides in and remains visible for ~2.0 s before dissolving
-    And the ×100 node displays a red lightning arc particle effect
+    And a "MAX MULTIPLIER ×77" banner slides in and remains visible for ~2.0 s before dissolving
+    And the ×77 node displays a red lightning arc particle effect
 
   # ---------------------------------------------------------------------------
   # Error / Edge Flows
