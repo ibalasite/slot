@@ -41,6 +41,7 @@ Feature: GET /v1/session/:sessionId — FG Session State
     And the session has 8 accumulated lightning marks
     When I send GET /v1/session/sess-def456 with valid JWT for "player_001"
     Then the response status should be 200
+    And the response body field "data.status" should equal "FG_ACTIVE"
     And the response body field "data.fgMultiplier" should equal 17
     And the response body field "data.fgRound" should equal 3
     And the response body field "data.lightningMarks.count" should equal 8

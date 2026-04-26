@@ -34,7 +34,7 @@ Feature: GET /v1/config — Game Configuration
     And the USD bet levels should be in ascending order
 
   @TC-INT-CURR-001-HAPPY
-  Scenario: Config returns correct TWD bet level range with min 10 and max 320
+  Scenario: Config returns correct TWD bet level range with min baseBet 3 TWD and max baseBet 600 TWD
     When I send GET /v1/config with valid JWT for "player_001"
     Then the response status should be 200
     And the TWD bet range should have at least 1 bet level

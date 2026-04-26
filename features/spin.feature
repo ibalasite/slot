@@ -95,7 +95,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the response body field "data.finalRows" should be between 3 and 6
     And the player balance should equal 1000.00 minus 0.50 plus data.totalWin
 
-  @TC-UNIT-CASC-001-HAPPY
+  @TC-UNIT-CASC-002-HAPPY
   Scenario: Lightning Marks accumulate correctly across multiple cascade steps
     Given the player balance is 1000.00 USD
     And the RNG seed is set to "seed-002"
@@ -351,10 +351,10 @@ Feature: POST /v1/spin — Core Spin Mechanics
   Scenario: New main game spin starts with clean grid state
     Given player "player_001" completed a cascade sequence producing lightning marks
     When I send a new POST /v1/spin with betLevel 1 and extraBet false
-    Then the response data.initialGrid should be an array with 3 rows
-    And the response data.cascadeSequence.lightningMarks.count should equal 0
-    And the response data.cascadeSequence.lightningMarks.positions should be an empty array
-    And the response data.cascadeSequence.steps should not be empty
+    Then the response body field "data.initialGrid" should be an array with 3 rows
+    And the response body field "data.cascadeSequence.lightningMarks.count" should equal 0
+    And the response body field "data.cascadeSequence.lightningMarks.positions" should be empty
+    And the response body field "data.cascadeSequence.steps" should not be empty
 
   # ─────────────────────────────────────────────
   # Coin Toss Boundary (US-COIN-001/AC-5)
@@ -366,9 +366,9 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And player "player_001" has balance 1000.00 USD
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
-    And the response data.finalRows should equal 5
-    And the response data.coinTossTriggered should be false
-    And the response data.fgTriggered should be false
+    And the response body field "data.finalRows" should equal 5
+    And the response body field "data.coinTossTriggered" should be false
+    And the response body field "data.fgTriggered" should be false
 
   # ─────────────────────────────────────────────
   # Thunder Blessing Scatter Conditions (US-TBSC-001)
@@ -380,8 +380,9 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And player "player_001" has balance 1000.00 USD
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
-    And the response data.thunderBlessingTriggered should be false
-    And the response data.cascadeSequence.lightningMarks.positions should be an empty array
+    And the response body field "data.thunderBlessingTriggered" should be false
+    And the response body field "data.cascadeSequence.lightningMarks.count" should equal 0
+    And the response body field "data.cascadeSequence.lightningMarks.positions" should be empty
 
   @contract @TC-INT-API-017
   Scenario: Thunder Blessing second hit on P1 symbol does not cause tier overflow
@@ -389,9 +390,9 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And player "player_001" has balance 1000.00 USD
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
-    And the response data.upgradedSymbol should equal "P1"
-    And the response data.thunderBlessingResult.secondHitApplied should be true
-    And the response data.thunderBlessingResult.convertedSymbol should equal "P1"
+    And the response body field "data.upgradedSymbol" should equal "P1"
+    And the response body field "data.thunderBlessingResult.secondHitApplied" should be true
+    And the response body field "data.thunderBlessingResult.convertedSymbol" should equal "P1"
 
   @smoke @contract @TC-INT-API-019
   Scenario: Coin Toss Tails result ends game without entering Free Game
@@ -411,6 +412,6 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And player "player_002" has a valid JWT token with currency "TWD"
     When I send POST /v1/spin as "player_002" with betLevel 1 and extraBet false
     Then the response status should be 200
-    And the response data.betAmount should equal 3
+    And the response body field "data.totalBet" should equal 3
     And the player "player_002" balance should be decreased by 3 TWD
     And the "spins" table should have a new record with currency "TWD"
