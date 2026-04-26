@@ -167,7 +167,7 @@ All BGM tracks loop seamlessly. Loop points are specified in seconds from the st
 | **Mood** | Triumphant, epic, divine. Full orchestral forces: brass fanfares, full choir (VICTORY), electric guitar/synth hybrid strings, driving percussion. Feels like riding Zeus's lightning bolt. Significantly more intense than `BGM_MAIN`. |
 | **Trigger condition** | `FREE_GAME` state entry — `FreeGameComponent.enterFreeGame()` called. |
 | **Transition in** | Crossfade 800ms from `BGM_COIN_TOSS` (HEADS result). |
-| **Transition out** | Crossfade 800ms back to `BGM_MAIN` when FG exits. Crossfade 800ms to `BGM_77X` when ×77 multiplier is reached. |
+| **Transition out** | Crossfade 800ms back to `BGM_MAIN` on `RESULT_DISMISSED` event (BGM stays as FG music through `RESULT_DISPLAY` — see §4.2 and §5.7). Crossfade 800ms to `BGM_77X` when ×77 multiplier is reached. |
 | **Priority** | Overrides all except `BGM_77X`. |
 | **Volume (normalized)** | 1.00 |
 
@@ -469,7 +469,7 @@ AudioState = {
 | `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | Continue current BGM | — | Per-step SFX (see §5) `[AQ]` |
 | `CASCADE_RESOLVING` | `THUNDER_BLESSING` | `TB_TRIGGERED` | Continue current BGM (no change) | — | `SFX_LIGHTNING_ACTIVATE` `[AQ]` |
 | `CASCADE_RESOLVING` | `COIN_TOSS` | `CASCADE_COMPLETE_COIN_TOSS` | Crossfade to `BGM_COIN_TOSS` (BGM only; SFX via AQ) | 800ms | `SFX_COIN_TOSS_START` `[AQ]` |
-| `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`, duck −6dB during win tier SFX | 200ms duck | Win tier SFX (see §3.2) `[AQ]` |
+| `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`; duck −6dB only if win tier ≥ Big Win (≥ 20× baseBet) — see §4.3 | 200ms linear ramp (Big Win+ only) | Win tier SFX (see §3.2) `[AQ]` |
 | `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_NO_WIN` | Continue `BGM_MAIN` | — | None |
 | `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Continue current BGM (no gain change needed) | — | `SFX_TB_SETTLE` `[AQ]` |
 | `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM()` (BGM only; SFX via AQ) | 800ms | `SFX_FG_ENTER` `[AQ]` |
@@ -593,7 +593,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | ~2000ms | `SFX_COIN_TOSS_FLIP` loop stops |
 | ~3500ms (deceleration complete; coin face fully settled) | `SFX_COIN_HEADS` or `SFX_COIN_TAILS` — result reveal |
 | On HEADS: deceleration settle + 0ms | `SFX_COIN_MULT_PROGRESS` — progress bar animates |
-| On TAILS: deceleration settle + 0ms | `SFX_COIN_TAILS` fired above; BGM crossfade to `BGM_MAIN` (500ms) is state-observer owned — see §4.2 `COIN_TOSS→RESULT_DISPLAY` |
+| On TAILS: deceleration settle + 0ms | *(No SFX fired here — `SFX_COIN_TAILS` was already fired in the row above. BGM crossfade to `BGM_MAIN` (500ms) is state-observer owned — see §4.2 `COIN_TOSS→RESULT_DISPLAY`.)* |
 
 ---
 
@@ -626,7 +626,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 |-----------|:-----------:|-------------|
 | Round start | 0ms | `SFX_FG_ROUND_START` |
 | Cascade steps (each) | Per-cascade | Same SFX mapping as `CASCADE_STEP` (§5.2) |
-| Post-round coin toss | After cascade resolves | Same SFX mapping as `COIN_TOSS` (§5.4) |
+| Post-round coin toss | After cascade resolves | Same SFX mapping as `COIN_TOSS` (§5.4). *(Caveat: in FG context a TAILS result triggers `FG_COMPLETE`, NOT a crossfade to `BGM_MAIN` — the §5.4 TAILS BGM note does not apply here; BGM continues as `BGM_FREE_GAME`/`BGM_77X` until `RESULT_DISMISSED` — see §4.2 `FREE_GAME→RESULT_DISPLAY` and §5.7.)* |
 | HEADS → multiplier advance | Post-coin result | `SFX_FG_MULT_UP`; if new mult = 77 → `SFX_FG_MULT_77` + BGM crossfade to `BGM_77X` (800ms, state-observer owned — see §4.2 `FG_ROUND_COMPLETE_HEADS` + mult=77) |
 | HEADS → multiplier display | +0ms | `SFX_COIN_MULT_PROGRESS` |
 
@@ -854,6 +854,55 @@ A dedicated settings panel (planned for v1.1) will expose:
 - Both sliders persist to `localStorage` and are restored on load.
 
 The `AudioManager.config.volume` fields support these controls natively — no architectural changes are required.
+
+---
+
+### 7.5 Audio QA Checklist
+
+The following tests must pass before any audio-inclusive build is signed off.
+
+#### Loop Integrity
+- [ ] Each BGM track exported and listened at 44.1 kHz mono, looped ×3 — no audible click or pop at loop point
+- [ ] Amplitude at `loopEnd` measured within ±1 dBFS of `loopStart`; phase within ±5°
+- [ ] `SFX_COIN_TOSS_FLIP` loop exits cleanly when stopped at deceleration (~2000ms) — no clipping on node stop
+
+#### Mobile Audio Unlock (must test on physical device)
+- [ ] iOS Safari (latest): audio plays after first tap gesture; no double-fire on second tap
+- [ ] Chrome for Android (latest): same as above
+- [ ] Rapid double-tap on SPIN button: only one unlock fires; `unlocked` guard confirmed via console log
+- [ ] SOUND button pressed before first gesture: `config.muted=true` applied on unlock; no audio plays
+
+#### Ducking Correctness
+- [ ] Small win (< 5×): BGM gain unchanged after win SFX fires
+- [ ] Medium win (5–20×): BGM gain unchanged after win SFX fires
+- [ ] Big Win (20–100×): BGM ducks −6 dB over 200ms; restores after 2000ms hold
+- [ ] Mega Win (100–500×): BGM ducks −6 dB over 200ms; restores after 3000ms hold
+- [ ] Jackpot (500–30,000×): BGM ducks −6 dB over 200ms; restores after 4000ms hold
+- [ ] Max Win 30,000× (Main Game): BGM ducks −12 dB over 300ms; holds 6000ms; restores
+- [ ] Max Win 90,000× (Buy Feature): BGM ducks −12 dB over 300ms; holds 10,000ms; restores
+- [ ] FG Bonus ×100 reveal: BGM ducks −9 dB over 300ms; holds 4000ms; restores
+- [ ] THUNDER_BLESSING sequence: BGM gain unchanged throughout — no duck applied
+
+#### SFX Double-Fire Regression (`[AQ]`-tagged events)
+- [ ] `SFX_LIGHTNING_ACTIVATE`: fires exactly once per TB trigger (AnimationQueue only; state observer must not fire separately)
+- [ ] `SFX_COIN_TOSS_START`: fires exactly once on COIN_TOSS entry
+- [ ] `SFX_FG_ENTER`: fires exactly once on FG entry
+- [ ] `SFX_FG_MULT_77` / `SFX_FG_MULT_UP`: each fires exactly once per qualifying round (no double-fire from §4.2 observer + §5.6 AQ)
+- [ ] `SFX_COIN_TAILS`: fires exactly once at coin settle (§5.4 result row); NOT again from TAILS note row
+- [ ] `SFX_FG_ROUND_START`: fires exactly once per FG round (AnimationQueue via §5.6)
+
+#### BGM Crossfade Continuity
+- [ ] BGM_MAIN → BGM_COIN_TOSS: smooth 800ms crossfade; no hard cut
+- [ ] BGM_COIN_TOSS → BGM_FREE_GAME (HEADS): smooth 800ms crossfade
+- [ ] BGM_COIN_TOSS → BGM_MAIN (TAILS): smooth 500ms crossfade
+- [ ] BGM_FREE_GAME → BGM_77X (×77 mult): smooth 800ms crossfade
+- [ ] BGM_FREE_GAME or BGM_77X → BGM_MAIN: fires on RESULT_DISMISSED, not FG_COMPLETE; smooth 800ms
+- [ ] BGM_MAIN → BGM_ANTICIPATION: smooth 300ms crossfade when all 4 FREE letters lit
+
+#### Cross-Browser Playback
+- [ ] Chrome (latest): all BGM and SFX play without error; no AudioContext suspension issues
+- [ ] Firefox (latest): OGG Vorbis primary format plays correctly; loop integrity verified
+- [ ] Safari (latest): MP3 fallback plays for all tracks; no iOS silent-audio issue (SFX gate tests pass)
 
 ---
 
