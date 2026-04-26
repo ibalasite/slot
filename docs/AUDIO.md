@@ -617,7 +617,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | 1 | `SFX_FG_BONUS_REVEAL` |
 | 5 | `SFX_FG_BONUS_5X` |
 | 20 | `SFX_FG_BONUS_20X` |
-| 100 | `SFX_FG_BONUS_100X` + BGM duck −9dB for 4000ms |
+| 100 | `SFX_FG_BONUS_100X` + BGM duck −9dB for 4000ms *(state-observer owned — see §4.3)* |
 
 ---
 
@@ -657,11 +657,11 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 |:-------------------:|:-----------:|-------------|
 | < 5 | 0ms | `SFX_WIN_SMALL` |
 | 5 ≤ ratio < 20 | 0ms | `SFX_WIN_MEDIUM` |
-| 20 ≤ ratio < 100 | 0ms | `SFX_WIN_BIG` + BGM duck −6dB for 2000ms |
-| 100 ≤ ratio < 500 | 0ms | `SFX_WIN_MEGA` + BGM duck −6dB for 3000ms |
-| 500 ≤ ratio < 30,000 | 0ms | `SFX_WIN_JACKPOT` + BGM duck −6dB for 4000ms |
-| 30000 (Main Game max) | 0ms | `SFX_MAX_WIN` + BGM duck −12dB for 6000ms |
-| 90000 (Buy Feature max) | 0ms | `SFX_MAX_WIN_LEGENDARY` + BGM duck −12dB for 10000ms |
+| 20 ≤ ratio < 100 | 0ms | `SFX_WIN_BIG` + BGM duck −6dB for 2000ms *(state-observer owned — see §4.3)* |
+| 100 ≤ ratio < 500 | 0ms | `SFX_WIN_MEGA` + BGM duck −6dB for 3000ms *(state-observer owned — see §4.3)* |
+| 500 ≤ ratio < 30,000 | 0ms | `SFX_WIN_JACKPOT` + BGM duck −6dB for 4000ms *(state-observer owned — see §4.3)* |
+| 30000 (Main Game max) | 0ms | `SFX_MAX_WIN` + BGM duck −12dB for 6000ms *(state-observer owned — see §4.3)* |
+| 90000 (Buy Feature max) | 0ms | `SFX_MAX_WIN_LEGENDARY` + BGM duck −12dB for 10000ms *(state-observer owned — see §4.3)* |
 
 WIN roll-up (`SFX_WIN_ROLLUP_TICK`) fires throttled to once per 80ms during the roll-up animation (FRONTEND.md §6.7 win roll-up algorithm drives timing).
 
@@ -733,7 +733,9 @@ As defined in FRONTEND.md §7.4, the `MobileAudioUnlock` class handles iOS Safar
 |----------|:------------:|:-----:|-------|
 | BGM (`gainNodes.BGM`) | 1.00 | 0.0–1.0 | Matches `AudioManager` default `config.volume.bgm = 1.0`; user-adjustable (future settings panel) |
 | SFX (`gainNodes.SFX`) | 1.00 | 0.0–1.0 | User-adjustable |
-| BGM during duck | 0.5 × current (−6dB) | — | Temporary; auto-restores |
+| BGM during duck (Big/Mega/Jackpot win) | 0.5 × current (−6 dB) | — | Temporary; auto-restores after 2000/3000/4000ms hold |
+| BGM during duck (FG Bonus ×100) | 0.35 × current (−9 dB) | — | Temporary; auto-restores after 4000ms hold — see §4.3 |
+| BGM during duck (Max Win 30,000× / 90,000×) | 0.25 × current (−12 dB) | — | Temporary; auto-restores after 6000ms / 10,000ms hold — see §4.3 |
 | SFX_LIGHTNING_PERSIST (1–2 marks) | 0.13 (−18dBFS of SFX gain) | — | Applied per-source via source gain |
 | SFX_LIGHTNING_PERSIST (3–4 marks) | 0.25 (−12dBFS) | — | |
 | SFX_LIGHTNING_PERSIST (5+ marks) | 0.50 (−6dBFS) | — | |
