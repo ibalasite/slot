@@ -85,6 +85,7 @@ Thunder Blessing is anchored in Greek mythology: the domain of Zeus, divine ligh
 | Big Win / Mega Win | 300 | 150 |
 | FG Bonus ×100 (3s burst exception) | 3,000 | 800 |
 | MAX WIN 30,000× coin rain (2s burst exception) | 2,000 | 600 |
+| MAX WIN 90,000× coin rain (3s burst exception) | 3,000 | 600 |
 | **Absolute instantaneous limit (all other states)** | **500** | **200** |
 
 Overflow strategy: old particles fade out early (preemptive recycle). New particle generation is never blocked.
@@ -259,7 +260,7 @@ Win animations play when a symbol participates in a winning payline during a `CA
 
 **SFX to win tier mapping (fired at WIN counter start, t=0ms):**
 - Step win < 5× baseBet: `SFX_WIN_SMALL` (600ms)
-- Step win 5–20× baseBet: `SFX_WIN_MEDIUM` (900ms)
+- 5× baseBet ≤ step win < 20× baseBet: `SFX_WIN_MEDIUM` (900ms)
 - Step win ≥ 20× baseBet: no tier SFX here — cumulative `totalWin` evaluation is reserved for the `WIN_DISPLAY` step (AUDIO.md §5.8, which defines the WIN_DISPLAY tier SFX). AUDIO.md §5.2 documents the ≥20× deferral rule itself; §5.8 is the destination where the deferred evaluation fires.
 
 ### 2.4 Reel Expansion Animation
@@ -560,8 +561,8 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 | Coin effect | `filter: brightness`: 1.0 → 0.6 (400ms, `--ease-in-out-cubic`) — coin dims |
 | "NOT THIS TIME" text | Silver/grey color (`oklch(70% 0.02 0)`), opacity 0 → 1.0 (300ms, `linear`); no scale animation |
 | Result panel | Static; no further animation beyond text appear |
-| BGM crossfade | State-observer owned: `BGM_COIN_TOSS` → `BGM_MAIN`, 500ms (AUDIO.md §4.2 `COIN_TOSS→RESULT_DISPLAY`) |
-| Transition | Overlay fades out (opacity 1.0 → 0.0, 600ms, `ease-in-out-cubic`); `WIN_DISPLAY` AQ step begins (or no-win result) |
+| BGM crossfade | **Main-game only:** State-observer owned: `BGM_COIN_TOSS` → `BGM_MAIN`, 500ms (AUDIO.md §4.2 `COIN_TOSS→RESULT_DISPLAY`). **FG context:** BGM crossfade does NOT occur — BGM continues as `BGM_FREE_GAME` or `BGM_77X` until `RESULT_DISMISSED` (per AUDIO.md §5.6 FG caveat). |
+| Transition | **Main-game only:** Overlay fades out (opacity 1.0 → 0.0, 600ms, `ease-in-out-cubic`); `WIN_DISPLAY` AQ step begins (or no-win result). **FG context:** Overlay fades out then `FG_COMPLETE` AQ step begins — NOT `WIN_DISPLAY` (per AUDIO.md §5.6 FG caveat). |
 
 ---
 
@@ -660,6 +661,7 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 **Win tier overlay (fires at roll-up completion):**
 - Evaluated against `outcome.totalWin / baseBet` (see §7.2 for overlay specs).
 - For FG outcomes this is the cumulative win including multiplier — applies the same overlay animation as non-FG.
+- **Win tier SFX timing:** The win tier SFX (`SFX_WIN_SMALL` through `SFX_WIN_LEGENDARY`) fires at roll-up **completion** (per AUDIO.md §5.7), not at t=0ms of the FG_COMPLETE step. This differs from WIN_DISPLAY (non-FG path) where the win tier SFX fires at t=0ms concurrent with roll-up start (AUDIO.md §5.8 and §10.1 AQ Step Map).
 
 **Transition after summary:** After overlay resolves (or player dismisses), FG exits: background cross-dissolves back to main scene (800ms, `linear`). BGM crossfade to `BGM_MAIN` fires on `RESULT_DISMISSED` event (state-observer-owned, 800ms — per AUDIO.md §5.7).
 
@@ -884,7 +886,7 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 | `REEL_SPIN` (implicit; pre-AQ) | §2.1 | Variable (until API response) | `SFX_SPIN_START` immediate; `SFX_REEL_STOP_1–5` staggered 120ms |
 | `CASCADE_STEP` | §2.3, §3.1, §3.2, §3.3, §3.4 | 1500ms–2500ms | `SFX_WIN` / `SFX_SCATTER_WIN` at t=0ms; `SFX_CASCADE_EXPLODE` at ~800ms (no SC in step) or ~1800ms (SC present in win line — waits for 1800ms SC win animation per AUDIO.md §5.2); `SFX_LIGHTNING_MARK` concurrent with elimination; `SFX_REEL_EXPAND` at ~1000ms; `SFX_FREE_LETTER` concurrent; `SFX_CASCADE_DROP` staggered at drop-land |
 | `THUNDER_BLESSING` | §4 | 3000ms (or 3000ms+) | `SFX_LIGHTNING_ACTIVATE` at t=200ms; `SFX_THUNDER_BLESSING` + `SFX_TB_FIRST_HIT` at t=800ms; `SFX_TB_SYMBOL_UPGRADE` at t=1500ms; `SFX_SECOND_HIT` at t=2300ms (if applicable); `SFX_TB_SETTLE` at t=3000ms |
-| `COIN_TOSS` | §5 | 3000ms–3500ms | `SFX_COIN_TOSS_START` at t=0ms; `SFX_COIN_TOSS_FLIP` [loop] at t=500ms; `SFX_COIN_HEADS` or `SFX_COIN_TAILS` at ~t=3500ms; `SFX_COIN_MULT_PROGRESS` on HEADS |
+| `COIN_TOSS` | §5 | 3000ms–3500ms | `SFX_COIN_TOSS_START` at t=0ms; `SFX_COIN_TOSS_FLIP` [loop] at t=500ms; `SFX_COIN_HEADS` or `SFX_COIN_TAILS` at ~t=3500ms; `SFX_COIN_MULT_PROGRESS` on HEADS. TAILS in main-game → `WIN_DISPLAY`; TAILS in FG context → `FG_COMPLETE` (per AUDIO.md §5.6 FG caveat); `BGM_COIN_TOSS`→`BGM_MAIN` crossfade does NOT fire in FG context. |
 | `FG_ENTRY` | §6.1 | ~2600ms | `SFX_FG_ENTER` at t=0ms; `SFX_FG_BONUS_REVEAL` / `SFX_FG_BONUS_5X` / `SFX_FG_BONUS_20X` / `SFX_FG_BONUS_100X` at t=1800ms |
 | `FG_ROUND` | §6.2, §6.3 | Variable (cascade + coin toss per round) | `SFX_FG_ROUND_START` at t=0ms; cascade SFX per AUDIO.md §5.2; coin toss SFX per AUDIO.md §5.4; visual cascade animation per ANIM.md §6.2; visual coin toss animation per ANIM.md §6.3; `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` or `SFX_FG_MULT_77` on HEADS |
 | `FG_COMPLETE` | §6.4 | 3500ms+ | `SFX_FG_COMPLETE` at t=0ms; `SFX_WIN_ROLLUP_TICK` during roll-up; win tier SFX at roll-up end |
