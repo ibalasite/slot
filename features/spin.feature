@@ -33,6 +33,9 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the response body field "data.buyFeatureActive" should be false
     And the response body field "data.fgTriggered" should be false
     And the response body field "data.fgRounds" should be an empty array
+    And the response body field "data.fgMultiplier" should be null
+    And the response body field "data.fgBonusMultiplier" should be null
+    And the response body field "data.totalFGWin" should be null
     And the response body field "data.initialGrid" should be a 3-row by 5-column array
     And the response body field "data.spinId" should match pattern "spin-[uuid]"
     And the response body field "data.sessionId" should match pattern "sess-[uuid]"
@@ -79,7 +82,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the RNG seed is set to "seed-002"
     When I send POST /v1/spin with body:
       | playerId   | player_001 |
-      | betLevel   | 7          |
+      | betLevel   | 5          |
       | currency   | USD        |
       | extraBet   | false      |
       | buyFeature | false      |
@@ -90,7 +93,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And each cascade step should have a "rows" field between 3 and 6
     And the response body field "data.cascadeSequence.totalWin" should equal the sum of all step "stepWin" values
     And the response body field "data.finalRows" should be between 3 and 6
-    And the player balance should equal 1000.00 minus 1.00 plus data.totalWin
+    And the player balance should equal 1000.00 minus 0.50 plus data.totalWin
 
   @TC-UNIT-CASC-001-HAPPY
   Scenario: Lightning Marks accumulate correctly across multiple cascade steps
@@ -98,7 +101,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the RNG seed is set to "seed-002"
     When I send POST /v1/spin with body:
       | playerId   | player_001 |
-      | betLevel   | 7          |
+      | betLevel   | 5          |
       | currency   | USD        |
       | extraBet   | false      |
       | buyFeature | false      |
@@ -118,7 +121,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the RNG seed is set to "seed-003"
     When I send POST /v1/spin with body:
       | playerId   | player_001 |
-      | betLevel   | 7          |
+      | betLevel   | 5          |
       | currency   | USD        |
       | extraBet   | false      |
       | buyFeature | false      |
@@ -137,7 +140,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the RNG seed is set to "seed-004"
     When I send POST /v1/spin with body:
       | playerId   | player_001 |
-      | betLevel   | 7          |
+      | betLevel   | 5          |
       | currency   | USD        |
       | extraBet   | false      |
       | buyFeature | false      |
@@ -156,7 +159,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the RNG seed is set to "seed-005"
     When I send POST /v1/spin with body:
       | playerId   | player_001 |
-      | betLevel   | 7          |
+      | betLevel   | 5          |
       | currency   | USD        |
       | extraBet   | false      |
       | buyFeature | false      |
@@ -165,13 +168,13 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the response body field "data.coinTossResult" should be one of "HEADS", "TAILS"
     And the response body field "data.finalRows" should equal 6
 
-  @TC-INT-FG-001-HAPPY
+  @contract @TC-INT-FG-001-HAPPY
   Scenario: Coin Toss Heads triggers Free Game and returns FG rounds in single response
     Given the player balance is 1000.00 USD
     And the RNG seed is set to "seed-005"
     When I send POST /v1/spin with body:
       | playerId   | player_001 |
-      | betLevel   | 7          |
+      | betLevel   | 5          |
       | currency   | USD        |
       | extraBet   | false      |
       | buyFeature | false      |
@@ -194,13 +197,13 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the RNG seed is set to "seed-006"
     When I send POST /v1/spin with body:
       | playerId   | player_001 |
-      | betLevel   | 7          |
+      | betLevel   | 5          |
       | currency   | USD        |
       | extraBet   | false      |
       | buyFeature | false      |
     Then the response status should be 200
     And the response body field "data.fgTriggered" should be true
-    And for each FG round after the first, "lightningMarksBefore.count" should be greater than or equal to the previous round's "lightningMarksAfter.count"
+    And each fgRound[N+1].lightningMarksBefore.count should equal fgRound[N].lightningMarksAfter.count
     And the last FG round with coinTossResult "TAILS" should have "lightningMarksAfter.count" equal to 0
 
   # ─────────────────────────────────────────────
@@ -302,3 +305,88 @@ Feature: POST /v1/spin — Core Spin Mechanics
     Then the response status should be 200
     And the response body field "data.totalWin" should be less than or equal to 15000.00
     And the "spins" table record for this spin should have total_win at most 15000.00
+
+  # ─────────────────────────────────────────────
+  # Concurrency and Infrastructure Error Scenarios
+  # ─────────────────────────────────────────────
+
+  @contract @security @TC-INT-API-011
+  Scenario: Concurrent spin attempt returns 409 SPIN_IN_PROGRESS
+    Given player "player_001" has an active spin in progress (spin lock held)
+    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    Then the response status should be 409
+    And the response error code should be "SPIN_IN_PROGRESS"
+    And the player balance should be unchanged
+
+  @contract @TC-INT-API-012
+  Scenario: Engine timeout results in 504 and compensating credit
+    Given the spin engine is configured to time out after 2000ms
+    And player "player_001" has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    Then the response status should be 504
+    And the response error code should be "ENGINE_TIMEOUT"
+    And the "wallet_transactions" table should have a compensating credit of 1.00 for "player_001"
+
+  @contract @TC-INT-API-013
+  Scenario: Circuit breaker open returns 503 SERVICE_UNAVAILABLE
+    Given the database circuit breaker is OPEN
+    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    Then the response status should be 503
+    And the response error code should be "SERVICE_UNAVAILABLE"
+    And the player balance should be unchanged
+
+  @contract @security @TC-SEC-AUTH-005
+  Scenario: Suspended player account is forbidden from spinning
+    Given player "player_suspended" has account status "suspended"
+    And player "player_suspended" has a valid JWT token
+    When I send POST /v1/spin as "player_suspended" with betLevel "1.00" and extraBet false
+    Then the response status should be 403
+    And the response error code should be "FORBIDDEN"
+
+  # ─────────────────────────────────────────────
+  # Grid State and Cascade Mechanics (US-CASC-001)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-API-014
+  Scenario: New main game spin starts with clean grid state
+    Given player "player_001" completed a cascade sequence producing lightning marks
+    When I send a new POST /v1/spin with betLevel "1.00" and extraBet false
+    Then the response data.initialGrid.rows should equal 3
+    And the response data.lightningMarks should be an empty array
+    And the response data.cascade should have cascadeStep[0].rowsBefore equal to 3
+
+  # ─────────────────────────────────────────────
+  # Coin Toss Boundary (US-COIN-001/AC-5)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-API-015
+  Scenario: Cascade expanding to 5 rows does not trigger Coin Toss
+    Given the RNG seed "SEED_5ROWS_ONLY" is configured to produce a 5-row expansion
+    And player "player_001" has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    Then the response status should be 200
+    And the response data.finalGrid.rows should equal 5
+    And the response data.coinTossTriggered should be false
+    And the response data.fgTriggered should be false
+
+  # ─────────────────────────────────────────────
+  # Thunder Blessing Scatter Conditions (US-TBSC-001)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-API-016
+  Scenario: Scatter lands on grid with no lightning marks - Thunder Blessing not triggered
+    Given the RNG seed "SEED_SC_NO_MARKS" produces a Scatter but no cascade wins
+    And player "player_001" has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    Then the response status should be 200
+    And the response data.thunderBlessingTriggered should be false
+    And the response data.lightningMarks should be an empty array
+
+  @contract @TC-INT-API-017
+  Scenario: Thunder Blessing second hit on P1 symbol does not cause tier overflow
+    Given the RNG seed "SEED_P1_DOUBLE_HIT" forces all marks to P1 with second hit
+    And player "player_001" has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    Then the response status should be 200
+    And the response data.thunderBlessingResult.upgradedSymbol should equal "P1"
+    And the response data.thunderBlessingResult.secondHitSymbol should equal "P1"

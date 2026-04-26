@@ -52,6 +52,7 @@ Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
     And the response body field "data.extraBetActive" should be true
     And the response body field "data.buyFeatureActive" should be true
     And the response body field "data.fgRounds" should have exactly 5 elements
+    And the response data.sessionFloorValue should equal 30.00
     And the player balance should be decreased by exactly 150.00 USD
 
   @TC-INT-BUYF-003-HAPPY @TC-UNIT-FLOOR-001-HAPPY

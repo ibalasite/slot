@@ -17,6 +17,7 @@ Feature: Probability Engine — Server-Side RTP and Config Validation
     Given the engine_config.json file is present and has passed verify.js
     When the slot engine loads GameConfig.generated.ts at startup
     Then the game configuration should load without errors
+    # Weight total 90 per Thunder_Config.xlsx DATA tab specification
     And the mainGame symbol weight table should have total weight equal to 90
     And the extraBet symbol weight table should have total weight equal to 90
     And the freeGame symbol weight table should have total weight equal to 90
@@ -102,3 +103,29 @@ Feature: Probability Engine — Server-Side RTP and Config Validation
     And approximately 1.5% of draws should return multiplier 20
     And approximately 0.5% of draws should return multiplier 100
     And no draw should return a value outside the set 1, 5, 20, 100
+
+  # ─────────────────────────────────────────────
+  # Near Miss Adjustment (US-NRMS-001)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-API-018
+  Scenario: Near Miss produces zero win and sets near_miss_applied flag
+    Given the RNG seed "SEED_NEAR_MISS" triggers near miss adjustment
+    And player "player_001" has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    Then the response status should be 200
+    And the response data.nearMissApplied should be true
+    And the response data.totalWin should equal 0.00
+    And the "spins" table should have near_miss_applied equal to true for the latest spin
+
+  # ─────────────────────────────────────────────
+  # RTP Verification (US-RTPV-001)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-PROB-001
+  Scenario: verify.js validates all 4 scenario RTPs within bounds
+    Given the slot-engine toolchain has an Excel config with valid probability tables
+    When the verify.js tool is executed for all 4 scenarios
+    Then all 4 scenarios should return PASS status
+    And each scenario RTP should be within 96.5% and 98.5%
+    And engine_generator.js should be permitted to execute

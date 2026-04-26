@@ -80,6 +80,7 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
   # Server totalWin is Authoritative
   # ─────────────────────────────────────────────
 
+  @TC-SEC-BET-003
   Scenario: Server totalWin is the sole accounting authority — client cannot inject a higher value
     Given the player balance is 1000.00 USD
     When I send POST /v1/spin with body:
@@ -97,6 +98,7 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
   # Bet Manipulation Prevention
   # ─────────────────────────────────────────────
 
+  @TC-SEC-BET-001
   Scenario: Bet amount not in allowed bet levels is rejected with 400 INVALID_BET_LEVEL
     Given the player balance is 1000.00 USD
     When I send POST /v1/spin with body:
