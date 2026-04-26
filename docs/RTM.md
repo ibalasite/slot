@@ -234,7 +234,7 @@ Maps each API endpoint to the BDD scenarios that test it.
 
 | Endpoint | Method | Description | Server BDD Tags | Client BDD Tags | Coverage |
 |----------|--------|-------------|----------------|-----------------|----------|
-| `/v1/spin` | POST | Execute a spin — core game endpoint | `TC-INT-API-001-HAPPY`, `TC-INT-API-002-ERROR`, `TC-INT-API-003-ERROR`, `TC-INT-API-004-ERROR`, `TC-INT-API-005-ERROR`, `TC-INT-API-006-ERROR`, `TC-INT-API-010-HAPPY`, `TC-INT-API-011`, `TC-INT-API-012`, `TC-INT-API-013`, `TC-INT-API-014`, `TC-INT-API-016`, `TC-INT-API-017`, `TC-INT-API-019`, `TC-INT-API-020`, `TC-INT-API-021`, `TC-INT-BUYF-001-HAPPY`, `TC-INT-BUYF-002-HAPPY`, `TC-INT-BUYF-002b-HAPPY`, `TC-INT-BUYF-003`, `TC-INT-BUYF-004`, `TC-INT-FG-001-HAPPY`, `TC-INT-FG-002-HAPPY`, `TC-INT-FG-003-HAPPY`, `TC-SEC-AUTH-001`, `TC-SEC-AUTH-001b`, `TC-SEC-AUTH-001c`, `TC-SEC-AUTH-002`, `TC-SEC-AUTH-003`, `TC-SEC-AUTH-004`, `TC-SEC-AUTH-005`, `TC-SEC-AUTH-007`, `TC-SEC-BET-001`, `TC-SEC-BET-002`, `TC-SEC-BET-003`, `TC-SEC-INJ-001`, `TC-SEC-INJ-002`, `TC-SEC-CORS-001`, `TC-SEC-CORS-001b`, `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-001b-HAPPY`, `TC-UNIT-EXBT-002-HAPPY`, `TC-UNIT-EXBT-003-HAPPY`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-004b-HAPPY`, `TC-UNIT-TB-001-HAPPY`, `TC-UNIT-TB-002-HAPPY`, `TC-UNIT-COIN-004-HAPPY`, `TC-UNIT-COIN-006-BOUNDARY`, `TC-UNIT-FG-002-HAPPY`, `TC-UNIT-FG-003-HAPPY`, `TC-UNIT-FG-004-BOUNDARY`, `TC-UNIT-FLOOR-001-HAPPY`, `TC-UNIT-MAXWIN-001-BOUNDARY`, `TC-UNIT-PROB-001-HAPPY`, `TC-UNIT-PROB-002-BOUNDARY`, `TC-INT-API-009-HAPPY` | `TC-E2E-SPIN-001` through `TC-E2E-SPIN-009`, `TC-E2E-CASC-001` through `TC-E2E-CASC-008`, `TC-E2E-TB-001` through `TC-E2E-TB-006`, `TC-E2E-COIN-001` through `TC-E2E-COIN-007`, `TC-E2E-FG-001` through `TC-E2E-FG-009`, `TC-E2E-EXBT-001` through `TC-E2E-EXBT-006`, `TC-E2E-BUY-001` through `TC-E2E-BUY-007`, `TC-E2E-ERR-001` through `TC-E2E-ERR-007`, `TC-E2E-BET-001` through `TC-E2E-BET-007` | COVERED |
+| `/v1/spin` | POST | Execute a spin — core game endpoint | `TC-INT-API-001-HAPPY`, `TC-INT-API-002-ERROR`, `TC-INT-API-003-ERROR`, `TC-INT-API-004-ERROR`, `TC-INT-API-005-ERROR`, `TC-INT-API-006-ERROR`, `TC-INT-API-010-HAPPY`, `TC-INT-API-011`, `TC-INT-API-012`, `TC-INT-API-013`, `TC-INT-API-014`, `TC-INT-API-016`, `TC-INT-API-017`, `TC-INT-API-019`, `TC-INT-API-020`, `TC-INT-API-021`, `TC-INT-BUYF-001-HAPPY`, `TC-INT-BUYF-002-HAPPY`, `TC-INT-BUYF-002b-HAPPY`, `TC-INT-BUYF-003`, `TC-INT-BUYF-004`, `TC-INT-FG-001-HAPPY`, `TC-INT-FG-002-HAPPY`, `TC-INT-FG-003-HAPPY`, `TC-SEC-AUTH-001`, `TC-SEC-AUTH-001b`, `TC-SEC-AUTH-001c`, `TC-SEC-AUTH-002`, `TC-SEC-AUTH-003`, `TC-SEC-AUTH-004`, `TC-SEC-AUTH-005`, `TC-SEC-AUTH-007`, `TC-SEC-BET-001`, `TC-SEC-BET-002`, `TC-SEC-BET-003`, `TC-SEC-INJ-001`, `TC-SEC-INJ-002`, `TC-SEC-CORS-001`, `TC-SEC-CORS-001b`, `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-001b-HAPPY`, `TC-UNIT-EXBT-002-HAPPY`, `TC-UNIT-EXBT-003-HAPPY`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-004b-HAPPY`, `TC-UNIT-TB-001-HAPPY`, `TC-UNIT-TB-002-HAPPY`, `TC-UNIT-COIN-004-HAPPY`, `TC-UNIT-COIN-006-BOUNDARY`, `TC-UNIT-FG-002-HAPPY`, `TC-UNIT-FG-003-HAPPY`, `TC-UNIT-FG-004-BOUNDARY`, `TC-UNIT-FLOOR-001-HAPPY`, `TC-UNIT-MAXWIN-001-BOUNDARY`, `TC-UNIT-PROB-001-HAPPY`, `TC-UNIT-PROB-002-BOUNDARY`, `TC-INT-API-009-HAPPY` | `TC-E2E-SPIN-001` through `TC-E2E-SPIN-009`, `TC-E2E-CASC-001` through `TC-E2E-CASC-008`, `TC-E2E-TB-001` through `TC-E2E-TB-006`, `TC-E2E-COIN-001` through `TC-E2E-COIN-007`, `TC-E2E-FG-001` through `TC-E2E-FG-009`, `TC-E2E-EXBT-001` through `TC-E2E-EXBT-006`, `TC-E2E-BUY-001` through `TC-E2E-BUY-007`, `TC-E2E-ERR-001`, `TC-E2E-ERR-001b`, `TC-E2E-ERR-002` through `TC-E2E-ERR-007`, `TC-E2E-ERR-004b`, `TC-E2E-BET-001` through `TC-E2E-BET-007` | COVERED |
 | `/v1/session/:sessionId` | GET | FG reconnect / session state retrieval | `TC-INT-API-012-HAPPY`, `TC-INT-API-012b-HAPPY`, `TC-INT-API-013-ERROR`, `TC-SEC-SESSION-001`, `TC-SEC-SESSION-AUTH-001`, `TC-SEC-AUTH-006` | `TC-E2E-SESS-001` through `TC-E2E-SESS-006` | COVERED |
 | `/v1/config` | GET | Game config + bet ranges (USD/TWD) | `TC-INT-API-014-HAPPY`, `TC-INT-CURR-001-HAPPY`, `TC-INT-CURR-001b-HAPPY`, `TC-INT-CURR-001c-HAPPY`, `TC-SEC-CONFIG-AUTH-001` | `TC-E2E-BET-001` through `TC-E2E-BET-007` | COVERED |
 | `/health` | GET | Health probe (no auth required) | — (TC-INT-API-018 tests Near Miss behavior in probability-engine.feature, not the /health probe) | — | NOT-COVERED |
@@ -262,8 +262,8 @@ Maps each API endpoint to the BDD scenarios that test it.
 | Category | Count |
 |----------|------:|
 | **Server BDD tags (unique, non-client features/)** | 81 |
-| **Client BDD tags (unique, features/client/)** | 72 |
-| **Total unique TC tags** | 153 |
+| **Client BDD tags (unique, features/client/)** | 74 |
+| **Total unique TC tags** | 155 |
 
 ### 4.3 Server BDD Tags Breakdown
 
@@ -293,10 +293,10 @@ Maps each API endpoint to the BDD scenarios that test it.
 | `TC-E2E-FG-*` | 9 |
 | `TC-E2E-EXBT-*` | 6 |
 | `TC-E2E-BUY-*` | 7 |
-| `TC-E2E-ERR-*` | 7 |
+| `TC-E2E-ERR-*` | 9 (includes ERR-001b, ERR-004b variants) |
 | `TC-E2E-BET-*` | 7 |
 | `TC-E2E-SESS-*` | 6 |
-| **Total** | **72** |
+| **Total** | **74** |
 
 ---
 
