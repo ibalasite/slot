@@ -68,13 +68,13 @@ The audio layer mirrors the game state machine defined in FRONTEND.md §4.2. Eac
 | `IDLE` | `BGM_MAIN` | UI sounds only |
 | `SPINNING` | `BGM_MAIN` (continues) | Spin start, reel stop SFX |
 | `CASCADE_RESOLVING` | `BGM_MAIN` (continues) | Cascade, lightning mark, expansion SFX |
-| `THUNDER_BLESSING` | `BGM_MAIN` (ducked -6dB) | Thunder Blessing SFX foreground |
+| `THUNDER_BLESSING` | `BGM_MAIN` (no change) | Thunder Blessing SFX foreground |
 | `COIN_TOSS` | `BGM_COIN_TOSS` | Coin toss SFX |
 | `FREE_GAME` | `BGM_FREE_GAME` (or `BGM_77X` at ×77) | All SFX layers |
 | `RESULT_DISPLAY` | `BGM_MAIN` | Win tier SFX |
 | `NETWORK_ERROR` | `BGM_MAIN` (continues at -3dB) | Error UI sound only |
 
-**Ducking rule:** During `THUNDER_BLESSING` and Big Win / Mega Win / Max Win events, BGM gain is reduced by −6 dB (linear gain factor 0.5) for the duration of the foreground SFX event. BGM gain is restored after the event resolves. This is implemented by temporarily adjusting `gainNodes.BGM.gain.value` rather than modifying the stored `config.volume.bgm`.
+**Ducking rule:** During Big Win / Mega Win / Max Win events, BGM gain is reduced by −6 dB (linear gain factor 0.5) for the duration of the foreground SFX event. BGM gain is restored after the event resolves. This is implemented by temporarily adjusting `gainNodes.BGM.gain.value` rather than modifying the stored `config.volume.bgm`. The `THUNDER_BLESSING` state does **not** duck the BGM — per FRONTEND.md §7.3, no BGM change occurs during the Thunder Blessing sequence; the SFX foreground is sufficiently impactful without reducing BGM.
 
 ---
 
@@ -103,7 +103,7 @@ All BGM tracks loop seamlessly. Loop points are specified in seconds from the st
 | **Transition out** | Crossfade 800ms before `BGM_COIN_TOSS` or `BGM_FREE_GAME` starts. |
 | **Priority** | Base layer; all other BGM tracks override this. |
 | **Preload priority** | CRITICAL — loaded first in `MobileAudioUnlock.preloadAudioAssets()`. |
-| **Volume (normalized)** | 0.80 (BGM category gain ×0.80) |
+| **Volume (normalized)** | 1.00 (BGM category gain at full; matches `AudioManager` default `config.volume.bgm = 1.0`) |
 
 **Instrumentation notes:**
 - Strings: low cello/bass ostinato at quarter-note pace.
@@ -211,9 +211,9 @@ All BGM tracks loop seamlessly. Loop points are specified in seconds from the st
 
 All SFX are one-shot (non-looping) unless explicitly marked `[LOOP]`. Durations are the target rendered audio length in milliseconds. All SFX route through `gainNodes.SFX`.
 
-### 3.1 Core Confirmed SFX (FRONTEND.md §7.2)
+### 3.1 Tier 2 Preload SFX (Confirmed in FRONTEND.md §7 preload list)
 
-The following Sound IDs are confirmed in FRONTEND.md §7 and must be implemented exactly as specified:
+The following Sound IDs appear in FRONTEND.md §7's preload list (`MobileAudioUnlock.preloadAudioAssets` + `loadRemainingAudio`). These are a subset of all FRONTEND.md §7.2 confirmed IDs — see §3.3 for the full confirmed-ID inventory.
 
 | Sound ID | File | Duration (ms) | Trigger | Notes |
 |----------|------|:-------------:|---------|-------|
@@ -231,10 +231,10 @@ The following Sound IDs are confirmed in FRONTEND.md §7 and must be implemented
 |----------|------|:-------------:|---------|-------|
 | `SFX_SPIN_START` | `audio/sfx_spin_start.ogg` | 350 | SPIN button pressed | Mechanical lever/whoosh; immediate on press |
 | `SFX_REEL_STOP_1` | `audio/sfx_reel_stop_1.ogg` | 200 | Reel column 1 stops | Thud + brief electronic click |
-| `SFX_REEL_STOP_2` | `audio/sfx_reel_stop_2.ogg` | 200 | Reel column 2 stops | +100ms delay from col 1 stop event |
-| `SFX_REEL_STOP_3` | `audio/sfx_reel_stop_3.ogg` | 200 | Reel column 3 stops | +200ms delay from col 1 stop event |
-| `SFX_REEL_STOP_4` | `audio/sfx_reel_stop_4.ogg` | 200 | Reel column 4 stops | +300ms delay from col 1 stop event |
-| `SFX_REEL_STOP_5` | `audio/sfx_reel_stop_5.ogg` | 200 | Reel column 5 stops | +400ms delay from col 1 stop event; slightly heavier than 1–4 |
+| `SFX_REEL_STOP_2` | `audio/sfx_reel_stop_2.ogg` | 200 | Reel column 2 stops | +120ms delay from col 1 stop event |
+| `SFX_REEL_STOP_3` | `audio/sfx_reel_stop_3.ogg` | 200 | Reel column 3 stops | +240ms delay from col 1 stop event |
+| `SFX_REEL_STOP_4` | `audio/sfx_reel_stop_4.ogg` | 200 | Reel column 4 stops | +360ms delay from col 1 stop event |
+| `SFX_REEL_STOP_5` | `audio/sfx_reel_stop_5.ogg` | 200 | Reel column 5 stops | +480ms delay from col 1 stop event; slightly heavier than 1–4 |
 | `SFX_REEL_EXPAND` | `audio/sfx_reel_expand.ogg` | 400 | Row count increases; cloud dissipation starts | Rumble-whoosh rising; plays once per expansion event |
 
 > **Stagger rule:** Reel stop sounds 1–5 are triggered 120ms apart. The AudioManager fires `SFX_REEL_STOP_N` 120 × (N−1) ms after the first reel stop event. This matches FRONTEND.md §7.2 timing.
@@ -465,12 +465,12 @@ AudioState = {
 | `IDLE` | `SPINNING` | `SPIN_PRESSED` | Continue `BGM_MAIN` | — | `SFX_SPIN_START` (immediate) |
 | `SPINNING` | `CASCADE_RESOLVING` | `SPIN_RESPONSE_OK` | Continue `BGM_MAIN` | — | `SFX_REEL_STOP_1`–`5` (staggered 120ms) |
 | `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | Continue current BGM | — | Per-step SFX (see §5) |
-| `CASCADE_RESOLVING` | `THUNDER_BLESSING` | `TB_TRIGGERED` | Duck current BGM −6dB over 200ms | 200ms duck | `SFX_LIGHTNING_ACTIVATE` |
+| `CASCADE_RESOLVING` | `THUNDER_BLESSING` | `TB_TRIGGERED` | Continue current BGM (no change) | — | `SFX_LIGHTNING_ACTIVATE` |
 | `CASCADE_RESOLVING` | `COIN_TOSS` | `CASCADE_COMPLETE_COIN_TOSS` | Crossfade to `BGM_COIN_TOSS` | 800ms | `SFX_COIN_TOSS_START` |
 | `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`, duck −6dB during win tier SFX | 200ms duck | Win tier SFX (see §3.2) |
 | `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_NO_WIN` | Continue `BGM_MAIN` | — | None |
-| `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Restore BGM gain to 1.0 over 400ms | 400ms restore | `SFX_TB_SETTLE` |
-| `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Hard-cut `BGM_COIN_TOSS`; crossfade to `BGM_FREE_GAME` | 800ms | `SFX_FG_ENTER` |
+| `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Continue current BGM (no gain change needed) | — | `SFX_TB_SETTLE` |
+| `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM()` | 800ms | `SFX_FG_ENTER` |
 | `COIN_TOSS` | `RESULT_DISPLAY` | `COIN_TOSS_TAILS` | Crossfade to `BGM_MAIN` | 500ms | `SFX_COIN_TAILS` |
 | `FREE_GAME` | `FREE_GAME` | `FG_ROUND_START` | Continue `BGM_FREE_GAME` (or `BGM_77X`) | — | `SFX_FG_ROUND_START` |
 | `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult=77 | Crossfade to `BGM_77X` | 800ms | `SFX_FG_MULT_77` |
@@ -489,7 +489,6 @@ AudioState = {
 
 | Event | BGM Gain Change | Duration In | Hold | Duration Out | Notes |
 |-------|:---------------:|:-----------:|:----:|:------------:|-------|
-| `THUNDER_BLESSING` state entry | −6 dB (factor 0.5) | 200ms linear | For TB sequence (~3s) | 400ms linear | Restores on `TB_SEQUENCE_COMPLETE` |
 | Big Win / Mega Win / Jackpot SFX playing | −6 dB (factor 0.5) | 200ms linear | For win SFX duration | 400ms linear | SFX duration drives hold time |
 | Max Win (30,000×) event | −12 dB (factor 0.25) | 300ms linear | 6000ms | 800ms linear | Extended duck for max win |
 | `NETWORK_ERROR` state | −3 dB (factor 0.71) | 300ms linear | Until error cleared | 500ms linear | Subtle — game still feels alive |
@@ -541,7 +540,8 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | Symbol win animation starts | 0ms | `SFX_WIN` (generic chime, if `step.stepWin > 0`) |
 | Scatter win (if SC in win line) | 0ms | `SFX_SCATTER_WIN` (layered with `SFX_WIN`) |
 | WIN counter starts | 0ms | `SFX_WIN_ROLLUP_TICK` (throttled — fire at most every 80ms during roll-up) |
-| Symbol elimination starts | ~800ms (after slowest win anim — 1.8s for SC adjusted to elimination start) | `SFX_CASCADE_EXPLODE` (per symbol; pitch ±1 semitone randomized) |
+| Symbol elimination starts | ~800ms (after slowest win anim — 1.8s for SC adjusted to elimination start) | `SFX_CASCADE` (base cascade layer; played once per step, concurrent with `SFX_CASCADE_EXPLODE`) |
+| Symbol elimination starts | ~800ms | `SFX_CASCADE_EXPLODE` (per symbol; pitch ±1 semitone randomized; layered over `SFX_CASCADE`) |
 | Lightning Mark appears | concurrent with elimination | `SFX_LIGHTNING_MARK` (per new mark; pitch +2st × mark count) |
 | Reel expansion (if `step.rows > prev`) | ~1000ms | `SFX_REEL_EXPAND` |
 | FREE letter lights | concurrent with expansion | `SFX_FREE_LETTER` (per letter lit; pitch shifts by letter position) |
@@ -570,11 +570,11 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | 0ms | `SFX_LIGHTNING_ACTIVATE` — Scatter lands; all marks begin to pulse |
 | 800ms | `SFX_THUNDER_BLESSING` — all marks explode; white flash sync |
 | 800ms | `SFX_TB_FIRST_HIT` — layered with `SFX_THUNDER_BLESSING` for first hit signature |
-| 800ms | BGM duck −6dB begins (200ms ramp) |
 | 1500ms | `SFX_TB_SYMBOL_UPGRADE` — target symbol assembles at each converted position |
 | 2300ms (if `thunderBlessingSecondHit = true`) | `SFX_SECOND_HIT` — second pulse white flash |
 | 3000ms | `SFX_TB_SETTLE` — sequence complete; cascade resume signal |
-| 3000ms + 400ms | BGM gain restores to 1.0 (400ms ramp) |
+
+> **BGM during Thunder Blessing:** BGM continues at unchanged gain throughout the TB sequence per FRONTEND.md §7.3. No ducking is applied; the SFX foreground is impactful without BGM attenuation.
 
 ---
 
@@ -592,7 +592,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | 3000ms–3500ms (on deceleration settle) | `SFX_COIN_HEADS` or `SFX_COIN_TAILS` — result reveal |
 | On HEADS: deceleration settle + 0ms | `SFX_COIN_MULT_PROGRESS` — progress bar animates |
 | On TAILS: deceleration settle + 0ms | BGM crossfade to `BGM_MAIN` (500ms) |
-| On HEADS (FG entry): +0ms | BGM hard-cut `BGM_COIN_TOSS`; crossfade to `BGM_FREE_GAME` (800ms) |
+| On HEADS (FG entry): +0ms | BGM crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM('BGM_FREE_GAME', 800)` (800ms) |
 
 ---
 
@@ -675,10 +675,14 @@ All audio interactions go through `AudioManager.getInstance()` (FRONTEND.md §7.
    - `BGM_MAIN` (`audio/bgm_main.ogg`)
 
 2. **Tier 2 — High priority (fire-and-forget after Tier 1):**
-   - `BGM_FREE_GAME`, `BGM_COIN_TOSS`, `BGM_ANTICIPATION`
+   - `BGM_FREE_GAME`
    - `SFX_CASCADE`, `SFX_WIN`, `SFX_LIGHTNING`, `SFX_COIN_TOSS`, `SFX_SCATTER`
 
-3. **Tier 3 — Deferred (loaded in background after Tier 2):**
+   > These IDs correspond exactly to `loadRemainingAudio()` in FRONTEND.md §7.4 (`MobileAudioUnlock` post-unlock deferred load). Do not add new IDs to Tier 2 without updating `loadRemainingAudio()`.
+
+3. **Tier 3 — Deferred (loaded on-demand at first state approach):**
+   - `BGM_COIN_TOSS` — loaded when `CASCADE_RESOLVING` → `COIN_TOSS` transition first occurs
+   - `BGM_ANTICIPATION` — loaded when FREE letter 4 first lights (first `BGM_ANTICIPATION` crossfade approach)
    - `BGM_77X`
    - All `SFX_WIN_*` tier sounds
    - `SFX_THUNDER_BLESSING`, `SFX_SECOND_HIT`
@@ -723,7 +727,7 @@ As defined in FRONTEND.md §7.4, the `MobileAudioUnlock` class handles iOS Safar
 
 | Category | Default Gain | Range | Notes |
 |----------|:------------:|:-----:|-------|
-| BGM (`gainNodes.BGM`) | 0.80 | 0.0–1.0 | User-adjustable (future settings panel) |
+| BGM (`gainNodes.BGM`) | 1.00 | 0.0–1.0 | Matches `AudioManager` default `config.volume.bgm = 1.0`; user-adjustable (future settings panel) |
 | SFX (`gainNodes.SFX`) | 1.00 | 0.0–1.0 | User-adjustable |
 | BGM during duck | 0.5 × current (−6dB) | — | Temporary; auto-restores |
 | SFX_LIGHTNING_PERSIST (1–2 marks) | 0.13 (−18dBFS of SFX gain) | — | Applied per-source via source gain |
@@ -771,7 +775,7 @@ const ext = supportsOgg ? 'ogg' : 'mp3';
 
 ### 6.6 Memory Budget
 
-Target: **< 50 MB total decoded audio in memory** at peak (all Tier 1–3 loaded simultaneously).
+Target: **< 80 MB total decoded audio in memory** at peak (Tier 1–2 loaded + one Tier 3 BGM loaded simultaneously; sequential BGM loading strategy keeps peak manageable — see below).
 
 | Track / Group | Estimated Decoded Size | Notes |
 |---------------|:----------------------:|-------|
@@ -785,9 +789,9 @@ Target: **< 50 MB total decoded audio in memory** at peak (all Tier 1–3 loaded
 **BGM budget strategy:** BGM tracks are loaded sequentially on demand, not all at once. Only one BGM track beyond `BGM_MAIN` is held in memory at a time. When `crossfadeBGM` completes, the old BGM buffer is garbage-collected (the `AudioBufferSourceNode` is stopped and dereferenced; the `AudioBuffer` is removed from `sounds` Map). This requires tracking which BGM buffers are evictable.
 
 **Practical peak memory with sequential loading:**
-- `BGM_MAIN` + next BGM + all SFX ≈ 22 MB + 34 MB (worst case `BGM_FREE_GAME`) + 10 MB = ~66 MB.
-- To meet the < 50 MB target: BGM durations should be reduced. Target `BGM_FREE_GAME` ≤ 90s loop (≈15 MB decoded) and `BGM_MAIN` ≤ 60s loop (≈10 MB decoded). The audio artist should design loops to be musically complete within these durations.
-- Alternatively, the budget is revised to < 80 MB and approved by the Engineering Lead.
+- `BGM_MAIN` + one Tier 3 BGM + all SFX ≈ 22 MB + 34 MB (worst case `BGM_FREE_GAME`) + 10 MB = ~66 MB.
+- This is within the < 80 MB target when sequential BGM eviction is applied (old BGM buffer released after crossfade completes).
+- If the Engineering Lead requires a stricter < 50 MB budget: reduce `BGM_FREE_GAME` to ≤ 90s loop (≈15 MB) and `BGM_MAIN` to ≤ 60s loop (≈10 MB). Audio artist must design loops musically complete within those durations.
 
 ---
 
