@@ -511,8 +511,8 @@ interface FreeGameComponent {
   // Play a single FG round (drives reel + cascade animation for that round)
   playFGRound(round: FGRound, roundIndex: number): Promise<void>;
 
-  // Show FG complete summary with total win
-  showFGComplete(totalFGWin: number, fgMultiplier: number, bonusMultiplier: number): Promise<void>;
+  // Show FG complete summary — roll up to totalWin (authoritative server value); display totalFGWin/fgMultiplier/bonusMultiplier as informational context only
+  showFGComplete(totalFGWin: number, fgMultiplier: number, bonusMultiplier: number, totalWin: number): Promise<void>;
 
   // Exit FG mode (restore main game scene)
   exitFreeGame(): Promise<void>;
@@ -1088,7 +1088,7 @@ type AnimationStep =
   | { type: 'COIN_TOSS'; data: { result: 'HEADS' | 'TAILS'; stage: number } }
   | { type: 'FG_ENTRY'; data: FGEntryParams }
   | { type: 'FG_ROUND'; data: { round: FGRound; index: number } }
-  | { type: 'FG_COMPLETE'; data: { totalFGWin: number; fgMultiplier: number; bonusMultiplier: number } }
+  | { type: 'FG_COMPLETE'; data: { totalFGWin: number; fgMultiplier: number; bonusMultiplier: number; totalWin: number } }
   | { type: 'WIN_DISPLAY'; data: { totalWin: number; baseBet: number } }
   | { type: 'NEAR_MISS'; data: { positions: Position[] } };
 
@@ -1173,6 +1173,7 @@ class AnimationQueue {
           totalFGWin: outcome.totalFGWin!,
           fgMultiplier: outcome.fgMultiplier!,
           bonusMultiplier: outcome.fgBonusMultiplier!,
+          totalWin: outcome.totalWin, // authoritative roll-up target — never derive client-side
         },
       });
     }
@@ -1299,7 +1300,7 @@ Driven by `FreeGameComponent`:
    d. If TAILS: break loop → proceed to FG summary.
    e. If HEADS: increment stage, update multiplier display (old number explodes, new number scales in from center, 2s), continue to next round.
    f. Update spin counter display.
-4. **FG Complete:** Summary panel shows total FG win, final multiplier, bonus multiplier. Win roll-up to `totalFGWin × fgMultiplier × bonusMultiplier`.
+4. **FG Complete:** Summary panel displays `totalFGWin`, `fgMultiplier`, and `bonusMultiplier` as informational context. Win roll-up animates to `outcome.totalWin` (the authoritative server value) — never compute the roll-up target client-side (§1.2 Pure View rule).
 
 **Animation time budget:**
 - Base spin typical: ≤ 8s total (initial grid stop + cascade steps).
