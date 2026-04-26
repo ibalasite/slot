@@ -74,7 +74,7 @@ The audio layer mirrors the game state machine defined in FRONTEND.md §4.2. Eac
 | `RESULT_DISPLAY` | `BGM_MAIN` (non-FG) or `BGM_FREE_GAME` / `BGM_77X` (post-FG, until `RESULT_DISMISSED`) | Win tier SFX |
 | `NETWORK_ERROR` | `BGM_MAIN` (continues at -3dB) | Error UI sound only |
 
-**Ducking rule:** During Big Win / Mega Win / Max Win events, BGM gain is reduced by −6 dB (linear gain factor 0.5) for the duration of the foreground SFX event. BGM gain is restored after the event resolves. This is implemented by temporarily adjusting `gainNodes.BGM.gain.value` rather than modifying the stored `config.volume.bgm`. The `THUNDER_BLESSING` state does **not** duck the BGM — per FRONTEND.md §7.3, no BGM change occurs during the Thunder Blessing sequence; the SFX foreground is sufficiently impactful without reducing BGM.
+**Ducking rule:** During Big Win / Mega Win / Jackpot events, BGM gain is reduced by −6 dB (linear gain factor 0.5); during Max Win events (30,000× or 90,000×), it is reduced by −12 dB (linear gain factor 0.25). BGM gain is restored after the event resolves. This is implemented by temporarily adjusting `gainNodes.BGM.gain.value` rather than modifying the stored `config.volume.bgm`. See §4.3 for per-event ducking values. The `THUNDER_BLESSING` state does **not** duck the BGM — per FRONTEND.md §7.3, no BGM change occurs during the Thunder Blessing sequence.
 
 ---
 
@@ -278,7 +278,7 @@ The following Sound IDs appear in FRONTEND.md §7's preload list (`MobileAudioUn
 | Sound ID | File | Duration (ms) | Trigger | Notes |
 |----------|------|:-------------:|---------|-------|
 | `SFX_COIN_TOSS_START` | `audio/sfx_coin_toss_start.ogg` | 500 | Coin fly-in animation start | Woosh as coin enters frame from top |
-| `SFX_COIN_TOSS_FLIP` | `audio/sfx_coin_toss_flip.ogg` | 400 | [LOOP] During spin phase (800ms–2000ms of flip) | Metal spinning sound; loop seamlessly during sustained spin phase |
+| `SFX_COIN_TOSS_FLIP` | `audio/sfx_coin_toss_flip.ogg` | 400 | [LOOP] During spin phase (500ms–2000ms of flip) | Metal spinning sound; loop starts at 500ms (after fly-in completes) and sustains until deceleration at ~2000ms |
 | `SFX_COIN_HEADS` | `audio/sfx_coin_heads.ogg` | 800 | Coin face settles at HEADS | Gold coin land + triumphant short brass stab |
 | `SFX_COIN_TAILS` | `audio/sfx_coin_tails.ogg` | 600 | Coin face settles at TAILS | Duller metal land + minor-chord resolution |
 | `SFX_COIN_MULT_PROGRESS` | `audio/sfx_coin_mult_progress.ogg` | 500 | Progress bar animates to next node (HEADS) | Rising electronic ping; pitch rises per stage (×3=base, ×7=+3st, ×17=+6st, ×27=+9st, ×77=+12st) |
@@ -469,15 +469,15 @@ AudioState = {
 | `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | Continue current BGM | — | Per-step SFX (see §5) `[AQ]` |
 | `CASCADE_RESOLVING` | `THUNDER_BLESSING` | `TB_TRIGGERED` | Continue current BGM (no change) | — | `SFX_LIGHTNING_ACTIVATE` `[AQ]` |
 | `CASCADE_RESOLVING` | `COIN_TOSS` | `CASCADE_COMPLETE_COIN_TOSS` | Crossfade to `BGM_COIN_TOSS` (BGM only; SFX via AQ) | 800ms | `SFX_COIN_TOSS_START` `[AQ]` |
-| `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`, duck −6dB during win tier SFX | 200ms duck | Win tier SFX (see §3.2) |
+| `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`, duck −6dB during win tier SFX | 200ms duck | Win tier SFX (see §3.2) `[AQ]` |
 | `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_NO_WIN` | Continue `BGM_MAIN` | — | None |
-| `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Continue current BGM (no gain change needed) | — | `SFX_TB_SETTLE` |
+| `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Continue current BGM (no gain change needed) | — | `SFX_TB_SETTLE` `[AQ]` |
 | `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM()` (BGM only; SFX via AQ) | 800ms | `SFX_FG_ENTER` `[AQ]` |
-| `COIN_TOSS` | `RESULT_DISPLAY` | `COIN_TOSS_TAILS` | Crossfade to `BGM_MAIN` | 500ms | `SFX_COIN_TAILS` |
+| `COIN_TOSS` | `RESULT_DISPLAY` | `COIN_TOSS_TAILS` | Crossfade to `BGM_MAIN` | 500ms | `SFX_COIN_TAILS` `[AQ]` |
 | `FREE_GAME` | `FREE_GAME` | `FG_ROUND_START` | Continue `BGM_FREE_GAME` (or `BGM_77X`) | — | `SFX_FG_ROUND_START` |
-| `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult=77 | Crossfade to `BGM_77X` | 800ms | `SFX_FG_MULT_77` |
-| `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult≠77 | Continue current BGM | — | `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` |
-| `FREE_GAME` | `RESULT_DISPLAY` | `FG_ROUND_COMPLETE_TAILS` | Continue until FG_COMPLETE fires | — | `SFX_FG_COMPLETE`, then win tier SFX |
+| `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult=77 | Crossfade to `BGM_77X` | 800ms | `SFX_FG_MULT_77` `[AQ]` |
+| `FREE_GAME` | `FREE_GAME` | `FG_ROUND_COMPLETE_HEADS` + mult≠77 | Continue current BGM | — | `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` `[AQ]` |
+| `FREE_GAME` | `RESULT_DISPLAY` | `FG_ROUND_COMPLETE_TAILS` | Continue until FG_COMPLETE fires | — | `SFX_FG_COMPLETE` `[AQ]`, then win tier SFX `[AQ]` |
 | `RESULT_DISPLAY` | `IDLE` | `RESULT_DISMISSED` | Crossfade to `BGM_MAIN` (if not already playing) | 800ms | None |
 | `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | All FREE letters lit (cascade count ≥ 4; `HUDComponent.setFreeLetterProgress(4)`) | Crossfade to `BGM_ANTICIPATION` | 300ms | — |
 | `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | FREE letters reset (cascade ends without FG) | Crossfade to `BGM_MAIN` | 800ms | — |
@@ -569,7 +569,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 
 | Time Offset | Audio Action |
 |:-----------:|-------------|
-| 0ms | `SFX_LIGHTNING_ACTIVATE` — Scatter lands; all marks begin to pulse |
+| 200ms | `SFX_LIGHTNING_ACTIVATE` — marks begin to pulse (t=0.2s per §3.2 and FRONTEND.md §6.4) |
 | 800ms | `SFX_THUNDER_BLESSING` — all marks explode; white flash sync |
 | 800ms | `SFX_TB_FIRST_HIT` — layered with `SFX_THUNDER_BLESSING` for first hit signature |
 | 1500ms | `SFX_TB_SYMBOL_UPGRADE` — target symbol assembles at each converted position |
