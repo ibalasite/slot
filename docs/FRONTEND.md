@@ -728,7 +728,7 @@ enum GameState {
 - **Exit:** Either enter `FREE_GAME` (HEADS + `fgTriggered = true`) or `RESULT_DISPLAY` (TAILS).
 
 #### FREE_GAME
-- **Entry:** Call `FreeGameComponent.enterFreeGame()` with `fgBonusMultiplier` and `fgRounds`.
+- **Entry:** Call `FreeGameComponent.enterFreeGame()` with `{ fgBonusMultiplier, initialMultiplier }`. FG rounds are handled as separate FG_ROUND animation steps in the AnimationQueue — not passed to enterFreeGame.
 - **Per-round:** Call `FreeGameComponent.playFGRound(fgRounds[i], i)`.
 - **Exit:** Call `FreeGameComponent.exitFreeGame()`; clear Lightning Marks; transition to `RESULT_DISPLAY`.
 
@@ -1675,10 +1675,23 @@ When `FullSpinOutcome.sessionFloorApplied = true` (Buy Feature spin where floor 
 
 ### 11.3 Max Win Cap
 
-When `totalWin` equals the max win cap (30,000× baseBet for Main Game; 90,000× for Extra Bet + Buy FG):
-- Detect condition: `Math.abs(outcome.totalWin - maxWin * outcome.baseBet) < 0.01`.
+Cap selection logic:
+- buyFeature = true (with or without extraBet): maxWin = config.maxWin.buyFeature (90,000×)
+- extraBet = true, buyFeature = false: maxWin = config.maxWin.mainGame (30,000×)
+- neither: maxWin = config.maxWin.mainGame (30,000×)
+
+When `totalWin` equals the applicable max win cap:
+
+```typescript
+const maxWinMultiplier = outcome.buyFeatureActive
+  ? configService.config.maxWin.buyFeature        // 90,000×
+  : configService.config.maxWin.mainGame;          // 30,000×
+const maxWinValue = maxWinMultiplier * outcome.baseBet;
+const isMaxWin = Math.abs(outcome.totalWin - maxWinValue) < 0.01;
+```
+
 - Trigger full Max Win celebration (PDD §9.4): Zeus character animation, rainbow color burst, 6s display.
-- For 90,000× cap (Extra Bet + Buy FG combination): additionally show "LEGENDARY WIN" overlay with Zeus + Pegasus + Athena three-character sequence (10s+ display).
+- For 90,000× cap (buyFeature = true): additionally show "LEGENDARY WIN" overlay with Zeus + Pegasus + Athena three-character sequence (10s+ display).
 - Player can tap to skip after 3s.
 
 ### 11.4 Zero-Win Spin
