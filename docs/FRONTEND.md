@@ -1587,9 +1587,17 @@ class MobileAudioUnlock {
 const RETRY_CONFIG = {
   maxAttempts: 3,
   backoffMs: [1000, 2000, 4000],  // Exponential backoff
-  retryableStatusCodes: [500, 503, 504],
-  nonRetryableCodes: ['INSUFFICIENT_FUNDS', 'INVALID_BET_LEVEL', 'UNAUTHORIZED', 'FORBIDDEN', 'VALIDATION_ERROR', 'SPIN_IN_PROGRESS'],
+  // Only server-fault codes are retried; all 4xx client errors are non-retryable
+  nonRetryableCodes: [
+    'INSUFFICIENT_FUNDS', 'INVALID_BET_LEVEL', 'UNAUTHORIZED', 'FORBIDDEN',
+    'VALIDATION_ERROR', 'SPIN_IN_PROGRESS',
+    'RATE_LIMITED',            // 429 — never retry a rate-limit directly
+    'BUY_FEATURE_NOT_ALLOWED', // 400
+    'INVALID_CURRENCY',        // 400
+  ],
 } as const;
+
+type NonRetryableCode = typeof RETRY_CONFIG.nonRetryableCodes[number];
 
 async function withRetry<T>(
   operation: () => Promise<T>,
@@ -1600,7 +1608,7 @@ async function withRetry<T>(
     try {
       return await operation();
     } catch (error) {
-      if (error instanceof GameError && RETRY_CONFIG.nonRetryableCodes.includes(error.code as never)) {
+      if (error instanceof GameError && (RETRY_CONFIG.nonRetryableCodes as readonly string[]).includes(error.code)) {
         throw error;  // Do not retry non-retryable errors
       }
       lastError = error as Error;
@@ -1937,6 +1945,9 @@ When `GET /v1/session` returns `status === 'FG_ACTIVE'`:
 ```typescript
 // Reconstruct FG state from session data
 async function restoreFGSession(session: SessionData): Promise<void> {
+  // 0. Show loading overlay (PDD §7.6 loading state)
+  overlayComponent.show('Restoring Session...');
+
   // 1. Switch to FG background (no cross-dissolve on reconnect)
   await sceneManager.switchBackground('freegame', false);
 
@@ -1955,8 +1966,8 @@ async function restoreFGSession(session: SessionData): Promise<void> {
   // 5. Update spin counter to session.fgRound (already 1-indexed from API)
   freeGameComponent.updateSpinCounter(session.fgRound, false);
 
-  // 5. Show "Restoring Session..." overlay during the above
-  // 6. Remove overlay, resume FG from current round
+  // 6. Remove loading overlay and resume FG from current round
+  overlayComponent.hide();
   stateMachine.transition('SESSION_RESTORED_FG');
 }
 ```
