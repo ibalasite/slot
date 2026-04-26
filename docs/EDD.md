@@ -1150,9 +1150,9 @@ interface FullSpinOutcome {
 ### 5.3 Redis Session Schema
 
 ```
-KEY:   session:{sessionId}
+KEY:   session:{sessionId}:state
 TYPE:  Hash
-TTL:   300s (5 minutes; auto-renewed on each FG round)
+TTL:   1800s (30 minutes; auto-renewed on each FG round via EXPIRE)
 
 Fields:
   playerId       string

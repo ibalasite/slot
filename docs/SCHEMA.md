@@ -54,12 +54,18 @@ Thunder Blessing uses a two-tier persistence strategy designed for financial acc
 | 7 | **Non-Negative Balance** | `CHECK (balance >= 0)` constraint on `players.balance` enforced at DB level |
 | 8 | **Cascade-Safe FKs** | Foreign keys use `ON DELETE RESTRICT` to prevent orphaned financial records |
 
-### 1.3 PostgreSQL Version and Extensions
+### 1.3 Notes on Conventions
+
+- **Column naming:** Column names use PostgreSQL snake_case convention; JSON serialization uses camelCase per API.md §4 Data Types.
+- **Balance architecture:** `players.balance` stores the live balance directly (denormalized from a separate wallet table) for simpler read performance. `wallet_transactions` is the append-only audit log keyed by `player_id` — it is the source of truth for audit and reconciliation. There is no separate `wallets` table.
+- **Connection Pooling:** PgBouncer in transaction mode, pool_size=20 per service instance, max_client_conn=100. Supabase's built-in connection pooler (Supavisor) is used in production.
+
+### 1.4 PostgreSQL Version and Extensions
 
 ```sql
 -- PostgreSQL 15+ required
 -- Extensions activated on Supabase project:
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";   -- gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";         -- gen_random_uuid()
 CREATE EXTENSION IF NOT EXISTS "pg_stat_statements"; -- query analysis
 ```
 
@@ -159,11 +165,11 @@ CREATE TABLE spins (
     thunder_blessing_triggered BOOLEAN      NOT NULL DEFAULT FALSE,
 
     -- Coin Toss
-    coin_toss_result          TEXT          CHECK (coin_toss_result IN ('HEADS', 'TAILS')),
+    coin_toss_result          TEXT          CHECK (coin_toss_result IN ('HEADS', 'TAILS') OR coin_toss_result IS NULL),
 
     -- Free Game
     fg_triggered              BOOLEAN       NOT NULL DEFAULT FALSE,
-    fg_multiplier             INTEGER       CHECK (fg_multiplier IN (3, 7, 17, 27, 77)),
+    fg_multiplier             INTEGER       CHECK (fg_multiplier IN (3, 7, 17, 27, 77) OR fg_multiplier IS NULL),
     bonus_multiplier          INTEGER       CHECK (bonus_multiplier IN (1, 5, 20, 100)),
 
     -- Session Floor (Buy Feature)
@@ -181,7 +187,18 @@ CREATE TABLE spins (
     engine_version            TEXT          NOT NULL,
     ip_address                INET,
 
-    created_at                TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+    created_at                TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+
+    -- FG and Coin Toss consistency constraints
+    CONSTRAINT chk_fg_consistency CHECK (
+        (fg_triggered = FALSE AND fg_multiplier IS NULL) OR
+        (fg_triggered = TRUE)
+    ),
+    CONSTRAINT chk_coin_toss_consistency CHECK (
+        (coin_toss_result IS NULL AND fg_triggered = FALSE) OR
+        (coin_toss_result = 'HEADS' AND fg_triggered = TRUE) OR
+        (coin_toss_result = 'TAILS' AND fg_triggered = FALSE)
+    )
 
 ) PARTITION BY RANGE (created_at);
 
@@ -200,7 +217,10 @@ CREATE INDEX idx_spins_player_id_created_at
     ON spins (player_id, created_at DESC);
 
 -- Session correlation: find all spins belonging to a session
-CREATE INDEX idx_spins_session_id
+-- Note: cross-partition lookups by session_id require scanning all partitions
+-- (partition key is created_at). For O(1) partition targeting at scale,
+-- maintain a supplementary session_spin_lookup table (see §7.1).
+CREATE INDEX CONCURRENTLY idx_spins_session_id
     ON spins (session_id);
 
 -- Regulatory date-range export
@@ -278,10 +298,11 @@ CREATE TABLE fg_sessions (
                                           CHECK (fg_multiplier IN (3, 7, 17, 27, 77)),
     bonus_multiplier    INTEGER           NOT NULL DEFAULT 1
                                           CHECK (bonus_multiplier IN (1, 5, 20, 100)),
-    fg_round            INTEGER           NOT NULL DEFAULT 0
-                                          CHECK (fg_round >= 0 AND fg_round <= 5),
+    fg_round            INTEGER           NOT NULL DEFAULT 0,
     total_fg_rounds     INTEGER           NOT NULL DEFAULT 0
                                           CHECK (total_fg_rounds >= 0 AND total_fg_rounds <= 5),
+
+    CONSTRAINT chk_fg_round_bounds CHECK (fg_round >= 0 AND (total_fg_rounds = 0 OR fg_round <= total_fg_rounds)),
 
     -- Completed rounds: array of FGRound snapshots for reconnect
     completed_rounds    JSONB             NOT NULL DEFAULT '[]',
@@ -300,7 +321,7 @@ CREATE TABLE fg_sessions (
     expires_at          TIMESTAMPTZ       NOT NULL DEFAULT (NOW() + INTERVAL '10 minutes')
 );
 
-COMMENT ON TABLE fg_sessions IS 'Durable Free Game session state for disconnect recovery. Redis is the primary live store (TTL 300s); this table is the persistent fallback. Rows are created when FG triggers and updated after each round.';
+COMMENT ON TABLE fg_sessions IS 'Durable Free Game session state for disconnect recovery. Redis is the primary live store (TTL 1800s); this table is the persistent fallback. Rows are created when FG triggers and updated after each round.';
 COMMENT ON COLUMN fg_sessions.fg_round IS '0-indexed count of rounds completed. fg_round=0 means FG just started, no rounds played yet.';
 COMMENT ON COLUMN fg_sessions.completed_rounds IS 'Array of FGRound JSON snapshots. Allows full FG state reconstruction on reconnect without replaying engine.';
 COMMENT ON COLUMN fg_sessions.lightning_marks IS 'Accumulated Position[] across all FG rounds. Persists across FG spins (cleared only when entire FG session completes).';
@@ -311,20 +332,21 @@ COMMENT ON COLUMN fg_sessions.expires_at IS 'Hard expiry for cleanup. Sessions n
 **Status Transition Constraint:**
 
 ```sql
--- Enforce valid status transitions via trigger
+-- Enforce valid status transitions via trigger (explicit whitelist)
+-- Valid transitions:
+--   PENDING → ACTIVE   (FG started)
+--   ACTIVE  → COMPLETE (FG finished)
+--   PENDING → EXPIRED  (cleanup job)
+--   ACTIVE  → EXPIRED  (cleanup job timeout)
+-- All other transitions are rejected.
 CREATE OR REPLACE FUNCTION enforce_fg_session_status_transition()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- PENDING → ACTIVE allowed
-    -- ACTIVE → COMPLETE allowed
-    -- ACTIVE → EXPIRED allowed (cleanup job)
-    -- COMPLETE → anything NOT allowed
-    -- EXPIRED → anything NOT allowed
-    IF OLD.status = 'COMPLETE' AND NEW.status != 'COMPLETE' THEN
-        RAISE EXCEPTION 'Cannot transition fg_session from COMPLETE to %', NEW.status;
-    END IF;
-    IF OLD.status = 'EXPIRED' AND NEW.status != 'EXPIRED' THEN
-        RAISE EXCEPTION 'Cannot transition fg_session from EXPIRED to %', NEW.status;
+    IF NOT (
+        (OLD.status = 'PENDING' AND NEW.status IN ('ACTIVE', 'EXPIRED')) OR
+        (OLD.status = 'ACTIVE'  AND NEW.status IN ('COMPLETE', 'EXPIRED'))
+    ) THEN
+        RAISE EXCEPTION 'Invalid fg_sessions status transition: % → %', OLD.status, NEW.status;
     END IF;
     NEW.updated_at = NOW();
     RETURN NEW;
@@ -334,6 +356,11 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER fg_session_status_guard
     BEFORE UPDATE ON fg_sessions
     FOR EACH ROW EXECUTE FUNCTION enforce_fg_session_status_transition();
+
+-- Auto-update updated_at on any update
+CREATE TRIGGER fg_sessions_updated_at
+    BEFORE UPDATE ON fg_sessions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ```
 
 **Indexes:**
@@ -351,6 +378,11 @@ CREATE INDEX idx_fg_sessions_player_status
 -- Cleanup job: find expired sessions
 CREATE INDEX idx_fg_sessions_expires_at
     ON fg_sessions (expires_at)
+    WHERE status IN ('PENDING', 'ACTIVE');
+
+-- Cleanup job: composite index for status + created_at pattern
+CREATE INDEX idx_fg_sessions_status_created
+    ON fg_sessions (status, created_at)
     WHERE status IN ('PENDING', 'ACTIVE');
 ```
 
@@ -378,6 +410,8 @@ CREATE POLICY "fg_sessions_no_player_update"
 
 ### 2.4 `wallet_transactions`
 
+**Design Rationale:** Balance is denormalized into `players.balance` for read performance — every spin debit/credit updates `players.balance` atomically inside the same PostgreSQL transaction. `wallet_transactions` is the append-only audit log keyed by `player_id` (no separate `wallets` table; `wallet_id` FK does not exist). `wallet_transactions` is the source of truth for reconciliation and audit.
+
 **Description:** Immutable, append-only financial ledger. Every balance change — spin debit, win credit, or compensating credit on ENGINE_TIMEOUT — produces exactly one row. This table is never updated or deleted. The `idempotency_key` column prevents duplicate credits when the spin endpoint is retried. `balance_before` and `balance_after` allow point-in-time balance reconstruction without scanning `players`.
 
 **Access Patterns:**
@@ -387,13 +421,28 @@ CREATE POLICY "fg_sessions_no_player_update"
 - SELECT by `spin_id` to reconstruct per-spin accounting
 
 ```sql
-CREATE TYPE wallet_tx_type AS ENUM ('DEBIT', 'CREDIT', 'COMPENSATE');
+-- Valid transaction type values:
+--   DEBIT                  — spin cost deducted from player balance
+--   CREDIT                 — totalWin credited after spin resolves
+--   COMPENSATE             — refund on ENGINE_TIMEOUT (ARCH §6 Partial Failure Compensation)
+--   CREDIT_COMPENSATION    — alias for COMPENSATE in future API versions
+--   CREDIT_BUY_FEATURE_FLOOR — Buy Feature session floor top-up credit
+CREATE TYPE wallet_tx_type AS ENUM (
+    'DEBIT',
+    'CREDIT',
+    'COMPENSATE',
+    'CREDIT_COMPENSATION',
+    'CREDIT_BUY_FEATURE_FLOOR'
+);
 
 CREATE TABLE wallet_transactions (
     id                  UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
     player_id           UUID              NOT NULL
                                           REFERENCES players(id) ON DELETE RESTRICT,
     spin_id             UUID              -- nullable: COMPENSATE may occur before spin row exists
+                                          -- Note: FK to partitioned table (spins) is supported in PG15
+                                          -- but adds overhead on INSERT. If INSERT latency is a concern,
+                                          -- consider converting to a soft reference with app-level integrity.
                                           REFERENCES spins(id) ON DELETE RESTRICT,
     tx_type             wallet_tx_type    NOT NULL,
     amount              DECIMAL(18,2)     NOT NULL CHECK (amount > 0),
@@ -425,6 +474,8 @@ COMPENSATE: "COMPENSATE:{spinId}:{isoTimestamp}"
 
 ```sql
 -- Audit history by player (most recent first)
+-- Composite (player_id, created_at DESC) also covers player_id-only lookups;
+-- no separate idx on player_id alone is needed.
 CREATE INDEX idx_wallet_tx_player_created
     ON wallet_transactions (player_id, created_at DESC);
 
@@ -456,10 +507,18 @@ CREATE POLICY "wallet_tx_no_player_insert"
     ON wallet_transactions FOR INSERT
     WITH CHECK (FALSE);
 
--- Absolutely no UPDATE or DELETE on this table by anyone
--- service_role CANNOT update/delete either — enforced by application layer convention
--- and by granting only INSERT privilege to the service account:
--- REVOKE UPDATE, DELETE ON wallet_transactions FROM service_role;
+-- Block UPDATE and DELETE at RLS level (defence in depth)
+-- service_role bypasses RLS by default; the REVOKE below closes that gap
+CREATE POLICY "wallet_transactions_no_update"
+    ON wallet_transactions FOR UPDATE
+    USING (FALSE);
+
+CREATE POLICY "wallet_transactions_no_delete"
+    ON wallet_transactions FOR DELETE
+    USING (FALSE);
+
+-- Remove UPDATE and DELETE privileges from service_role at the grant level
+REVOKE UPDATE, DELETE ON wallet_transactions FROM service_role;
 ```
 
 **Append-Only Trigger (belt-and-suspenders):**
@@ -531,10 +590,13 @@ CREATE INDEX idx_game_config_versions_version
 ```sql
 ALTER TABLE game_config_versions ENABLE ROW LEVEL SECURITY;
 
--- All authenticated roles may read config versions (operators need audit access)
-CREATE POLICY "game_config_select_authenticated"
-    ON game_config_versions FOR SELECT
-    USING (auth.role() IN ('authenticated', 'service_role'));
+-- Players may only read the currently active config (not historical probability weights)
+CREATE POLICY "game_config_versions_player_read"
+    ON game_config_versions FOR SELECT TO authenticated
+    USING (is_active = TRUE);
+
+-- service_role has full read access (audit, CI pipeline, reconciliation)
+-- (service_role bypasses RLS automatically in Supabase)
 
 -- Only service_role (CI pipeline) may insert/update
 CREATE POLICY "game_config_insert_service_only"
@@ -545,6 +607,8 @@ CREATE POLICY "game_config_update_service_only"
     ON game_config_versions FOR UPDATE
     USING (FALSE); -- service_role bypasses
 ```
+
+> **Note:** `config_data` JSONB (here `config`) is validated at application layer against ConfigSchema (see EDD §5.5) before INSERT. Consider adding a CHECK constraint with a custom PL/pgSQL validator in future iterations.
 
 ---
 
@@ -638,7 +702,7 @@ erDiagram
 
     players ||--o{ spins : "performs"
     players ||--o{ fg_sessions : "plays"
-    players ||--o{ wallet_transactions : "holds"
+    players ||--o{ wallet_transactions : "has"
     spins ||--o| fg_sessions : "triggers"
     spins ||--o{ wallet_transactions : "generates"
 ```
@@ -655,8 +719,8 @@ Redis (Upstash Standard) serves as the high-speed session store and rate-limitin
 |----------|-------|
 | **Key Pattern** | `session:{sessionId}:state` |
 | **Data Type** | Hash (Redis HSET/HGET) |
-| **TTL** | 300 seconds (renewed on each FG round completion) |
-| **Purpose** | Primary live store for in-flight FG session state. Allows sub-millisecond reads on GET `/v1/session/:sessionId`. The PostgreSQL `fg_sessions` table is the durable fallback. |
+| **TTL** | 1800 seconds (30 minutes — covers full FG sequence including client reconnect scenarios) |
+| **Purpose** | Primary live store for in-flight FG session state. Allows sub-millisecond reads on GET `/v1/session/:sessionId`. The PostgreSQL `fg_sessions` table is the durable fallback. TTL is refreshed on each FG round completion via EXPIRE command. |
 
 **Hash Fields:**
 
@@ -777,11 +841,24 @@ EXPIRE player:a3f7c2d1:ratelimit 2  # 2s buffer
 
 ---
 
-### 4.6 Redis Key Summary
+### 4.6 Redis ↔ PostgreSQL Status Mapping
+
+The following mapping describes how the presence/absence of a Redis session key relates to `fg_sessions.status` in PostgreSQL:
+
+| Redis Key State | fg_sessions.status | Meaning |
+|-----------------|-------------------|---------|
+| Key exists, `status=ACTIVE` | `ACTIVE` | Normal in-flight FG session |
+| Key absent | `COMPLETE` | Normal completion — FG finished, Redis key expired/deleted |
+| Key absent | `PENDING` | Session not yet started, or expired without cleanup |
+| Key absent | `EXPIRED` | Cleanup job detected stale session (no Redis key, timeout elapsed) |
+
+**Cleanup Job Logic:** Sets `fg_sessions.status='EXPIRED'` for rows with status `PENDING` or `ACTIVE` older than 30 minutes with no corresponding Redis key present.
+
+### 4.7 Redis Key Summary
 
 | Key Pattern | Type | TTL | Usage Frequency |
 |-------------|------|-----|-----------------|
-| `session:{id}:state` | Hash | 300s | Per FG round |
+| `session:{id}:state` | Hash | 1800s | Per FG round |
 | `session:{id}:lock` | String | 10s | Per spin |
 | `player:{id}:ratelimit` | Sorted Set | 1s (sliding) | Per request |
 | `config:active` | String | 60s | Per spin (cache hit) |
@@ -987,12 +1064,29 @@ CREATE TABLE spins_2026_06 PARTITION OF spins
     FOR VALUES FROM ('2026-06-01') TO ('2026-07-01');
 ```
 
+**Partition Index Ordering (IMPORTANT):**
+
+Partition indexes are created on the parent table BEFORE creating individual partitions, ensuring all future partitions inherit indexes automatically. If adding indexes to an existing partitioned table with existing partitions, run `CREATE INDEX` on each existing partition individually.
+
+The correct migration order is:
+1. `CREATE TABLE spins PARTITION BY RANGE (created_at)` — create parent
+2. `CREATE INDEX ... ON spins (...)` — define all indexes on parent
+3. `CREATE TABLE spins_YYYY_MM PARTITION OF spins ...` — create partitions (they inherit indexes)
+
+**Cross-Partition Session Lookup:**
+
+Cross-partition queries by `session_id` require scanning all partitions since the partition key is `created_at`. For production use at scale, maintain a supplementary `session_spin_lookup(session_id UUID, spin_id UUID, created_at TIMESTAMPTZ)` table to enable O(1) partition targeting. This table is populated via trigger on spins INSERT.
+
 **Local indexes on each partition:**
 
 ```sql
 -- Each partition inherits the parent indexes, but may also have partition-local indexes
 -- PostgreSQL 15 propagates index definitions to new partitions automatically
 ```
+
+**Partition Lifecycle:**
+
+Partitions older than 12 months are detached and archived to cold storage (e.g., S3 via pg_dump) using a scheduled maintenance job. Detached partitions are dropped after successful archive verification. The parent table always retains the current month + 2 future month partitions pre-created.
 
 ### 7.2 `wallet_transactions` Retention
 
