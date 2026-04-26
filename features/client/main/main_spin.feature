@@ -20,6 +20,7 @@ Feature: Main Game Spin — UI Behavior
     When the player clicks the SPIN button
     Then the SPIN button becomes visually disabled (greyed-out, not clickable)
     And the reel symbols begin scrolling upward on all five columns
+    And the reel spin sound effect plays when the reels begin scrolling
     And the AUTO SPIN button becomes visually disabled
     And the BUY FREE GAME button becomes visually disabled
 

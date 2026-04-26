@@ -53,7 +53,7 @@ Feature: Error and Disconnection Handling — UI Behavior
     And a "Connection Lost" overlay or banner appears
     And the SPIN button and all controls remain disabled
     When the connection is restored
-    Then the game attempts to resume from the last known server state
+    Then a reconnection overlay appears and a loading indicator is shown while the game attempts to reload the last round result
     And either the remaining animation plays out or an error dialog is shown if state cannot be recovered
 
   # ---------------------------------------------------------------------------
@@ -64,9 +64,9 @@ Feature: Error and Disconnection Handling — UI Behavior
   Scenario: Server rejects a duplicate spin attempt (concurrent lock)
     Given a spin is already in progress (SPIN button is disabled)
     When a concurrent spin request is somehow sent (e.g., via automated tool or race condition)
-    Then the server's 409 Conflict rejection is handled gracefully
+    Then an error dialog appears informing the player the request could not be processed
     And an error dialog does not interrupt the currently playing animation
-    And the duplicate spin's debit, if any, is rolled back before any balance update to the player
+    And the BALANCE field does not show a double-deduction after the duplicate spin attempt
 
   # ---------------------------------------------------------------------------
   # Generic / unknown errors

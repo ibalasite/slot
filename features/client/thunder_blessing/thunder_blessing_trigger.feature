@@ -21,32 +21,32 @@ Feature: Thunder Blessing Scatter Trigger — UI Behavior
     Then the SC symbol displays its "Idle" electric arc rotation animation
     And after approximately 0.2 s all Lightning Marks on the grid begin flashing simultaneously
     And blue-white electric arc lines visually connect the SC symbol to each marked cell
+    And the Coin Toss overlay appears over the reel grid
 
   @TC-E2E-TB-002
-  Scenario: Thunder Blessing first hit — marked cells explode and symbols upgrade
-    Given the Thunder Blessing activation sequence has begun (arcs connecting SC to marks)
-    When approximately 0.8 s after SC landing the first hit triggers
-    Then all Lightning Mark cells burst with a gold explosion particle effect
-    And the background flashes briefly white (approximately 0.3 s)
-    And each marked cell's symbol shatters into fragments ("碎片化" effect)
-    And a new upgraded symbol assembles itself at each previously marked cell
-    And the WIN field begins updating to reflect any newly formed winning combinations
+  Scenario: Coin Toss HEADS path — multiplier wheel spins and is applied to Lightning Marks
+    Given the SC symbol has landed and the Coin Toss overlay is active
+    When the coin flip resolves to HEADS
+    Then the multiplier wheel animation plays, spinning and decelerating to a final value
+    And the selected multiplier (e.g., ×3, ×5, ×10, ×25, ×50, or ×100) is displayed prominently
+    And the multiplier is applied to all active Lightning Mark positions
+    And each Lightning Mark cell shows a gold burst effect as the multiplier is applied
+    And the WIN field updates to reflect the multiplied win contribution from all marked cells
 
   @TC-E2E-TB-003
-  Scenario: Thunder Blessing second hit — symbol tier upgrades visually (when triggered)
-    Given the Thunder Blessing first hit has completed
-    And the game outcome data includes a second hit event
-    When approximately 1.5 s after the first hit the second pulse fires
-    Then the SC symbol icon emits a golden wave that spreads across the entire reel
-    And each upgraded symbol from the first hit plays a further tier-upgrade animation
-    And the new tier symbol appears with a bright flash (scale 0 → 1.05 → 1.0, ~0.5 s)
-    And the WIN field updates again with the second-hit win contribution
+  Scenario: Coin Toss TAILS path — Lightning Marks convert to an upgraded symbol
+    Given the SC symbol has landed and the Coin Toss overlay is active
+    When the coin flip resolves to TAILS
+    Then the coin dims with a blue-grey color shift and "NOT THIS TIME" text appears
+    And each Lightning Mark position shows a "fragmentation" effect as the mark dissolves
+    And each previously marked cell displays a converted upgraded symbol in its place
+    And the Coin Toss overlay fades out and the game returns to normal payline evaluation
 
   @TC-E2E-TB-004
   Scenario: Thunder Blessing sequence ends and payline evaluation resumes
-    Given the full Thunder Blessing sequence (one or two hits) has played out
-    When all upgrade animations have completed
-    Then the reel grid displays the final upgraded symbols in their settled positions
+    Given the full Thunder Blessing Coin Toss sequence (HEADS or TAILS) has completed
+    When all conversion or multiplier animations have finished
+    Then the reel grid displays the final resulting symbols in their settled positions
     And any winning paylines are highlighted with gold lines
     And the WIN counter shows the total cumulative win
     And the game continues to the next cascade evaluation step if applicable

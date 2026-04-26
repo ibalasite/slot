@@ -34,26 +34,26 @@ Feature: Cascade Elimination — UI Animation Behavior
     And for each subsequent step the number increments (CASCADE × 3, etc.)
 
   @TC-E2E-CASC-003
-  Scenario: Reel expands to a new row after a successful cascade step
-    Given the current reel has 3 rows and a cascade win occurs
-    When the winning symbols are eliminated and new symbols fall
-    Then the reel frame visually extends downward (0.3 s Ease Out animation)
-    And a cloud-parting effect plays at the newly revealed row boundary
-    And new symbols fall into the newly added row
-    And the payline count visible in the HUD updates to reflect the expanded row count
+  Scenario: Multiple consecutive cascade rounds play sequentially without interruption
+    Given a spin result produces a winning combination on the 5×3 grid
+    When the first cascade step eliminates winning symbols and new symbols fall in
+    And the new symbols form another winning combination
+    And the second cascade step eliminates those symbols and new symbols fall in
+    And the new symbols form a third winning combination
+    Then three successive cascade elimination rounds have played out in sequence
+    And the "CASCADE × 3" floating label appears above the reel grid center
+    And the WIN field shows the cumulative total win from all three cascade steps
+    And a cascade win sound plays for each elimination step
 
   @TC-E2E-CASC-004
-  Scenario: FREE letters light up progressively with each cascade expansion
-    Given the reel frame shows four dark "F R E E" letters at the top
-    When the first cascade expansion occurs (reel grows from 3 to 4 rows)
-    Then the "F" letter lights up with a gold glow animation (~0.2 s)
-    When the second cascade expansion occurs (reel grows to 5 rows)
-    Then the "R" letter lights up with the same gold glow animation
-    When the third cascade expansion occurs (reel grows to 6 rows)
-    Then the "E" (third position) letter lights up
-    When a cascade win occurs after the reel is already at 6 rows
-    Then the final "E" (fourth position) lights up with a pulsing gold glow
-    And all four "F R E E" letters pulse continuously, signaling Coin Toss readiness
+  Scenario: New symbols fall from above into vacated cells after cascade elimination
+    Given a cascade step has eliminated winning symbols leaving empty cells in the grid
+    When the elimination animation completes
+    Then new symbols enter from above the visible reel area
+    And each new symbol falls downward into its vacated cell
+    And each new symbol plays a landing bounce animation (Ease Out Bounce, ~0.3 s)
+    And the symbols come to rest in the correct grid positions
+    And the reel grid is fully populated with no empty cells after all symbols land
 
   @TC-E2E-CASC-005
   Scenario: Lightning Marks appear on eliminated winning positions after cascade
@@ -90,5 +90,5 @@ Feature: Cascade Elimination — UI Animation Behavior
     Given a cascade chain animation sequence is actively playing
     When the player attempts to click the SPIN button
     Then the SPIN button remains visually disabled and unresponsive
-    And no new spin request is sent to the server
+    And the SPIN button remains visually disabled and no reel movement occurs
     And the cascade animation completes without interruption

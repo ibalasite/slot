@@ -57,7 +57,7 @@ Feature: Buy Feature Panel — UI Behavior
     Given the Extra Bet toggle is set to ON
     And the base bet is "$0.25"
     When the player clicks the "BUY FREE GAME" button
-    Then the confirmation dialog shows: "Cost: 300 × BET = $75.00"
+    Then the confirmation dialog shows: "Cost: 100 × Total BET = $75.00"
     And an "×3 EXTRA BET" orange badge is displayed next to the cost line
     And the CONFIRM button reflects the higher cost
 

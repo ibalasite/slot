@@ -13,6 +13,14 @@ Feature: Free Game Mode — UI Behavior
   # Happy Path — FG entry and scene
   # ---------------------------------------------------------------------------
 
+  @TC-E2E-FG-009
+  Scenario: Free Game entry triggers reel expansion to 5×6 layout
+    Given the Free Game was just triggered by 5 accumulated Lightning Marks
+    When the Free Game entry animation completes
+    Then the reel grid visually displays 6 rows of symbols across 5 columns
+    And the expanded row count indicator confirms 6 active rows
+    And the Free Game HUD shows "10 free spins remaining"
+
   @TC-E2E-FG-001
   Scenario: Free Game entry — scene cross-dissolve and fanfare animation
     When the Coin Toss resolves to Heads for the first time
@@ -28,7 +36,7 @@ Feature: Free Game Mode — UI Behavior
     Given the player has entered Free Game mode
     Then the top-left area of the HUD shows a "FREE GAME" label
     And the current multiplier (e.g., "×3") is displayed in the upper-left reel area
-    And the SPIN COUNT area shows "——" before the first FG spin (pending first Coin Toss result)
+    And the SPIN COUNT area shows "0 / 10" before the first FG spin has been taken
     And the BUY FREE GAME button is hidden from the HUD
     And the SPIN button is not visible or is replaced by the auto-spin mechanism for FG
     And the BET adjustment controls are locked (greyed out)
@@ -46,9 +54,9 @@ Feature: Free Game Mode — UI Behavior
     Given the current FG multiplier is ×3
     When a Coin Toss within Free Game resolves to Heads
     Then the old multiplier number (×3) explodes outward from its position
-    And the new multiplier number (×7) flies in from center screen large then shrinks to the HUD position
-    And the multiplier progress bar node for ×7 lights up with a flash animation
-    And the multiplier label in the HUD updates to "×7" in gold text
+    And the new multiplier number (×5) flies in from center screen large then shrinks to the HUD position
+    And the multiplier progress bar node for ×5 lights up with a flash animation
+    And the multiplier label in the HUD updates to "×5" in gold text
 
   @TC-E2E-FG-005
   Scenario: Lightning Marks from the main game entry persist and accumulate across FG rounds
