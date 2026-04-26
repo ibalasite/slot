@@ -1,0 +1,141 @@
+---
+diagram: sequence-spin-fg
+uml-type: sequence
+source: EDD.md §4.5.5, §5.1, §5.6; ARCH.md §3.4 Write Path
+generated: 2026-04-26T00:00:00Z
+---
+
+# Sequence Diagram — POST /v1/spin Triggering Thunder Blessing → Coin Toss HEADS → Full FG Sequence (×17, 5 Rounds)
+
+> 來源：EDD.md §4.5.5, §5.1 SlotEngine Algorithm, §5.6 FG Bonus Multiplier; ARCH.md §3.4
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant Client as Client (Frontend)
+    participant Fastify as Fastify Router
+    participant JwtAuthGuard as JwtAuthGuard
+    participant SpinUseCase as SpinUseCase
+    participant LockGuard as ConcurrencyLockGuard
+    participant Redis as UpstashCacheAdapter (Redis)
+    participant WalletRepo as SupabaseWalletRepository
+    participant SlotEngine as SlotEngine
+    participant CascadeEngine as CascadeEngine
+    participant TBHandler as ThunderBlessingHandler
+    participant CoinToss as CoinTossEvaluator
+    participant FGOrch as FreeGameOrchestrator
+    participant SessionRepo as SupabaseSessionRepository
+    participant SupaDB as Supabase PostgreSQL
+
+    Client->>Fastify: POST /v1/spin {Authorization: Bearer <token>, playerId: "a3f7c2d1...", betLevel: 100, extraBet: false, buyFeature: false, currency: "USD"}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "a3f7c2d1...", role: "player"}
+    Fastify->>SpinUseCase: execute(SpinRequest {playerId, betLevel=100, extraBet=false, buyFeature=false})
+
+    SpinUseCase->>LockGuard: acquire(sessionId: "sess-fg-trigger-001")
+    LockGuard->>Redis: SET session:sess-fg-trigger-001:lock {lockToken="lock-fg-001"} NX EX 10
+    Redis-->>LockGuard: OK
+    LockGuard-->>SpinUseCase: lockToken = "lock-fg-001"
+
+    SpinUseCase->>WalletRepo: getBalance("a3f7c2d1...", "USD")
+    WalletRepo-->>SpinUseCase: 500.00
+
+    SpinUseCase->>WalletRepo: debit("a3f7c2d1...", amount=1.00, "USD")
+    WalletRepo->>SupaDB: UPDATE wallets SET balance=499.00; INSERT wallet_transactions DEBIT
+    SupaDB-->>WalletRepo: OK
+    WalletRepo-->>SpinUseCase: void
+
+    SpinUseCase->>SlotEngine: spin(SpinRequest {baseBet=1.00, extraBet=false})
+    SlotEngine->>SlotEngine: generateGrid(config, extraBet=false) → 5x3 Grid
+
+    %% Cascade builds up to 6 rows with wins
+    SlotEngine->>CascadeEngine: runCascade(grid5x3, config)
+
+    loop 3 Cascade Steps — rows grow 3→4→5→6
+        CascadeEngine->>CascadeEngine: detectWinLines(grid, paylines)
+        CascadeEngine->>CascadeEngine: eliminateSymbols(grid, winLines)
+        CascadeEngine->>CascadeEngine: applyGravity(grid) then expandRows(grid)
+        Note over CascadeEngine: Step 0: rows=4, stepWin=3.50, marks={4 positions}
+        Note over CascadeEngine: Step 1: rows=5, stepWin=5.20, marks={3 more positions}
+        Note over CascadeEngine: Step 2: rows=6, SC symbol falls → ThunderBlessing check
+    end
+
+    CascadeEngine->>TBHandler: evaluate(grid5x6, lightningMarks{count=8}, hasScatter=true)
+    TBHandler->>TBHandler: applyFirstHit(grid, marks, config) → selects P1 for all 8 marked cells
+    TBHandler->>TBHandler: applySecondHit(grid, marks, rng=0.22 lt 0.40) → upgrades P1→P1 (already top)
+    TBHandler-->>CascadeEngine: ThunderBlessingResult {triggered=true, firstHit=true, secondHit=true, upgradedSymbol=P1, affectedPositions=[8]}
+
+    CascadeEngine->>CascadeEngine: detectWinLines(upgradedGrid) → stepWin=42.00 (8 P1 symbols)
+    CascadeEngine->>CascadeEngine: eliminateSymbols + gravity + fillTop → no further wins
+
+    CascadeEngine-->>SlotEngine: CascadeSequence {steps:[step0,step1,step2_upgraded], totalWin=50.70, finalRows=6, lightningMarks={count=8}}
+
+    Note over SlotEngine: rows=6 AND cascadeWin>0 → evaluate CoinToss at stage=0 (entry, coinProbs[0]=0.80)
+
+    SlotEngine->>CoinToss: evaluate(rng=0.31, config.coinToss, stage=0)
+    CoinToss->>CoinToss: getProbForStage(config, 0) → 0.80; isHeads(0.31, 0.80) → true
+    CoinToss-->>SlotEngine: CoinTossResult.HEADS → fgMultiplier=3 (first Heads → ×3)
+
+    Note over SlotEngine: CoinToss HEADS → start FG sequence. Store session in Redis.
+    SlotEngine->>Redis: SET session:sess-fg-trigger-001 {status="FG_ACTIVE", fgRound=0, fgMultiplier=3, totalFGWin=0, lightningMarks=[8 positions]} EX 300
+    Redis-->>SlotEngine: OK
+
+    SlotEngine->>FGOrch: runSequence(fgSession{multiplier=3, stage=0}, config)
+
+    %% FG Round 0 — multiplier ×3
+    FGOrch->>SlotEngine: spin FGRound[0] (baseBet=1.00, fgMultiplier=3)
+    SlotEngine->>CascadeEngine: runCascade(newGrid, config)
+    CascadeEngine-->>SlotEngine: CascadeSequence {totalWin=8.50, finalRows=5}
+    Note over FGOrch: FGRound[0].win = 8.50 * 3 = 25.50 (multiplier applied)
+    FGOrch->>CoinToss: evaluate(rng=0.55, config.coinToss, stage=1) → coinProbs[1]=0.68 → HEADS
+    CoinToss-->>FGOrch: HEADS → advance stage to 2, fgMultiplier=7
+    FGOrch->>Redis: HSET session:... fgRound=1 fgMultiplier=7 totalFGWin=25.50; EXPIRE 300
+
+    %% FG Round 1 — multiplier ×7
+    FGOrch->>SlotEngine: spin FGRound[1] (baseBet=1.00, fgMultiplier=7)
+    SlotEngine->>CascadeEngine: runCascade(newGrid, config)
+    CascadeEngine-->>SlotEngine: CascadeSequence {totalWin=6.00, finalRows=4}
+    Note over FGOrch: FGRound[1].win = 6.00 * 7 = 42.00
+    FGOrch->>CoinToss: evaluate(rng=0.44, config.coinToss, stage=2) → coinProbs[2]=0.56 → HEADS
+    CoinToss-->>FGOrch: HEADS → advance to stage=3, fgMultiplier=17
+    FGOrch->>Redis: HSET session:... fgRound=2 fgMultiplier=17 totalFGWin=67.50; EXPIRE 300
+
+    %% FG Round 2 — multiplier ×17
+    FGOrch->>SlotEngine: spin FGRound[2] (baseBet=1.00, fgMultiplier=17)
+    SlotEngine->>CascadeEngine: runCascade(newGrid, config)
+    CascadeEngine-->>SlotEngine: CascadeSequence {totalWin=3.20, finalRows=3}
+    Note over FGOrch: FGRound[2].win = 3.20 * 17 = 54.40
+    FGOrch->>CoinToss: evaluate(rng=0.39, config.coinToss, stage=3) → coinProbs[3]=0.48 → TAILS
+    CoinToss-->>FGOrch: TAILS → FG sequence ends after bonus draw
+
+    %% Bonus draw after Tails
+    FGOrch->>FGOrch: drawBonusMultiplier(fgBonusWeights) → rng=0.71 → FGBonusMultiplier.X5
+    Note over FGOrch: totalFGWin = (25.50 + 42.00 + 54.40) × bonusMultiplier=5 = 609.50
+
+    FGOrch-->>SlotEngine: FreeGameSession {totalFGWin=609.50, bonusMultiplier=5, rounds:[FGRound×3], isComplete=true}
+
+    Note over SlotEngine: totalWin = mainCascadeWin(50.70) + totalFGWin(609.50) = 660.20
+    Note over SlotEngine: Enforce maxWin: 660.20 lt 30000 × 1.00 → no cap applied
+
+    SlotEngine-->>SpinUseCase: SpinEntity {totalWin=660.20, fgTriggered=true, fgMultiplier=17, fgRounds:[3 rounds], fgBonusMultiplier=5}
+
+    SpinUseCase->>WalletRepo: credit("a3f7c2d1...", amount=660.20, "USD")
+    WalletRepo->>SupaDB: UPDATE wallets SET balance=1159.20; INSERT wallet_transactions CREDIT 660.20
+    SupaDB-->>WalletRepo: OK
+
+    SpinUseCase->>SessionRepo: save(spinLog)
+    SessionRepo->>SupaDB: INSERT spin_logs {outcome_jsonb: {...full outcome...}, total_win: 660.20}
+    SupaDB-->>SessionRepo: OK
+
+    SpinUseCase->>Redis: DEL session:sess-fg-trigger-001 (clear FG session)
+    Redis-->>SpinUseCase: OK
+
+    SpinUseCase->>LockGuard: release("sess-fg-trigger-001", "lock-fg-001")
+    LockGuard->>Redis: DEL session:sess-fg-trigger-001:lock
+    Redis-->>LockGuard: OK
+
+    SpinUseCase-->>Fastify: FullSpinOutcomeDTO {totalWin=660.20, fgTriggered=true, fgMultiplier=17, fgRounds:[FGRoundDTO×3], fgBonusMultiplier=5, coinTossResult="HEADS", thunderBlessingTriggered=true}
+
+    Fastify-->>Client: 200 OK {success:true, data: FullSpinOutcomeDTO, requestId:"req-fg-001"}
+```
