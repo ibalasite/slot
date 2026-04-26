@@ -1570,7 +1570,7 @@ All secrets are managed via **Kubernetes Secrets** (or Supabase environment vari
 | Secret | Storage | Rotation |
 |--------|---------|---------|
 | `SUPABASE_SERVICE_KEY` | K8s Secret | 90 days |
-| `SUPABASE_JWT_SECRET` (public key) | K8s ConfigMap | On key rotation |
+| `SUPABASE_JWT_SECRET` (public key) | K8s Secret | On key rotation |
 | `REDIS_URL` | K8s Secret | On credential change |
 | `DATABASE_URL` | K8s Secret | 90 days |
 
@@ -1762,7 +1762,7 @@ All logs use JSON format with OpenTelemetry trace correlation:
 |--------|------|--------|-------|
 | `spin_duration_seconds` | Histogram | `scenario`, `fg_triggered` | P99 > 500ms |
 | `spin_total` | Counter | `scenario`, `result` | — |
-| `spin_error_total` | Counter | `error_code` | > 1% of spins |
+| `spin_error_total` | Counter | `error_code` | > 0.5% of spins |
 | `fg_triggered_total` | Counter | `multiplier` | — |
 | `wallet_credit_total` | Counter | `currency` | — |
 | `redis_lock_failures_total` | Counter | — | > 10/min |
