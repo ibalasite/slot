@@ -690,7 +690,9 @@ Coverage is measured by `@vitest/coverage-v8`. Reports are published as HTML art
 | TC-UNIT-FLOOR-003-HAPPY | SessionFloorGuard | `applyFloor()`: totalFGWin=500 → adjustedWin=500 (above floor; floor not applied) | Happy | P0 |
 | TC-UNIT-MAXWIN-001-BOUNDARY | SlotEngine | Main Game: raw win 35,000× baseBet is capped to 30,000× baseBet | Boundary | P0 |
 | TC-UNIT-MAXWIN-002-BOUNDARY | SlotEngine | EBBuyFG: raw win 95,000× baseBet is capped to 90,000× baseBet | Boundary | P0 |
+| TC-UNIT-EXBT-001-HAPPY | ExtraBetHandler | Extra Bet ON: wallet debited at 3× baseBet; when extraBet=true, debitAmount = baseBet × 3; assert wallet.debit called with correct amount | Happy | P0 |
 | TC-UNIT-EXBT-002-HAPPY | ExtraBetHandler | Extra Bet ON with natural SC: SC preserved, no forced inject; dispatch payload extraBet=true, naturalSC=true → outcome.forceScatter=false | Happy | P0 |
+| TC-UNIT-EXBT-003-HAPPY | ExtraBetHandler | Extra Bet ON with no natural SC: SC forced into grid; forceScatter=true injected; assert outcomeGrid contains SC symbol at forced position | Happy | P0 |
 | TC-UNIT-EXBT-004-HAPPY | ExtraBetHandler | Extra Bet OFF reverts to mainGame weights; baseBet debited at standard rate (not ×3) | Happy | P0 |
 | TC-UNIT-CURR-001-HAPPY | CurrencyFormatter | `CurrencyFormatter.format(1.00, 'USD')` returns `"$1.00"`; `CurrencyFormatter.format(100, 'TWD')` returns `"NT$100"`; formatting sourced from `BetRangeConfig`; no hardcoded currency strings | Happy | P0 |
 
@@ -730,7 +732,7 @@ Every P0 API endpoint requires a happy-path 200 test and at least one error-path
 |-------------|----------------|
 | Session state persistence | FG session saved to Redis on FG entry; retrieved correctly on reconnect |
 | Session lock NX | Two concurrent spin requests for same session: first acquires lock, second returns 409 |
-| Session TTL | Session state expires after 1800s; `GET /v1/session/:sessionId` returns 404 after expiry |
+| Session TTL | Session state expires after 300s (auto-renewed per FG round per API.md §1.8); `GET /v1/session/:sessionId` returns 404 after expiry |
 | Redis disconnect | Circuit breaker OPEN on Redis failure; `POST /v1/spin` returns 503 within 5 seconds |
 | Lock release | Lock released after spin completes (success or error); next spin can proceed |
 | Rate limit counter | 6th request within 1 second: HTTP 429 with `Retry-After: 1` header |
@@ -1337,16 +1339,16 @@ Production release sign-off requires all of the following approvals and evidence
 | US-FGAM-001/AC-6 | FG Bonus multiplier drawn once | TC-UNIT-FG-002, TC-UNIT-FG-003 | Unit | P0 | Planned |
 | US-FGAM-001/AC-7 | FG end at ×77 Tails: marks cleared | TC-INT-FG-003 | Integration | P0 | Planned |
 | US-FGREC-001/AC-1 | FG reconnect: Redis state restored | TC-INT-API-012 | Integration | P1 | Planned |
-| US-EXBT-001/AC-1 | Extra Bet: debit ×3 baseBet | TC-UNIT-CASC-001, TC-INT-API-001 | Unit/Int | P0 | Planned |
+| US-EXBT-001/AC-1 | Extra Bet: debit ×3 baseBet | TC-UNIT-EXBT-001, TC-INT-API-001 | Unit/Int | P0 | Planned |
 | US-EXBT-001/AC-2 | Extra Bet ON: natural SC preserved — no forced inject | TC-UNIT-EXBT-002 | Unit | P0 | Planned |
-| US-EXBT-001/AC-3 | Extra Bet: SC injected if not natural | TC-UNIT-PROB-002 | Unit | P0 | Planned |
+| US-EXBT-001/AC-3 | Extra Bet: SC injected if not natural | TC-UNIT-EXBT-003 | Unit | P0 | Planned |
 | US-EXBT-001/AC-4 | EB OFF: reverts to mainGame weights, normal cost | TC-UNIT-EXBT-004 | Unit | P0 | Planned |
 | US-EXBT-001/AC-5 | EB+BF combined cost = 300× baseBet | TC-INT-BUYF-002 | Integration | P0 | Planned |
 | US-BUYF-001 | Buy Feature: 100× cost, guaranteed Heads×5 | TC-UNIT-COIN-004, TC-INT-BUYF-001 | Unit/Int | P0 | Planned |
 | US-BUYF-001 (floor) | Buy Feature: totalWin ≥ 20× baseBet | TC-UNIT-FLOOR-001, TC-INT-BUYF-003 | Unit/Int | P0 | Planned |
 | US-RTPV-001 | RTP ±1% per scenario, 1M Monte Carlo | TC via `verify.js` | Monte Carlo | P0 | Planned |
 | US-CURR-001 | USD/TWD display from BetRangeConfig | TC-UNIT-CURR-001, TC-INT-CURR-001 | Unit/Integration | P0 | Planned |
-| US-APIV-001/AC-1 | Single-trip FG response: complete FG sequence returned in one API response | TC-INT-API-002 | Integration | P0 | Planned |
+| US-APIV-001/AC-1 | Single-trip FG response: complete FG sequence returned in one API response | TC-INT-API-010 | Integration | P0 | Planned |
 | US-APIV-001/AC-2 | buyFG yields 5 fgSpins in response | TC-INT-BUYF-001 | Integration | P0 | Planned |
 | US-APIV-001/AC-3 | P99 ≤ 500ms (no-FG) | §13 Load Test / OBJ-03 | Performance | P0 | Planned |
 | US-APIV-001/AC-4 | JWT auth required on every spin | TC-SEC-AUTH-001 | Security | P0 | Planned |
