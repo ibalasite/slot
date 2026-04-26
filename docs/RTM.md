@@ -252,7 +252,7 @@ Maps each API endpoint to the BDD scenarios that test it.
 | Total AC-level requirements (all sub-ACs) | 70 | 100% |
 | **US-ID level: COVERED** | 10 | 71% |
 | **US-ID level: PARTIAL** | 3 | 21% |
-| **US-ID level: NOT-COVERED** | 1 | 7% |
+| **US-ID level: NOT-COVERED** | 1 | 8% |
 | **AC level: COVERED** | 36 | 51% |
 | **AC level: PARTIAL** | 23 | 33% |
 | **AC level: NOT-COVERED** | 11 | 16% |
@@ -261,21 +261,21 @@ Maps each API endpoint to the BDD scenarios that test it.
 
 | Category | Count |
 |----------|------:|
-| **Server BDD tags (unique, non-client features/)** | 75 |
+| **Server BDD tags (unique, non-client features/)** | 81 |
 | **Client BDD tags (unique, features/client/)** | 72 |
-| **Total unique TC tags** | 147 |
+| **Total unique TC tags** | 153 |
 
 ### 4.3 Server BDD Tags Breakdown
 
 | Module | Count | Tags |
 |--------|------:|------|
-| API integration (TC-INT-API-*) | 22 | `TC-INT-API-001` through `TC-INT-API-021` (non-contiguous: 008 absent; includes variant suffixes -HAPPY, -ERROR, -012-HAPPY, -012b-HAPPY, -013-ERROR, -014-HAPPY) |
-| Buy Feature integration (TC-INT-BUYF-*) | 6 | `TC-INT-BUYF-001-HAPPY`, `TC-INT-BUYF-002`, `TC-INT-BUYF-002-HAPPY`, `TC-INT-BUYF-003`, `TC-INT-BUYF-003-HAPPY`, `TC-INT-BUYF-004` |
+| API integration (TC-INT-API-*) | 23 | `TC-INT-API-001` through `TC-INT-API-021` (includes variant suffixes -HAPPY, -ERROR, -008-ERROR, -009-HAPPY, -012-HAPPY, -012b-HAPPY, -013-ERROR, -014-HAPPY) |
+| Buy Feature integration (TC-INT-BUYF-*) | 7 | `TC-INT-BUYF-001-HAPPY`, `TC-INT-BUYF-002`, `TC-INT-BUYF-002-HAPPY`, `TC-INT-BUYF-002b-HAPPY`, `TC-INT-BUYF-003`, `TC-INT-BUYF-003-HAPPY`, `TC-INT-BUYF-004` |
 | Free Game integration (TC-INT-FG-*) | 3 | `TC-INT-FG-001-HAPPY`, `TC-INT-FG-002-HAPPY`, `TC-INT-FG-003-HAPPY` |
-| Currency integration (TC-INT-CURR-*) | 2 | `TC-INT-CURR-001`, `TC-INT-CURR-001-HAPPY` |
+| Currency integration (TC-INT-CURR-*) | 3 | `TC-INT-CURR-001-HAPPY`, `TC-INT-CURR-001b-HAPPY`, `TC-INT-CURR-001c-HAPPY` |
 | Probability integration (TC-INT-PROB-*) | 1 | `TC-INT-PROB-001` |
-| Security (TC-SEC-*) | 17 | Auth (001–007), BET (001–003), INJ (001–002), CORS-001, SESSION-001, SESSION-AUTH-001, CONFIG-AUTH-001, RATE-001 |
-| Unit — Extra Bet (TC-UNIT-EXBT-*) | 7 | `TC-UNIT-EXBT-001`, `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-002-HAPPY`, `TC-UNIT-EXBT-003-HAPPY`, `TC-UNIT-EXBT-004`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-005-HAPPY` |
+| Security (TC-SEC-*) | 20 | Auth (001–007 including 001b, 001c), BET (001–003), INJ (001–002), CORS (001, 001b), SESSION (001, SESSION-AUTH-001), CONFIG-AUTH-001, RATE-001 |
+| Unit — Extra Bet (TC-UNIT-EXBT-*) | 7 | `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-001b-HAPPY`, `TC-UNIT-EXBT-002-HAPPY`, `TC-UNIT-EXBT-003-HAPPY`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-004b-HAPPY`, `TC-UNIT-EXBT-005-HAPPY` |
 | Unit — Cascade (TC-UNIT-CASC-*) | 2 | `TC-UNIT-CASC-001-HAPPY`, `TC-UNIT-CASC-002-HAPPY` |
 | Unit — Thunder Blessing (TC-UNIT-TB-*) | 2 | `TC-UNIT-TB-001-HAPPY`, `TC-UNIT-TB-002-HAPPY` |
 | Unit — Coin Toss (TC-UNIT-COIN-*) | 4 | `TC-UNIT-COIN-001-HAPPY`, `TC-UNIT-COIN-003-BOUNDARY`, `TC-UNIT-COIN-004-HAPPY`, `TC-UNIT-COIN-006-BOUNDARY` |
