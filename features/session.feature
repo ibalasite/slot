@@ -19,7 +19,7 @@ Feature: GET /v1/session/:sessionId — FG Session State
     And the session has fg_multiplier 7
     And the session has fg_round 2
     And the session has 5 accumulated lightning marks
-    And the session has fg_bonus_multiplier 5
+    And the session has bonus_multiplier 5
     When I send GET /v1/session/sess-abc123 with valid JWT for "player_001"
     Then the response status should be 200
     And the response body field "success" should be true

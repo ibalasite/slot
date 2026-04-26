@@ -112,7 +112,7 @@ Feature: Probability Engine — Server-Side RTP and Config Validation
   Scenario: Near Miss produces zero win and sets near_miss_applied flag
     Given the RNG seed "SEED_NEAR_MISS" triggers near miss adjustment
     And player "player_001" has balance 1000.00 USD
-    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
     And the response data.nearMissApplied should be true
     And the response data.totalWin should equal 0.00

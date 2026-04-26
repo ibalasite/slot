@@ -18,9 +18,9 @@ Feature: GET /v1/config — Game Configuration
     Then the response status should be 200
     And the response body field "success" should be true
     And the response body field "data" should contain a bet range configuration
-    And the response body field "data.currencies" should contain "USD"
-    And the response body field "data.currencies" should contain "TWD"
-    And the response body field "data.betRanges" should be a non-empty object
+    And the response body field "data.betRange" should be a non-empty object
+    And the response data.betRange should contain key "USD"
+    And the response data.betRange should contain key "TWD"
     And the response body field "data.engineVersion" should be a non-empty string
 
   @TC-INT-CURR-001-HAPPY
@@ -38,8 +38,8 @@ Feature: GET /v1/config — Game Configuration
     When I send GET /v1/config with valid JWT for "player_001"
     Then the response status should be 200
     And the TWD bet range should have at least 1 bet level
-    And the TWD bet range minimum baseBet should equal 10
-    And the TWD bet range maximum baseBet should equal 320
+    And the TWD bet range minimum baseBet should equal 3
+    And the TWD bet range maximum baseBet should equal 600
     And each TWD bet level should be a positive integer
     And the TWD bet levels should be in ascending order
 

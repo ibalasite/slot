@@ -25,15 +25,15 @@ Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
       | buyFeature | true       |
     Then the response status should be 200
     And the response body field "success" should be true
-    And the response body field "data.totalBet" should equal 50.00
-    And the response body field "data.baseBet" should equal 0.50
-    And the response body field "data.buyFeatureActive" should be true
-    And the response body field "data.fgTriggered" should be true
-    And the response body field "data.fgRounds" should have exactly 5 elements
+    And the response data.totalBet should equal 50.00
+    And the response data.baseBet should equal 0.50
+    And the response data.buyFeatureActive should be true
+    And the response data.fgTriggered should be true
+    And the response data.fgRounds should have exactly 5 elements
     And each FG round's "coinTossResult" should equal "HEADS" for rounds 1 through 5
     And the FG multiplier sequence across rounds should be 3, 7, 17, 27, 77
     And the response data.sessionFloorApplied should be true
-    And the response body field "data.sessionFloorValue" should equal 10.00
+    And the response data.sessionFloorValue should equal 10.00
     And the player balance should be decreased by exactly 50.00 USD
     And the "spins" table should have buy_feature_active set to true for this spin
 
@@ -47,11 +47,11 @@ Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
       | extraBet   | true       |
       | buyFeature | true       |
     Then the response status should be 200
-    And the response body field "data.totalBet" should equal 150.00
-    And the response body field "data.baseBet" should equal 0.50
-    And the response body field "data.extraBetActive" should be true
-    And the response body field "data.buyFeatureActive" should be true
-    And the response body field "data.fgRounds" should have exactly 5 elements
+    And the response data.totalBet should equal 150.00
+    And the response data.baseBet should equal 0.50
+    And the response data.extraBetActive should be true
+    And the response data.buyFeatureActive should be true
+    And the response data.fgRounds should have exactly 5 elements
     And the response data.sessionFloorValue should equal 30.00
     And the player balance should be decreased by exactly 150.00 USD
 
@@ -66,10 +66,10 @@ Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
       | extraBet   | false      |
       | buyFeature | true       |
     Then the response status should be 200
-    And the response body field "data.fgTriggered" should be true
-    And the response body field "data.totalWin" should be greater than or equal to 10.00
-    And the response body field "data.sessionFloorApplied" should be true
-    And the response body field "data.sessionFloorValue" should equal 10.00
+    And the response data.fgTriggered should be true
+    And the response data.totalWin should be greater than or equal to 10.00
+    And the response data.sessionFloorApplied should be true
+    And the response data.sessionFloorValue should equal 10.00
     And the "spins" table record should have session_floor_applied set to true
 
   # ─────────────────────────────────────────────

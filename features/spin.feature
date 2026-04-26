@@ -352,7 +352,8 @@ Feature: POST /v1/spin — Core Spin Mechanics
     Given player "player_001" completed a cascade sequence producing lightning marks
     When I send a new POST /v1/spin with betLevel 1 and extraBet false
     Then the response data.initialGrid should be an array with 3 rows
-    And the response data.cascadeSequence.lightningMarks should be an empty array
+    And the response data.cascadeSequence.lightningMarks.count should equal 0
+    And the response data.cascadeSequence.lightningMarks.positions should be an empty array
     And the response data.cascadeSequence.steps should not be empty
 
   # ─────────────────────────────────────────────
@@ -380,7 +381,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
     And the response data.thunderBlessingTriggered should be false
-    And the response data.lightningMarks should be an empty array
+    And the response data.cascadeSequence.lightningMarks.positions should be an empty array
 
   @contract @TC-INT-API-017
   Scenario: Thunder Blessing second hit on P1 symbol does not cause tier overflow
@@ -388,6 +389,28 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And player "player_001" has balance 1000.00 USD
     When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
-    And the response data.thunderBlessingResult.upgradedSymbol should equal "P1"
+    And the response data.upgradedSymbol should equal "P1"
     And the response data.thunderBlessingResult.secondHitApplied should be true
     And the response data.thunderBlessingResult.convertedSymbol should equal "P1"
+
+  @smoke @contract @TC-INT-API-019
+  Scenario: Coin Toss Tails result ends game without entering Free Game
+    Given the RNG seed "SEED_COIN_TAILS" produces a 6-row expansion and Coin Toss result Tails
+    And player "player_001" has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 200
+    And the response data.coinTossTriggered should be true
+    And the response data.coinTossResult should equal "TAILS"
+    And the response data.fgTriggered should be false
+    And the response data.fgRounds should be an empty array
+    And the player balance should be decreased by 0.10
+
+  @smoke @contract @TC-INT-API-020
+  Scenario: Spin with TWD currency deducts correct TWD amount
+    Given player "player_002" exists with balance 1000 TWD
+    And player "player_002" has a valid JWT token with currency "TWD"
+    When I send POST /v1/spin as "player_002" with betLevel 1 and extraBet false
+    Then the response status should be 200
+    And the response data.betAmount should equal 3
+    And the player "player_002" balance should be decreased by 3 TWD
+    And the "spins" table should have a new record with currency "TWD"
