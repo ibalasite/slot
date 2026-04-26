@@ -24,12 +24,11 @@ Feature: Thunder Blessing Scatter Trigger — UI Behavior
     And the Coin Toss overlay appears over the reel grid
 
   @TC-E2E-TB-002
-  Scenario: Coin Toss HEADS path — multiplier wheel spins and is applied to Lightning Marks
+  Scenario: Coin Toss HEADS path — multiplier progress bar advances and is applied to Lightning Marks
     Given the SC symbol has landed and the Coin Toss overlay is active
     When the coin flip resolves to HEADS
-    Then the multiplier wheel animation plays, spinning and decelerating to a final value
-    And the selected multiplier (e.g., ×3, ×5, ×10, ×25, ×50, or ×100) is displayed prominently
-    And the multiplier is applied to all active Lightning Mark positions
+    Then the multiplier progress bar advances to the next node in the sequence
+    And the highlighted node value is applied to all active Lightning Marks on the grid
     And each Lightning Mark cell shows a gold burst effect as the multiplier is applied
     And the WIN field updates to reflect the multiplied win contribution from all marked cells
 

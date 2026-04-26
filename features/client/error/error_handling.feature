@@ -13,11 +13,15 @@ Feature: Error and Disconnection Handling — UI Behavior
   # ---------------------------------------------------------------------------
 
   @TC-E2E-ERR-001
-  Scenario: Spin request times out — loading indicator then friendly error dialog
+  Scenario: Spin request shows loading indicator while waiting for response
     Given the player clicks the SPIN button
     When the loading indicator has been visible for 500 ms with no reel result displayed
     Then a loading indicator (spinner) appears over the reel grid
     And the SPIN button remains disabled
+
+  @TC-E2E-ERR-001b
+  Scenario: Spin request times out — friendly error dialog appears and player can retry
+    Given a loading indicator is shown over the reel grid after a spin request
     When the configured network timeout is exceeded (no response received)
     Then the loading indicator disappears
     And an error dialog appears with a stone-carved frame and gold border
@@ -52,6 +56,10 @@ Feature: Error and Disconnection Handling — UI Behavior
     Then the current animation frame freezes (no further reel movement)
     And a "Connection Lost" overlay or banner appears
     And the SPIN button and all controls remain disabled
+
+  @TC-E2E-ERR-004b
+  Scenario: Connection restores mid-cascade — game attempts to reload round result
+    Given a "Connection Lost" overlay is shown after the connection dropped mid-cascade
     When the connection is restored
     Then a reconnection overlay appears and a loading indicator is shown while the game attempts to reload the last round result
     And either the remaining animation plays out or an error dialog is shown if state cannot be recovered

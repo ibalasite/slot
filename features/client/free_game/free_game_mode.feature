@@ -82,11 +82,12 @@ Feature: Free Game Mode — UI Behavior
   # ---------------------------------------------------------------------------
 
   @TC-E2E-FG-007
-  Scenario: FG ends when Coin Toss resolves Tails — FINAL label appears then game exits
-    Given the player is in Free Game mode and a Coin Toss resolves to Tails
-    When the Tails result is displayed
-    Then the SPIN COUNT area updates to show "FINAL" in flashing gold text for ~2 s
-    And the Lightning Marks are cleared from the grid with a dissolve animation
+  Scenario: Free Game ends when all 10 free spins are consumed
+    Given the player is in Free Game mode with 1 free spin remaining
+    When the last free spin completes and no more FG spins remain
+    Then the FG ending animation plays
+    And the reel contracts back to 5×3 layout
+    And the main game HUD returns
     And the total FG WIN amount is shown in a summary overlay before exiting
     And the scene cross-dissolves back to the main game (dusk temple)
     And the background music transitions back to "BGM_MAIN"

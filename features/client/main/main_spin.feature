@@ -77,11 +77,15 @@ Feature: Main Game Spin — UI Behavior
     And a subtle insufficient-funds indicator appears near the BALANCE field
 
   @TC-E2E-SPIN-007
-  Scenario: Network timeout during spin shows loading indicator then error
+  Scenario: Network timeout during spin shows loading indicator
     Given the player clicks the SPIN button
     When 500 ms elapse with no spin result displayed on the reel grid
     Then a loading indicator appears overlaid on the reel grid
     And the SPIN button remains disabled
+
+  @TC-E2E-SPIN-009
+  Scenario: Network timeout threshold exceeded — error dialog appears and player can retry
+    Given a loading indicator is shown overlaid on the reel grid after a spin request
     When the configured timeout threshold elapses with no spin result shown
     Then an error dialog appears with a human-readable message
     And the SPIN button re-enables so the player can retry

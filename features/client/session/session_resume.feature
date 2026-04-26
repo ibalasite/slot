@@ -64,7 +64,7 @@ Feature: Session Resume — FG Reconnection UI Behavior
   Scenario: Reconnect loading screen does not block audio on first user interaction
     Given the player reopens the game and the "Restoring Session..." screen is shown
     When the player taps anywhere on the screen (first user gesture)
-    Then the Web Audio API context is unlocked
+    Then the browser audio context is unlocked and audio playback becomes active
     And background music begins playing (BGM_FREE_GAME for active FG session)
     And the loading/restore sequence continues without interruption
 
