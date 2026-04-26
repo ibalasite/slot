@@ -23,6 +23,7 @@
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
 | v1.0 | 2026-04-26 | AI Generated (gendoc-gen-edd) | Initial generation |
+| v1.1 | 2026-04-26 | gendoc review (D07-ARCH R4 sync) | §2.1 C4 L1: Added CDN (Cloudflare/CloudFront) system node and relationships (Player→CDN→Frontend) to align with ARCH.md v1.3 |
 
 ---
 
@@ -88,11 +89,14 @@ C4Context
 
     System(slotBackend, "Thunder Blessing Backend", "Fastify REST API + SlotEngine. Handles spin logic, wallet accounting, session state")
     System(slotFrontend, "Thunder Blessing Frontend", "Cocos Creator / PixiJS display layer. Plays animations, shows totalWin")
+    System_Ext(cdn, "CDN (Cloudflare / CloudFront)", "Static asset cache and DDoS mitigation for frontend bundles")
     System_Ext(supabase, "Supabase PostgreSQL", "Player wallet, spin audit log, session persistence")
     System_Ext(redis, "Redis / Upstash", "FG session state, Lightning Mark position cache")
     System_Ext(supabaseAuth, "Supabase Auth (JWT)", "Player identity verification")
     System_Ext(excelToolchain, "Excel + slot-engine Toolchain", "Thunder_Config.xlsx → engine_config.json → GameConfig.generated.ts")
 
+    Rel(player, cdn, "Static assets", "HTTPS")
+    Rel(cdn, slotFrontend, "Cache miss origin pull", "HTTPS")
     Rel(player, slotFrontend, "Plays game", "HTTPS / WebSocket")
     Rel(slotFrontend, slotBackend, "POST /spin, GET /state", "REST / HTTPS")
     Rel(slotBackend, supabase, "Read/write wallet and logs", "SQL / Supabase Client")

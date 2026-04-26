@@ -27,6 +27,7 @@
 | v1.1 | 2026-04-26 | gendoc review | R1 fixes: APP→INFRA arrow labeled; ADR-007/008/009 full entries added; ADR numbering note; FinOps multi-scale projections; frontend version clarified. Note: EDD §1.1 states layer order as "Domain←Application←Infrastructure←Interface" — this is a typo in EDD. Correct order (confirmed here and in ARCH §2) is Domain←Application←Adapters←Infrastructure (Infrastructure is outermost). EDD §1.1 should be corrected in next EDD update. |
 | v1.2 | 2026-04-26 | gendoc review | R2 fixes: ADR §1.2 titles corrected (ADR-005=verify.js hard gate, ADR-006=totalWin accounting authority, ADR-009=Excel as sole probability source); duplicate ADR-009 replaced with distinct Excel-as-source ADR; Partial Failure Compensation table added to §6; xlsx added to §11 tech stack; CDN section added to §13. |
 | v1.3 | 2026-04-26 | gendoc review | R3 fixes: C4 L2 INFRA→SupaDB labeled "SQL / TLS :5432", INFRA→RedisDB labeled "Redis Protocol / TLS :6379"; CDN node (Cloudflare/CloudFront) added to C4 L1 System Context with Player→CDN→TB_Frontend static asset path. |
+| v1.4 | 2026-04-26 | gendoc review | R4 fixes: §5.1/§15 D-02/F-03/ADR-003 corrected — wallet IS debited before engine; engine timeout requires compensating credit per §6; C4 L3 HC and DTOS nodes connected (Client→HC, GC→DTOS); BetRangeConfig.generated.ts node added to C4 L3 with GC→BCF arrow; §11 frontend version placeholder standardized; EDD §2.1 synchronized with CDN node addition. |
 
 ---
 
@@ -449,6 +450,7 @@ graph TD
         ISC[("ISessionCache\n(port interface)")]
         ISR[("ISessionRepository\n(port interface)")]
         GCF["GameConfig.generated.ts\n(read at startup)"]
+        BCF["BetRangeConfig.generated.ts\n(read at startup)\nUSD/TWD bet levels"]
     end
 
     subgraph Infrastructure["Infrastructure Layer"]
@@ -459,7 +461,9 @@ graph TD
     end
 
     Client -->|"HTTPS"| GC
+    Client -->|"HTTPS no-auth"| HC
     GC --> JWG
+    GC --> DTOS
     GC --> SU
     GC --> BU
     GC --> GSU
@@ -478,6 +482,7 @@ graph TD
     SE --> FGO
     SE --> NMS
     SE --> GCF
+    GC --> BCF
     IWR -.->|implements| SWR
     ISR -.->|implements| SSPG
     ISC -.->|implements| RSC
@@ -621,7 +626,7 @@ export class SupabaseAuthAdapter implements IAuthProvider {
 | From → To | Pattern | Protocol | Timeout | Retry | Notes |
 |-----------|---------|----------|---------|-------|-------|
 | Frontend → Fastify API | Synchronous | HTTPS REST (TLS 1.3) | 30s client-side | 3× exponential backoff (client) | JWT Bearer; single-trip response |
-| Fastify → SpinUseCase | In-process call | TypeScript function call | Engine timeout 2000ms | No retry (wallet not debited on timeout → 504) | ConcurrencyLock guards re-entry |
+| Fastify → SpinUseCase | In-process call | TypeScript function call | Engine timeout 2000ms | No retry (wallet IS debited before engine; timeout → 504 + compensating credit per §6) | ConcurrencyLock guards re-entry |
 | SpinUseCase → SupabaseWalletRepository | Synchronous | Supabase JS Client / TCP | 2000ms | No retry on debit (idempotency risk); 3× on read | PostgreSQL FOR UPDATE |
 | SpinUseCase → UpstashCacheAdapter | Synchronous | Redis Protocol / TLS | 500ms | 2× for read; no retry on lock acquire | NX for lock; EX 10s TTL |
 | API → Supabase Auth | Synchronous | HTTPS | 1000ms | No retry (fail fast with 401) | RS256 public key cached 1h |
@@ -666,7 +671,7 @@ Circuit Breaker State Machine:
 CLOSED ──(error rate > threshold in window)──► OPEN
           ◄──(probe request succeeds)──── HALF-OPEN ◄──(timeout elapsed)── OPEN
 
-On OPEN state: return HTTP 503 with Retry-After header; wallet NOT debited
+On OPEN state: return HTTP 503 with Retry-After header; no spin attempted (lock not acquired → wallet not yet debited)
 ```
 
 **Retry policy (non-wallet operations only):**
@@ -1204,7 +1209,7 @@ graph TD
 | SAST | semgrep + CodeQL | — | Security scan; blocks on CRITICAL findings | Various OSS |
 | Ingress | nginx-ingress | latest | K8s Ingress; TLS termination; HTTPS-only | Apache 2.0 |
 | Secret Manager | Kubernetes Secrets (etcd encrypted) | — | SUPABASE_SERVICE_KEY, REDIS_URL, DATABASE_URL, SUPABASE_JWT_SECRET | K8s Apache 2.0 |
-| Frontend | Cocos Creator 3.x / PixiJS 7.x | (to be confirmed at frontend milestone) | Display layer; Pure View; never calculates win | Various |
+| Frontend | Cocos Creator 3.x / PixiJS 7.x | TBD — confirmed at frontend milestone (target Q3 2026) | Display layer; Pure View; never calculates win | Various |
 
 ---
 
@@ -1476,7 +1481,7 @@ For reconnect recovery, `GET /v1/session/:sessionId` returns the in-progress FG 
 - Positive: P99 ≤ 800ms budget covers up to 5 FG rounds within one response
 - Negative: P99 ≤ 800ms is harder to guarantee for deep FG sequences; requires engine optimization
 - Negative: Large response payload (5 FG rounds with full grid state) ≈ 50–100KB; acceptable for game context
-- Risk: If engine processing exceeds 2000ms, returns 504 with wallet NOT debited (engine timeout guard)
+- Risk: If engine processing exceeds 2000ms, returns 504; wallet debit has already occurred and requires compensating credit (see §6 Partial Failure Compensation — engine failure path)
 
 ---
 
@@ -1724,7 +1729,7 @@ The Thunder Blessing slot game has hundreds of configurable probability paramete
 | # | NFR Item | Verification Method | Status |
 |---|----------|--------------------|----|
 | D-01 | DB schema managed via Supabase migrations (SQL files in `supabase/migrations/`) | `supabase db diff` before deploy; migration history table | ✅ Designed |
-| D-02 | Wallet atomicity: PostgreSQL `FOR UPDATE` + transaction block; debit before engine spin; 504 if timeout | Integration test: simulate timeout → verify wallet NOT debited | ✅ Designed |
+| D-02 | Wallet atomicity: PostgreSQL `FOR UPDATE` + transaction block; debit before engine spin; engine timeout → 504 + async compensating credit (see §6) | Integration test: simulate engine timeout → verify compensating credit applied within 30s | ✅ Designed |
 | D-03 | `outcome.totalWin` is the sole wallet credit source; `session.roundWin` never passed to wallet | Code review: `grep -r "credit" src/ | grep -v totalWin` returns empty | ✅ Designed |
 | D-04 | PITR backup (5-min granularity, Supabase Pro); Redis AOF+RDB; RPO=5min validated in DR drill | Quarterly DR drill; restore test from PITR snapshot | ✅ Designed |
 | D-05 | PII masking in logs: email → `e***@domain.com`; rngSeed excluded from prod logs | Log sample check in staging; `LOG_RNG_VALUES=false` in prod ConfigMap | ✅ Designed |
@@ -1735,7 +1740,7 @@ The Thunder Blessing slot game has hundreds of configurable probability paramete
 |---|----------|--------------------|----|
 | F-01 | Circuit breaker on Supabase DB (5 failures/10s), Redis (10 failures/10s), Auth (5 failures/10s) | Chaos test: kill Redis pod → verify circuit opens; 503 returned | ✅ Designed |
 | F-02 | FG session fallback: Redis TTL expires → GET /session/:id returns 404 → player restarts | Integration test: expire Redis key; verify 404 response | ✅ Designed |
-| F-03 | Request timeout: engine > 2000ms → 504; wallet NOT debited (debit happens before engine, credit after) | Load test with artificially slow engine | ✅ Designed |
+| F-03 | Request timeout: engine > 2000ms → 504; wallet IS debited before engine call; compensating credit issued via async reconciliation job (see §6 Partial Failure Compensation — engine failure path) | Load test with artificially slow engine; verify compensating credit in wallet_transactions | ✅ Designed |
 
 ### Architecture Governance (G)
 
