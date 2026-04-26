@@ -80,7 +80,7 @@ The following objectives govern all testing activities for Thunder Blessing. Eac
 | Application use cases | `SpinUseCase`, `BuyFeatureUseCase`, `GetSessionStateUseCase`, `SessionFloorGuard`, `ConcurrencyLockGuard` |
 | Infrastructure adapters | `SupabaseWalletRepository`, `SupabaseSessionRepository`, `RedisSessionCache`, `JwtAuthGuard` |
 | API contract | `POST /v1/spin`, `GET /v1/session/:sessionId`, `GET /v1/config`, `GET /health`, `GET /ready` |
-| Database schema | All tables: `players`, `spins`/`spin_logs`, `wallet_transactions`, `fg_sessions`, `wallets` |
+| Database schema | All tables: `players`, `spins`, `wallet_transactions`, `fg_sessions` |
 | Probability engine | Excel toolchain: `build_config.js`, `excel_simulator.js`, `verify.js`, `engine_generator.js` |
 | Frontend (game client) | Scene transitions, AnimationQueue correctness, Pure View compliance (no win recalculation on client) |
 | Performance | API throughput and latency under load (k6: smoke, load, stress, soak) |
@@ -609,6 +609,23 @@ Phase 7 (Regression + Smoke) ─────────────────
 
 ## §9 Unit Test Plan
 
+### §9.0 TC-ID Format Convention
+
+All test case identifiers follow a unified format to ensure traceability across layers:
+
+| Layer | Format | Example |
+|-------|--------|---------|
+| Unit | `TC-UNIT-{MODULE}-{SEQ}-{PATH}` | `TC-UNIT-CASC-001-HAPPY` |
+| Integration | `TC-INT-{MODULE}-{SEQ}-{PATH}` | `TC-INT-API-001-HAPPY` |
+| E2E | `TC-E2E-{MODULE}-{SEQ}-{PATH}` | `TC-E2E-SPIN-001-HAPPY` |
+| Security | `TC-SEC-{MODULE}-{SEQ}` | `TC-SEC-AUTH-001` |
+| Smoke | `TC-SMOKE-{SEQ}` | `TC-SMOKE-001` |
+
+Where:
+- `{MODULE}` = logical module or API group (e.g., CASC, API, FG, WALLET, AUTH)
+- `{SEQ}` = zero-padded 3-digit sequence number within the module
+- `{PATH}` = test path type: `HAPPY` (success path), `ERROR` (failure/error path), `BOUNDARY` (edge/boundary case)
+
 ### §9.1 Coverage Target
 
 | Scope | Line Coverage | Branch Coverage | Enforcement |
@@ -662,6 +679,7 @@ Coverage is measured by `@vitest/coverage-v8`. Reports are published as HTML art
 | TC-UNIT-COIN-003-BOUNDARY | CoinTossEvaluator | Stage boundaries: stage 0→4 correctly maps to coinProbs [0.80, 0.68, 0.56, 0.48, 0.40] | Boundary | P0 |
 | TC-UNIT-COIN-004-HAPPY | CoinTossEvaluator | Buy Feature mode: `entryBuy=1.00` always returns Heads regardless of RNG value | Happy | P0 |
 | TC-UNIT-COIN-005-BOUNDARY | CoinTossEvaluator | `rows < 6`: Coin Toss must not be invoked; engine guard assertion verified | Boundary | P0 |
+| TC-UNIT-COIN-006-BOUNDARY | CoinTossEvaluator | RNG boundary values at each stage: RNG exactly equal to `coinProbs[stage]` is treated as Tails (≥ threshold); RNG at `coinProbs[stage] - ε` is Heads; verify all 5 stage thresholds [0.80, 0.68, 0.56, 0.48, 0.40] | Boundary | P0 |
 | TC-UNIT-FG-001-HAPPY | FreeGameOrchestrator | `runSequence()` Buy Feature (5 guaranteed Heads): `fgRounds.length === 5`; multipliers [3,7,17,27,77] | Happy | P0 |
 | TC-UNIT-FG-002-HAPPY | FreeGameOrchestrator | `drawBonusMultiplier()` draws from weights {900:×1, 80:×5, 15:×20, 5:×100}; returns valid multiplier | Happy | P0 |
 | TC-UNIT-FG-003-HAPPY | FreeGameOrchestrator | FG Bonus multiplier drawn once (before round 1); same value in all `fgRounds[n].bonusMultiplier` | Happy | P0 |
@@ -672,6 +690,7 @@ Coverage is measured by `@vitest/coverage-v8`. Reports are published as HTML art
 | TC-UNIT-FLOOR-003-HAPPY | SessionFloorGuard | `applyFloor()`: totalFGWin=500 → adjustedWin=500 (above floor; floor not applied) | Happy | P0 |
 | TC-UNIT-MAXWIN-001-BOUNDARY | SlotEngine | Main Game: raw win 35,000× baseBet is capped to 30,000× baseBet | Boundary | P0 |
 | TC-UNIT-MAXWIN-002-BOUNDARY | SlotEngine | EBBuyFG: raw win 95,000× baseBet is capped to 90,000× baseBet | Boundary | P0 |
+| TC-UNIT-CURR-001-HAPPY | CurrencyFormatter | `CurrencyFormatter.format(1.00, 'USD')` returns `"$1.00"`; `CurrencyFormatter.format(100, 'TWD')` returns `"NT$100"`; formatting sourced from `BetRangeConfig`; no hardcoded currency strings | Happy | P0 |
 
 ---
 
@@ -698,7 +717,7 @@ Every P0 API endpoint requires a happy-path 200 test and at least one error-path
 | `players` table | `balance CHECK (balance >= 0)` — debit below zero rejected at DB level |
 | `players` table | `currency CHECK (currency IN ('USD', 'TWD'))` — invalid currency rejected |
 | `wallet_transactions` | Append-only: no UPDATE or DELETE permitted by player role |
-| `spin_logs` | FK: `player_id REFERENCES players(id)` — orphaned insert rejected |
+| `spins` | FK: `player_id REFERENCES players(id)` — orphaned insert rejected |
 | `fg_sessions` | `session_id UNIQUE NOT NULL` — duplicate session_id rejected |
 | `fg_sessions` | `status CHECK (status IN ('ACTIVE', 'COMPLETE'))` — invalid status rejected |
 | Wallet atomicity | Debit + `wallet_transactions` INSERT inside same DB transaction; ROLLBACK on engine failure |
@@ -731,18 +750,23 @@ Every P0 API endpoint requires a happy-path 200 test and at least one error-path
 | TC-INT-API-011-ERROR | POST /v1/spin | Suspended player (`is_suspended=true`): 403 FORBIDDEN | Error | P0 |
 | TC-INT-API-012-HAPPY | GET /v1/session/:sessionId | FG session in Redis: 200 with correct `fg_multiplier`, `lightning_marks`, `fg_bonus_mult` | Happy | P1 |
 | TC-INT-API-013-ERROR | GET /v1/session/:sessionId | Non-existent or expired session: 404 SESSION_NOT_FOUND | Error | P0 |
+| TC-INT-API-014-HAPPY | GET /v1/config | Valid JWT: 200 with `BetRangeConfig` containing bet levels and currency display for both USD and TWD | Happy | P0 |
+| TC-INT-API-015-ERROR | GET /v1/config | Request without Authorization header: 401 UNAUTHORIZED | Error | P0 |
+| TC-INT-CURR-001-HAPPY | GET /v1/config / CurrencyFormatter | Calls GET /v1/config; verifies `BetRangeConfig` bet levels are correct for USD (min=0.20, max=20.00) and TWD (min=5, max=500); verifies currency display formatting via `CurrencyFormatter.ts` for both locales | Happy | P0 |
 | TC-INT-WALLET-001-HAPPY | SupabaseWalletRepository | `debit()` decrements balance by exact baseBet; `wallet_transactions` row inserted | Happy | P0 |
 | TC-INT-WALLET-002-HAPPY | SupabaseWalletRepository | `credit()` increments balance by exact `totalWin`; `wallet_transactions` row inserted | Happy | P0 |
 | TC-INT-WALLET-003-ERROR | SupabaseWalletRepository | `debit()` when balance = 0: DB CHECK constraint fires; balance not decremented | Error | P0 |
 | TC-INT-WALLET-004-HAPPY | SupabaseWalletRepository | Debit + credit in same spin: net balance change = `totalWin - baseBet` | Happy | P0 |
 | TC-INT-WALLET-005-HAPPY | SupabaseWalletRepository | Idempotent retry: same idempotency key deduplicates duplicate credit insert | Happy | P0 |
-| TC-INT-DB-001-HAPPY | spin_logs | `outcome JSONB` field stores complete `FullSpinOutcome`; retrievable and deserializable | Happy | P0 |
-| TC-INT-DB-002-ERROR | spin_logs | INSERT with non-existent `player_id`: FK violation; insert rejected | Error | P0 |
+| TC-INT-DB-001-HAPPY | spins | `outcome JSONB` field stores complete `FullSpinOutcome`; retrievable and deserializable | Happy | P0 |
+| TC-INT-DB-002-ERROR | spins | INSERT with non-existent `player_id`: FK violation; insert rejected | Error | P0 |
 | TC-INT-REDIS-001-HAPPY | RedisSessionCache | `set()` then `get()` returns identical session state; TTL set to 1800s | Happy | P0 |
 | TC-INT-REDIS-002-HAPPY | ConcurrencyLockGuard | `acquireLock()` returns true for first caller; false for concurrent caller on same session | Happy | P0 |
 | TC-INT-FG-001-HAPPY | FreeGameOrchestrator | FG entry: Lightning Marks from main game cascade are present in `fgRounds[0].lightningMarksBefore` | Happy | P0 |
 | TC-INT-FG-002-HAPPY | FreeGameOrchestrator | FG round 2: marks from round 1 cascade accumulated in `fgRounds[1].lightningMarksBefore` | Happy | P0 |
 | TC-INT-FG-003-HAPPY | FreeGameOrchestrator | FG end (Tails): `lightningMarks = []` in `FullSpinOutcome`; marks not in subsequent spin response | Happy | P0 |
+| TC-INT-FG-004-ERROR | FreeGameOrchestrator | FG sequence corruption: Lightning Marks are incorrectly reset mid-FG (simulate Redis partial eviction); engine must recover from `fg_sessions` PostgreSQL table; `fgRounds` marks remain consistent | Error | P0 |
+| TC-INT-CONFIG-001-HAPPY | GameConfig / GET /v1/config | Config endpoint returns correct `BetRangeConfig` bet levels and currency display for USD and TWD; SHA-256 checksum of `GameConfig.generated.ts` matches the value in CI guard (QG-11); manual edit of generated config causes checksum mismatch | Happy | P0 |
 | TC-INT-BUYF-001-HAPPY | BuyFeatureUseCase | Buy Feature: wallet debited by `100 × baseBet`; `fgRounds.length === 5` | Happy | P0 |
 | TC-INT-BUYF-002-ERROR | BuyFeatureUseCase | Buy Feature with extraBet ON: wallet debited by `300 × baseBet` | Error | P0 |
 | TC-INT-BUYF-003-HAPPY | SessionFloorGuard | Buy Feature with low win: `totalWin ≥ 20 × baseBet`; `sessionFloorApplied: true` | Happy | P0 |
@@ -845,13 +869,14 @@ test('basic spin returns totalWin and updates balance', async ({ page }) => {
 | A04 | Race condition on wallet debit | k6 concurrent-user test targeting same player | Balance never goes negative; `CHECK (balance >= 0)` never violated |
 | **A05 — Security Misconfiguration** | Default Fastify headers exposing server info | Check `X-Powered-By` and `Server` headers | Headers removed or replaced with non-identifying values |
 | A05 | Open K8s ports (non-HTTPS) | Port scan on staging K8s NodePort | Only 443 and health probe port accessible |
+| A05 / TC-SEC-A05-CORS | CORS wildcard misconfiguration | Send cross-origin request to `POST /v1/spin` and `GET /v1/config` from untrusted origin; inspect `Access-Control-Allow-Origin` response header on staging and production | `Access-Control-Allow-Origin` must NOT return `*`; must be restricted to the configured allowlist of trusted origins |
 | **A06 — Vulnerable Components** | Known CVE in npm dependencies | `npm audit --audit-level=high` in CI | 0 HIGH or CRITICAL CVEs in production dependencies |
 | A06 | Outdated Fastify or Supabase client | Dependabot alerts | No dependency >90 days old with unresolved HIGH CVE |
 | **A07 — Auth Failures** | Brute-force spin with invalid JWTs | 100 rapid requests with forged JWT | All return 401; no successful auth bypass |
 | A07 | Expired token reuse | Replay captured JWT after expiry | Returns 401 UNAUTHORIZED |
 | **A08 — Software Integrity** | Manual modification of `GameConfig.generated.ts` | Mutate file, run CI | CI build fails with checksum mismatch error |
 | A08 | Supply chain attack via `npm install` | `npm ci --ignore-scripts` in CI; package-lock.json committed | No un-reviewed script execution at install time |
-| **A09 — Logging Failures** | Missing audit log for spin | Execute spin; check `spin_logs` table | Every spin has a corresponding `spin_logs` row with `outcome` JSONB |
+| **A09 — Logging Failures** | Missing audit log for spin | Execute spin; check `spins` table | Every spin has a corresponding `spins` row with `outcome` JSONB |
 | A09 | Sensitive data in logs (balance, JWT) | Search CI log output for PII patterns | No player balance or JWT token in application log output |
 | **A10 — SSRF** | SSRF via crafted spin parameter containing URL | Send `sessionId: "http://169.254.169.254/latest/meta-data"` | Returns 400 VALIDATION_ERROR; no outbound HTTP from backend |
 
@@ -883,7 +908,7 @@ test('basic spin returns totalWin and updates balance', async ({ page }) => {
 | Test | Method | Acceptance Criteria |
 |------|--------|---------------------|
 | CSPRNG source | Code review: confirm `crypto.getRandomValues()` or Node.js `crypto.randomBytes()` used; no `Math.random()` in game-critical paths | 0 instances of `Math.random()` in `src/domain/` |
-| RNG seed auditability | `rngSeed` field in `FullSpinOutcome` and `spin_logs.outcome` | Every spin log contains reproducible `rngSeed`; replaying with same seed produces identical `FullSpinOutcome` |
+| RNG seed auditability | `rngSeed` field in `FullSpinOutcome` and `spins.outcome` | Every spin log contains reproducible `rngSeed`; replaying with same seed produces identical `FullSpinOutcome` |
 | Statistical distribution | Chi-squared test on 100,000 symbol draws per reel position per scenario | p-value > 0.05 (distribution consistent with expected weights) |
 | Engine immutability | `verify.js` PASS gate + CI checksum on `GameConfig.generated.ts` | `verify.js` exits 0; checksum matches after deployment |
 
@@ -891,7 +916,7 @@ test('basic spin returns totalWin and updates balance', async ({ page }) => {
 
 ## §13 Performance Test Plan
 
-All performance tests target the staging environment (`thunder-staging` K8s namespace, 2 replicas). SLO targets are sourced from ARCH §1.1 / EDD §5.
+All performance tests target the staging environment (`thunder-staging` K8s namespace, 2 replicas). SLO targets are sourced from ARCH §1.1 / EDD §9.1.
 
 ### §13.1 Smoke Test (5 users, 1 minute)
 
@@ -903,9 +928,9 @@ All performance tests target the staging environment (`thunder-staging` K8s name
 | Duration | 60 seconds |
 | Ramp-up | 0 seconds (flat start) |
 | Target endpoint | `POST /v1/spin` |
-| Accept threshold | P99 ≤ 500ms; error rate < 1% |
+| Accept threshold | P50 ≤ 150ms; P95 ≤ 300ms; P99 ≤ 500ms; error rate < 1% |
 
-**Pass criteria:** All requests return HTTP 200; no 5xx errors; P99 latency ≤ 500ms.
+**Pass criteria:** All requests return HTTP 200; no 5xx errors; P50 ≤ 150ms, P95 ≤ 300ms, P99 ≤ 500ms.
 
 ### §13.2 Load Test (500 concurrent, 10 minutes)
 
@@ -942,6 +967,16 @@ All performance tests target the staging environment (`thunder-staging` K8s name
 | HPA behavior | Monitor `kubectl get hpa -n thunder-staging`; expect scale-out to 4–8 replicas |
 | Acceptance | System degrades gracefully; 503 returned (not hang); no data corruption; wallet balances consistent after test |
 
+**Degraded SLO thresholds at 2× normal load (explicit acceptance criteria):**
+
+| Metric | Threshold |
+|--------|-----------|
+| P50 latency (no FG) | ≤ 200ms |
+| P95 latency (no FG) | ≤ 600ms |
+| P99 latency (no FG) | ≤ 1000ms |
+| HTTP 5xx error rate | < 5% (graceful degradation; system must not hang) |
+| Wallet discrepancy events | 0 |
+
 ### §13.4 Soak Test (500 concurrent, 2 hours)
 
 **Purpose:** Detect memory leaks, Redis connection pool exhaustion, and slow wallet drift over sustained load.
@@ -952,6 +987,15 @@ All performance tests target the staging environment (`thunder-staging` K8s name
 | Duration | 2 hours |
 | Metrics monitored | Memory RSS per pod (Grafana), Redis connection count, PostgreSQL connection pool, wallet reconciliation check every 10 minutes |
 | Pass criteria | Error rate < 0.5% for full 2 hours; memory RSS stable (< 20% drift); 0 wallet discrepancy events |
+
+**Explicit latency thresholds (must hold throughout the full 2-hour soak window):**
+
+| Metric | Threshold |
+|--------|-----------|
+| P99 latency (no FG) | ≤ 500ms throughout entire 2-hour window |
+| HTTP 5xx error rate | < 0.5% |
+| Memory RSS drift | < 20% from baseline |
+| Wallet discrepancy events | 0 |
 
 ### §13.5 k6 Script Skeleton for Spin Endpoint Load Test
 
@@ -1247,7 +1291,7 @@ Production release sign-off requires all of the following approvals and evidence
 
 | US-ID | Requirement Summary | TC-ID(s) | Type | Priority | Status |
 |-------|---------------------|---------|------|----------|--------|
-| US-SPIN-001 | Basic spin: P99 ≤ 500ms, 5×3 grid | TC-UNIT-CASC-002, TC-INT-API-001, TC-E2E-SPIN-001 | Unit/Int/E2E | P0 | Planned |
+| US-SPIN-001 | Basic spin: P99 ≤ 500ms, 5×3 grid | TC-UNIT-CASC-002, TC-INT-API-001, TC-E2E-SPIN-001; P99 latency OBJ-03 covered by §13 Load Test (k6 gate QG-07) | Unit/Int/E2E/Perf | P0 | Planned |
 | US-SPIN-001/AC-2 | Balance < baseBet: display error, no spin | TC-UNIT-PROB-003, TC-INT-API-004, TC-E2E-SPIN-002 | Unit/Int/E2E | P0 | Planned |
 | US-SPIN-001/AC-3 | JWT expired/missing: HTTP 401 | TC-INT-API-002, TC-INT-API-003, TC-SEC-AUTH-001 | Int/Security | P0 | Planned |
 | US-SPIN-001/AC-4 | Concurrent spin: button locked, no double-debit | TC-INT-API-007, TC-E2E-SPIN-003 | Int/E2E | P0 | Planned |
@@ -1280,7 +1324,7 @@ Production release sign-off requires all of the following approvals and evidence
 | US-BUYF-001 | Buy Feature: 100× cost, guaranteed Heads×5 | TC-UNIT-COIN-004, TC-INT-BUYF-001 | Unit/Int | P0 | Planned |
 | US-BUYF-001 (floor) | Buy Feature: totalWin ≥ 20× baseBet | TC-UNIT-FLOOR-001, TC-INT-BUYF-003 | Unit/Int | P0 | Planned |
 | US-RTPV-001 | RTP ±1% per scenario, 1M Monte Carlo | TC via `verify.js` | Monte Carlo | P0 | Planned |
-| US-CURR-001 | USD/TWD display from BetRangeConfig | TC-INT-API-005, TC-INT-API-006 | Integration | P0 | Planned |
+| US-CURR-001 | USD/TWD display from BetRangeConfig | TC-UNIT-CURR-001, TC-INT-CURR-001 | Unit/Integration | P0 | Planned |
 | US-APIV-001 | JWT auth on every spin | TC-INT-API-002, TC-SEC-AUTH-001 through TC-SEC-AUTH-005 | Int/Security | P0 | Planned |
 | US-NRMS-001 | Near Miss: toolchain-configured, no code custom | TC-UNIT-PROB-001 (config integrity) | Unit | P0 | Planned |
 
