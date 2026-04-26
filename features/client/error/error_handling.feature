@@ -77,7 +77,7 @@ Feature: Error and Disconnection Handling — UI Behavior
     Given the player clicks the SPIN button
     When an unexpected error state appears on screen
     Then a generic error dialog is displayed (stone-carved frame style, consistent with game UI)
-    And the dialog does not expose raw technical details (no stack trace or numeric status codes visible to the player)
+    And the dialog shows only a human-readable message without any technical error codes or stack traces
     And the dialog has a dismissal button that returns the player to IDLE state
 
   @TC-E2E-ERR-007

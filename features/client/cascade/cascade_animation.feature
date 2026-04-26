@@ -89,6 +89,5 @@ Feature: Cascade Elimination — UI Animation Behavior
   Scenario: Animation queue does not allow a new spin during cascade playback
     Given a cascade chain animation sequence is actively playing
     When the player attempts to click the SPIN button
-    Then the SPIN button remains visually disabled and unresponsive
-    And the SPIN button remains visually disabled and no reel movement occurs
+    Then the SPIN button remains visually disabled, unresponsive, and no reel movement occurs
     And the cascade animation completes without interruption

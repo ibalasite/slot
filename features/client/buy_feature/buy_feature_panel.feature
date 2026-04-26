@@ -36,7 +36,6 @@ Feature: Buy Feature Panel — UI Behavior
     Given the confirmation dialog is open showing cost "$25.00"
     When the player confirms the Buy Feature purchase
     Then the dialog closes with a click sound and a brief visual concave-press effect on CONFIRM
-    And the buy confirmation dialog shows the cost
     And the BALANCE decreases by 100× the base bet amount
     And the Free Game scene entry animation plays
     And the Free Game HUD appears with 10 spins remaining

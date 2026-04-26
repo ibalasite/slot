@@ -2,7 +2,7 @@
 Feature: Coin Toss Panel — UI Behavior
   As a player who has triggered Coin Toss by an SC (Scatter) symbol landing
   I want to see the full Coin Toss mini-game overlay
-  So that I can experience the suspense of whether I win Free Game entry
+  So that I can see my multiplier applied to Lightning Marks and understand the Coin Toss outcome
 
   Background:
     Given the game client is fully loaded in a browser
@@ -11,11 +11,12 @@ Feature: Coin Toss Panel — UI Behavior
     And the Thunder Blessing sequence activated the Coin Toss overlay
 
   # ---------------------------------------------------------------------------
-  # Happy Path — Coin Toss Heads (FG entry)
+  # Happy Path — Coin Toss Heads (multiplier applied to Lightning Marks)
   # ---------------------------------------------------------------------------
 
   @TC-E2E-COIN-001
   Scenario: Coin Toss overlay appears with spotlight and coin fly-in animation
+    Given the Coin Toss overlay is active and the coin is centred in the spotlight
     When the COIN_TOSS state activates
     Then the reel grid and background dim with a dark overlay (opacity ~0.7, ~0.4 s transition)
     And a spotlight light cone appears from the top of the screen pointing downward

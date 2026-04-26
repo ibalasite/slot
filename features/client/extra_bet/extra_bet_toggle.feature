@@ -52,7 +52,7 @@ Feature: Extra Bet Toggle — UI Behavior
     Given the Extra Bet toggle is ON
     And the base bet is "$0.25"
     When the player opens the BUY FREE GAME confirmation dialog
-    Then the dialog shows "Cost: 300 × BET = $75.00"
+    Then the dialog shows "Cost: 100 × Total BET = $75.00"
     And an "×3 EXTRA BET" orange label is displayed in the dialog
     And no "100 × BET" (normal cost) text is shown
 

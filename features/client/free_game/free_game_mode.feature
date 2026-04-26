@@ -23,6 +23,7 @@ Feature: Free Game Mode — UI Behavior
 
   @TC-E2E-FG-001
   Scenario: Free Game entry — scene cross-dissolve and fanfare animation
+    Given 5 or more Lightning Marks have accumulated and the Free Game entry sequence has been triggered
     When the Free Game entry animation plays after 5+ Lightning Marks accumulated
     Then the screen cross-dissolves from the main game (dusk temple) to the FG scene (night sky temple) over ~0.8 s
     And starfield particles drift slowly across the FG background
