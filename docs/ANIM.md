@@ -415,7 +415,7 @@ t=1200ms    Marked cells: current symbols shatter (elimination variant)
 t=1500ms    Target symbol assembles at each formerly-marked cell
               - SFX_TB_SYMBOL_UPGRADE fires
               - SymbolComponent.upgradeToSymbol(convertedSymbol)
-              - Whole reel: filter sepia(0.3) brightness(1.4) (500ms, ease-out-cubic)
+              - Whole reel: filter sepia(0.3) brightness(1.4) (300ms, ease-out-cubic)
 
 t=1800ms    Gold glow fades out
               - filter returns to none (400ms, ease-in-out-cubic)
@@ -489,7 +489,7 @@ Applies only when `thunderBlessingSecondHit = true` (from `ThunderBlessingParams
 
 **At t=3000ms:**
 - `SFX_TB_SETTLE` fires (400ms gold resonance chime, signals cascade resume).
-- Reel brightness restores: `filter: none` over 200ms (`ease-out-cubic`).
+- Reel brightness restores: `filter: none` over 200ms (`ease-out-cubic`). *(Safety clear — in the single-hit path the gold filter already fades to zero by t=2200ms [1500ms ramp start + 300ms ramp + 400ms fade]; this call ensures no residual filter state persists into subsequent cascade steps regardless of path.)*
 - All remaining TB particles fade out (old particles preemptive recycle).
 - Arc lines from §4.2 fade out completely (opacity 0.8 → 0.0, 300ms, `linear`).
 - Mark overlay indicators are cleared: `LightningMarkComponent.clearAllMarks()` called.
@@ -856,6 +856,11 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 - Dialog closes: `opacity` 1.0 → 0, 200ms, `ease-in`.
 - SFX: `SFX_BUY_FG_CONFIRM` (600ms rich coin placement).
 
+**Buy Feature cancel/dismiss (player closes dialog without confirming):**
+- Dialog closes: `opacity` 1.0 → 0, 200ms, `ease-in` (same as confirm-close duration).
+- SFX: `SFX_UI_DIALOG_CLOSE` (150ms) fires at dismiss start.
+- No button scale animation (cancel is neutral, not a positive action).
+
 ### 9.5 Error / Network States
 
 **Error overlay (NETWORK_ERROR state):**
@@ -888,7 +893,7 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 | `THUNDER_BLESSING` | §4 | 3000ms (or 3000ms+) | `SFX_LIGHTNING_ACTIVATE` at t=200ms; `SFX_THUNDER_BLESSING` + `SFX_TB_FIRST_HIT` at t=800ms; `SFX_TB_SYMBOL_UPGRADE` at t=1500ms; `SFX_SECOND_HIT` at t=2300ms (if applicable); `SFX_TB_SETTLE` at t=3000ms |
 | `COIN_TOSS` | §5 | 3000ms–3500ms | `SFX_COIN_TOSS_START` at t=0ms; `SFX_COIN_TOSS_FLIP` [loop] at t=500ms; `SFX_COIN_HEADS` or `SFX_COIN_TAILS` at ~t=3500ms; `SFX_COIN_MULT_PROGRESS` on HEADS. TAILS in main-game → `WIN_DISPLAY`; TAILS in FG context → `FG_COMPLETE` (per AUDIO.md §5.6 FG caveat); `BGM_COIN_TOSS`→`BGM_MAIN` crossfade does NOT fire in FG context. |
 | `FG_ENTRY` | §6.1 | ~2600ms | `SFX_FG_ENTER` at t=0ms; `SFX_FG_BONUS_REVEAL` / `SFX_FG_BONUS_5X` / `SFX_FG_BONUS_20X` / `SFX_FG_BONUS_100X` at t=1800ms |
-| `FG_ROUND` | §6.2, §6.3 | Variable (cascade + coin toss per round) | `SFX_FG_ROUND_START` at t=0ms; cascade SFX per AUDIO.md §5.2; coin toss SFX per AUDIO.md §5.4; visual cascade animation per ANIM.md §6.2; visual coin toss animation per ANIM.md §6.3; `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` or `SFX_FG_MULT_77` on HEADS |
+| `FG_ROUND` | §6.2, §6.3 | Variable (cascade + coin toss per round) | `SFX_FG_ROUND_START` at t=0ms; cascade SFX per AUDIO.md §5.2; coin toss SFX per AUDIO.md §5.4; visual cascade animation per ANIM.md §6.2; visual coin toss flip/reveal animation per ANIM.md §5 (same sequence as main-game coin toss); visual HEADS multiplier advance per ANIM.md §6.3; `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` or `SFX_FG_MULT_77` on HEADS |
 | `FG_COMPLETE` | §6.4 | 3500ms+ | `SFX_FG_COMPLETE` at t=0ms; `SFX_WIN_ROLLUP_TICK` during roll-up; win tier SFX at roll-up end |
 | `WIN_DISPLAY` | §7.1, §7.2, §7.3 | 200ms–10,000ms | Win tier SFX at t=0ms; `SFX_WIN_ROLLUP_TICK` throttled during roll-up |
 
