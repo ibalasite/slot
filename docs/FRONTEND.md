@@ -1579,7 +1579,7 @@ class MobileAudioUnlock {
   private static loadRemainingAudio(manager: AudioManager): void {
     // Fire-and-forget: preload SFX and secondary BGM tracks in background
     const remaining: Array<[SoundId, string]> = [
-      ['BGM_FREEGAME', 'audio/bgm_freegame.ogg'],
+      ['BGM_FREE_GAME', 'audio/bgm_free_game.ogg'],
       ['SFX_CASCADE', 'audio/sfx_cascade.ogg'],
       ['SFX_WIN', 'audio/sfx_win.ogg'],
       ['SFX_LIGHTNING', 'audio/sfx_lightning.ogg'],
@@ -1665,9 +1665,7 @@ document.addEventListener('visibilitychange', async () => {
   try {
     const session = await sessionService.getSession(sessionId);
     if (session.status === 'FG_ACTIVE') {
-      lightningMarkComponent.restoreMarks(session.lightningMarks.positions);
-      freeGameComponent.restoreFromSession(session.fgMultiplier!, session.fgRound!);
-      stateMachine.transition('SESSION_RESTORED_FG');
+      await restoreFGSession(session);  // delegates to §11.5 — all 7 steps including overlay, background, multiplier bar, spin counter
     } else if (session.status === 'SPINNING') {
       // Wager is live — enter polling loop (see §5.2 SPIN_PENDING_RECONNECT protocol)
       // Poll GET /v1/session every 2s (max 10 retries) until COMPLETE or FG_ACTIVE
@@ -1684,9 +1682,7 @@ document.addEventListener('visibilitychange', async () => {
         if (updated.status === 'COMPLETE') {
           stateMachine.transition('SESSION_RESTORED_IDLE');
         } else if (updated.status === 'FG_ACTIVE') {
-          lightningMarkComponent.restoreMarks(updated.lightningMarks.positions);
-          freeGameComponent.restoreFromSession(updated.fgMultiplier!, updated.fgRound!);
-          stateMachine.transition('SESSION_RESTORED_FG');
+          await restoreFGSession(updated);  // delegates to §11.5
         } else {
           await poll();
         }
