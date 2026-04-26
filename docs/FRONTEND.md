@@ -817,6 +817,7 @@ interface SpinResponse {
 class SpinService {
   private readonly BASE_URL = '/v1';
   private readonly TIMEOUT_MS = 10_000;
+  private tokenStore!: { getToken(): string };  // Injected at init (same pattern as ConfigService/SessionService)
 
   async spin(request: SpinRequest): Promise<FullSpinOutcome> {
     const response = await this.fetchWithTimeout(
@@ -884,6 +885,8 @@ interface SessionData {
 }
 
 class SessionService {
+  private tokenStore!: { getToken(): string };  // Injected at init (same pattern as ConfigService/SpinService)
+
   async getSession(sessionId: string): Promise<SessionData> {
     const response = await fetch(`/v1/session/${sessionId}`, {
       headers: { 'Authorization': `Bearer ${this.tokenStore.getToken()}` },
@@ -1634,14 +1637,19 @@ document.addEventListener('visibilitychange', async () => {
 ### 8.4 Offline Indicator UI
 
 ```typescript
+// hudComponent is the module-level HUDComponent instance wired up at GameScene init.
+// HUDComponent is a TypeScript interface — it cannot be called as HUDComponent.getInstance().
+// The concrete instance is stored as a module-level variable.
+let hudComponent: HUDComponent;  // assigned in GameScene.onLoad()
+
 // Monitor network connectivity
 window.addEventListener('offline', () => {
-  HUDComponent.getInstance().showOfflineBanner('No internet connection');
+  hudComponent.showOfflineBanner('No internet connection');
   GameStateMachine.getInstance().transition('NETWORK_OFFLINE');
 });
 
 window.addEventListener('online', () => {
-  HUDComponent.getInstance().hideOfflineBanner();
+  hudComponent.hideOfflineBanner();
   // Attempt reconnect
   triggerSessionReconnect();
 });
