@@ -77,42 +77,56 @@
 </div>
     </aside>
     <div class="sidebar-resizer" id="sidebarResizer"></div>
-    <main class="doc-content"><h1>Thunder Blessing Slot Game — GDD &amp; Technical Documentation</h1>
-<p>Full design and specification suite for the <strong>Thunder Blessing</strong> slot game, generated via the gendoc pipeline.</p>
-<div class="index-grid" style="margin-bottom:2rem">
-  <a class="index-card" href="prototype/index.html" style="border-color:var(--accent);background:linear-gradient(135deg,#eff8ff 0%,#fff 100%)">
-    <div class="index-card__icon">📱</div>
-    <div class="index-card__title">Interactive Prototype</div>
-    <div class="index-card__desc">12 個畫面 · 可點擊體驗 · 含動畫音效</div>
-  </a>
-  <a class="index-card" href="prototype/api-explorer/index.html" style="border-color:#10b981;background:linear-gradient(135deg,#ecfdf5 0%,#fff 100%)">
-    <div class="index-card__icon">🔌</div>
-    <div class="index-card__title">API Explorer</div>
-    <div class="index-card__desc">遊戲 API · JavaScript Mock · 可試打體驗</div>
-  </a>
-</div>
-<h2>Document Structure</h2>
-<pre><code class="">docs/
-├── BRD.md          — Business Requirements Document
-├── PRD.md          — Product Requirements (User Stories + AC)
-├── PDD.md          — Product Design Document (UI/UX)
-├── VDD.md          — Visual Design Document (tokens, animations)
-├── EDD.md          — Engineering Design Document
-├── ARCH.md         — Architecture design
-├── API.md          — REST API specification (v1)
-├── SCHEMA.md       — PostgreSQL + Redis data model
-├── FRONTEND.md     — Frontend (web client) technical design
-├── AUDIO.md        — Audio design and SFX/BGM catalogue
-├── ANIM.md         — Animation and VFX specification
-├── test-plan.md    — Test strategy (Unit / Integration / E2E)
-├── RTM.md          — Requirements Traceability Matrix
-├── runbook.md      — Production operations runbook
-├── LOCAL_DEPLOY.md — Local development setup guide
-└── diagrams/       — UML diagrams (Mermaid)
-
-features/           — BDD acceptance scenarios (Gherkin)
-├── *.feature       — Server-side BDD (API integration)
-└── client/         — Client-side BDD (UI/E2E)</code></pre>
+    <main class="doc-content"><p>&lt;!--</p>
+<p>DOC-ID:  README-thunder-blessing-slot-gdd-20260427</p>
+<p>Version: v2.0</p>
+<p>Status:  DRAFT</p>
+<p>Author:  AI Generated (gendoc readme)</p>
+<p>Date:    2026-04-27</p>
+<p>Upstream docs:</p>
+<ul><li style="margin-left:2.0rem">IDEA: docs/IDEA.md</li><li style="margin-left:2.0rem">BRD:  docs/BRD.md  (Business Requirements Document)</li><li style="margin-left:2.0rem">PRD:  docs/PRD.md  (Product Requirements Document)</li><li style="margin-left:2.0rem">PDD:  docs/PDD.md  (Product Design Document)</li><li style="margin-left:2.0rem">EDD:  docs/EDD.md  (Engineering Design Document)</li><li style="margin-left:2.0rem">ARCH: docs/ARCH.md (Architecture Design)</li><li style="margin-left:2.0rem">API:  docs/API.md  (REST API Specification)</li></ul>
+<p>Change log:</p>
+<p>v1.0  2026-04-26  AI Generated  Initial generated draft</p>
+<p>v2.0  2026-04-27  AI Generated  Full regeneration with Interactive Prototype + API Explorer links</p>
+<p>--&gt;</p>
+<h1>Thunder Blessing Slot Game — GDD &amp; Technical Documentation</h1>
+<blockquote><p>A Greek-mythology-themed, high-volatility online slot game (5×3 expanding to 5×6) featuring Cascade elimination, Thunder Blessing Scatter, Coin Toss, and Free Game with max ×77 multiplier — delivered as a fully executable B2B GDD suite.</p></blockquote>
+<p><a href="LICENSE" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" loading="lazy"></a></p>
+<p><a href="https://nodejs.org/" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Node.js-20_LTS-green.svg" alt="Node.js" loading="lazy"></a></p>
+<p><a href="https://www.typescriptlang.org/" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/TypeScript-5.4+-blue.svg" alt="TypeScript" loading="lazy"></a></p>
+<p><a href="https://www.fastify.io/" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Fastify-4.x-000.svg" alt="Fastify" loading="lazy"></a></p>
+<p><a href="#core-features" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/RTP-97.5%25-purple.svg" alt="RTP" loading="lazy"></a></p>
+<p><a href="#core-features" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/Max_Win-30%2C000×-gold.svg" alt="Max Win" loading="lazy"></a></p>
+<hr>
+<h2>Table of Contents</h2>
+<ul><li><a href="#interactive-demos" target="_blank" rel="noopener">Interactive Demos</a></li><li><a href="#overview" target="_blank" rel="noopener">Overview</a></li><li><a href="#core-features" target="_blank" rel="noopener">Core Features</a></li><li><a href="#game-mechanics-quick-reference" target="_blank" rel="noopener">Game Mechanics Quick Reference</a></li><li><a href="#system-architecture" target="_blank" rel="noopener">System Architecture</a></li><li><a href="#tech-stack" target="_blank" rel="noopener">Tech Stack</a></li><li><a href="#quick-start" target="_blank" rel="noopener">Quick Start</a></li><li><a href="#environment-variables" target="_blank" rel="noopener">Environment Variables</a></li><li><a href="#api-quick-reference" target="_blank" rel="noopener">API Quick Reference</a></li><li><a href="#directory-structure" target="_blank" rel="noopener">Directory Structure</a></li><li><a href="#documentation" target="_blank" rel="noopener">Documentation</a></li><li><a href="#testing" target="_blank" rel="noopener">Testing</a></li><li><a href="#known-limitations" target="_blank" rel="noopener">Known Limitations</a></li><li><a href="#development-workflow" target="_blank" rel="noopener">Development Workflow</a></li><li><a href="#deployment" target="_blank" rel="noopener">Deployment</a></li><li><a href="#troubleshooting" target="_blank" rel="noopener">Troubleshooting</a></li><li><a href="#security-policy" target="_blank" rel="noopener">Security Policy</a></li><li><a href="#architecture-quick-reference" target="_blank" rel="noopener">Architecture Quick Reference</a></li><li><a href="#contributing" target="_blank" rel="noopener">Contributing</a></li><li><a href="#license" target="_blank" rel="noopener">License</a></li><li><a href="#code-of-conduct" target="_blank" rel="noopener">Code of Conduct</a></li></ul>
+<hr>
+<h2>Interactive Demos</h2>
+<table>
+<tr><th>連結</th><th>說明</th></tr>
+<tr><td><a href="docs/pages/prototype/index.html" target="_blank" rel="noopener">📱 Interactive Prototype</a></td><td>可點擊的前端原型（12 個畫面，含動畫音效）</td></tr>
+<tr><td><a href="docs/pages/prototype/api-explorer/index.html" target="_blank" rel="noopener">🔌 API Explorer</a></td><td>互動式 API 試打介面（JavaScript Mock）</td></tr>
+<tr><td><a href="docs/pages/index.html" target="_blank" rel="noopener">📚 文件站</a></td><td>完整工程文件</td></tr>
+</table>
+<hr>
+<h2>Overview</h2>
+<p>Thunder Blessing is a Greek-mythology-themed, high-volatility online slot game delivered as a B2B backend service with a fully executable GDD specification suite. The game features a 5×3 expanding-reel grid (expanding to 5×6 during Cascade), chain elimination (Cascade), the Thunder Blessing Scatter upgrade mechanic, Coin Toss, Free Game (FG), Extra Bet, and Buy Feature.</p>
+<p>It was built to solve <strong>the lack of engineering-executable GDD documentation</strong> — a gap that matters to B2B game studios because spec inconsistency and manual probability adjustments cause silent RTP drift, merge conflicts, and QA failures that are nearly impossible to trace back to a single source of truth. The Excel-driven toolchain (<code>Thunder_Config.xlsx</code> → <code>GameConfig.generated.ts</code>) eliminates all manual parameter editing.</p>
+<p><strong>Business value:</strong></p>
+<ul><li>RTP 97.5% with medium-high volatility</li><li>Single-session burst ceiling: <strong>30,000× baseBet</strong> (Main Game); <strong>90,000× baseBet</strong> (Extra Bet + Buy Feature)</li><li>100% spec-executable: frontend engineers, backend engineers, and QA can all deliver independently from the same document suite</li></ul>
+<p>The project is governed by the upstream documents below; every design decision maps to a tracked requirement:</p>
+<table>
+<tr><th>Document</th><th>Purpose</th></tr>
+<tr><td><a href="docs/BRD.md" target="_blank" rel="noopener">BRD</a></td><td>Business goals, success metrics, stakeholder sign-off</td></tr>
+<tr><td><a href="docs/PRD.md" target="_blank" rel="noopener">PRD</a></td><td>User stories, acceptance criteria, priority tiers</td></tr>
+<tr><td><a href="docs/PDD.md" target="_blank" rel="noopener">PDD</a></td><td>UX flows, interaction specs, design tokens</td></tr>
+<tr><td><a href="docs/EDD.md" target="_blank" rel="noopener">EDD</a></td><td>Architecture decisions, technology choices, data models</td></tr>
+</table>
+<hr>
+<h2>Core Features</h2>
+<p><strong>P0 — Must ship for v1.0:</strong></p>
+<ul><li><strong>Cascade Chain Elimination</strong> —獲獎後自動消除中獎符號，上方符號下落填補，滾輪列數從 3 擴展至最多 6 列（57 條連線），循環直到無獲獎連線</li><li><strong>Thunder Blessing Scatter</strong> — 閃電標記存在時落下 Scatter，第一擊將所有標記格替換為同一高賠符號；第二擊（機率 40%）再次升階，爆發上限極高</li><li><strong>Coin Toss</strong> — 達到 5×6 + 再次 Cascade 勝利後翻幣：Heads → 進入 Free Game（×3 倍率起），Tails → 結束本輪</li><li><strong>Free Game</strong> — 倍率序列 ×3→×7→×17→×27→×77；閃電標記整局累積不清除；每局前再翻幣決定倍率是否升階</li><li><strong>Extra Bet</strong> — 投注額 ×3，保證當局出現 Scatter 符號</li><li><strong>Buy Feature</strong> — 100× baseBet 直接進入保底 Coin Toss（Heads×5 保證），FG session 最低回收 ≥ 20× baseBet</li><li><strong>Excel-Driven Probability Toolchain</strong> — <code>Thunder_Config.xlsx</code> → <code>build_config.js</code> → <code>engine_config.json</code> → <code>GameConfig.generated.ts</code>；<code>verify.js</code> 通過才允許 <code>engine_generator.js</code> 執行，禁止手動調參</li><li><strong>四情境 RTP 驗收</strong> — Main / Extra Bet / Buy FG / Extra Bet + Buy FG 各自 1M Monte Carlo 模擬，容差 ±1%</li><li><strong>Single-Trip API</strong> — 一次 <code>POST /v1/spin</code> 回傳完整 <code>FullSpinOutcome</code>，含所有 FG 回合、Coin Toss 結果、<code>totalWin</code></li></ul>
+<hr>
 <h2>Game Mechanics Quick Reference</h2>
 <table>
 <tr><th>Mechanic</th><th>Trigger</th><th>Outcome</th></tr>
@@ -122,25 +136,406 @@ features/           — BDD acceptance scenarios (Gherkin)
 <tr><td>Buy Feature</td><td>Player pays 100× baseBet</td><td>Guaranteed 5 FG rounds, Coin Toss skipped, multiplier starts at ×3</td></tr>
 <tr><td>Extra Bet</td><td>Player pays 3× baseBet</td><td>SC guaranteed in visible 3 rows of the current spin</td></tr>
 </table>
-<h2>Local Development</h2>
-<p>See <code>docs/LOCAL_DEPLOY.md</code> for full Docker Compose setup and smoke test instructions.</p>
-<p>Quick start:</p>
-<pre><code class="language-bash">cp .env.example .env
-# fill in SUPABASE_URL, SUPABASE_SERVICE_KEY, SUPABASE_JWT_SECRET
+<p><strong>Coin Toss Heads Probability Sequence (per FG stage):</strong> [0.80, 0.68, 0.56, 0.48, 0.40]</p>
+<hr>
+<h2>System Architecture</h2>
+<div class="diagram-container"><pre class="mermaid">flowchart LR
+    subgraph Player["Player Layer"]
+        A([Cocos Creator / PixiJS Client])
+    end
+
+    subgraph CDN["CDN (Cloudflare/CloudFront)"]
+        CDN_NODE[Static Asset Delivery]
+    end
+
+    subgraph Backend["Thunder Blessing Backend"]
+        B[Fastify API\nJWT Auth + Rate Limit]
+        C[SpinUseCase\nClean Architecture]
+        D[SlotEngine\nCascade + TB + CoinToss]
+        E[FreeGameOrchestrator\n×3→×77 sequence]
+        F[BuyFeatureUseCase\nSessionFloorGuard]
+        G[Probability Toolchain\nExcel → GameConfig]
+    end
+
+    subgraph Data["Data Layer"]
+        H[(Supabase PostgreSQL\nWallet + Audit Logs)]
+        I[(Redis / Upstash\nFG Session State + Lock)]
+    end
+
+    subgraph Obs["Observability"]
+        J[OpenTelemetry\nCollector]
+        K[Prometheus + Grafana]
+    end
+
+    A -->|HTTPS| CDN_NODE
+    CDN_NODE -->|Static Assets| A
+    A -->|POST /v1/spin\nRS256 JWT| B
+    B --> C
+    C --> D
+    D --> E
+    D --> F
+    G -->|GameConfig.generated.ts| D
+    C --> H
+    C --> I
+    B --> J
+    B --> K</pre></div>
+<blockquote><p>Full C4 Model (L1/L2/L3), ADR records, and data flow diagrams: <a href="docs/ARCH.md" target="_blank" rel="noopener">docs/ARCH.md</a> | <a href="docs/pages/arch.html" target="_blank" rel="noopener">arch.html</a></p></blockquote>
+<hr>
+<h2>Tech Stack</h2>
+<table>
+<tr><th>Layer</th><th>Technology</th><th>Notes</th></tr>
+<tr><td><strong>Frontend</strong></td><td>Cocos Creator / PixiJS (TBD)</td><td>Game client; TypeScript; target platforms: Web, Mobile</td></tr>
+<tr><td><strong>Backend</strong></td><td>TypeScript 5.4 + Node.js 20 LTS + Fastify 4</td><td>Clean Architecture (Domain←Application←Adapters←Infrastructure)</td></tr>
+<tr><td><strong>Database</strong></td><td>Supabase PostgreSQL 16</td><td>Wallet, audit logs, spin history; Row Level Security enabled</td></tr>
+<tr><td><strong>Cache / Session</strong></td><td>Redis (IoRedis) / Upstash</td><td>FG session state, concurrency locks, rate limiting (sliding window)</td></tr>
+<tr><td><strong>Probability Engine</strong></td><td>Excel workbook (<code>Thunder_Config.xlsx</code>)</td><td>Single source of truth; toolchain: <code>build_config.js</code> → <code>verify.js</code> → <code>engine_generator.js</code></td></tr>
+<tr><td><strong>Auth</strong></td><td>Supabase Auth (RS256 JWT)</td><td><code>JwtAuthGuard</code> as Fastify preHandler; 5 req/s rate limit per player</td></tr>
+<tr><td><strong>Infrastructure</strong></td><td>Kubernetes 3-node cluster</td><td>Canary deploy (prod), Blue-Green deploy (staging)</td></tr>
+<tr><td><strong>CI/CD</strong></td><td>GitHub Actions</td><td>Build, lint, type-check, Jest + Monte Carlo tests</td></tr>
+<tr><td><strong>Observability</strong></td><td>OpenTelemetry + Prometheus + Grafana</td><td>Traces, metrics, alerting</td></tr>
+<tr><td><strong>Testing</strong></td><td>Jest (unit/integration) + Playwright (E2E) + Cucumber (BDD)</td><td>Coverage target: 80%; RTP validated via <code>verify.js</code> (1M Monte Carlo)</td></tr>
+</table>
+<hr>
+<h2>Quick Start</h2>
+<h3>Docker (Recommended)</h3>
+<p>The fastest path to a running instance. Docker Compose starts all services — Fastify API, PostgreSQL, and Redis — with a single command.</p>
+<p><strong>Prerequisites:</strong> Docker Desktop 24+ (includes Compose v2)</p>
+<pre><code class="language-bash">git clone &lt;repo-url&gt; thunder-blessing-slot
+cd thunder-blessing-slot
+
+# Configure environment
+cp .env.example .env
+# Fill in SUPABASE_URL, SUPABASE_SERVICE_KEY, SUPABASE_JWT_SECRET
+
+# Start all services
 docker compose up -d
-curl http://localhost:3000/health</code></pre>
-<h2>API Overview</h2>
+
+# Confirm all services are healthy
+docker compose ps
+# Expected: api, postgres, redis — all &quot;running (healthy)&quot;</code></pre>
+<p>Verify the API is responding:</p>
+<pre><code class="language-bash">curl http://localhost:3000/health
+# {&quot;status&quot;:&quot;ok&quot;,&quot;version&quot;:&quot;1.0.0&quot;,&quot;uptime&quot;:3}</code></pre>
+<hr>
+<h3>macOS / Linux (Native)</h3>
+<p><strong>Prerequisites:</strong> Node.js 20 LTS, npm 10+, PostgreSQL 16+, Redis 7+</p>
+<pre><code class="language-bash">git clone &lt;repo-url&gt; thunder-blessing-slot
+cd thunder-blessing-slot
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your local PostgreSQL and Redis connection strings
+
+# Run database migrations
+npm run db:migrate
+
+# Start the development server
+npm run dev</code></pre>
+<p>Expected output:</p>
+<pre><code class="">[ThunderBlessing] Listening on http://localhost:3000
+[ThunderBlessing] Database: connected (postgresql://localhost:5432/thunder_blessing)
+[ThunderBlessing] Redis: connected (redis://localhost:6379)
+[ThunderBlessing] GameConfig: loaded (Thunder_Config.xlsx v1.0)</code></pre>
+<hr>
+<h3>Windows (PowerShell / WSL2)</h3>
+<blockquote><p><strong>Recommendation:</strong> Use WSL2 (Ubuntu 22.04) + Docker Desktop for the smoothest experience.</p></blockquote>
+<pre><code class="language-powershell">git clone &lt;repo-url&gt; thunder-blessing-slot
+Set-Location thunder-blessing-slot
+
+# Install dependencies
+npm install
+
+# Configure environment
+Copy-Item .env.example .env
+# Edit .env in your editor
+
+# Run database migrations
+npm run db:migrate
+
+# Start development server
+npm run dev</code></pre>
+<p>Verify:</p>
+<pre><code class="language-powershell">Invoke-RestMethod http://localhost:3000/health</code></pre>
+<hr>
+<h2>Environment Variables</h2>
+<p>Copy <code>.env.example</code> to <code>.env</code> before starting. All required variables are validated at startup.</p>
+<table>
+<tr><th>Variable</th><th>Description</th><th>Required</th><th>Default</th><th>Example</th></tr>
+<tr><td><code>NODE_ENV</code></td><td>Node environment</td><td>No</td><td><code>development</code></td><td><code>production</code></td></tr>
+<tr><td><code>PORT</code></td><td>HTTP port the Fastify server listens on</td><td>No</td><td><code>3000</code></td><td><code>3000</code></td></tr>
+<tr><td><code>SUPABASE_URL</code></td><td>Public Supabase project URL</td><td>Yes</td><td>—</td><td><code>http://localhost:54321</code></td></tr>
+<tr><td><code>SUPABASE_SERVICE_KEY</code></td><td>Service role key (bypasses RLS)</td><td>Yes</td><td>—</td><td><code>eyJhbGci...</code></td></tr>
+<tr><td><code>SUPABASE_JWT_SECRET</code></td><td>RS256 public key for JWT verification</td><td>Yes</td><td>—</td><td><code>-----BEGIN PUBLIC KEY-----...</code></td></tr>
+<tr><td><code>DATABASE_URL</code></td><td>PostgreSQL direct connection string</td><td>Yes</td><td>—</td><td><code>postgresql://postgres:postgres@localhost:5432/thunder_blessing</code></td></tr>
+<tr><td><code>REDIS_URL</code></td><td>Redis connection string</td><td>Yes</td><td>—</td><td><code>redis://localhost:6379</code></td></tr>
+<tr><td><code>OTEL_TRACES_SAMPLER</code></td><td>OpenTelemetry trace sampler</td><td>No</td><td><code>parentbased_traceidratio</code></td><td><code>always_on</code></td></tr>
+<tr><td><code>OTEL_TRACES_SAMPLER_ARG</code></td><td>Sampling ratio (0.0–1.0)</td><td>No</td><td><code>1.0</code></td><td><code>0.05</code></td></tr>
+</table>
+<p>See <code>docs/LOCAL_DEPLOY.md</code> for the full annotated <code>.env.example</code> and optional tuning parameters.</p>
+<hr>
+<h2>API Quick Reference</h2>
 <p>Base URL: <code>http://localhost:3000</code></p>
+<p>Authentication: RS256 JWT Bearer token required on all <code>/v1/*</code> endpoints.</p>
 <table>
 <tr><th>Method</th><th>Path</th><th>Description</th></tr>
-<tr><td>POST</td><td>/v1/spin</td><td>Execute a spin (main game or FG)</td></tr>
-<tr><td>GET</td><td>/v1/session/:sessionId</td><td>Retrieve active FG session state</td></tr>
-<tr><td>GET</td><td>/v1/config</td><td>Get game configuration (bet levels, currencies)</td></tr>
+<tr><td><code>POST</code></td><td><code>/v1/spin</code></td><td>Execute a spin (main game or FG); returns complete <code>FullSpinOutcome</code></td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/session/:sessionId</code></td><td>Retrieve active FG session state</td></tr>
+<tr><td><code>GET</code></td><td><code>/v1/config</code></td><td>Get game configuration (bet levels, currencies, RTP)</td></tr>
+<tr><td><code>GET</code></td><td><code>/health</code></td><td>Health probe (no auth required)</td></tr>
+<tr><td><code>GET</code></td><td><code>/ready</code></td><td>Readiness probe (no auth required)</td></tr>
 </table>
-<p>Authentication: RS256 JWT bearer token required on all endpoints.</p>
-<h2>BDD Scenarios</h2>
-<p>Server BDD (<code>features/*.feature</code>): API integration tests covering spin logic, session management, config, security, and probability engine.</p>
-<p>Client BDD (<code>features/client/<em>*/</em>.feature</code>): E2E UI tests covering Thunder Blessing animation, Coin Toss panel, Free Game HUD, session reconnection, and more.</p><section style="margin-top:3rem;padding:1.5rem;background:#fff;border:1px solid var(--border);border-radius:8px;"><h2 style="margin-top:0">📊 專案健康狀態</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-top:1rem"><div style="text-align:center;padding:1rem;background:var(--page-bg);border-radius:6px"><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem">已完成步驟</div><div style="font-size:1.5rem;font-weight:700;color:var(--accent)">0</div></div><div style="text-align:center;padding:1rem;background:var(--page-bg);border-radius:6px"><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem">目前步驟</div><div style="font-size:1rem;font-weight:600;color:var(--text)">完成</div></div></div></section></main>
+<p><strong>Rate limit:</strong> 5 req/s per player (HTTP 429 on exceed)</p>
+<p>For full request/response schemas, error codes, and pagination see:</p>
+<ul><li>Markdown: <a href="docs/API.md" target="_blank" rel="noopener">docs/API.md</a></li><li>HTML: <a href="docs/pages/api.html" target="_blank" rel="noopener">docs/pages/api.html</a></li><li>Interactive: <a href="docs/pages/prototype/api-explorer/index.html" target="_blank" rel="noopener">docs/pages/prototype/api-explorer/index.html</a></li></ul>
+<hr>
+<h2>Directory Structure</h2>
+<pre><code class="">thunder-blessing-slot/
+├── .env.example              # Annotated environment variable template
+├── docker-compose.yml        # Local multi-service development stack
+├── Dockerfile                # Production container image
+├── package.json              # Node.js dependencies and scripts
+├── tsconfig.json             # TypeScript configuration
+├── contracts/                # Machine-readable specs (OpenAPI, JSON Schema, seed data)
+│   ├── openapi.yaml          # OpenAPI 3.1 spec (generated from API.md)
+│   ├── schemas/              # JSON Schema for request/response types
+│   └── seed/                 # Seed data for local development
+├── docs/                     # Markdown source for all design documents
+│   ├── IDEA.md               # Project concept and problem statement
+│   ├── BRD.md                # Business Requirements Document
+│   ├── PRD.md                # Product Requirements Document
+│   ├── PDD.md                # Product Design Document (UX)
+│   ├── VDD.md                # Visual Design Document (tokens, animations)
+│   ├── EDD.md                # Engineering Design Document
+│   ├── ARCH.md               # Architecture Design + ADRs
+│   ├── API.md                # REST API specification (v1)
+│   ├── SCHEMA.md             # PostgreSQL + Redis data model
+│   ├── FRONTEND.md           # Frontend technical design (Cocos/PixiJS)
+│   ├── AUDIO.md              # Audio design and SFX/BGM catalogue
+│   ├── ANIM.md               # Animation and VFX specification
+│   ├── CONSTANTS.md          # Game constants reference
+│   ├── test-plan.md          # Test strategy (Unit/Integration/E2E)
+│   ├── RTM.md                # Requirements Traceability Matrix
+│   ├── runbook.md            # Production operations runbook
+│   ├── LOCAL_DEPLOY.md       # Local development setup guide
+│   ├── ALIGN_REPORT.md       # Cross-document alignment audit report
+│   ├── diagrams/             # UML diagrams (Mermaid source)
+│   ├── pages/                # Generated HTML documentation site
+│   │   ├── index.html        # Documentation hub
+│   │   ├── assets/           # CSS + JS for docs site
+│   │   └── prototype/        # Interactive prototype (12 screens + API Explorer)
+│   └── req/                  # Raw input materials (PDF GDD, probability design)
+├── features/                 # BDD Gherkin feature files
+│   ├── spin.feature          # Core spin flow
+│   ├── session.feature       # FG session management
+│   ├── buy-feature.feature   # Buy Feature flow
+│   ├── extra-bet.feature     # Extra Bet flow
+│   ├── probability-engine.feature # RTP and Monte Carlo validation
+│   ├── security.feature      # Auth and rate limiting
+│   ├── config.feature        # Game config endpoint
+│   └── client/               # Client-side BDD (E2E)
+│       ├── thunder_blessing/  # Thunder Blessing animation scenarios
+│       ├── coin_toss/         # Coin Toss panel scenarios
+│       └── session/           # Session reconnection scenarios
+├── src/                      # Application source code (Clean Architecture)
+│   ├── domain/               # Game rules, value objects, domain interfaces
+│   │   ├── entities/         # SpinOutcome, Grid, CascadeStep, FGSession
+│   │   ├── ports/            # IWalletRepository, ISessionCache, ISessionRepository
+│   │   └── interfaces/       # IProbabilityCore, ISlotEngine
+│   ├── application/          # Use cases (SpinUseCase, BuyFeatureUseCase, etc.)
+│   ├── adapters/             # Controllers, DTOs, presenters
+│   │   ├── http/             # Fastify route handlers
+│   │   └── dto/              # FullSpinOutcomeDTO, SpinRequestDTO
+│   └── infrastructure/       # Concrete implementations
+│       ├── supabase/         # SupabaseWalletRepository, SupabaseSessionRepository
+│       ├── redis/            # RedisSessionCache
+│       └── probability/      # SlotEngine, CascadeEngine, ThunderBlessingHandler
+├── tests/                    # Automated tests
+│   ├── unit/                 # Domain logic unit tests
+│   ├── integration/          # API + database integration tests
+│   └── e2e/                  # Playwright E2E tests
+└── tools/                    # Probability toolchain
+    └── slot-engine/
+        ├── build_config.js   # Excel → engine_config.json
+        ├── verify.js         # RTP validation (must PASS before engine_generator)
+        ├── engine_generator.js # engine_config.json → GameConfig.generated.ts
+        └── excel_simulator.js  # 1M Monte Carlo simulation runner</code></pre>
+<hr>
+<h2>Documentation</h2>
+<p>The full documentation suite is rendered as a static HTML site at <code>docs/pages/index.html</code>.</p>
+<table>
+<tr><th>Document</th><th>Markdown Source</th><th>HTML</th><th>Description</th></tr>
+<tr><td>IDEA</td><td><a href="docs/IDEA.md" target="_blank" rel="noopener">docs/IDEA.md</a></td><td><a href="docs/pages/idea.html" target="_blank" rel="noopener">idea.html</a></td><td>Project concept and problem statement</td></tr>
+<tr><td>BRD</td><td><a href="docs/BRD.md" target="_blank" rel="noopener">docs/BRD.md</a></td><td><a href="docs/pages/brd.html" target="_blank" rel="noopener">brd.html</a></td><td>Business goals, success metrics, stakeholder sign-off</td></tr>
+<tr><td>PRD</td><td><a href="docs/PRD.md" target="_blank" rel="noopener">docs/PRD.md</a></td><td><a href="docs/pages/prd.html" target="_blank" rel="noopener">prd.html</a></td><td>User stories, acceptance criteria, priority tiers</td></tr>
+<tr><td>PDD</td><td><a href="docs/PDD.md" target="_blank" rel="noopener">docs/PDD.md</a></td><td><a href="docs/pages/pdd.html" target="_blank" rel="noopener">pdd.html</a></td><td>UX flows, interaction specs, design tokens</td></tr>
+<tr><td>VDD</td><td><a href="docs/VDD.md" target="_blank" rel="noopener">docs/VDD.md</a></td><td><a href="docs/pages/vdd.html" target="_blank" rel="noopener">vdd.html</a></td><td>Visual design system, animation tokens</td></tr>
+<tr><td>CONSTANTS</td><td><a href="docs/CONSTANTS.md" target="_blank" rel="noopener">docs/CONSTANTS.md</a></td><td><a href="docs/pages/constants.html" target="_blank" rel="noopener">constants.html</a></td><td>Game constants reference</td></tr>
+<tr><td>EDD</td><td><a href="docs/EDD.md" target="_blank" rel="noopener">docs/EDD.md</a></td><td><a href="docs/pages/edd.html" target="_blank" rel="noopener">edd.html</a></td><td>Architecture decisions, technology choices, data models</td></tr>
+<tr><td>ARCH</td><td><a href="docs/ARCH.md" target="_blank" rel="noopener">docs/ARCH.md</a></td><td><a href="docs/pages/arch.html" target="_blank" rel="noopener">arch.html</a></td><td>C4 Model, ADRs, deployment topology</td></tr>
+<tr><td>API</td><td><a href="docs/API.md" target="_blank" rel="noopener">docs/API.md</a></td><td><a href="docs/pages/api.html" target="_blank" rel="noopener">api.html</a></td><td>REST API endpoints, schemas, error codes</td></tr>
+<tr><td>SCHEMA</td><td><a href="docs/SCHEMA.md" target="_blank" rel="noopener">docs/SCHEMA.md</a></td><td><a href="docs/pages/schema.html" target="_blank" rel="noopener">schema.html</a></td><td>PostgreSQL + Redis data model</td></tr>
+<tr><td>FRONTEND</td><td><a href="docs/FRONTEND.md" target="_blank" rel="noopener">docs/FRONTEND.md</a></td><td><a href="docs/pages/frontend.html" target="_blank" rel="noopener">frontend.html</a></td><td>Frontend technical design (Cocos/PixiJS)</td></tr>
+<tr><td>AUDIO</td><td><a href="docs/AUDIO.md" target="_blank" rel="noopener">docs/AUDIO.md</a></td><td><a href="docs/pages/audio.html" target="_blank" rel="noopener">audio.html</a></td><td>SFX/BGM catalogue and audio design</td></tr>
+<tr><td>ANIM</td><td><a href="docs/ANIM.md" target="_blank" rel="noopener">docs/ANIM.md</a></td><td><a href="docs/pages/anim.html" target="_blank" rel="noopener">anim.html</a></td><td>Animation and VFX specification</td></tr>
+<tr><td>Test Plan</td><td><a href="docs/test-plan.md" target="_blank" rel="noopener">docs/test-plan.md</a></td><td><a href="docs/pages/test-plan.html" target="_blank" rel="noopener">test-plan.html</a></td><td>Test strategy and coverage targets</td></tr>
+<tr><td>BDD Server</td><td><a href="features/" target="_blank" rel="noopener">features/</a></td><td><a href="docs/pages/bdd-server.html" target="_blank" rel="noopener">bdd-server.html</a></td><td>Server-side Gherkin feature files</td></tr>
+<tr><td>BDD Client</td><td><a href="features/client/" target="_blank" rel="noopener">features/client/</a></td><td><a href="docs/pages/bdd-client.html" target="_blank" rel="noopener">bdd-client.html</a></td><td>Client-side E2E feature files</td></tr>
+<tr><td>RTM</td><td><a href="docs/RTM.md" target="_blank" rel="noopener">docs/RTM.md</a></td><td><a href="docs/pages/rtm.html" target="_blank" rel="noopener">rtm.html</a></td><td>Requirements Traceability Matrix</td></tr>
+<tr><td>Runbook</td><td><a href="docs/runbook.md" target="_blank" rel="noopener">docs/runbook.md</a></td><td><a href="docs/pages/runbook.html" target="_blank" rel="noopener">runbook.html</a></td><td>Production operations runbook</td></tr>
+<tr><td>Local Deploy</td><td><a href="docs/LOCAL_DEPLOY.md" target="_blank" rel="noopener">docs/LOCAL_DEPLOY.md</a></td><td><a href="docs/pages/local_deploy.html" target="_blank" rel="noopener">local_deploy.html</a></td><td>Local development setup guide</td></tr>
+</table>
+<hr>
+<h2>Testing</h2>
+<h3>Run All Tests</h3>
+<pre><code class="language-bash">npm test</code></pre>
+<h3>Generate Coverage Report</h3>
+<pre><code class="language-bash">npm run test:coverage
+# Report written to coverage/lcov-report/index.html</code></pre>
+<p>Coverage target: <strong>80% lines, branches, functions.</strong></p>
+<h3>Individual Test Types</h3>
+<pre><code class="language-bash"># Unit tests only (domain logic, slot engine math)
+npm run test:unit
+
+# Integration tests (requires DATABASE_URL and REDIS_URL)
+npm run test:integration
+
+# BDD / Cucumber feature tests
+npm run test:bdd
+
+# End-to-end tests (requires a running app instance on :3000)
+npm run test:e2e
+
+# RTP validation — Monte Carlo 1M simulations per scenario (slow, ~15 min)
+node tools/slot-engine/verify.js
+# Expected: PASS — all 4 scenarios within ±1% of 97.5% RTP</code></pre>
+<h3>Probability Toolchain</h3>
+<pre><code class="language-bash"># Step 1: Validate Excel config (must PASS before generation)
+node tools/slot-engine/verify.js
+
+# Step 2: Generate GameConfig (only if verify PASS)
+node tools/slot-engine/engine_generator.js
+
+# Step 3: Verify output
+ls src/infrastructure/probability/GameConfig.generated.ts</code></pre>
+<blockquote><p><strong>Never</strong> edit <code>GameConfig.generated.ts</code> manually. CI will block PRs that bypass this rule.</p></blockquote>
+<hr>
+<h2>Known Limitations</h2>
+<ul><li><code>GameConfig.generated.ts</code> must never be modified manually — always regenerate via toolchain after updating <code>Thunder_Config.xlsx</code></li><li>Single-trip API: <code>POST /v1/spin</code> may take up to P99 500ms for Free Game sequences with all 5 rounds; progressive rendering is handled client-side from the full response</li><li>Buy Feature session floor (≥ 20× baseBet) is enforced at session level; individual FG rounds may fall below floor — the compensating payout occurs at session close</li><li>TWD max bet level is <strong>320</strong> (not 300 as in earlier design iterations)</li><li>FG session reconnect: if client disconnects during FG, <code>GET /v1/session/:sessionId</code> resumes from the last completed round; in-progress round state is not recoverable after Redis TTL (24h)</li></ul>
+<hr>
+<h2>Development Workflow</h2>
+<h3>Branch Strategy</h3>
+<table>
+<tr><th>Branch</th><th>Purpose</th><th>Direct Push</th></tr>
+<tr><td><code>main</code></td><td>Production-ready code</td><td>No — PR only</td></tr>
+<tr><td><code>develop</code></td><td>Integration branch</td><td>No — PR only</td></tr>
+<tr><td><code>feature/&lt;ticket&gt;-description</code></td><td>New features</td><td>Yes (author)</td></tr>
+<tr><td><code>fix/&lt;ticket&gt;-description</code></td><td>Bug fixes</td><td>Yes (author)</td></tr>
+</table>
+<h3>Commit Message Format</h3>
+<p>This project follows <a href="https://www.conventionalcommits.org/" target="_blank" rel="noopener">Conventional Commits</a>:</p>
+<pre><code class="">&lt;type&gt;(&lt;scope&gt;): &lt;short summary&gt;
+
+[optional body — what and why, not how]</code></pre>
+<p>Types: <code>feat</code>, <code>fix</code>, <code>docs</code>, <code>test</code>, <code>refactor</code>, <code>chore</code>, <code>perf</code>, <code>ci</code></p>
+<p>Examples:</p>
+<pre><code class="">feat(engine): implement ThunderBlessingHandler second-hit 40% probability
+fix(session): release Redis lock on engine timeout compensating credit
+docs(readme): regenerate with prototype and API Explorer links
+test(rtp): add 4-scenario Monte Carlo integration test suite</code></pre>
+<h3>Pull Request Checklist</h3>
+<ul><li style="list-style:none"><input type="checkbox" disabled> CI checks pass (build, lint, type-check, Jest)</li><li style="list-style:none"><input type="checkbox" disabled> Coverage ≥ 80%</li><li style="list-style:none"><input type="checkbox" disabled> <code>verify.js</code> PASS (if probability config changed)</li><li style="list-style:none"><input type="checkbox" disabled> <code>GameConfig.generated.ts</code> regenerated (if <code>Thunder_Config.xlsx</code> changed)</li><li style="list-style:none"><input type="checkbox" disabled> Relevant <code>docs/</code> files updated if implementation changed</li><li style="list-style:none"><input type="checkbox" disabled> PR description explains <em>why</em> the change is needed</li></ul>
+<hr>
+<h2>Deployment</h2>
+<h3>Staging</h3>
+<p>Staging deploys automatically on every merge to <code>develop</code>. The pipeline runs the full test suite, builds the Docker image, and triggers a Kubernetes Blue-Green update.</p>
+<pre><code class="language-bash"># Trigger manual staging deploy
+gh workflow run deploy.yml -f environment=staging -f ref=develop</code></pre>
+<h3>Production</h3>
+<p>Production deploys via Canary strategy on merge to <code>main</code>.</p>
+<pre><code class="language-bash"># Tag a release to trigger production deploy
+git tag v1.0.0 &amp;&amp; git push origin v1.0.0</code></pre>
+<h3>Rollback</h3>
+<pre><code class="language-bash"># Identify previous stable image tag
+gh release list --limit 5
+
+# Roll back Kubernetes deployment
+kubectl set image deployment/thunder-blessing \
+  api=thunder-blessing-slot:&lt;previous-tag&gt; \
+  -n thunder-blessing
+
+# Verify pods are healthy
+kubectl rollout status deployment/thunder-blessing -n thunder-blessing</code></pre>
+<p>For detailed runbook steps including database rollback: <a href="docs/runbook.md" target="_blank" rel="noopener">docs/runbook.md</a> | <a href="docs/pages/runbook.html" target="_blank" rel="noopener">runbook.html</a></p>
+<hr>
+<h2>Troubleshooting</h2>
+<table>
+<tr><th>Problem</th><th>Likely Cause</th><th>Solution</th></tr>
+<tr><td><code>Error: connect ECONNREFUSED 127.0.0.1:5432</code> on startup</td><td>PostgreSQL not running or <code>DATABASE_URL</code> wrong</td><td>Start PostgreSQL via <code>docker compose up -d postgres</code>; verify <code>DATABASE_URL</code> in <code>.env</code></td></tr>
+<tr><td><code>Error: Redis connection refused</code></td><td>Redis not running or <code>REDIS_URL</code> misconfigured</td><td>Start Redis via <code>docker compose up -d redis</code>; confirm <code>REDIS_URL</code> in <code>.env</code></td></tr>
+<tr><td><code>401 Unauthorized</code> on <code>POST /v1/spin</code></td><td>JWT token invalid, expired, or <code>SUPABASE_JWT_SECRET</code> mismatch</td><td>Refresh token via Supabase Auth; verify <code>SUPABASE_JWT_SECRET</code> matches your Supabase project</td></tr>
+<tr><td><code>429 Too Many Requests</code></td><td>Exceeding 5 req/s per player rate limit</td><td>Implement client-side backoff; check if multiple tabs/clients share same JWT</td></tr>
+<tr><td><code>verify.js</code> FAIL — RTP out of range</td><td><code>Thunder_Config.xlsx</code> parameter changes causing drift</td><td>Revert the Excel change, re-run <code>verify.js</code> to identify the problematic parameter, adjust and re-run 1M simulation</td></tr>
+<tr><td><code>GameConfig.generated.ts</code> out of sync</td><td>Manually edited or not regenerated after Excel update</td><td>Run <code>node tools/slot-engine/engine_generator.js</code> after <code>verify.js</code> PASS</td></tr>
+<tr><td>FG session state lost after Redis restart</td><td>Redis data not persisted (default config)</td><td>Enable Redis AOF persistence in <code>redis.conf</code>; or rely on <code>GET /v1/session/:sessionId</code> with PostgreSQL fallback</td></tr>
+<tr><td>Docker Compose services restart repeatedly</td><td>Port conflict or missing <code>.env</code> values</td><td>Run <code>docker compose logs api</code> to read the startup error; confirm all required variables are set</td></tr>
+</table>
+<hr>
+<h2>Security Policy</h2>
+<p>If you discover a security vulnerability, <strong>do not open a public GitHub Issue</strong>.</p>
+<p><strong>Responsible Disclosure:</strong></p>
+<ul><li>Email: <code>security@thunder-blessing-slot.example</code> (or use GitHub Security Advisories)</li><li>Or: <a href="../../security/advisories/new" target="_blank" rel="noopener">GitHub Private Vulnerability Reporting</a></li></ul>
+<p><strong>Response SLA:</strong></p>
+<table>
+<tr><th>Severity</th><th>Acknowledgement</th><th>Initial Assessment</th><th>Fix + Public Disclosure</th></tr>
+<tr><td>Critical</td><td>24 hours</td><td>48 hours</td><td>7 days</td></tr>
+<tr><td>High</td><td>48 hours</td><td>72 hours</td><td>14 days</td></tr>
+<tr><td>Medium</td><td>72 hours</td><td>7 days</td><td>90 days</td></tr>
+<tr><td>Low</td><td>7 days</td><td>14 days</td><td>Next release</td></tr>
+</table>
+<p>See <a href="SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a> for full policy.</p>
+<hr>
+<h2>Architecture Quick Reference</h2>
+<table>
+<tr><th>Key Decision</th><th>Choice</th><th>Document</th></tr>
+<tr><td>API paradigm</td><td>REST (single-trip POST /spin returns complete FullSpinOutcome)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-003</a></td></tr>
+<tr><td>Backend framework</td><td>Fastify 4 (over Express/NestJS)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-001</a></td></tr>
+<tr><td>Architecture pattern</td><td>Clean Architecture (Domain←Application←Adapters←Infrastructure)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-002</a></td></tr>
+<tr><td>Primary database</td><td>Supabase PostgreSQL (wallet, audit, spin history)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-007</a></td></tr>
+<tr><td>Session store</td><td>Redis / Upstash (FG session state, locks, rate limits)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-004</a></td></tr>
+<tr><td>Authentication</td><td>RS256 JWT Bearer (Supabase Auth)</td><td><a href="docs/API.md#authentication" target="_blank" rel="noopener">docs/API.md — §1.3</a></td></tr>
+<tr><td>Probability source</td><td>Excel workbook (<code>Thunder_Config.xlsx</code>) — sole source of truth</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-009</a></td></tr>
+<tr><td>Accounting authority</td><td><code>outcome.totalWin</code> only (never <code>session.roundWin</code>)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-006</a></td></tr>
+<tr><td>Deployment platform</td><td>Kubernetes (Canary prod, Blue-Green staging)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-008</a></td></tr>
+<tr><td>Toolchain gate</td><td><code>verify.js</code> PASS required before <code>engine_generator.js</code></td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-005</a></td></tr>
+</table>
+<p>Main ADR index: <a href="docs/ARCH.md#architecture-decision-record-adr-index" target="_blank" rel="noopener">docs/ARCH.md § Architecture Decision Record Index</a></p>
+<hr>
+<h2>Contributing</h2>
+<p>Contributions are welcome. Please read this section before submitting a pull request.</p>
+<h3>Fork and PR Flow</h3>
+<ol><li>Fork the repository on GitHub</li><li>Create a feature branch from <code>develop</code>: <code>git checkout -b feature/your-feature develop</code></li><li>Write tests first (TDD) — the test suite must stay green</li><li>Ensure <code>verify.js</code> PASS if you touched probability config</li><li>Commit using the Conventional Commits format</li><li>Push your branch and open a PR against <code>develop</code> (not <code>main</code>)</li><li>Address all review feedback before requesting re-review</li></ol>
+<h3>Code Style</h3>
+<ul><li>Formatted by Prettier on save (<code>.prettierrc</code>)</li><li>Lint rules in <code>.eslintrc.json</code> — CI blocks on lint errors</li><li>Type-checking: <code>npx tsc --noEmit</code> — CI blocks on type errors</li><li>Run <code>npm run format</code> locally before committing</li></ul>
+<h3>Issue Templates</h3>
+<p>Use GitHub Issue templates:</p>
+<ul><li><strong>Bug report</strong> — reproduction steps, expected vs actual behavior, environment details</li><li><strong>Feature request</strong> — problem statement, proposed solution, acceptance criteria</li><li><strong>Probability / RTP issue</strong> — specify which scenario (Main/EB/BuyFG/EB+BuyFG), simulation count, observed vs expected RTP</li></ul>
+<hr>
+<h2>License</h2>
+<p>MIT License</p>
+<p>Copyright (c) 2026 Thunder Blessing Slot GDD Contributors</p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</p>
+<p>See <a href="LICENSE" target="_blank" rel="noopener">LICENSE</a> for the full text.</p>
+<hr>
+<h2>Code of Conduct</h2>
+<p>This project adopts the <a href="https://www.contributor-covenant.org/" target="_blank" rel="noopener">Contributor Covenant</a> v2.1 as its Code of Conduct. See <a href="CODE_OF_CONDUCT.md" target="_blank" rel="noopener">CODE_OF_CONDUCT.md</a>.</p>
+<p>For violations, contact: <code>conduct@thunder-blessing-slot.example</code></p>
+<hr>
+<blockquote><p>📋 <strong>Generated by <a href="https://github.com/gendoc" target="_blank" rel="noopener">gendoc</a></strong> — Full design and specification suite for Thunder Blessing generated via the gendoc pipeline. See <a href="docs/pages/index.html" target="_blank" rel="noopener">docs/pages/index.html</a> for the complete HTML documentation site.</p></blockquote><section style="margin-top:3rem;padding:1.5rem;background:#fff;border:1px solid var(--border);border-radius:8px;"><h2 style="margin-top:0">📊 專案健康狀態</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-top:1rem"><div style="text-align:center;padding:1rem;background:var(--page-bg);border-radius:6px"><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem">已完成步驟</div><div style="font-size:1.5rem;font-weight:700;color:var(--accent)">0</div></div><div style="text-align:center;padding:1rem;background:var(--page-bg);border-radius:6px"><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem">目前步驟</div><div style="font-size:1rem;font-weight:600;color:var(--text)">完成</div></div></div></section></main>
   </div>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';

@@ -63,7 +63,7 @@ document.addEventListener('click', e => {
 
 initSearch();
 
-// ─── Sidebar Toggle & Resize ──────────────────────
+// ─── Sidebar Toggle & Resize ──────────────────
 const sidebarToggle = document.getElementById('sidebarToggle');
 const pageWrapper   = document.querySelector('.page-wrapper');
 const sidebarEl     = document.querySelector('.sidebar');
