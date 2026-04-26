@@ -460,8 +460,27 @@ Expected (HTTP 200 — abridged):
 {
   "success": true,
   "data": {
-    "USD": { "minBetLevel": 1, "maxBetLevel": 20, "betStep": 1 },
-    "TWD": { "minBetLevel": 1, "maxBetLevel": 320, "betStep": 1 }
+    "engineVersion": "1.0.0",
+    "betRange": {
+      "USD": {
+        "minBetLevel": 1,
+        "maxBetLevel": 20,
+        "levels": [
+          { "level": 1, "baseBet": 0.10, "extraBetCost": 0.30, "buyFeatureCost": 10.00 },
+          { "level": 5, "baseBet": 0.50, "extraBetCost": 1.50, "buyFeatureCost": 50.00 },
+          "..."
+        ]
+      },
+      "TWD": {
+        "minBetLevel": 1,
+        "maxBetLevel": 320,
+        "levels": [
+          { "level": 1, "baseBet": 3, "extraBetCost": 9, "buyFeatureCost": 300 },
+          { "level": 10, "baseBet": 30, "extraBetCost": 90, "buyFeatureCost": 3000 },
+          "..."
+        ]
+      }
+    }
   }
 }
 ```
