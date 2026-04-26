@@ -630,8 +630,8 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | Round start | 0ms | `SFX_FG_ROUND_START` |
 | Cascade steps (each) | Per-cascade | Same SFX mapping as `CASCADE_STEP` (§5.2) |
 | Post-round coin toss | After cascade resolves | Same SFX mapping as `COIN_TOSS` (§5.4). *(Caveat: in FG context a TAILS result triggers `FG_COMPLETE`, NOT a crossfade to `BGM_MAIN` — the §5.4 TAILS BGM note does not apply here; BGM continues as `BGM_FREE_GAME`/`BGM_77X` until `RESULT_DISMISSED` — see §4.2 `FREE_GAME→RESULT_DISPLAY` and §5.7.)* |
-| HEADS → multiplier advance | Post-coin result | `SFX_FG_MULT_UP`; if new mult = 77 → `SFX_FG_MULT_77` + BGM crossfade to `BGM_77X` (800ms, state-observer owned — see §4.2 `FG_ROUND_COMPLETE_HEADS` + mult=77) |
-| HEADS → multiplier display | +0ms | `SFX_COIN_MULT_PROGRESS` |
+| HEADS → multiplier advance (mult ≠ 77) | Post-coin result | `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` — see §4.2 `FG_ROUND_COMPLETE_HEADS` + mult≠77 |
+| HEADS → multiplier advance (mult = 77) | Post-coin result | `SFX_FG_MULT_77` + BGM crossfade to `BGM_77X` (800ms, state-observer owned); **`SFX_FG_MULT_UP` does NOT fire** on this branch — see §4.2 `FG_ROUND_COMPLETE_HEADS` + mult=77 |
 
 ---
 
@@ -893,6 +893,7 @@ The following tests must pass before any audio-inclusive build is signed off.
 - [ ] `SFX_COIN_TOSS_START`: fires exactly once on COIN_TOSS entry
 - [ ] `SFX_FG_ENTER`: fires exactly once on FG entry
 - [ ] `SFX_FG_MULT_77` / `SFX_FG_MULT_UP`: each fires exactly once per qualifying round (no double-fire from §4.2 observer + §5.6 AQ)
+- [ ] On ×77 multiplier transition: `SFX_FG_MULT_UP` does **NOT** fire; `SFX_FG_MULT_77` fires exactly once (within-AQ mutual exclusion — per §5.6 split branches)
 - [ ] `SFX_COIN_TAILS`: fires exactly once at coin settle (§5.4 result row); NOT again from TAILS note row
 - [ ] `SFX_FG_ROUND_START`: fires exactly once per FG round (AnimationQueue via §5.6)
 
