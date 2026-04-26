@@ -117,7 +117,7 @@ All error responses from `/v1/*` endpoints use this envelope:
 | 403 | `FORBIDDEN` | POST /v1/spin, GET /v1/session/:sessionId | JWT is valid but the player's account is suspended, or the player is attempting to access another player's session |
 | 404 | `SESSION_NOT_FOUND` | GET /v1/session/:sessionId | Session ID does not exist in Redis (expired after 300s TTL or never created) |
 | 409 | `SPIN_IN_PROGRESS` | POST /v1/spin | A concurrent spin is already in progress for this player (Redis NX lock is held); request is rejected without debiting wallet |
-| 422 | `VALIDATION_ERROR` | POST /v1/spin | Semantically invalid payload where `extraBet: true` + `buyFeature: true` is a **valid** combination (costs 300× baseBet) and is NOT itself a validation error. VALIDATION_ERROR occurs only when `betLevel` is out of range for the given currency, or `extraBet`/`buyFeature` is unavailable for the game config. Note: `INSUFFICIENT_FUNDS` (not VALIDATION_ERROR) is returned when balance < 300× baseBet for the extraBet+buyFeature combination. |
+| 422 | `VALIDATION_ERROR` | POST /v1/spin | Semantically invalid payload: betLevel out of currency-specific range, or extraBet/buyFeature unavailable per game config. |
 | 429 | `RATE_LIMITED` | POST /v1/spin | Player has exceeded 5 requests/second |
 | 500 | `INTERNAL_ERROR` | All /v1/* | Unexpected engine or infrastructure error not matching any specific code |
 | 503 | `SERVICE_UNAVAILABLE` | POST /v1/spin | Circuit breaker OPEN on PostgreSQL or Redis (cascading failure protection) |
@@ -129,6 +129,8 @@ The following compact examples illustrate the error envelope for each major erro
 
 > Note: HTTP 402 (Payment Required) is not used. Balance failures return HTTP 400 with code INSUFFICIENT_FUNDS.
 
+**HTTP 400 — INSUFFICIENT_FUNDS**
+
 ```json
 {
   "success": false,
@@ -139,9 +141,10 @@ The following compact examples illustrate the error envelope for each major erro
 }
 ```
 
+**HTTP 400 — INVALID_BET_LEVEL**
+
 ```json
 {
-  "_comment": "HTTP 400 INVALID_BET_LEVEL",
   "success": false,
   "code": "INVALID_BET_LEVEL",
   "message": "betLevel 25 is outside the valid range for USD (1–20)",
@@ -150,9 +153,10 @@ The following compact examples illustrate the error envelope for each major erro
 }
 ```
 
+**HTTP 400 — BUY_FEATURE_NOT_ALLOWED**
+
 ```json
 {
-  "_comment": "HTTP 400 BUY_FEATURE_NOT_ALLOWED",
   "success": false,
   "code": "BUY_FEATURE_NOT_ALLOWED",
   "message": "Buy Feature is not available for the current bet level or game configuration",
@@ -161,9 +165,10 @@ The following compact examples illustrate the error envelope for each major erro
 }
 ```
 
+**HTTP 401 — UNAUTHORIZED**
+
 ```json
 {
-  "_comment": "HTTP 401 UNAUTHORIZED",
   "success": false,
   "code": "UNAUTHORIZED",
   "message": "JWT is missing, malformed, or expired",
@@ -172,9 +177,10 @@ The following compact examples illustrate the error envelope for each major erro
 }
 ```
 
+**HTTP 403 — FORBIDDEN**
+
 ```json
 {
-  "_comment": "HTTP 403 FORBIDDEN",
   "success": false,
   "code": "FORBIDDEN",
   "message": "Player account is suspended or access to this resource is denied",
@@ -183,9 +189,10 @@ The following compact examples illustrate the error envelope for each major erro
 }
 ```
 
+**HTTP 404 — SESSION_NOT_FOUND**
+
 ```json
 {
-  "_comment": "HTTP 404 SESSION_NOT_FOUND",
   "success": false,
   "code": "SESSION_NOT_FOUND",
   "message": "Session not found or expired (TTL 300s)",
@@ -194,9 +201,10 @@ The following compact examples illustrate the error envelope for each major erro
 }
 ```
 
+**HTTP 409 — SPIN_IN_PROGRESS**
+
 ```json
 {
-  "_comment": "HTTP 409 SPIN_IN_PROGRESS",
   "success": false,
   "code": "SPIN_IN_PROGRESS",
   "message": "A spin is already in progress for this player. Retry after the lock TTL (up to 10 seconds).",
@@ -205,9 +213,10 @@ The following compact examples illustrate the error envelope for each major erro
 }
 ```
 
+**HTTP 504 — ENGINE_TIMEOUT**
+
 ```json
 {
-  "_comment": "HTTP 504 ENGINE_TIMEOUT",
   "success": false,
   "code": "ENGINE_TIMEOUT",
   "message": "Spin engine timed out. Your bet has been refunded automatically.",
@@ -563,7 +572,7 @@ Full bet table is available via `GET /v1/config`.
     "playerId": { "type": "string", "format": "uuid" },
     "betLevel": { "type": "integer", "minimum": 1, "maximum": 320 },
     "baseBet": { "type": "number", "description": "Base bet amount in player's currency" },
-    "totalBet": { "type": "number", "description": "Actual amount debited: baseBet × 1 (normal), × 3 (extraBet), × 100 (buyFeature); × 300 (extraBet + buyFeature combined, costs 300× baseBet)" },
+    "totalBet": { "type": "number", "description": "Actual amount debited from balance. Formula: baseBet × 1 (normal), × 3 (extraBet only), × 100 (buyFeature only), × 300 (extraBet + buyFeature combined = 3 × 100 × baseBet)" },
     "totalWin": { "type": "number", "description": "Total win credited to wallet. SOLE ACCOUNTING AUTHORITY. 0 if no win." },
     "newBalance": { "type": "number", "description": "Player wallet balance after this spin (post-credit)" },
     "currency": { "type": "string", "enum": ["USD", "TWD"] },
@@ -601,7 +610,7 @@ Full bet table is available via `GET /v1/config`.
         { "type": "null" }
       ]
     },
-    "coinTossTriggered": { "type": "boolean", "description": "true when Coin Toss was triggered (requires grid expanded to 6 rows AND at least one winning cascade step on the 6-row grid)" },
+    "coinTossTriggered": { "type": "boolean", "description": "true when the grid reaches 6 rows AND the final cascade step on the 6-row grid produced at least one win (lastCascadeHadWin = true). Coin Toss is not evaluated if no win occurred on the final cascade step." },
     "coinTossResult": {
       "type": ["string", "null"],
       "enum": ["HEADS", "TAILS", null]
@@ -620,7 +629,7 @@ Full bet table is available via `GET /v1/config`.
     "fgBonusMultiplier": {
       "type": ["integer", "null"],
       "enum": [1, 5, 20, 100, null],
-      "description": "Bonus multiplier drawn once at end of FG sequence. Null if FG not triggered."
+      "description": "Bonus multiplier drawn once at the START of the FG sequence, before round 1 begins. All FGRound objects in the response contain the same bonusMultiplier value. Null if FG not triggered."
     },
     "totalFGWin": {
       "type": ["number", "null"],
@@ -634,7 +643,7 @@ Full bet table is available via `GET /v1/config`.
     "nearMissApplied": { "type": "boolean", "description": "true when near-miss weighting was applied to the reel stop positions" },
     "engineVersion": { "type": "string", "description": "Version of GameConfig.generated.ts used" },
     "timestamp": { "type": "string", "format": "date-time" },
-    "rngSeed": { "type": ["string", "null"], "description": "RNG seed for this spin; used for audit replay" }
+    "rngSeed": { "type": ["string", "null"], "description": "Optional audit/replay seed; present only when server is running in audit mode (LOG_RNG_VALUES=true). Omitted in production responses." }
   },
   "definitions": {
     "CascadeSequence": {
@@ -775,6 +784,8 @@ Full bet table is available via `GET /v1/config`.
 
 #### Example — Free Game Triggered Spin
 
+> **Note:** The `cascadeSequence.steps` arrays in `fgRounds` below are abbreviated for brevity; actual responses contain full CascadeStep details.
+
 **Request:**
 
 ```json
@@ -872,7 +883,6 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
         "cascadeSequence": {
-          "_stepsNote": "abbreviated for brevity; actual response contains cascade step details",
           "steps": [],
           "totalWin": 0.50,
           "finalGrid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
@@ -890,7 +900,6 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]],
         "cascadeSequence": {
-          "_stepsNote": "abbreviated for brevity; actual response contains cascade step details",
           "steps": [],
           "totalWin": 0.75,
           "finalGrid": [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]],
@@ -908,7 +917,6 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["P1","W","L3","P2","L1"],["L4","P3","P1","L2","P4"],["P2","L1","L4","P3","W"]],
         "cascadeSequence": {
-          "_stepsNote": "abbreviated for brevity; actual response contains cascade step details",
           "steps": [],
           "totalWin": 0.75,
           "finalGrid": [["P1","W","L3","P2","L1"],["L4","P3","P1","L2","P4"],["P2","L1","L4","P3","W"]],
@@ -963,6 +971,8 @@ GET /v1/session/sess-9e2b1a34-6f7c-4d2e-b8a1-c5d9e0f12345
 Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
+> **Note:** steps array abbreviated for brevity; actual response contains full CascadeStep details.
+
 #### Response 200 — Session State
 
 ```json
@@ -1000,7 +1010,6 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
         "bonusMultiplier": 5,
         "grid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
         "cascadeSequence": {
-          "_stepsNote": "abbreviated for brevity; actual response contains cascade step details",
           "steps": [],
           "totalWin": 0.50,
           "finalGrid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
@@ -1082,6 +1091,8 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 GET /v1/config
 Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
+
+The `maxWin` object in the game config contains three cap values: `mainGame` (30,000× baseBet, applies to normal and Extra Bet spins), `buyFeature` (90,000× baseBet, applies when Buy Feature is active), and `extraBetBuyFeature` (90,000× baseBet, the cap when both Extra Bet and Buy Feature are active simultaneously — same cap as `buyFeature`).
 
 #### Response 200 — Game Config
 
@@ -1170,8 +1181,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
         "mainGame":   30000,
         "buyFeature": 90000,
         "extraBetBuyFeature": 90000,
-        "unit": "× baseBet",
-        "_note": "buyFeature and extraBetBuyFeature share the same 90000× cap. extraBetBuyFeature is the cap when both Extra Bet and Buy Feature are active simultaneously."
+        "unit": "× baseBet"
       },
       "buyFeatureSessionFloor": 20,
       "extraBetCostMultiplier": 3,
@@ -1427,20 +1437,23 @@ HTTP status is 200 when `status = "ready"`, 503 when `status = "not_ready"`.
 ### 4.0 FullSpinOutcome
 
 ```typescript
-// Authoritative wire contract. See §3.1 for full JSON Schema.
+// Domain-level TypeScript reference. §3.1 JSON Schema is the authoritative wire contract.
 interface FullSpinOutcome {
   spinId: string;          // format: spin-{uuid}
   sessionId: string;       // format: sess-{uuid}
+  playerId: string;        // UUID; matches JWT sub claim
   betLevel: number;
+  baseBet: number;         // base bet amount in player's currency
   totalBet: number;
-  mainCascadeWin: number;
-  totalFGWin: number;
   totalWin: number;
   newBalance: number;
+  currency: "USD" | "TWD";
   extraBetActive: boolean;
   buyFeatureActive: boolean;
+  initialGrid: string[][];  // 5×3 initial grid before Cascade
+  finalGrid: string[][];    // final grid after all Cascade steps
+  finalRows: 3 | 4 | 5 | 6;
   cascadeSequence: CascadeSequence;
-  lightningMarkCount: number;
   thunderBlessingTriggered: boolean;
   thunderBlessingFirstHit: boolean;
   thunderBlessingSecondHit: boolean;
@@ -1452,9 +1465,13 @@ interface FullSpinOutcome {
   fgMultiplier: 3 | 7 | 17 | 27 | 77 | null;
   fgBonusMultiplier: 1 | 5 | 20 | 100 | null;
   fgRounds: FGRound[];
-  totalFGRounds: number;
+  totalFGWin: number | null;
+  sessionFloorApplied: boolean;
+  sessionFloorValue: number | null; // 20 × baseBet; null if not a Buy Feature spin
   nearMissApplied: boolean;
-  rngSeed?: string | null;
+  engineVersion: string;
+  timestamp: string;        // ISO 8601
+  rngSeed?: string | null;  // audit/replay seed; present only in audit mode
 }
 ```
 
@@ -1891,6 +1908,8 @@ All request body fields are validated against the Fastify/JSON Schema before rea
 1. On app resume: call `GET /v1/session/:sessionId` with the last known `sessionId`
 2. If 200 `FG_ACTIVE`: replay `completedRounds` animations; resume from `fgRound` index
 3. If 404 `SESSION_NOT_FOUND`: session has expired or completed — show final state from locally cached `FullSpinOutcome` if available
+
+**`rngSeed` integration note:** The `rngSeed` field is returned only in non-production/audit environments (when `LOG_RNG_VALUES=true` is set on the server). Production responses omit this field entirely. Clients should treat its absence as normal and must not depend on it for game logic.
 
 ### 9.2 Request ID Tracing
 

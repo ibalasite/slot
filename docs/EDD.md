@@ -540,7 +540,8 @@ classDiagram
     %% FGRound domain entity note: round is 1-based (1–5).
     %% The API Response DTO (API.md §4.9) includes additional fields:
     %% bonusMultiplier, coinTossResult ("HEADS"|"TAILS"|null), cascadeSequence.
-    %% coinTossResult is null only for incomplete rounds; "HEADS" or "TAILS" when round is resolved.
+    %% coinTossResult is null only mid-processing in the domain entity; the API response DTO
+    %% (API.md §4.9) always contains HEADS or TAILS because fgRounds[] includes only completed rounds.
 
     class GameConfig {
         <<valueobject>>
@@ -728,6 +729,8 @@ sequenceDiagram
     CT-->>SE: {result: "Heads", fgMultiplier: 17}
     SE->>RC: set(sessionId, FGSession{multiplier:17, marks})
     SE->>FGO: runSequence(fgSession, config)
+    FGO->>FGO: drawBonusMultiplier(fgBonusWeights)
+    Note over FGO: Bonus multiplier drawn ONCE here, before round 1 begins.<br/>All FGRound objects share this same bonusMultiplier value.
     loop Up to 5 Coin Toss rounds
         FGO->>SE: spin FG round (grid generation)
         SE->>CE: runCascade(fgGrid, config)
@@ -738,7 +741,6 @@ sequenceDiagram
             FGO-->>SE: FG sequence complete
         end
     end
-    FGO->>FGO: drawBonusMultiplier(fgBonusWeights)
     FGO-->>SE: FGSequenceResult {totalFGWin, bonusMultiplier}
     SE-->>SU: FullSpinOutcome {totalWin = mainWin + totalFGWin}
     SU->>WR: credit(playerId, totalWin)
@@ -759,15 +761,16 @@ sequenceDiagram
 
     C->>R: POST /spin {betLevel: 7, buyFeature: true}
     R->>BU: execute(BuyFeatureRequest)
-    BU->>WR: debit(playerId, 100 × baseBet = 10000)
-    BU->>RC: set(sessionId, BuyFGSession{floor: 20 × baseBet = 2000})
+    BU->>WR: debit(playerId, 100 × baseBet, e.g., 100 × $1.00 = $100.00)
+    BU->>RC: set(sessionId, BuyFGSession{floor: 20 × baseBet (e.g., 20 × $1.00 = $20.00)})
     Note over BU: Guaranteed Heads×5 (config ensures p=1.0 for 5 rounds)
+    Note over BU: baseBet=$1.00 (betLevel 7, USD) used in this example
     BU->>FGO: runSequence(fgSession, config, guaranteedHeads=true)
     FGO->>FGO: runSingleRound × 5
     FGO-->>BU: FGSequenceResult {totalFGWin}
-    BU->>SFG: applyFloor(session, baseBet=100)
-    alt totalFGWin < floor (2000)
-        SFG-->>BU: adjustedWin = 2000
+    BU->>SFG: applyFloor(session, baseBet=$1.00)
+    alt totalFGWin < floor ($20.00)
+        SFG-->>BU: adjustedWin = $20.00
         Note over BU: Apply session floor guarantee
     else totalFGWin >= floor
         SFG-->>BU: adjustedWin = totalFGWin
@@ -867,8 +870,9 @@ flowchart TD
     CoinToss --> HeadsOrTails{Heads? p=0.80}
     HeadsOrTails -->|Tails| AccumWin[Accumulate cascade win]
     HeadsOrTails -->|Heads| RunFGSequence[Run FG sequence]
-    RunFGSequence --> DrawBonus[Draw FG Bonus multiplier]
-    DrawBonus --> ApplyFloor[Apply session floor if BuyFeature]
+    RunFGSequence --> DrawBonus[Draw FG Bonus multiplier once at FG sequence start]
+    DrawBonus --> RunFGRounds[Run FG rounds - up to 5 Coin Toss rounds]
+    RunFGRounds --> ApplyFloor[Apply session floor if BuyFeature]
     ApplyFloor --> FinalizeWin
     AccumWin --> CheckFGActive
     CheckFGActive -->|No| FinalizeWin[Finalize totalWin]
@@ -1198,6 +1202,8 @@ const engine = new SlotEngine(config, rng);
 Each scenario is validated independently in `verify.js` using 1,000,000 simulated spins.
 
 ### 5.6 Free Game (FG) Bonus Multiplier
+
+> **Note:** Bonus multiplier RNG draw occurs once at FG sequence initialization, before round 1. The drawn value is stored in the FG session and included in every `FGRound` object returned in the API response (API.md §4.9). See §4.5.5 sequence diagram for timing.
 
 FG Bonus multiplier is drawn **once per FG sequence** (not per round) from the `fgBonusWeights` table in `GameConfig.generated.ts`:
 
