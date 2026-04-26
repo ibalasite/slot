@@ -1040,7 +1040,7 @@ GameStateMachine.handleSpinPressed()
              ├── Success (200 OK)
              │    └── Store outcome in GameContext
              │         ├── HUDComponent.setLoading(false)
-             │         ├── AnimationQueue.build(outcome.cascadeSequence.steps)
+             │         ├── AnimationQueue.build(outcome)
              │         └── State transition → CASCADE_RESOLVING
              │
              ├── Rate Limited (429)
@@ -1113,13 +1113,29 @@ class AnimationQueue {
       this.queue.push({ type: 'NEAR_MISS', data: { positions: this.getNearMissPositions(outcome) } });
     }
 
-    // Cascade steps
-    for (const step of outcome.cascadeSequence.steps) {
+    // Cascade steps — split at TB triggering step if needed.
+    // CascadeStep includes thunderBlessingTriggeredAfterStep:boolean to identify split point.
+    const steps = outcome.cascadeSequence.steps;
+    let tbInserted = false;
+    for (const step of steps) {
       this.queue.push({ type: 'CASCADE_STEP', data: step });
+      // Insert THUNDER_BLESSING immediately after the step that triggered it,
+      // so post-TB cascade steps (upgraded-symbol wins) are enqueued after TB.
+      if (!tbInserted && outcome.thunderBlessingTriggered && step.thunderBlessingTriggeredAfterStep) {
+        this.queue.push({
+          type: 'THUNDER_BLESSING',
+          data: {
+            thunderBlessingResult: outcome.thunderBlessingResult!,
+            thunderBlessingFirstHit: outcome.thunderBlessingFirstHit,
+            thunderBlessingSecondHit: outcome.thunderBlessingSecondHit,
+            upgradedSymbol: outcome.upgradedSymbol!,
+          },
+        });
+        tbInserted = true;
+      }
     }
-
-    // Thunder Blessing sequence (after cascade steps that triggered it)
-    if (outcome.thunderBlessingTriggered) {
+    // Fallback: if TB triggered but no step flagged the split (shouldn't happen), append at end
+    if (outcome.thunderBlessingTriggered && !tbInserted) {
       this.queue.push({
         type: 'THUNDER_BLESSING',
         data: {
@@ -1534,7 +1550,10 @@ Mobile browsers (iOS Safari, Chrome on Android) block audio until a user gesture
 
 class MobileAudioUnlock {
   static setup(audioManager: AudioManager): void {
+    let unlocked = false;
     const unlockHandler = async (): Promise<void> => {
+      if (unlocked) return; // prevent double invocation from touchstart + synthesized click
+      unlocked = true;
       await audioManager.unlock();
       // Start deferred audio preloads
       await this.preloadAudioAssets(audioManager);
@@ -1623,7 +1642,32 @@ document.addEventListener('visibilitychange', async () => {
       lightningMarkComponent.restoreMarks(session.lightningMarks.positions);
       freeGameComponent.restoreFromSession(session.fgMultiplier!, session.fgRound!);
       stateMachine.transition('SESSION_RESTORED_FG');
+    } else if (session.status === 'SPINNING') {
+      // Wager is live — enter polling loop (see §5.2 SPIN_PENDING_RECONNECT protocol)
+      // Poll GET /v1/session every 2s (max 10 retries) until COMPLETE or FG_ACTIVE
+      let retries = 0;
+      const MAX_RETRIES = 10;
+      const poll = async (): Promise<void> => {
+        if (retries++ >= MAX_RETRIES) {
+          showDialog('Spin Pending', 'Your last spin result is pending. Please contact support before playing again.');
+          stateMachine.transition('SESSION_EXPIRED');
+          return;
+        }
+        await new Promise(r => setTimeout(r, 2000));
+        const updated = await sessionService.getSession(sessionId);
+        if (updated.status === 'COMPLETE') {
+          stateMachine.transition('SESSION_RESTORED_IDLE');
+        } else if (updated.status === 'FG_ACTIVE') {
+          lightningMarkComponent.restoreMarks(updated.lightningMarks.positions);
+          freeGameComponent.restoreFromSession(updated.fgMultiplier!, updated.fgRound!);
+          stateMachine.transition('SESSION_RESTORED_FG');
+        } else {
+          await poll();
+        }
+      };
+      await poll();
     } else {
+      // status === 'COMPLETE': no pending wager, return to IDLE normally
       stateMachine.transition('SESSION_RESTORED_IDLE');
     }
   } catch (error) {
@@ -1925,7 +1969,7 @@ async function restoreFGSession(session: SessionData): Promise<void> {
 ### 11.6 Buy Feature Confirmation Dialog
 
 Before executing a `buyFeature = true` spin, show confirmation dialog (PDD §8.2):
-- Display cost: `100 × baseBet` (normal) or `300 × baseBet` (Extra Bet ON).
+- Display cost: `baseBet × config.gameParameters.buyFeatureCostMultiplier` (normal) or `baseBet × config.gameParameters.buyFeatureCostMultiplier × config.gameParameters.extraBetCostMultiplier` (Extra Bet ON) — always read from `ConfigService.getInstance().getConfig()`, never hardcoded.
 - Show "Win floor: 20× BET" guarantee text.
 - CONFIRM: execute spin.
 - CANCEL: dismiss dialog, no spin.
