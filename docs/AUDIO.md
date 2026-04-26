@@ -461,7 +461,7 @@ AudioState = {
 
 ### 4.2 Full State Transition Table
 
-> **Delegation note:** Rows marked `[AQ]` in the SFX column indicate audio events that are dispatched by `AnimationQueue.play()` (§5), not by the state-machine observer directly. The state-machine observer is responsible only for the BGM crossfade on these transitions; it must **not** also fire the SFX directly (that would cause double-fire). Rows without `[AQ]` are fired directly by the state-machine observer.
+> **Delegation note:** Rows marked `[AQ]` in the SFX column indicate audio events that are dispatched by `AnimationQueue.play()` (§5), not by the state-machine observer directly. The state-machine observer is responsible for BGM crossfades **and BGM ducking** (gain changes in the BGM Duration column) — it must **not** also fire `[AQ]`-tagged SFX directly (that would cause double-fire). Conversely, AQ steps in §5 that mention BGM ducks (e.g., §5.5, §5.8) are documenting the expected BGM behavior for implementer reference only — the actual gain change is triggered by the state observer, not by AQ. Rows without `[AQ]` are fired directly by the state-machine observer.
 
 | From State | To State | Trigger | BGM Action | BGM Duration | SFX Fired |
 |------------|----------|---------|------------|:------------:|-----------|
@@ -470,7 +470,7 @@ AudioState = {
 | `CASCADE_RESOLVING` | `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | Continue current BGM | — | Per-step SFX (see §5) `[AQ]` |
 | `CASCADE_RESOLVING` | `THUNDER_BLESSING` | `TB_TRIGGERED` | Continue current BGM (no change) | — | `SFX_LIGHTNING_ACTIVATE` `[AQ]` |
 | `CASCADE_RESOLVING` | `COIN_TOSS` | `CASCADE_COMPLETE_COIN_TOSS` | Crossfade to `BGM_COIN_TOSS` (BGM only; SFX via AQ) | 800ms | `SFX_COIN_TOSS_START` `[AQ]` |
-| `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`; duck −6dB only if win tier ≥ Big Win (≥ 20× baseBet) — see §4.3 | — (Small/Medium: no duck; Big Win+: 200ms linear ramp) | Win tier SFX (see §3.2) `[AQ]` |
+| `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_WIN` | Continue `BGM_MAIN`; duck only if win tier ≥ Big Win (≥ 20× baseBet) — see §4.3 | — (Small/Medium: no duck; Big Win/Mega/Jackpot: 200ms linear ramp; Max Win 30,000×/90,000×: 300ms linear ramp — see §4.3) | Win tier SFX (see §3.2) `[AQ]` |
 | `CASCADE_RESOLVING` | `RESULT_DISPLAY` | `CASCADE_COMPLETE_NO_WIN` | Continue `BGM_MAIN` | — | None |
 | `THUNDER_BLESSING` | `CASCADE_RESOLVING` | `TB_SEQUENCE_COMPLETE` | Continue current BGM (no gain change needed) | — | `SFX_TB_SETTLE` `[AQ]` |
 | `COIN_TOSS` | `FREE_GAME` | `COIN_TOSS_HEADS_FG` | Crossfade from `BGM_COIN_TOSS` to `BGM_FREE_GAME` via `crossfadeBGM()` (BGM only; SFX via AQ) | 800ms | `SFX_FG_ENTER` `[AQ]` |
@@ -643,7 +643,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 |:-----------:|-------------|
 | 0ms | `SFX_FG_COMPLETE` — summary panel appears |
 | 0ms | WIN roll-up to `outcome.totalWin` begins; `SFX_WIN_ROLLUP_TICK` fires throttled |
-| End of roll-up | Win tier SFX (evaluated against `totalWin / baseBet`): `SFX_WIN_BIG` / `SFX_WIN_MEGA` / `SFX_WIN_JACKPOT` / `SFX_MAX_WIN` / `SFX_MAX_WIN_LEGENDARY` |
+| End of roll-up | Win tier SFX (evaluated against `totalWin / baseBet`): `SFX_WIN_SMALL` (ratio < 5) / `SFX_WIN_MEDIUM` (5 ≤ ratio < 20) / `SFX_WIN_BIG` (20 ≤ ratio < 100) / `SFX_WIN_MEGA` (100 ≤ ratio < 500) / `SFX_WIN_JACKPOT` (500 ≤ ratio < 30,000) / `SFX_MAX_WIN` (30,000×) / `SFX_MAX_WIN_LEGENDARY` (90,000×) |
 
 > **BGM after FG_COMPLETE:** BGM (`BGM_FREE_GAME` or `BGM_77X`) continues playing through the FG summary panel. The crossfade back to `BGM_MAIN` occurs on `RESULT_DISPLAY → IDLE` (`RESULT_DISMISSED` event, i.e. when the player dismisses the result), as specified in §4.2. This avoids an abrupt BGM change while the player is still reading the win summary.
 
@@ -876,11 +876,11 @@ The following tests must pass before any audio-inclusive build is signed off.
 - [ ] SOUND button pressed before first gesture: `config.muted=true` applied on unlock; no audio plays
 
 #### Ducking Correctness
-- [ ] Small win (< 5×): BGM gain unchanged after win SFX fires
-- [ ] Medium win (5–20×): BGM gain unchanged after win SFX fires
-- [ ] Big Win (20–100×): BGM ducks −6 dB over 200ms; restores after 2000ms hold
-- [ ] Mega Win (100–500×): BGM ducks −6 dB over 200ms; restores after 3000ms hold
-- [ ] Jackpot (500–30,000×): BGM ducks −6 dB over 200ms; restores after 4000ms hold
+- [ ] Small win (ratio < 5×): BGM gain unchanged after win SFX fires
+- [ ] Medium win (5 ≤ ratio < 20×): BGM gain unchanged after win SFX fires
+- [ ] Big Win (20 ≤ ratio < 100×): BGM ducks −6 dB over 200ms; restores after 2000ms hold
+- [ ] Mega Win (100 ≤ ratio < 500×): BGM ducks −6 dB over 200ms; restores after 3000ms hold
+- [ ] Jackpot (500 ≤ ratio < 30,000×): BGM ducks −6 dB over 200ms; restores after 4000ms hold
 - [ ] Max Win 30,000× (Main Game): BGM ducks −12 dB over 300ms; holds 6000ms; restores
 - [ ] Max Win 90,000× (Buy Feature): BGM ducks −12 dB over 300ms; holds 10,000ms; restores
 - [ ] FG Bonus ×100 reveal: BGM ducks −9 dB over 300ms; holds 4000ms; restores
