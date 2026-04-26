@@ -61,15 +61,15 @@ The backend is implemented in **TypeScript/Node.js** using **Fastify** as the HT
 | REQ-ID | Description | EDD Section | Implementation Component |
 |--------|-------------|-------------|--------------------------|
 | US-SPIN-001 | Base spin, P99 ≤ 500ms, 5×3 grid | §5.1, §6.1 | `SpinUseCase`, `SlotEngine.spin()` |
-| US-CASC-001 | Cascade chain elimination + Lightning Mark | §5.2, §5.3 | `CascadeEngine`, `CascadeEngine` (handles Lightning Mark generation) |
-| US-TBSC-001 | Thunder Blessing Scatter dual-hit upgrade | §5.4 | `ThunderBlessingHandler` |
-| US-COIN-001 | Coin Toss per-stage probability (coinProbs[stage]) → FG entry | §5.5 | `CoinTossEvaluator` |
-| US-FGAM-001 | Free Game ×3→×7→×17→×27→×77 multiplier sequence | §5.6 | `FreeGameOrchestrator` |
-| US-EXBT-001 | Extra Bet ×3 cost, guaranteed SC appearance | §5.7 | `ExtraBetModifier` |
-| US-BUYF-001 | Buy Feature 100× baseBet, guaranteed Heads×5, floor ≥ 20× baseBet | §5.8 | `BuyFeatureUseCase`, `SessionFloorGuard` |
-| US-NRMS-001 | Near Miss visual tension (Excel-defined, toolchain configured) | §5.9, §14 | `NearMissSelector` (config-driven) |
-| US-TOOL-001 | Toolchain Excel → engine_config.json → GameConfig.generated.ts | §14 | `build_config.js`, `verify.js`, `engine_generator.js` |
-| US-RTPV-001 | RTP validation 4 scenarios ±1%, 1M Monte Carlo | §5.10, §14 | `verify.js` |
+| US-CASC-001 | Cascade chain elimination + Lightning Mark | §5.1 | `CascadeEngine`, `SlotEngine` (calls `CascadeEngine.runCascade`) |
+| US-TBSC-001 | Thunder Blessing Scatter dual-hit upgrade | §5.1 | `ThunderBlessingHandler` (called from `SlotEngine.spin`) |
+| US-COIN-001 | Coin Toss per-stage probability (coinProbs[stage]) → FG entry | §5.1 | `CoinTossEvaluator` (called from `SlotEngine.spin`) |
+| US-FGAM-001 | Free Game ×3→×7→×17→×27→×77 multiplier sequence | §5.1, §5.6 | `FreeGameOrchestrator` |
+| US-EXBT-001 | Extra Bet ×3 cost, guaranteed SC appearance | §5.1 | `SlotEngine.generateGrid()` (isExtraBet flag forces SC symbol into grid) |
+| US-BUYF-001 | Buy Feature 100× baseBet, guaranteed Heads×5, floor ≥ 20× baseBet | §5.1, §5.7 | `BuyFeatureUseCase`, `SessionFloorGuard` |
+| US-NRMS-001 | Near Miss visual tension (Excel-defined, toolchain configured) | §14.7 | `NearMissSelector` (config-driven) |
+| US-TOOL-001 | Toolchain Excel → engine_config.json → GameConfig.generated.ts | §14.1 | `build_config.js`, `excel_simulator.js`, `verify.js`, `engine_generator.js` |
+| US-RTPV-001 | RTP validation 4 scenarios ±1%, 1M Monte Carlo | §14.4 | `verify.js` |
 | US-CURR-001 | USD / TWD currency display from BetRangeConfig.generated.ts | §6.3 | `CurrencyFormatter` |
 | US-APIV-001 | JWT auth on every spin request | §8.1 | `JwtAuthGuard` (Fastify preHandler) |
 
@@ -518,6 +518,16 @@ classDiagram
         +isComplete(): boolean
     }
 
+    class FGRound {
+        <<entity>>
+        +index: number
+        +grid: Grid
+        +win: number
+        +multiplier: number
+        +lightningMarksBefore: LightningMarkSet
+        +lightningMarksAfter: LightningMarkSet
+    }
+
     class GameConfig {
         <<valueobject>>
         +symbols: SymbolDefinition[]
@@ -607,6 +617,7 @@ classDiagram
 | `CascadeStep` | Domain Value Object | Single cascade step state snapshot | — | `src/domain/entities/CascadeStep.ts` | `src/domain/entities/__tests__/CascadeStep.test.ts` |
 | `SpinEntity` | Domain Entity | Single spin record (sessionId, playerId, baseBet, totalWin, cascadeSequence) | — | `src/domain/entities/SpinEntity.ts` | `src/domain/entities/__tests__/SpinEntity.test.ts` |
 | `FreeGameSession` | Domain Entity | FG session state (rounds, multiplier, marks) | `isComplete()` | `src/domain/entities/FreeGameSession.ts` | `src/domain/entities/__tests__/FreeGameSession.test.ts` |
+| `FGRound` | Domain Entity | Single FG round snapshot (grid, win, multiplier, marks before/after) | — | `src/domain/entities/FGRound.ts` | `src/domain/entities/__tests__/FGRound.test.ts` |
 | `GameConfig` | Config | Generated game configuration | — | `src/config/GameConfig.generated.ts` | — (generated; verified by toolchain) |
 
 ### 4.5.3 Object Diagram — Example Spin State
@@ -1781,7 +1792,7 @@ Trace exporter: OpenTelemetry Collector → Grafana Tempo.
 | Alert | Condition | Severity | Action |
 |-------|-----------|---------|--------|
 | High Spin Latency | P99 > 500ms for 2min | Warning | Investigate engine bottleneck |
-| Spin Error Rate | > 1% for 1min | Critical | PagerDuty on-call |
+| Spin Error Rate | > 0.5% for 1min | Critical | PagerDuty on-call |
 | Circuit Breaker Open | Any dependency OPEN | Critical | PagerDuty on-call |
 | Wallet Discrepancy | debit != credit for any spin | Critical | Freeze affected player account |
 | Rate Limit Flood | > 1000 rate-limit hits/min | Warning | Review IP for ban |
