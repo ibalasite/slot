@@ -239,7 +239,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the response body field "success" should be false
     And the response body field "code" should equal "INVALID_BET_LEVEL"
 
-  @TC-INT-API-002-ERROR @TC-SEC-AUTH-001
+  @TC-INT-API-002-ERROR
   Scenario: Missing JWT returns 401 UNAUTHORIZED
     Given no Authorization header is included
     When I send POST /v1/spin with body:
@@ -252,7 +252,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
     And the response body field "success" should be false
     And the response body field "code" should equal "UNAUTHORIZED"
 
-  @TC-INT-API-003-ERROR @TC-SEC-AUTH-003
+  @TC-INT-API-003-ERROR
   Scenario: Expired JWT returns 401 UNAUTHORIZED
     Given the player has a JWT token with exp claim set 1 second in the past
     When I send POST /v1/spin with body:

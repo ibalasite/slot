@@ -71,7 +71,7 @@ Feature: GET /v1/session/:sessionId — FG Session State
     And the response body field "requestId" should be a UUID string
     And the response body field "timestamp" should be a valid ISO 8601 datetime string
 
-  @TC-SEC-AUTH-001b
+  @TC-SEC-SESSION-AUTH-001
   Scenario: Missing JWT on session endpoint returns 401 UNAUTHORIZED
     Given no Authorization header is included
     When I send GET /v1/session/sess-abc123 without any Authorization header

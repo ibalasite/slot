@@ -47,7 +47,7 @@ Feature: GET /v1/config — Game Configuration
   # Error Scenarios
   # ─────────────────────────────────────────────
 
-  @TC-SEC-AUTH-001c
+  @TC-SEC-CONFIG-AUTH-001
   Scenario: Config endpoint without JWT returns 401 UNAUTHORIZED
     Given no Authorization header is included
     When I send GET /v1/config without any Authorization header
