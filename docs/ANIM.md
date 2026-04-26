@@ -647,7 +647,7 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 | Old number explode | t=0ms | 400ms | `ease-out-expo` | Same as normal but 400ms |
 | Lightning strike visual | t=400ms | 600ms | — | Full-width lightning bolt descends from screen top to multiplier display area; 2px → 8px stroke width; `--color-gold-divine`; white bloom at impact |
 | "×77" number scale-in | t=700ms (delay 300ms, overlaps strike) | 800ms | `--ease-out-back` | `scale`: 0 → 1.8 → 1.0; color: `--color-gold-divine`; text size increases to `--text-mult-max` (72px) |
-| Screen gold flash | t=1000ms (concurrent with scale-in peak) | 300ms | `ease-out-expo` | `rgba(255,200,0,0.4)` overlay flash, fade to 0 |
+| Screen gold flash | t=1000ms (concurrent with lightning strike completion) | 300ms | `ease-out-expo` | `rgba(255,200,0,0.4)` overlay flash, fade to 0 |
 | All progress nodes illuminate | t=1000ms (concurrent with flash) | 500ms | `ease-out-cubic` | All 5 nodes reach maximum brightness simultaneously |
 | Particle burst (`PS_FG_MULT_77`) | t=1000ms (concurrent with node illuminate) | — | — | 200–300 particles desktop / 100–150 mobile; `--color-gold-divine`; Additive blend; 1000ms lifetime; spawn from multiplier display area (screen center, same Y as multiplier number) |
 | BGM crossfade begins | t=0ms (concurrent with sequence start) | — | — | `BGM_FREE_GAME` → `BGM_77X` over 800ms (state-observer-owned) |
@@ -911,6 +911,8 @@ Displayed when `sessionFloorApplied = true` in `FullSpinOutcome` (Buy Feature gu
 
 **SESSION_RECONNECT visual restore (from FRONTEND.md §11.5):**
 
+**Mid-animation reconnect handling:** If `APP_RESUME` fires while the `AnimationQueue` is mid-execution (e.g., mid-cascade, mid-coin-toss), call `AnimationQueue.clear()` first, then invoke `fast-complete()` on all active components to snap them to their final visual state synchronously (same pattern as §10.3 interrupt handling, but triggered by `APP_RESUME` not `SPIN_PRESSED`). Apply the restoration animations in the table below only after all active animations have been fast-completed.
+
 When the session reconnects after a network interruption mid-spin, the game restores state with these animations:
 
 | Element | Animation | Duration | Notes |
@@ -932,13 +934,13 @@ When the session reconnects after a network interruption mid-spin, the game rest
 |:------------:|:---------------:|:----------------:|----------------------|
 | `NEAR_MISS` | §2.1 (Near Miss Twitch) | 200ms | `SFX_NEAR_MISS` at t=0ms |
 | `REEL_SPIN` (implicit; pre-AQ) | §2.1 | Variable (until API response) | `SFX_SPIN_START` immediate; `SFX_REEL_STOP_1–5` staggered 120ms |
-| `CASCADE_STEP` | §2.3, §3.1, §3.2, §3.3, §3.4 | 1500ms–2500ms | `SFX_WIN` / `SFX_SCATTER_WIN` at t=0ms; `SFX_CASCADE_EXPLODE` at t=[max symbol win duration in this step] — duration varies by highest-tier winning symbol per §2.3: L1–L4 only → ~800ms; P4 → ~1000ms; Wild/P3 → ~1200ms; P2 → ~1300ms; P1 → ~1500ms; SC present → ~1800ms (per AUDIO.md §5.2); `SFX_LIGHTNING_MARK` concurrent with elimination; `SFX_REEL_EXPAND` at ~1000ms; `SFX_FREE_LETTER` concurrent; `SFX_CASCADE_DROP` staggered at drop-land |
+| `CASCADE_STEP` | §2.3, §3.1, §3.2, §3.3, §3.4 | 1500ms–2500ms (up to ~3200ms when Scatter is in winning line: 1800ms win + ~600ms eliminate + ~800ms drop with max stagger) | `SFX_WIN` / `SFX_SCATTER_WIN` at t=0ms; `SFX_CASCADE_EXPLODE` at t=[max symbol win duration in this step] — duration varies by highest-tier winning symbol per §2.3: L1–L4 only → ~800ms; P4 → ~1000ms; Wild/P3 → ~1200ms; P2 → ~1300ms; P1 → ~1500ms; SC present → ~1800ms (per AUDIO.md §5.2); `SFX_LIGHTNING_MARK` concurrent with elimination; `SFX_REEL_EXPAND` at ~1000ms; `SFX_FREE_LETTER` concurrent; `SFX_CASCADE_DROP` staggered at drop-land |
 | `THUNDER_BLESSING` | §4 | 3000ms (or 3000ms+) | `SFX_LIGHTNING_ACTIVATE` at t=200ms; `SFX_THUNDER_BLESSING` + `SFX_TB_FIRST_HIT` at t=800ms; `SFX_TB_SYMBOL_UPGRADE` at t=1500ms; `SFX_SECOND_HIT` at t=2300ms (if applicable); `SFX_TB_SETTLE` at t=3000ms |
 | `COIN_TOSS` | §5 | 3000ms–3500ms | `SFX_COIN_TOSS_START` at t=0ms; `SFX_COIN_TOSS_FLIP` [loop] at t=500ms; `SFX_COIN_HEADS` or `SFX_COIN_TAILS` at ~t=3500ms; `SFX_COIN_MULT_PROGRESS` on HEADS. TAILS in main-game → `WIN_DISPLAY`; TAILS in FG context → `FG_COMPLETE` (per AUDIO.md §5.6 FG caveat); `BGM_COIN_TOSS`→`BGM_MAIN` crossfade does NOT fire in FG context. |
-| `FG_ENTRY` | §6.1 | ~2600ms | `SFX_FG_ENTER` at t=0ms; `SFX_FG_BONUS_REVEAL` / `SFX_FG_BONUS_5X` / `SFX_FG_BONUS_20X` / `SFX_FG_BONUS_100X` at t=1800ms |
-| `FG_ROUND` | §6.2, §6.3 | Variable (cascade + coin toss per round) | `SFX_FG_ROUND_START` at t=0ms; cascade SFX per AUDIO.md §5.2; coin toss SFX per AUDIO.md §5.4; visual cascade animation per ANIM.md §6.2; visual coin toss flip/reveal animation per ANIM.md §5 (same sequence as main-game coin toss); visual HEADS multiplier advance per ANIM.md §6.3; `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` or `SFX_FG_MULT_77` on HEADS |
+| `FG_ENTRY` | §6.1 | ~2600ms (×1 bonus) up to ~4800ms (×100 bonus: `fx_fg_bonus_100x.spine` 3000ms window starts at t=1800ms; AQ must await full 3s window before marking step complete) | `SFX_FG_ENTER` at t=0ms; `SFX_FG_BONUS_REVEAL` / `SFX_FG_BONUS_5X` / `SFX_FG_BONUS_20X` / `SFX_FG_BONUS_100X` at t=1800ms |
+| `FG_ROUND` | §5, §6.2, §6.3 | Variable (cascade + coin toss per round) | `SFX_FG_ROUND_START` at t=0ms; cascade SFX per AUDIO.md §5.2; coin toss SFX per AUDIO.md §5.4; visual cascade animation per ANIM.md §6.2; visual coin toss flip/reveal animation per ANIM.md §5 (same sequence as main-game coin toss); visual HEADS multiplier advance per ANIM.md §6.3; `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` or `SFX_FG_MULT_77` on HEADS |
 | `FG_COMPLETE` | §6.4 | 3500ms+ | `SFX_FG_COMPLETE` at t=0ms; `SFX_WIN_ROLLUP_TICK` during roll-up; win tier SFX at roll-up end |
-| `WIN_DISPLAY` | §7.1, §7.2, §7.3 | 200ms–10,000ms | Win tier SFX at t=0ms; `SFX_WIN_ROLLUP_TICK` throttled during roll-up |
+| `WIN_DISPLAY` | §7.1, §7.2, §7.3 | 200ms–10,000ms+ (Legendary tier: min 5000ms mandatory, no upper bound — player dismiss required) | Win tier SFX at t=0ms; `SFX_WIN_ROLLUP_TICK` throttled during roll-up |
 
 **Reel spin** is not a formal AQ step type — it begins on `SPIN_PRESSED` and ends when the first `CASCADE_STEP` is dequeued. The AQ is built and begins draining immediately on `SPIN_RESPONSE_OK`.
 
