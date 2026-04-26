@@ -227,6 +227,13 @@ class SceneManager {
     this.currentScene = target;
   }
 
+  // Swap background layer only (no full scene unload) — used during FG reconnect (§11.5)
+  async switchBackground(backgroundId: string, crossDissolve: boolean): Promise<void> {
+    if (crossDissolve) await this.fadeOut(300);
+    // [Cocos] swap background node; [PixiJS] swap background sprite
+    if (crossDissolve) await this.fadeIn(300);
+  }
+
   private fadeOut(ms: number): Promise<void> { /* ... */ return Promise.resolve(); }
   private fadeIn(ms: number): Promise<void> { /* ... */ return Promise.resolve(); }
 }
@@ -592,8 +599,8 @@ interface BalanceComponent {
   // Update balance display immediately (no animation)
   setBalance(amount: number, currency: 'USD' | 'TWD'): void;
 
-  // Animate WIN counter rolling up from current to targetWin
-  animateWin(targetWin: number, durationMs: number): Promise<void>;
+  // Animate WIN counter rolling up from current to targetWin; durationMs defaults to auto (win-size-based)
+  animateWin(targetWin: number, durationMs?: number): Promise<void>;
 
   // Reset WIN display to 0 at start of new spin
   resetWin(): void;
@@ -642,6 +649,12 @@ interface HUDComponent {
 
   // Show/hide loading indicator (during API call)
   setLoading(loading: boolean): void;
+
+  // Show persistent offline banner (§8.4)
+  showOfflineBanner(message: string): void;
+
+  // Hide offline banner when connection restored (§8.4)
+  hideOfflineBanner(): void;
 
   // Events
   onInfoClicked: EventEmitter<void>;
@@ -879,10 +892,19 @@ class SessionService {
       throw new GameError('SESSION_NOT_FOUND', 'Session expired or not found', 404);
     }
     if (!response.ok) {
-      throw await this.parseError(response);
+      throw await this.parseErrorResponse(response);
     }
     const json = await response.json();
     return json.data;
+  }
+
+  private async parseErrorResponse(response: Response): Promise<GameError> {
+    try {
+      const json = await response.json();
+      return new GameError(json.error?.code ?? 'UNKNOWN_ERROR', json.error?.message ?? 'Unknown error', response.status);
+    } catch {
+      return new GameError('UNKNOWN_ERROR', 'Failed to parse error response', response.status);
+    }
   }
 }
 ```
@@ -961,7 +983,14 @@ interface GameConfig {
 }
 
 class ConfigService {
+  private static instance: ConfigService;
   private cachedConfig: GameConfig | null = null;
+  private tokenStore!: { getToken(): string };  // Injected at init
+
+  static getInstance(): ConfigService {
+    if (!ConfigService.instance) ConfigService.instance = new ConfigService();
+    return ConfigService.instance;
+  }
 
   async loadConfig(): Promise<GameConfig> {
     if (this.cachedConfig) return this.cachedConfig;
@@ -1059,6 +1088,11 @@ type AnimationStep =
   | { type: 'WIN_DISPLAY'; data: { totalWin: number; baseBet: number } }
   | { type: 'NEAR_MISS'; data: { positions: Position[] } };
 
+// Implemented by GameStateMachine — decouples AnimationQueue from concrete component references
+interface AnimationDispatcher {
+  dispatch(step: AnimationStep): Promise<void>;
+}
+
 class AnimationQueue {
   private queue: AnimationStep[] = [];
   private isPlaying = false;
@@ -1097,7 +1131,7 @@ class AnimationQueue {
     if (outcome.coinTossTriggered) {
       this.queue.push({
         type: 'COIN_TOSS',
-        data: { result: outcome.coinTossResult!, stage: 0 },
+        data: { result: outcome.coinTossResult!, stage: 1 },  // Stage 1 = ×3 entry toss
       });
     }
 
@@ -1141,6 +1175,10 @@ class AnimationQueue {
   clear(): void {
     this.queue = [];
     this.isPlaying = false;
+  }
+
+  private getNearMissPositions(outcome: FullSpinOutcome): Position[] {
+    return outcome.nearMissPositions ?? [];
   }
 }
 ```

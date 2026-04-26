@@ -155,7 +155,7 @@
       "last_commit": "18cdf5f"
     },
     "D10-FRONTEND": {
-      "rounds_done": 7,
+      "rounds_done": 8,
       "terminated": false,
       "findings_per_round": [
         11,
@@ -164,6 +164,7 @@
         3,
         2,
         5,
+        8,
         8
       ]
     }
