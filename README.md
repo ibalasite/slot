@@ -2,6 +2,14 @@
 
 Full design and specification suite for the **Thunder Blessing** slot game, generated via the gendoc pipeline.
 
+## Interactive Demos
+
+| 連結 | 說明 |
+|------|------|
+| [📱 Interactive Prototype](docs/pages/prototype/index.html) | 可點擊的前端原型（12 個畫面，含動畫音效） |
+| [🔌 API Explorer](docs/pages/prototype/api-explorer/index.html) | 互動式 API 試打介面（JavaScript Mock） |
+| [📚 文件站](docs/pages/index.html) | 完整工程文件 |
+
 ## Document Structure
 
 ```

@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thunder Blessing — API Explorer</title>
+<style>
+:root {
+  --bg-deep:    #0d1824;
+  --bg-main:    #1B2A4A;
+  --bg-panel:   #162035;
+  --bg-card:    #1e2e50;
+  --bg-input:   #0f1d33;
+  --border:     #2a3e6a;
+  --border-lit: #DCA331;
+  --gold:       #DCA331;
+  --gold-bright:#FFD700;
+  --gold-dim:   #8a6418;
+  --text-main:  #e8eaf0;
+  --text-muted: #7a8aaa;
+  --text-dim:   #4a5a7a;
+  --green:      #2ecc71;
+  --red:        #e74c3c;
+  --blue:       #4a9eff;
+  --purple:     #9b59b6;
+  --tag-bg:     #1a2a47;
+
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+
+  --duration-fast: 120ms;
+  --duration-normal: 250ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  background: var(--bg-deep);
+  color: var(--text-main);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── TOP BAR ─── */
+.topbar {
+  height: 52px;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.topbar-back {
+  color: var(--gold);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.85;
+  transition: opacity var(--duration-fast);
+}
+.topbar-back:hover { opacity: 1; }
+.topbar-sep { color: var(--text-dim); font-size: 14px; }
+.topbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar-title .bolt { font-size: 18px; }
+.topbar-tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: rgba(220,163,49,0.12);
+  color: var(--gold);
+  border: 1px solid rgba(220,163,49,0.3);
+  letter-spacing: 0.05em;
+}
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.auth-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.auth-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.auth-input {
+  width: 240px;
+  height: 28px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 11px;
+  padding: 0 10px;
+  font-family: inherit;
+  transition: border-color var(--duration-fast);
+}
+.auth-input:focus { outline: none; border-color: var(--gold); }
+.auth-input::placeholder { color: var(--text-dim); }
+.auth-status {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+  transition: background var(--duration-normal);
+}
+.auth-status.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+/* ─── LAYOUT ─── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.search-wrap {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.search-input {
+  width: 100%;
+  height: 30px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 12px;
+  padding: 0 10px 0 30px;
+  font-family: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234a5a7a' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+}
+.search-input:focus { outline: none; border-color: var(--gold); }
+.search-input::placeholder { color: var(--text-dim); }
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.group-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding: 12px 16px 4px;
+}
+.ep-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background var(--duration-fast), border-color var(--duration-fast);
+  text-decoration: none;
+}
+.ep-item:hover { background: rgba(220,163,49,0.05); }
+.ep-item.active {
+  background: rgba(220,163,49,0.08);
+  border-left-color: var(--gold);
+}
+.method-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  min-width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.method-GET  { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.25); }
+.method-POST { background: rgba(74,158,255,0.15); color: #4a9eff; border: 1px solid rgba(74,158,255,0.25); }
+.ep-path {
+  font-size: 11px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ep-item.active .ep-path { color: var(--gold); }
+
+/* ─── MAIN PANEL ─── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px 40px;
+}
+.panel-scroll::-webkit-scrollbar { width: 6px; }
+.panel-scroll::-webkit-scrollbar-track { background: transparent; }
+.panel-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── ENDPOINT DETAIL ─── */
+.ep-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.ep-method-lg {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.ep-info h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+.ep-url-display {
+  font-size: 13px;
+  color: var(--gold);
+  font-family: inherit;
+}
+.ep-summary {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 720px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.tags-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.tag {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  border: 1px solid;
+  letter-spacing: 0.04em;
+}
+.tag-auth   { background: rgba(155,89,182,0.1); color: #b07be6; border-color: rgba(155,89,182,0.3); }
+.tag-rate   { background: rgba(230,126,34,0.1);  color: #e67e22; border-color: rgba(230,126,34,0.3); }
+.tag-noauth { background: rgba(46,204,113,0.1);  color: #2ecc71; border-color: rgba(46,204,113,0.3); }
+
+/* ─── SECTION ─── */
+.section { margin-bottom: 28px; }
+.section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, rgba(220,163,49,0.3), transparent);
+}
+
+/* ─── PARAMS TABLE ─── */
+.params-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.params-table th {
+  text-align: left;
+  padding: 6px 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.params-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(42,62,106,0.5);
+  vertical-align: top;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.param-name  { color: var(--gold); font-family: inherit; font-size: 12px; }
+.param-type  { color: var(--blue); font-family: inherit; font-size: 11px; }
+.param-req   { color: var(--red); font-size: 10px; }
+.param-opt   { color: var(--text-dim); font-size: 10px; }
+.param-desc  { color: var(--text-muted); font-size: 12px; }
+.param-enum  {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+.chip {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: var(--tag-bg);
+  color: var(--gold);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--duration-fast), border-color var(--duration-fast);
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+}
+.chip:hover { background: rgba(220,163,49,0.15); border-color: var(--gold); }
+.chip.selected { background: rgba(220,163,49,0.2); border-color: var(--gold); color: var(--gold-bright); }
+
+/* ─── REQUEST FORM ─── */
+.try-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.try-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+}
+.try-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.try-actions { display: flex; gap: 8px; }
+
+.btn {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  letter-spacing: 0.04em;
+}
+.btn-primary {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0d1824;
+}
+.btn-primary:hover {
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 12px rgba(220,163,49,0.4);
+}
+.btn-secondary {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.try-body { padding: 16px; }
+.form-row { margin-bottom: 14px; }
+.form-row label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 12px;
+  transition: border-color var(--duration-fast);
+}
+.form-input, .form-select {
+  height: 32px;
+  padding: 0 10px;
+}
+.form-textarea {
+  padding: 10px;
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-dim); }
+.form-select option { background: var(--bg-input); }
+
+.presets-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.preset-btn {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  letter-spacing: 0.03em;
+}
+.preset-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ─── RESPONSE PANEL ─── */
+.response-section {
+  margin-top: 20px;
+}
+.response-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+}
+.status-2xx { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
+.status-4xx { background: rgba(231,76,60,0.15);  color: var(--red);   border: 1px solid rgba(231,76,60,0.3); }
+.status-5xx { background: rgba(230,126,34,0.15); color: #e67e22;      border: 1px solid rgba(230,126,34,0.3); }
+.response-time {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+.response-body {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.response-body pre {
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.response-body::-webkit-scrollbar { height: 4px; }
+
+/* JSON syntax highlight */
+.json-key    { color: #4a9eff; }
+.json-string { color: #2ecc71; }
+.json-number { color: var(--gold); }
+.json-bool   { color: #9b59b6; }
+.json-null   { color: var(--text-dim); }
+
+/* ─── LOADING SPINNER ─── */
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(220,163,49,0.3);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── ERROR CODES TABLE ─── */
+.error-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.error-table th {
+  text-align: left;
+  padding: 6px 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.error-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(42,62,106,0.4);
+  vertical-align: top;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.http-code {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+.http-2xx { color: var(--green); }
+.http-4xx { color: var(--red); }
+.http-5xx { color: #e67e22; }
+.err-code { color: var(--gold); font-family: 'SF Mono', monospace; font-size: 11px; }
+.err-desc { color: var(--text-muted); font-size: 12px; }
+
+/* ─── WELCOME ─── */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  text-align: center;
+  padding: 40px;
+}
+.welcome-bolt { font-size: 64px; line-height: 1; margin-bottom: 8px; }
+.welcome h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  letter-spacing: 0.05em;
+}
+.welcome p {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 400px;
+  line-height: 1.7;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.welcome-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.welcome-stats {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+}
+.stat-box {
+  text-align: center;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.stat-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold);
+  display: block;
+}
+.stat-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ─── BASE URL BAR ─── */
+.base-url-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.base-url-label { color: var(--text-dim); }
+.base-url-val { color: var(--gold); font-family: inherit; }
+
+/* ─── COPY CURL ─── */
+.curl-block {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  position: relative;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+.curl-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.curl-copy-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ─── HIDDEN ─── */
+.hidden { display: none !important; }
+
+/* ─── SCROLLBAR GLOBAL ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── INLINE CODE ─── */
+code {
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  background: rgba(220,163,49,0.1);
+  border: 1px solid rgba(220,163,49,0.2);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 11px;
+  color: var(--gold);
+}
+
+/* ─── GRID INPUT ─── */
+.inline-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ─── TOASTS ─── */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  font-size: 12px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-md);
+  color: var(--gold);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--duration-normal), transform var(--duration-normal);
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <a href="../index.html" class="topbar-back">← 文件站</a>
+  <span class="topbar-sep">|</span>
+  <div class="topbar-title">
+    <span class="bolt">⚡</span>
+    Thunder Blessing
+    <span class="topbar-tag">API EXPLORER</span>
+  </div>
+  <div class="topbar-right">
+    <div class="auth-group">
+      <span class="auth-label">BEARER TOKEN</span>
+      <div id="authStatus" class="auth-status"></div>
+      <input
+        id="tokenInput"
+        class="auth-input"
+        type="password"
+        placeholder="eyJhbGciOiJSUzI1NiIsInR5cCI6Ik..."
+        autocomplete="off"
+      />
+    </div>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="search-wrap">
+      <input id="searchInput" class="search-input" type="text" placeholder="Search endpoints…" />
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- populated by JS -->
+    </nav>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <main class="main">
+    <div class="base-url-bar">
+      <span class="base-url-label">BASE URL</span>
+      <span class="base-url-val">https://api.thunderblessing.io/v1</span>
+    </div>
+    <div class="panel-scroll" id="panelScroll">
+      <div id="welcomeView" class="welcome">
+        <div class="welcome-bolt">⚡</div>
+        <h2>Thunder Blessing API Explorer</h2>
+        <p>Interactive documentation for the Thunder Blessing slot game backend. Select an endpoint from the left to explore, test, and copy cURL commands.</p>
+        <div class="welcome-stats">
+          <div class="stat-box"><span class="stat-num">5</span><span class="stat-label">Endpoints</span></div>
+          <div class="stat-box"><span class="stat-num">RS256</span><span class="stat-label">JWT Auth</span></div>
+          <div class="stat-box"><span class="stat-num">5/s</span><span class="stat-label">Rate Limit</span></div>
+          <div class="stat-box"><span class="stat-num">97.5%</span><span class="stat-label">RTP Target</span></div>
+        </div>
+        <p class="welcome-hint">Paste a Bearer token in the top-right to enable Try It requests.</p>
+      </div>
+      <div id="endpointView" class="hidden">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   MOCK DATABASE
+   ===================================================================== */
+const MOCK_DB = {
+  spinResults: [
+    {
+      spinId: "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      sessionId: "sess-001",
+      playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
+      betLevel: 5,
+      baseBet: 0.50,
+      totalBet: 0.50,
+      totalWin: 2.50,
+      newBalance: 997.75,
+      currency: "USD",
+      extraBetActive: false,
+      buyFeatureActive: false,
+      initialGrid: [
+        ["P2","L1","P4","W","L3"],
+        ["L2","P1","L4","P3","L1"],
+        ["P4","L3","W","L2","P2"]
+      ],
+      finalGrid: [
+        ["L3","P2","L1","P4","W"],
+        ["P2","L2","P1","L4","P3"],
+        ["L4","P4","L3","W","L2"],
+        ["P3","L1","P2","L3","P4"]
+      ],
+      finalRows: 4,
+      cascadeSequence: {
+        steps: [
+          {
+            index: 0,
+            grid: [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
+            winLines: [{ paylineId: 3, symbolId: "L2", matchCount: 3, positions: [{"row":1,"col":0},{"row":1,"col":1},{"row":1,"col":2}], payout: 1.25 }],
+            stepWin: 1.25,
+            newLightningMarks: [{"row":1,"col":0},{"row":1,"col":1},{"row":1,"col":2}],
+            rows: 3
+          },
+          {
+            index: 1,
+            grid: [["L3","P2","L1","P4","W"],["P2","L2","P1","L4","P3"],["L4","P4","L3","W","L2"],["P3","L1","P2","L3","P4"]],
+            winLines: [{ paylineId: 1, symbolId: "P4", matchCount: 3, positions: [{"row":0,"col":3},{"row":2,"col":1},{"row":3,"col":4}], payout: 1.25 }],
+            stepWin: 1.25,
+            newLightningMarks: [{"row":0,"col":3},{"row":2,"col":1},{"row":3,"col":4}],
+            rows: 4
+          }
+        ],
+        totalWin: 2.50,
+        finalGrid: [["L3","P2","L1","P4","W"],["P2","L2","P1","L4","P3"],["L4","P4","L3","W","L2"],["P3","L1","P2","L3","P4"]],
+        finalRows: 4,
+        lightningMarks: { positions: [{"row":1,"col":0},{"row":1,"col":1},{"row":1,"col":2},{"row":0,"col":3},{"row":2,"col":1},{"row":3,"col":4}], count: 6 }
+      },
+      thunderBlessingTriggered: false, thunderBlessingFirstHit: false, thunderBlessingSecondHit: false,
+      upgradedSymbol: null, thunderBlessingResult: null,
+      coinTossTriggered: false, coinTossResult: null,
+      fgTriggered: false, fgMultiplier: null, fgRounds: [], fgBonusMultiplier: null, totalFGWin: null,
+      sessionFloorApplied: false, sessionFloorValue: null, nearMissApplied: false,
+      engineVersion: "1.0.0", timestamp: new Date().toISOString()
+    },
+    {
+      spinId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      sessionId: "sess-002",
+      playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
+      betLevel: 7,
+      baseBet: 1.00,
+      totalBet: 1.00,
+      totalWin: 364.75,
+      newBalance: 1364.25,
+      currency: "USD",
+      extraBetActive: false,
+      buyFeatureActive: false,
+      initialGrid: [
+        ["P1","L2","SC","P3","L4"],
+        ["L1","P2","L3","W","P4"],
+        ["P3","L4","P1","L2","L1"]
+      ],
+      finalGrid: [
+        ["L2","P2","L3","P1","L4"],
+        ["P4","L1","P3","L2","P2"],
+        ["L3","P4","L1","P3","L3"],
+        ["P2","L3","P4","L1","P4"],
+        ["L1","P1","L2","P4","L2"],
+        ["P3","L2","P1","L3","P1"]
+      ],
+      finalRows: 6,
+      cascadeSequence: {
+        steps: [{
+          index: 0,
+          grid: [["P1","L2","SC","P3","L4"],["L1","P2","L3","W","P4"],["P3","L4","P1","L2","L1"]],
+          winLines: [{ paylineId: 7, symbolId: "P1", matchCount: 3, positions: [{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}], payout: 3.00 }],
+          stepWin: 3.00,
+          newLightningMarks: [{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}],
+          rows: 3
+        }],
+        totalWin: 3.00,
+        finalGrid: [["L2","P2","L3","P1","L4"],["P4","L1","P3","L2","P2"],["L3","P4","L1","P3","L3"],["P2","L3","P4","L1","P4"],["L1","P1","L2","P4","L2"],["P3","L2","P1","L3","P1"]],
+        finalRows: 6,
+        lightningMarks: { positions: [{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}], count: 3 }
+      },
+      thunderBlessingTriggered: true, thunderBlessingFirstHit: true, thunderBlessingSecondHit: false,
+      upgradedSymbol: "P2",
+      thunderBlessingResult: { marksConverted: [{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}], convertedSymbol: "P2", firstHitApplied: true, secondHitApplied: false },
+      coinTossTriggered: true, coinTossResult: "HEADS",
+      fgTriggered: true, fgMultiplier: 7,
+      fgRounds: [
+        { round: 1, multiplier: 3, bonusMultiplier: 5, grid: [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]], cascadeSequence: { steps: [], totalWin: 8.50, finalGrid: [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]], finalRows: 3, lightningMarks: { positions: [{"row":0,"col":4}], count: 1 } }, roundWin: 8.50, coinTossResult: "HEADS", lightningMarksBefore: { positions: [], count: 0 }, lightningMarksAfter: { positions: [{"row":0,"col":4}], count: 1 } },
+        { round: 2, multiplier: 7, bonusMultiplier: 5, grid: [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]], cascadeSequence: { steps: [], totalWin: 4.95, finalGrid: [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]], finalRows: 3, lightningMarks: { positions: [], count: 0 } }, roundWin: 4.95, coinTossResult: "TAILS", lightningMarksBefore: { positions: [{"row":0,"col":4}], count: 1 }, lightningMarksAfter: { positions: [], count: 0 } }
+      ],
+      fgBonusMultiplier: 5,
+      totalFGWin: 13.45,
+      sessionFloorApplied: false, sessionFloorValue: null, nearMissApplied: false,
+      engineVersion: "1.0.0", timestamp: new Date().toISOString()
+    },
+    {
+      spinId: "deadbeef-cafe-1234-5678-90abcdef1234",
+      sessionId: "sess-003",
+      playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
+      betLevel: 10,
+      baseBet: 2.00,
+      totalBet: 2.00,
+      totalWin: 7500.00,
+      newBalance: 8499.75,
+      currency: "USD",
+      extraBetActive: false,
+      buyFeatureActive: false,
+      initialGrid: [
+        ["P1","SC","P1","SC","P1"],
+        ["L1","P2","L3","W","P3"],
+        ["P3","L4","P1","L2","L1"]
+      ],
+      finalGrid: [
+        ["P1","P2","P3","P4","P1"],
+        ["P2","P1","P2","P1","P2"],
+        ["P1","P2","P1","P2","P1"],
+        ["P3","P1","P3","P1","P3"],
+        ["P1","P3","P1","P3","P1"],
+        ["P2","P1","P2","P1","P2"]
+      ],
+      finalRows: 6,
+      cascadeSequence: {
+        steps: [{
+          index: 0,
+          grid: [["P1","SC","P1","SC","P1"],["L1","P2","L3","W","P3"],["P3","L4","P1","L2","L1"]],
+          winLines: [{ paylineId: 1, symbolId: "P1", matchCount: 5, positions: [{"row":0,"col":0},{"row":0,"col":1},{"row":0,"col":2},{"row":0,"col":3},{"row":0,"col":4}], payout: 100.00 }],
+          stepWin: 100.00,
+          newLightningMarks: [{"row":0,"col":0},{"row":0,"col":1},{"row":0,"col":2},{"row":0,"col":3},{"row":0,"col":4}],
+          rows: 6
+        }],
+        totalWin: 100.00,
+        finalGrid: [["P1","P2","P3","P4","P1"],["P2","P1","P2","P1","P2"],["P1","P2","P1","P2","P1"],["P3","P1","P3","P1","P3"],["P1","P3","P1","P3","P1"],["P2","P1","P2","P1","P2"]],
+        finalRows: 6,
+        lightningMarks: { positions: [{"row":0,"col":0},{"row":0,"col":1},{"row":0,"col":2},{"row":0,"col":3},{"row":0,"col":4}], count: 5 }
+      },
+      thunderBlessingTriggered: true, thunderBlessingFirstHit: true, thunderBlessingSecondHit: true,
+      upgradedSymbol: "P1",
+      thunderBlessingResult: { marksConverted: [{"row":0,"col":0},{"row":0,"col":1},{"row":0,"col":2},{"row":0,"col":3},{"row":0,"col":4}], convertedSymbol: "P1", firstHitApplied: true, secondHitApplied: true },
+      coinTossTriggered: true, coinTossResult: "HEADS",
+      fgTriggered: true, fgMultiplier: 77,
+      fgRounds: [
+        { round: 1, multiplier: 3, bonusMultiplier: 20, grid: [["P1","W","P1","W","P1"],["P2","P1","P2","P1","P2"],["P1","P2","P1","P2","P1"]], cascadeSequence: { steps: [], totalWin: 45.00, finalGrid: [["P1","W","P1","W","P1"],["P2","P1","P2","P1","P2"],["P1","P2","P1","P2","P1"]], finalRows: 3, lightningMarks: { positions: [{"row":0,"col":0},{"row":0,"col":2},{"row":0,"col":4}], count: 3 } }, roundWin: 45.00, coinTossResult: "HEADS", lightningMarksBefore: { positions: [], count: 0 }, lightningMarksAfter: { positions: [{"row":0,"col":0},{"row":0,"col":2},{"row":0,"col":4}], count: 3 } }
+      ],
+      fgBonusMultiplier: 20,
+      totalFGWin: 45.00,
+      sessionFloorApplied: false, sessionFloorValue: null, nearMissApplied: false,
+      engineVersion: "1.0.0", timestamp: new Date().toISOString()
+    }
+  ],
+  sessions: [
+    { sessionId: "sess-001", playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", status: "IDLE", baseBet: 0.50, currency: "USD", extraBet: false, buyFeature: false, fgRound: 0, fgMultiplier: null, fgBonusMultiplier: null, totalFGWin: 0, lightningMarks: { positions: [], count: 0 }, floorValue: null, completedRounds: [], remainingMaxRounds: 5, ttlSeconds: 1437 },
+    { sessionId: "sess-002", playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", status: "FG_ACTIVE", baseBet: 1.00, currency: "USD", extraBet: false, buyFeature: false, fgRound: 2, fgMultiplier: 7, fgBonusMultiplier: 5, totalFGWin: 8.50, lightningMarks: { positions: [{"row":0,"col":4},{"row":1,"col":2}], count: 2 }, floorValue: null, completedRounds: [{ round: 1, multiplier: 3, bonusMultiplier: 5, grid: [], cascadeSequence: { steps: [], totalWin: 8.50, finalGrid: [], finalRows: 3, lightningMarks: { positions: [], count: 0 } }, roundWin: 8.50, coinTossResult: "HEADS", lightningMarksBefore: { positions: [], count: 0 }, lightningMarksAfter: { positions: [{"row":0,"col":4},{"row":1,"col":2}], count: 2 } }], remainingMaxRounds: 4, ttlSeconds: 243 },
+    { sessionId: "sess-003", playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", status: "SPINNING", baseBet: 2.00, currency: "USD", extraBet: false, buyFeature: false, fgRound: 0, fgMultiplier: null, fgBonusMultiplier: null, totalFGWin: 0, lightningMarks: { positions: [], count: 0 }, floorValue: null, completedRounds: [], remainingMaxRounds: 5, ttlSeconds: 1792 }
+  ],
+  config: {
+    engineVersion: "1.0.0",
+    betRange: {
+      USD: {
+        minBetLevel: 1, maxBetLevel: 20,
+        levels: [
+          { level: 1,  baseBet: 0.10, extraBetCost: 0.30,  buyFeatureCost: 10.00  },
+          { level: 5,  baseBet: 0.50, extraBetCost: 1.50,  buyFeatureCost: 50.00  },
+          { level: 7,  baseBet: 1.00, extraBetCost: 3.00,  buyFeatureCost: 100.00 },
+          { level: 10, baseBet: 2.00, extraBetCost: 6.00,  buyFeatureCost: 200.00 },
+          { level: 15, baseBet: 5.00, extraBetCost: 15.00, buyFeatureCost: 500.00 },
+          { level: 20, baseBet: 10.00,extraBetCost: 30.00, buyFeatureCost: 1000.00}
+        ]
+      },
+      TWD: {
+        minBetLevel: 1, maxBetLevel: 320,
+        levels: [
+          { level: 1,   baseBet: 3,   extraBetCost: 9,    buyFeatureCost: 300   },
+          { level: 10,  baseBet: 30,  extraBetCost: 90,   buyFeatureCost: 3000  },
+          { level: 50,  baseBet: 150, extraBetCost: 450,  buyFeatureCost: 15000 },
+          { level: 100, baseBet: 300, extraBetCost: 900,  buyFeatureCost: 30000 },
+          { level: 320, baseBet: 600, extraBetCost: 1800, buyFeatureCost: 60000 }
+        ]
+      }
+    },
+    gameParameters: {
+      reels: 5, initialRows: 3, maxRows: 6,
+      paylines: { at3Rows: 25, at4Rows: 33, at5Rows: 45, at6Rows: 57 },
+      symbols: [
+        { id: "W",  name: "Wild (Divine Lightning)", isWild: true,  isScatter: false },
+        { id: "SC", name: "Thunder Blessing Scatter", isWild: false, isScatter: true  },
+        { id: "P1", name: "Zeus",    isWild: false, isScatter: false, tier: "premium" },
+        { id: "P2", name: "Pegasus", isWild: false, isScatter: false, tier: "premium" },
+        { id: "P3", name: "Athena",  isWild: false, isScatter: false, tier: "premium" },
+        { id: "P4", name: "Eagle",   isWild: false, isScatter: false, tier: "premium" },
+        { id: "L1", name: "Z",       isWild: false, isScatter: false, tier: "low" },
+        { id: "L2", name: "E",       isWild: false, isScatter: false, tier: "low" },
+        { id: "L3", name: "U",       isWild: false, isScatter: false, tier: "low" },
+        { id: "L4", name: "S",       isWild: false, isScatter: false, tier: "low" }
+      ],
+      fgMultiplierSequence: [3, 7, 17, 27, 77],
+      fgBonusMultipliers: [1, 5, 20, 100],
+      coinTossProbabilities: {
+        stage0_entry: 0.80, stage1_x7: 0.68, stage2_x17: 0.56, stage3_x27: 0.48, stage4_x77: 0.40
+      },
+      maxWin: { mainGame: 30000, buyFeature: 90000, extraBetBuyFeature: 90000, unit: "× baseBet" },
+      buyFeatureSessionFloor: 20,
+      extraBetCostMultiplier: 3,
+      buyFeatureCostMultiplier: 100
+    },
+    rtpTargets: {
+      mainGame:    { target: 97.5, tolerance: 1.0, unit: "%" },
+      extraBet:    { target: 97.5, tolerance: 1.0, unit: "%" },
+      buyFeature:  { target: 97.5, tolerance: 1.0, unit: "%" },
+      ebBuyFeature:{ target: 97.5, tolerance: 1.0, unit: "%" }
+    }
+  }
+};
+
+/* =====================================================================
+   ENDPOINT DEFINITIONS
+   ===================================================================== */
+const ENDPOINTS = [
+  {
+    id: "post-spin",
+    method: "POST",
+    path: "/v1/spin",
+    group: "Game",
+    name: "Execute Spin",
+    summary: "Execute a single spin and receive the complete FullSpinOutcome including all Cascade steps, Thunder Blessing results, Coin Toss outcome, and all Free Game rounds. Single-trip endpoint — one POST returns everything needed to render the entire game round.",
+    auth: true,
+    rateLimit: "5 req/s",
+    params: [],
+    bodyFields: [
+      { name: "playerId", type: "string (UUID)", required: true, desc: "Player UUID — must match JWT sub claim" },
+      { name: "sessionId", type: "string | null", required: false, desc: "Session identifier (format: sess-{uuid}). Null for a new spin." },
+      { name: "betLevel", type: "integer (1–320)", required: true, desc: "Bet level index. USD: 1–20. TWD: 1–320." },
+      { name: "currency", type: "enum", required: true, desc: "Player's selected currency. Determines baseBet from BetRangeConfig.", enum: ["USD", "TWD"] },
+      { name: "extraBet", type: "boolean", required: true, desc: "If true: spin cost ×3; guaranteed Scatter in grid." },
+      { name: "buyFeature", type: "boolean", required: true, desc: "If true: spin cost ×100; guaranteed Heads×5 FG; session floor ≥ 20× baseBet." }
+    ],
+    presets: [
+      {
+        label: "Normal spin",
+        body: { playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", sessionId: null, betLevel: 5, currency: "USD", extraBet: false, buyFeature: false }
+      },
+      {
+        label: "Extra Bet",
+        body: { playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", sessionId: null, betLevel: 7, currency: "USD", extraBet: true, buyFeature: false }
+      },
+      {
+        label: "Buy Feature",
+        body: { playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", sessionId: null, betLevel: 5, currency: "USD", extraBet: false, buyFeature: true }
+      },
+      {
+        label: "TWD spin",
+        body: { playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", sessionId: null, betLevel: 10, currency: "TWD", extraBet: false, buyFeature: false }
+      }
+    ],
+    getMockResponse(body) {
+      // Normal spin → index 0, TB triggered → index 1, big win → index 2
+      let idx = 0;
+      try {
+        const parsed = typeof body === 'string' ? JSON.parse(body) : body;
+        if (parsed.buyFeature) idx = 2;
+        else if (parsed.extraBet) idx = 1;
+        else if (parsed.betLevel >= 10) idx = 2;
+        else if (parsed.betLevel >= 7) idx = 1;
+      } catch(e) {}
+      const r = MOCK_DB.spinResults[idx];
+      const ts = new Date().toISOString();
+      return { success: true, requestId: randomUUID(), timestamp: ts, data: { ...r, timestamp: ts, newBalance: (999.00 - r.totalBet + r.totalWin).toFixed(2) - 0 } };
+    },
+    errors: [
+      { status: 400, code: "INSUFFICIENT_FUNDS", desc: "balance < totalBet" },
+      { status: 400, code: "INVALID_BET_LEVEL", desc: "betLevel out of range for given currency" },
+      { status: 400, code: "INVALID_CURRENCY", desc: "currency is not USD or TWD" },
+      { status: 400, code: "BUY_FEATURE_NOT_ALLOWED", desc: "buyFeature: true at an invalid bet level" },
+      { status: 400, code: "VALIDATION_ERROR", desc: "Missing required field, wrong type, or invalid enum" },
+      { status: 401, code: "UNAUTHORIZED", desc: "JWT missing, expired, or invalid signature" },
+      { status: 403, code: "FORBIDDEN", desc: "Account suspended" },
+      { status: 409, code: "SPIN_IN_PROGRESS", desc: "Redis concurrency lock already held for this session" },
+      { status: 422, code: "VALIDATION_ERROR", desc: "Semantically invalid payload (extraBet/buyFeature unavailable)" },
+      { status: 429, code: "RATE_LIMITED", desc: "More than 5 req/s per player" },
+      { status: 500, code: "INTERNAL_ERROR", desc: "Unexpected server-side error" },
+      { status: 503, code: "SERVICE_UNAVAILABLE", desc: "Circuit breaker open — DB or cache unavailable" },
+      { status: 504, code: "ENGINE_TIMEOUT", desc: "Engine took > 2000ms; compensating credit issued" }
+    ]
+  },
+  {
+    id: "get-session",
+    method: "GET",
+    path: "/v1/session/:sessionId",
+    group: "Session",
+    name: "Get Session State",
+    summary: "Reconnect endpoint. Returns current in-flight FG session state from Redis. Used when the client disconnects mid-FG sequence. Session expires after 1800s of inactivity.",
+    auth: true,
+    rateLimit: "5 req/s",
+    params: [
+      { name: "sessionId", type: "string", in: "path", required: true, desc: "Session ID returned in POST /v1/spin response (format: sess-{uuid})", enum: ["sess-001","sess-002","sess-003"] }
+    ],
+    bodyFields: [],
+    presets: [],
+    getMockResponse(body, pathParams) {
+      const sid = pathParams?.sessionId || "sess-001";
+      const session = MOCK_DB.sessions.find(s => s.sessionId === sid) || MOCK_DB.sessions[1];
+      return { success: true, requestId: randomUUID(), timestamp: new Date().toISOString(), data: { ...session, ttlSeconds: Math.floor(Math.random() * 1500 + 100) } };
+    },
+    errors: [
+      { status: 401, code: "UNAUTHORIZED", desc: "JWT missing or expired" },
+      { status: 403, code: "FORBIDDEN", desc: "playerId in session does not match JWT sub" },
+      { status: 404, code: "SESSION_NOT_FOUND", desc: "Session ID does not exist or TTL expired (1800s)" }
+    ]
+  },
+  {
+    id: "get-config",
+    method: "GET",
+    path: "/v1/config",
+    group: "Game",
+    name: "Get Game Config",
+    summary: "Returns game configuration for the frontend: bet level table (USD and TWD), game parameters summary, and RTP targets. Used at game startup to initialize the bet selector UI.",
+    auth: true,
+    rateLimit: "5 req/s",
+    params: [
+      { name: "currency", type: "enum", in: "query", required: false, desc: "Filter to USD or TWD bet levels only. Omit to return both.", enum: ["USD", "TWD"] }
+    ],
+    bodyFields: [],
+    presets: [],
+    getMockResponse(body) {
+      return { success: true, requestId: randomUUID(), timestamp: new Date().toISOString(), data: MOCK_DB.config };
+    },
+    errors: [
+      { status: 401, code: "UNAUTHORIZED", desc: "JWT missing or expired" },
+      { status: 429, code: "RATE_LIMITED", desc: "Rate limit exceeded" },
+      { status: 500, code: "INTERNAL_ERROR", desc: "Unexpected server error" }
+    ]
+  },
+  {
+    id: "get-health",
+    method: "GET",
+    path: "/health",
+    group: "Operations",
+    name: "Health Check",
+    summary: "Kubernetes liveness probe. Returns immediately without checking dependencies. If the process is up and the event loop is running, this returns 200.",
+    auth: false,
+    rateLimit: "None",
+    params: [],
+    bodyFields: [],
+    presets: [],
+    getMockResponse() {
+      return { status: "ok", timestamp: new Date().toISOString() };
+    },
+    errors: []
+  },
+  {
+    id: "get-ready",
+    method: "GET",
+    path: "/ready",
+    group: "Operations",
+    name: "Readiness Check",
+    summary: "Kubernetes readiness probe. Checks live connectivity to Supabase PostgreSQL and Redis before marking the pod ready. A pod that fails readiness is removed from the load balancer.",
+    auth: false,
+    rateLimit: "None",
+    params: [],
+    bodyFields: [],
+    presets: [],
+    getMockResponse() {
+      return {
+        status: "ready",
+        timestamp: new Date().toISOString(),
+        checks: {
+          postgresql: { status: "ok", latencyMs: 4 },
+          redis:      { status: "ok", latencyMs: 1 }
+        }
+      };
+    },
+    errors: [
+      { status: 503, code: "SERVICE_UNAVAILABLE", desc: "PostgreSQL or Redis check failed" }
+    ]
+  }
+];
+
+/* =====================================================================
+   UTILITIES
+   ===================================================================== */
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function escapeHTML(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function syntaxHighlight(json) {
+  // Serialize to a string first, then HTML-escape the entire payload so that
+  // any <, >, &, or quote characters in JSON values cannot break out of the
+  // <span> tags we wrap them in.  The regex then matches on the already-escaped
+  // text, so all class labels and token boundaries remain correct.
+  if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
+  const safe = escapeHTML(json);
+  return safe.replace(/(&quot;(\\u[a-zA-Z0-9]{4}|\\[^u]|[^&\\"])*&quot;(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+    let cls = 'json-number';
+    if (/^&quot;/.test(match)) {
+      cls = /:$/.test(match) ? 'json-key' : 'json-string';
+    } else if (/true|false/.test(match)) {
+      cls = 'json-bool';
+    } else if (/null/.test(match)) {
+      cls = 'json-null';
+    }
+    return `<span class="${cls}">${match}</span>`;
+  });
+}
+
+function buildCurl(endpoint, body, pathParams) {
+  const base = 'https://api.thunderblessing.io';
+  let url = base + endpoint.path;
+  if (pathParams) {
+    Object.entries(pathParams).forEach(([k, v]) => { url = url.replace(`:${k}`, v); });
+  }
+  const token = document.getElementById('tokenInput').value || '<your_bearer_token>';
+  let cmd = `curl -X ${endpoint.method} \\\n  "${url}"`;
+  cmd += ` \\\n  -H "Authorization: Bearer ${token}"`;
+  if (endpoint.method !== 'GET') {
+    cmd += ` \\\n  -H "Content-Type: application/json"`;
+    cmd += ` \\\n  -d '${typeof body === 'string' ? body : JSON.stringify(body, null, 2)}'`;
+  }
+  return cmd;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+let activeEndpointId = null;
+
+/* =====================================================================
+   SIDEBAR
+   ===================================================================== */
+function buildSidebar(filter = '') {
+  const nav = document.getElementById('sidebarNav');
+  const groups = {};
+  ENDPOINTS.forEach(ep => {
+    if (filter && !ep.path.toLowerCase().includes(filter.toLowerCase()) && !ep.name.toLowerCase().includes(filter.toLowerCase())) return;
+    if (!groups[ep.group]) groups[ep.group] = [];
+    groups[ep.group].push(ep);
+  });
+  nav.innerHTML = '';
+  Object.entries(groups).forEach(([group, eps]) => {
+    const gl = document.createElement('div');
+    gl.className = 'group-label';
+    gl.textContent = group;
+    nav.appendChild(gl);
+    eps.forEach(ep => {
+      const item = document.createElement('a');
+      item.className = 'ep-item' + (ep.id === activeEndpointId ? ' active' : '');
+      item.href = '#endpoint-' + ep.id;
+      item.dataset.id = ep.id;
+      item.innerHTML = `
+        <span class="method-badge method-${ep.method}">${ep.method}</span>
+        <span class="ep-path">${ep.path}</span>
+      `;
+      item.addEventListener('click', e => { e.preventDefault(); selectEndpoint(ep.id); });
+      nav.appendChild(item);
+    });
+  });
+}
+
+/* =====================================================================
+   ENDPOINT VIEW
+   ===================================================================== */
+function selectEndpoint(id) {
+  activeEndpointId = id;
+  history.replaceState(null, '', '#endpoint-' + id);
+  buildSidebar(document.getElementById('searchInput').value);
+
+  const ep = ENDPOINTS.find(e => e.id === id);
+  if (!ep) return;
+
+  document.getElementById('welcomeView').classList.add('hidden');
+  document.getElementById('endpointView').classList.remove('hidden');
+
+  renderEndpoint(ep);
+}
+
+function renderEndpoint(ep) {
+  const view = document.getElementById('endpointView');
+  const methodClass = `method-${ep.method}`;
+  const methodLgClass = ep.method === 'GET' ? 'method-GET' : 'method-POST';
+
+  // Build params section
+  let paramsHTML = '';
+  if (ep.params.length > 0) {
+    paramsHTML = `
+      <div class="section">
+        <div class="section-title">Parameters</div>
+        <table class="params-table">
+          <thead><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            ${ep.params.map(p => `
+              <tr>
+                <td><span class="param-name">${p.name}</span></td>
+                <td><span class="param-type">${p.in || 'query'}</span></td>
+                <td><span class="param-type">${p.type}</span></td>
+                <td>${p.required ? '<span class="param-req">required</span>' : '<span class="param-opt">optional</span>'}</td>
+                <td>
+                  <span class="param-desc">${p.desc}</span>
+                  ${p.enum ? `<div class="param-enum">${p.enum.map(v => `<button class="chip" data-param="${p.name}" data-val="${v}">${v}</button>`).join('')}</div>` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // Build body fields
+  let bodyFieldsHTML = '';
+  if (ep.bodyFields.length > 0) {
+    bodyFieldsHTML = `
+      <div class="section">
+        <div class="section-title">Request Body Schema</div>
+        <table class="params-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            ${ep.bodyFields.map(f => `
+              <tr>
+                <td><span class="param-name">${f.name}</span></td>
+                <td><span class="param-type">${f.type}</span></td>
+                <td>${f.required ? '<span class="param-req">required</span>' : '<span class="param-opt">optional</span>'}</td>
+                <td>
+                  <span class="param-desc">${f.desc}</span>
+                  ${f.enum ? `<div class="param-enum">${f.enum.map(v => `<button class="chip" data-field="${f.name}" data-val="${v}">${v}</button>`).join('')}</div>` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // Build errors section
+  let errorsHTML = '';
+  if (ep.errors.length > 0) {
+    errorsHTML = `
+      <div class="section">
+        <div class="section-title">Error Responses</div>
+        <table class="error-table">
+          <thead><tr><th>HTTP</th><th>Code</th><th>Description</th></tr></thead>
+          <tbody>
+            ${ep.errors.map(e => {
+              const cls = e.status < 400 ? 'http-2xx' : e.status < 500 ? 'http-4xx' : 'http-5xx';
+              return `<tr>
+                <td><span class="http-code ${cls}">${e.status}</span></td>
+                <td><span class="err-code">${e.code}</span></td>
+                <td><span class="err-desc">${e.desc}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // Default body
+  const defaultBody = ep.presets.length > 0 ? JSON.stringify(ep.presets[0].body, null, 2) : '{}';
+  const defaultPathParam = ep.params.find(p => p.in === 'path');
+
+  view.innerHTML = `
+    <div class="ep-header">
+      <span class="method-badge ep-method-lg ${methodLgClass}">${ep.method}</span>
+      <div class="ep-info">
+        <h1>${ep.name}</h1>
+        <div class="ep-url-display">${ep.path}</div>
+      </div>
+    </div>
+    <p class="ep-summary">${ep.summary}</p>
+    <div class="tags-row">
+      ${ep.auth ? '<span class="tag tag-auth">⚿ JWT Required</span>' : '<span class="tag tag-noauth">Public</span>'}
+      ${ep.rateLimit !== 'None' ? `<span class="tag tag-rate">⏱ Rate Limit: ${ep.rateLimit}</span>` : ''}
+    </div>
+
+    ${paramsHTML}
+    ${bodyFieldsHTML}
+
+    <div class="section">
+      <div class="section-title">Try It</div>
+      <div class="try-section">
+        <div class="try-header">
+          <span class="try-title">Request</span>
+          <div class="try-actions">
+            <button class="btn btn-secondary" id="copyCurlBtn">Copy as cURL</button>
+            <button class="btn btn-primary" id="sendBtn">⚡ Send Request</button>
+          </div>
+        </div>
+        <div class="try-body">
+          ${defaultPathParam ? `
+            <div class="form-row">
+              <label>${defaultPathParam.name} <span class="param-req">(path)</span></label>
+              ${defaultPathParam.enum ? `
+                <div class="presets-row" style="margin-bottom: 6px;">
+                  ${defaultPathParam.enum.map((v, i) => `<button class="preset-btn path-preset" data-val="${v}">${v}</button>`).join('')}
+                </div>
+              ` : ''}
+              <input type="text" id="pathParamInput" class="form-input" value="${defaultPathParam.enum ? defaultPathParam.enum[0] : ''}" placeholder="${defaultPathParam.name}" />
+            </div>
+          ` : ''}
+          ${ep.bodyFields.length > 0 ? `
+            <div class="form-row">
+              <label>Request Body</label>
+              ${ep.presets.length > 0 ? `
+                <div class="presets-row">
+                  ${ep.presets.map((p, i) => `<button class="preset-btn body-preset" data-idx="${i}">${p.label}</button>`).join('')}
+                </div>
+              ` : ''}
+              <textarea id="bodyInput" class="form-textarea" style="min-height: 160px;">${defaultBody}</textarea>
+            </div>
+          ` : ''}
+          ${ep.params.filter(p => p.in === 'query').length > 0 ? `
+            <div class="form-row">
+              <label>Query Parameters</label>
+              ${ep.params.filter(p => p.in === 'query').map(p => `
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:11px;color:var(--gold);min-width:80px;">${p.name}</span>
+                  ${p.enum ? `
+                    <select id="queryparam_${p.name}" class="form-select" style="max-width:160px;">
+                      <option value="">— any —</option>
+                      ${p.enum.map(v => `<option value="${v}">${v}</option>`).join('')}
+                    </select>
+                  ` : `<input type="text" id="queryparam_${p.name}" class="form-input" style="max-width:200px;" placeholder="optional" />`}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div id="responseSection" class="response-section hidden">
+      <div class="section-title">Response</div>
+      <div class="response-header">
+        <span id="statusBadge" class="status-badge"></span>
+        <span id="responseTime" class="response-time"></span>
+      </div>
+      <div class="response-body">
+        <pre id="responseBody"></pre>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 20px;">
+      <div class="section-title">cURL</div>
+      <div class="curl-block" id="curlBlock">
+        <button class="curl-copy-btn" id="curlCopyBtn2">Copy</button>
+        <span id="curlText"></span>
+      </div>
+    </div>
+
+    ${errorsHTML}
+  `;
+
+  // Wire up initial curl
+  updateCurl(ep);
+
+  // Event: send
+  document.getElementById('sendBtn').addEventListener('click', () => sendRequest(ep));
+
+  // Event: copy curl (header button)
+  document.getElementById('copyCurlBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('curlText').textContent);
+    showToast('cURL copied to clipboard');
+  });
+  // Event: copy curl (block button)
+  document.getElementById('curlCopyBtn2').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('curlText').textContent);
+    showToast('cURL copied to clipboard');
+  });
+
+  // Event: body presets
+  view.querySelectorAll('.body-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      document.getElementById('bodyInput').value = JSON.stringify(ep.presets[idx].body, null, 2);
+      updateCurl(ep);
+    });
+  });
+
+  // Event: path presets
+  view.querySelectorAll('.path-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('pathParamInput').value = btn.dataset.val;
+      updateCurl(ep);
+    });
+  });
+
+  // Event: chips (body fields)
+  view.querySelectorAll('.chip[data-field]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const field = chip.dataset.field;
+      const val = chip.dataset.val;
+      // Toggle selection
+      view.querySelectorAll(`.chip[data-field="${field}"]`).forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      // Update textarea
+      try {
+        const ta = document.getElementById('bodyInput');
+        if (ta) {
+          const obj = JSON.parse(ta.value || '{}');
+          obj[field] = val;
+          ta.value = JSON.stringify(obj, null, 2);
+          updateCurl(ep);
+        }
+      } catch(e) {}
+    });
+  });
+
+  // Event: live textarea change
+  const bodyInput = document.getElementById('bodyInput');
+  if (bodyInput) bodyInput.addEventListener('input', () => updateCurl(ep));
+  const pathInput = document.getElementById('pathParamInput');
+  if (pathInput) pathInput.addEventListener('input', () => updateCurl(ep));
+
+  // Query param change
+  ep.params.filter(p => p.in === 'query').forEach(p => {
+    const el = document.getElementById(`queryparam_${p.name}`);
+    if (el) el.addEventListener('change', () => updateCurl(ep));
+  });
+}
+
+function getPathParams(ep) {
+  const input = document.getElementById('pathParamInput');
+  const pathParam = ep.params.find(p => p.in === 'path');
+  if (!pathParam || !input) return {};
+  return { [pathParam.name]: input.value };
+}
+
+function getBody(ep) {
+  const input = document.getElementById('bodyInput');
+  if (!input) return null;
+  try { return JSON.parse(input.value); } catch(e) { return input.value; }
+}
+
+function updateCurl(ep) {
+  const body = ep.bodyFields.length > 0 ? getBody(ep) : null;
+  const pathParams = getPathParams(ep);
+  const txt = document.getElementById('curlText');
+  if (txt) txt.textContent = buildCurl(ep, body, pathParams);
+}
+
+function sendRequest(ep) {
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Sending…';
+
+  const start = performance.now();
+  const delay = 150 + Math.random() * 80; // 150–230ms simulated
+
+  setTimeout(() => {
+    const elapsed = Math.round(performance.now() - start);
+    const body = ep.bodyFields.length > 0 ? getBody(ep) : null;
+    const pathParams = getPathParams(ep);
+    const resp = ep.getMockResponse(body, pathParams);
+
+    // Render response
+    const section = document.getElementById('responseSection');
+    const badge = document.getElementById('statusBadge');
+    const timeEl = document.getElementById('responseTime');
+    const bodyEl = document.getElementById('responseBody');
+
+    section.classList.remove('hidden');
+    badge.textContent = '200 OK';
+    badge.className = 'status-badge status-2xx';
+    timeEl.textContent = `${elapsed}ms (simulated)`;
+    bodyEl.innerHTML = syntaxHighlight(JSON.stringify(resp, null, 2));
+
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Send Request';
+
+    // Scroll to response
+    setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  }, delay);
+}
+
+/* =====================================================================
+   AUTH
+   ===================================================================== */
+function initAuth() {
+  const input = document.getElementById('tokenInput');
+  const status = document.getElementById('authStatus');
+  const saved = localStorage.getItem('tb_bearer_token');
+  if (saved) { input.value = saved; status.classList.add('active'); }
+  input.addEventListener('input', () => {
+    const val = input.value.trim();
+    localStorage.setItem('tb_bearer_token', val);
+    status.classList.toggle('active', val.length > 20);
+  });
+}
+
+/* =====================================================================
+   SEARCH
+   ===================================================================== */
+document.getElementById('searchInput').addEventListener('input', e => {
+  buildSidebar(e.target.value);
+});
+
+/* =====================================================================
+   DEEP LINK
+   ===================================================================== */
+function handleHash() {
+  const hash = location.hash;
+  if (hash.startsWith('#endpoint-')) {
+    const id = hash.replace('#endpoint-', '');
+    if (ENDPOINTS.find(e => e.id === id)) selectEndpoint(id);
+  }
+}
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+buildSidebar();
+initAuth();
+handleHash();
+window.addEventListener('hashchange', handleHash);
+</script>
+</body>
+</html>
