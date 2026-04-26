@@ -2034,8 +2034,8 @@ describe('WinRollupAnimation', () => {
 describe('AnimationQueue', () => {
   it('builds correct step count for a FG-triggered outcome', () => {
     const queue = new AnimationQueue();
-    queue.build(mockFGOutcome);  // 3 cascade steps + TB + coin toss + FG entry + 3 FG rounds + FG complete + win display
-    expect(queue.length).toBe(11);
+    queue.build(mockFGOutcome);  // 3 cascade steps + TB + coin toss + FG entry + 3 FG rounds + FG complete (WIN_DISPLAY skipped — fgTriggered=true)
+    expect(queue.length).toBe(10);
   });
 
   it('places FG_ENTRY before first FG_ROUND in queue', async () => {
