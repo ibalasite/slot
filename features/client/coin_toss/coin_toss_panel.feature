@@ -55,7 +55,8 @@ Feature: Coin Toss Panel — UI Behavior
     And no multiplier progress bar advancement occurs
     And each Lightning Mark position shows a conversion animation where the mark transforms into an upgraded symbol
     And the Coin Toss overlay fades out
-    And the game returns to the IDLE state in the main game scene
+    Then the game returns to normal payline evaluation with the newly converted symbols in position
+    And after payline evaluation completes the game transitions back to IDLE state
 
   # ---------------------------------------------------------------------------
   # FG Multiplier progress bar behavior

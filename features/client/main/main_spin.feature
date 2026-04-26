@@ -83,18 +83,6 @@ Feature: Main Game Spin — UI Behavior
     Then a loading indicator appears overlaid on the reel grid
     And the SPIN button remains disabled
 
-  @TC-E2E-SPIN-009
-  Scenario: Network timeout threshold exceeded — error dialog appears and player can retry
-    Given a loading indicator is shown overlaid on the reel grid after a spin request
-    When the configured timeout threshold elapses with no spin result shown
-    Then an error dialog appears with a human-readable message
-    And the SPIN button re-enables so the player can retry
-    And the player's balance is not double-debited
-
-  # ---------------------------------------------------------------------------
-  # Auth Guard
-  # ---------------------------------------------------------------------------
-
   @TC-E2E-SPIN-008
   Scenario: Unauthenticated player cannot spin
     Given the player's session token has expired before a spin attempt
@@ -102,3 +90,11 @@ Feature: Main Game Spin — UI Behavior
     Then the game displays a "Session Expired" dialog with a stone-carved frame and gold border
     And the SPIN button remains disabled
     And the dialog prompts the player to log in again
+
+  @TC-E2E-SPIN-009
+  Scenario: Network timeout threshold exceeded — error dialog appears and player can retry
+    Given a loading indicator is shown overlaid on the reel grid after a spin request
+    When the configured timeout threshold elapses with no spin result shown
+    Then an error dialog appears with a human-readable message
+    And the SPIN button re-enables so the player can retry
+    And the player's balance is not double-debited

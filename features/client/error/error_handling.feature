@@ -22,7 +22,7 @@ Feature: Error and Disconnection Handling — UI Behavior
   @TC-E2E-ERR-001b
   Scenario: Spin request times out — friendly error dialog appears and player can retry
     Given a loading indicator is shown over the reel grid after a spin request
-    When the configured network timeout is exceeded (no response received)
+    When the loading indicator has been visible beyond the configured timeout threshold
     Then the loading indicator disappears
     And an error dialog appears with a stone-carved frame and gold border
     And the dialog displays a human-readable message such as "Connection lost. Please try again."
