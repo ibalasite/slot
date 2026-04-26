@@ -414,7 +414,7 @@ interface ThunderBlessingParams {
   readonly thunderBlessingResult: ThunderBlessingResult;  // From FullSpinOutcome
   readonly thunderBlessingFirstHit: boolean;
   readonly thunderBlessingSecondHit: boolean;
-  readonly upgradedSymbol: SymbolId;
+  readonly upgradedSymbol: 'P1' | 'P2' | 'P3' | 'P4';
 }
 
 // Mirrors API.md §4 ThunderBlessingResult schema
@@ -847,9 +847,8 @@ interface SessionData {
   readonly playerId: string;
   readonly status: 'SPINNING' | 'FG_ACTIVE' | 'COMPLETE';
   readonly fgMultiplier: 3 | 7 | 17 | 27 | 77 | null;
-  readonly fgRound: number | null;       // Current FG round index (0-based)
+  readonly fgRound: number;              // 1-indexed; 0 means Free Game not yet entered
   readonly lightningMarks: LightningMarkSet;  // Persisted Lightning Mark positions
-  readonly balance: number;
   readonly currency: 'USD' | 'TWD';
   readonly baseBet: number;
   readonly extraBet: boolean;
@@ -1713,8 +1712,8 @@ async function restoreFGSession(session: SessionData): Promise<void> {
     fgMults.indexOf(session.fgMultiplier!) + 1
   );
 
-  // 4. Update spin counter to session.fgRound
-  freeGameComponent.updateSpinCounter(session.fgRound! + 1, false);
+  // 4. Update spin counter to session.fgRound (already 1-indexed from API)
+  freeGameComponent.updateSpinCounter(session.fgRound, false);
 
   // 5. Show "Restoring Session..." overlay during the above
   // 6. Remove overlay, resume FG from current round
@@ -1800,6 +1799,21 @@ describe('AnimationQueue', () => {
     const queue = new AnimationQueue();
     queue.build(mockFGOutcome);  // 3 cascade steps + TB + coin toss + FG entry + 3 FG rounds + FG complete + win display
     expect(queue.length).toBe(11);
+  });
+
+  it('places FG_ENTRY before first FG_ROUND in queue', async () => {
+    const queue = new AnimationQueue();
+    queue.build(mockFGOutcome);
+    const types: string[] = [];
+    const dispatcher = createMockDispatcher({
+      default: (step: AnimationStep) => types.push(step.type),
+    });
+    await queue.play(dispatcher);
+    const fgEntryIdx = types.indexOf('FG_ENTRY');
+    const fgRoundIdx = types.indexOf('FG_ROUND');
+    expect(fgEntryIdx).toBeGreaterThanOrEqual(0);
+    expect(fgRoundIdx).toBeGreaterThanOrEqual(0);
+    expect(fgEntryIdx).toBeLessThan(fgRoundIdx);
   });
 });
 ```
