@@ -65,6 +65,21 @@ Thunder Blessing is anchored in Greek mythology: the domain of Zeus, divine ligh
 
 ### 1.3 Technical Constraints
 
+**Custom easing tokens (CSS `transition-timing-function` values):**
+
+| Token | `cubic-bezier()` value | Character |
+|-------|------------------------|-----------|
+| `--ease-out-cubic` | `cubic-bezier(0.33, 1, 0.68, 1)` | Smooth deceleration — most UI transitions |
+| `--ease-in-out-cubic` | `cubic-bezier(0.65, 0, 0.35, 1)` | Symmetrical acceleration/deceleration |
+| `ease-in-cubic` | `cubic-bezier(0.32, 0, 0.67, 0)` | Smooth acceleration — used for near-miss twitch |
+| `--ease-out-back` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Overshoot settle — symbol landings, banners |
+| `--ease-out-expo` | `cubic-bezier(0.16, 1, 0.3, 1)` | Sharp deceleration — flash effects, bursts |
+| `--ease-in-out-cubic` (for progress bars) | Same as above | Used for FG multiplier progress bars |
+| `--ease-coin-decel` | `cubic-bezier(0.05, 0.7, 0.1, 1.0)` | Coin toss deceleration — slow-start heavy settle |
+| `ease-out-bounce` | JS custom (not CSS cubic-bezier) | See VDD §4.1 for implementation — used for symbol drop |
+
+All `--ease-*` tokens are CSS custom properties defined in the global animation stylesheet (VDD §4.1). Non-prefixed values (`ease-out-expo`, `ease-in-cubic`) are inline shorthand for the same curves applied without a CSS variable.
+
 **AnimationQueue architecture (from FRONTEND.md §6.1):**
 - The `AnimationQueue` is the single sequencer for all animation. No animation is played ad hoc; every visual event is triggered by `AnimationDispatcher.dispatch(step)`.
 - Steps execute strictly in queue order — sequential `await` per step.
@@ -373,7 +388,7 @@ Once placed, marks emit a continuous low-intensity electric arc particle loop (`
 
 ### 3.4 FREE Letter Activation
 
-**Trigger:** Each time `step.rows` increases, the corresponding FREE letter is illuminated. Letters F, R, E, E correspond to the 1st, 2nd, 3rd, and 4th row expansion events respectively (from FRONTEND.md §3.9).
+**Trigger:** Each time `step.rows` increases (i.e., a Reel Expansion event per §2.4), the corresponding FREE letter is illuminated. Letters F, R, E, E correspond to the 1st, 2nd, 3rd, and 4th row expansion events respectively (from FRONTEND.md §3.9).
 
 **Letter illuminate animation (from VDD §4.4):**
 
@@ -452,7 +467,8 @@ At t=200ms, `SFX_LIGHTNING_ACTIVATE` fires and the following animations begin si
 - Particle velocity ramps from 40px/s to 100px/s over the same 300ms.
 
 **Arc line draw (Bezier from SC → each mark):**
-- Each arc line draws from SC cell center to the target mark cell center using a Bezier path.
+- The SC cell `{col, row}` must be passed in the `THUNDER_BLESSING` AQ step dispatch data: `dispatcher.dispatch({ type: 'THUNDER_BLESSING', data: { scatterCell: {col, row}, secondHit: thunderBlessingSecondHit, convertedSymbol } })`. `ThunderBlessingComponent` reads the arc origin from this payload, not from the live grid — SC will have been eliminated and replaced by cascade-drop symbols before this AQ step fires.
+- Each arc line draws from the `scatterCell` pixel center to the target mark cell center using a Bezier path.
 - Arc draw duration: 200ms per line, staggered 20ms apart from nearest to farthest mark.
 - Arc line: 2px stroke, `--color-arc-white`, Additive blend, opacity 0.8.
 - Arc lines persist (flicker at 0.8 opacity ± 0.2, 80ms period) from t=200ms through t=3000ms. The lines remain rendered through the mark explosion (t=800ms) and symbol upgrade (t=1500ms) phases — they are not cleared at mark explosion. At t=3000ms (settle phase, §4.5) they fade opacity 0.8 → 0.0 over 300ms.
@@ -718,7 +734,7 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 | Small Win | 0 < win < 5× baseBet | No overlay — counter only | None | WIN counter roll-up only |
 | Medium Win | 5× ≤ win < 20× | 1500ms overlay display | 20 gold particles, radial, 0.5s lifetime | "WIN" text appears: `scale` 0 → 1.1 → 1.0 (400ms, `--ease-out-back`); `--color-gold-bright` |
 | Big Win | 20× ≤ win < 100× | 3000ms | 60–80 particles, `--color-gold-bright`, 0.8s lifetime | "BIG WIN" banner `translateY` −200px → 0 (600ms, `--ease-out-cubic`); `fx_win_bigwin_banner.spine` |
-| Mega Win | 100× ≤ win < 500× | 4000ms | 120–150 particles, `--color-gold-divine`, 1.0s lifetime | "MEGA WIN" banner + lightning arc arounds text; Bloom at full intensity |
+| Mega Win | 100× ≤ win < 500× | 4000ms | 120–150 particles, `--color-gold-divine`, 1.0s lifetime | "MEGA WIN" banner (`fx_win_megawin_banner.spine`, 4000ms) + lightning arc around text; Bloom at full intensity |
 | Jackpot | 500× ≤ win < 30,000× | 5000ms | 200 particles, `--color-gold-divine`, 1.2s lifetime | "JACKPOT" + Zeus character animation (playSpecial on P1 Zeus symbol overlay); full Bloom on text |
 | Max Win (30,000×) | win = 30,000× baseBet | 6000ms | See §7.3 | See §7.3 |
 | Max Win Legendary (90,000×) | win = 90,000× baseBet | 10000ms+ | See §7.3 | See §7.3 |
