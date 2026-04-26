@@ -1943,13 +1943,16 @@ async function restoreFGSession(session: SessionData): Promise<void> {
   // 2. Restore Lightning Marks
   lightningMarkComponent.restoreMarks(session.lightningMarks.positions);
 
-  // 3. Restore multiplier progress bar to session.fgMultiplier
+  // 3. Restore FreeGameComponent internal multiplier state (active ×N banner)
+  freeGameComponent.restoreFromSession(session.fgMultiplier!, session.fgRound);
+
+  // 4. Restore multiplier progress bar to session.fgMultiplier
   const fgMults = configService.getConfig().gameParameters.fgMultiplierSequence;
   coinTossComponent.updateMultiplierProgress(
     fgMults.indexOf(session.fgMultiplier!) + 1
   );
 
-  // 4. Update spin counter to session.fgRound (already 1-indexed from API)
+  // 5. Update spin counter to session.fgRound (already 1-indexed from API)
   freeGameComponent.updateSpinCounter(session.fgRound, false);
 
   // 5. Show "Restoring Session..." overlay during the above
