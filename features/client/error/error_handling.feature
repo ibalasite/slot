@@ -38,7 +38,7 @@ Feature: Error and Disconnection Handling — UI Behavior
     When the server returns an error response (e.g., insufficient funds or service error)
     Then the reel animation stops or does not start
     And an error dialog appears with the relevant error description
-    And the BALANCE field does not change if the spin was rejected by the server
+    And the BALANCE field does not change (no deduction is visible to the player)
     And the SPIN button re-enables once the dialog is dismissed
 
   # ---------------------------------------------------------------------------

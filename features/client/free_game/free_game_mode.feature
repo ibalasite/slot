@@ -34,6 +34,7 @@ Feature: Free Game Mode — UI Behavior
   @TC-E2E-FG-002
   Scenario: FG HUD shows SPIN COUNT and MULTIPLIER; BUY FG button is hidden
     Given the player has entered Free Game mode
+    When the Free Game scene has loaded and the HUD is visible
     Then the top-left area of the HUD shows a "FREE GAME" label
     And the current multiplier (e.g., "×3") is displayed in the upper-left reel area
     And the SPIN COUNT area shows "0 / 10" before the first FG spin has been taken

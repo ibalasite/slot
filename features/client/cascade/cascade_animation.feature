@@ -82,7 +82,7 @@ Feature: Cascade Elimination — UI Animation Behavior
     When the newly fallen symbols are in place and no paylines are active
     Then no WIN animation plays for that step
     And the WIN field shows the cumulative total from previous steps (not reset mid-cascade)
-    And if all four FREE letters are lit the game transitions to Coin Toss
+    And if 5 or more Lightning Marks have accumulated at round end, the Free Game entry sequence begins
     And otherwise the reel remains static and the SPIN button re-enables
 
   @TC-E2E-CASC-008

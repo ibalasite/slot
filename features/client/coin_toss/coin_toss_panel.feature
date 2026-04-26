@@ -1,6 +1,6 @@
 @client @coin_toss @animation
 Feature: Coin Toss Panel — UI Behavior
-  As a player who has triggered Coin Toss (all 4 FREE letters lit)
+  As a player who has triggered Coin Toss by an SC (Scatter) symbol landing
   I want to see the full Coin Toss mini-game overlay
   So that I can experience the suspense of whether I win Free Game entry
 
@@ -41,7 +41,8 @@ Feature: Coin Toss Panel — UI Behavior
     And a victory sound effect plays
     And the multiplier progress bar at the bottom advances to the next multiplier node (×3 initially)
     And the progress bar node lights up with a scale-in flash animation (~0.3 s)
-    And after a brief display (~1.5 s) the game transitions to the Free Game scene
+    And the multiplier value is applied to all active Lightning Marks on the grid
+    And the Coin Toss overlay fades out and the game returns to the main reel view
 
   @TC-E2E-COIN-004
   Scenario: Tails result — "NOT THIS TIME" text and coin darkens

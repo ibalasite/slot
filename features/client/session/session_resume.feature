@@ -25,7 +25,8 @@ Feature: Session Resume — FG Reconnection UI Behavior
   @TC-E2E-SESS-002
   Scenario: Successful restore — FG state is visually rebuilt from server data
     Given the "Restoring Session..." indicator is shown
-    When the server returns a valid session with multiplier ×5 and 2 Lightning Marks
+    And a valid Free Game session is detected with multiplier ×5 and 2 accumulated Lightning Marks
+    When the session restore completes successfully
     Then the loading spinner disappears
     And the FG multiplier display animates to ×5 using an Ease Out Cubic update (0.5 s)
     And the two Lightning Marks are redrawn on the grid at their correct positions
@@ -48,7 +49,7 @@ Feature: Session Resume — FG Reconnection UI Behavior
   @TC-E2E-SESS-004
   Scenario: Expired session — game displays Session Expired dialog and returns to main game
     Given the player reopens the game after their JWT token has expired
-    When the session restore request fails due to token expiry
+    When the restore attempt fails and the session cannot be recovered
     Then the "Restoring Session..." indicator disappears
     And a "Session Expired" dialog appears with a stone-carved frame and gold border
     And the dialog text explains that the session could not be recovered

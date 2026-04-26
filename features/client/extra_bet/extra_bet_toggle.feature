@@ -72,6 +72,7 @@ Feature: Extra Bet Toggle — UI Behavior
   @TC-E2E-EXBT-006
   Scenario: Extra Bet toggle is disabled during Free Game mode
     Given the player is in Free Game mode
+    When the player is in Free Game mode and views the Extra Bet toggle area
     Then the EXTRA BET toggle is visually disabled (greyed out, non-interactive)
     And the toggle preserves whichever state it was in when FG was entered
     And clicking the toggle produces no visual or audio change

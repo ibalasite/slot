@@ -16,6 +16,7 @@ Feature: Buy Feature Panel — UI Behavior
   @TC-E2E-BUY-001
   Scenario: BUY FREE GAME button is visible and shows a purple-gold style in IDLE state
     Given the game is in IDLE state
+    When the player views the main game HUD in IDLE state
     Then the "BUY FREE GAME" button is visible in the bottom-right area of the HUD
     And the button displays a purple-gold color with a small coin icon
     And hovering over the button produces a subtle gold-edge glow and slight scale-up (~1.05×)
@@ -68,6 +69,7 @@ Feature: Buy Feature Panel — UI Behavior
   @TC-E2E-BUY-006
   Scenario: BUY FREE GAME button is disabled and greyed-out during Free Game
     Given the player has entered Free Game mode
+    When the player is in Free Game mode and views the HUD
     Then the "BUY FREE GAME" button is hidden from the HUD
     And no click interaction is possible on the button area
 
