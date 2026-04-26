@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence Spin Error — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › Sequence Spin Error</p>
+    <h1 class="banner-title">Sequence Spin Error</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link active" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: sequence-spin-error</p>
+<p>uml-type: sequence</p>
+<p>source: EDD.md §6.3 Error Codes, §5.1; ARCH.md §5.1, §6 Partial Failure Compensation</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Sequence Diagram — POST /v1/spin Error Paths</h1>
+<blockquote><p>來源：EDD.md §6.3 Error Codes; ARCH.md §5.1 Sync/Async Communication Matrix, §6 Partial Failure Compensation</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">sequenceDiagram
+    autonumber
+
+    participant Client as Client (Frontend)
+    participant Fastify as Fastify Router
+    participant JwtAuthGuard as JwtAuthGuard
+    participant SpinUseCase as SpinUseCase
+    participant LockGuard as ConcurrencyLockGuard
+    participant Redis as UpstashCacheAdapter (Redis)
+    participant WalletRepo as SupabaseWalletRepository
+    participant SlotEngine as SlotEngine
+    participant ErrorMapper as DomainErrorMapper
+    participant AuditLog as AuditLogger
+
+    Note over Client,AuditLog: ─── Error Path 1: 401 Invalid JWT ───
+
+    Client->>Fastify: POST /v1/spin {Authorization: Bearer <expired_token>}
+    Fastify->>JwtAuthGuard: verify(token: "eyJhbGci...expired")
+    JwtAuthGuard->>JwtAuthGuard: SupabaseAuth.verifyJWT → throws UnauthorizedError("Invalid or expired JWT")
+    JwtAuthGuard-->>Fastify: UnauthorizedError
+    Fastify->>ErrorMapper: map(UnauthorizedError)
+    ErrorMapper-->>Fastify: {httpStatus: 401, code: "UNAUTHORIZED"}
+    Fastify-->>Client: 401 {success:false, code:"UNAUTHORIZED", message:"Missing or invalid JWT", requestId:"req-err-001", timestamp:"2026-04-26T..."}
+
+    Note over Client,AuditLog: ─── Error Path 2: 409 Concurrent Spin (lock already held) ───
+
+    Client->>Fastify: POST /v1/spin {Authorization: Bearer <valid_token>, sessionId: "sess-active-999"}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "player-xyz"}
+    Fastify->>SpinUseCase: execute(SpinRequest {sessionId: "sess-active-999"})
+    SpinUseCase->>LockGuard: acquire(sessionId: "sess-active-999")
+    LockGuard->>Redis: SET session:sess-active-999:lock {lockToken} NX EX 10
+    Redis-->>LockGuard: nil (lock already held by concurrent request)
+    LockGuard-->>SpinUseCase: throws SpinInProgressError("Concurrent spin detected")
+    SpinUseCase->>ErrorMapper: map(SpinInProgressError)
+    ErrorMapper-->>SpinUseCase: {httpStatus: 409, code: "SPIN_IN_PROGRESS"}
+    SpinUseCase-->>Fastify: 409 error
+    Fastify-->>Client: 409 {success:false, code:"SPIN_IN_PROGRESS", message:"A spin is already in progress for this session. Retry after current spin completes.", requestId:"req-err-002"}
+
+    Note over Client,AuditLog: ─── Error Path 3: 400 Insufficient Balance ───
+
+    Client->>Fastify: POST /v1/spin {Authorization: Bearer <valid_token>, betLevel: 1000, currency: "USD"}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "player-broke"}
+    Fastify->>SpinUseCase: execute(SpinRequest {betLevel: 1000, cost: 10.00})
+    SpinUseCase->>LockGuard: acquire(sessionId: "sess-broke-001")
+    LockGuard->>Redis: SET session:sess-broke-001:lock NX EX 10
+    Redis-->>LockGuard: OK
+    LockGuard-->>SpinUseCase: lockToken = "lock-broke-001"
+
+    SpinUseCase->>WalletRepo: getBalance("player-broke", "USD")
+    WalletRepo-->>SpinUseCase: balance = 2.50
+    Note over SpinUseCase: Validate: 2.50 < cost(10.00) → InsufficientFundsError
+
+    SpinUseCase->>LockGuard: release("sess-broke-001", "lock-broke-001")
+    LockGuard->>Redis: DEL session:sess-broke-001:lock
+    SpinUseCase->>ErrorMapper: map(InsufficientFundsError)
+    ErrorMapper-->>SpinUseCase: {httpStatus: 400, code: "INSUFFICIENT_FUNDS"}
+    SpinUseCase-->>Fastify: 400 error
+    Fastify-->>Client: 400 {success:false, code:"INSUFFICIENT_FUNDS", message:"Balance 2.50 USD is less than spin cost 10.00 USD", requestId:"req-err-003"}
+
+    Note over Client,AuditLog: ─── Error Path 4: 400 Invalid Bet Level ───
+
+    Client->>Fastify: POST /v1/spin {Authorization: Bearer <valid_token>, betLevel: 9999, currency: "TWD"}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "player-abc"}
+    Fastify->>SpinUseCase: execute(SpinRequest {betLevel: 9999, currency: "TWD"})
+
+    Note over SpinUseCase: betLevel 9999 exceeds TWD max=320 per BetRangeConfig → InvalidBetLevelError (no lock acquired)
+    SpinUseCase->>ErrorMapper: map(InvalidBetLevelError)
+    ErrorMapper-->>SpinUseCase: {httpStatus: 400, code: "INVALID_BET_LEVEL"}
+    SpinUseCase-->>Fastify: 400 error
+    Fastify-->>Client: 400 {success:false, code:"INVALID_BET_LEVEL", message:"betLevel 9999 exceeds TWD maximum of 320", requestId:"req-err-004"}
+
+    Note over Client,AuditLog: ─── Error Path 5: 504 Engine Timeout + Compensating Credit ───
+
+    Client->>Fastify: POST /v1/spin {Authorization: Bearer <valid_token>, betLevel: 50}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "player-timeout"}
+    Fastify->>SpinUseCase: execute(SpinRequest {betLevel: 50, cost: 0.50})
+
+    SpinUseCase->>LockGuard: acquire("sess-timeout-001")
+    LockGuard->>Redis: SET session:sess-timeout-001:lock NX EX 10
+    Redis-->>LockGuard: OK
+    LockGuard-->>SpinUseCase: lockToken = "lock-timeout-001"
+
+    SpinUseCase->>WalletRepo: getBalance("player-timeout", "USD")
+    WalletRepo-->>SpinUseCase: 100.00
+
+    SpinUseCase->>WalletRepo: debit("player-timeout", 0.50, "USD")
+    WalletRepo->>WalletRepo: UPDATE wallets SET balance=99.50; INSERT DEBIT transaction
+    WalletRepo-->>SpinUseCase: OK — WALLET IS NOW DEBITED
+
+    SpinUseCase->>SlotEngine: spin(SpinRequest) — timeout timer starts (2000ms)
+    Note over SlotEngine: Engine hangs > 2000ms (complex cascade / RNG contention)
+    SlotEngine-->>SpinUseCase: EngineTimeoutError after 2000ms
+
+    Note over SpinUseCase: COMPENSATING CREDIT — wallet was debited before engine
+    SpinUseCase->>WalletRepo: credit("player-timeout", 0.50, "USD") — compensate
+    WalletRepo->>WalletRepo: UPDATE wallets SET balance=100.00; INSERT CREDIT transaction (type=COMPENSATION)
+    WalletRepo-->>SpinUseCase: OK
+
+    SpinUseCase->>AuditLog: emit EngineTimeout {sessionId, playerId, compensationAmount: 0.50}
+    AuditLog->>AuditLog: INSERT spin_logs {outcome_jsonb: {error:"ENGINE_TIMEOUT", compensated:true}, total_win: 0}
+
+    SpinUseCase->>LockGuard: release("sess-timeout-001", "lock-timeout-001")
+    LockGuard->>Redis: DEL session:sess-timeout-001:lock
+
+    SpinUseCase->>ErrorMapper: map(EngineTimeoutError)
+    ErrorMapper-->>SpinUseCase: {httpStatus: 504, code: "ENGINE_TIMEOUT"}
+    SpinUseCase-->>Fastify: 504 error
+    Fastify-->>Client: 504 {success:false, code:"ENGINE_TIMEOUT", message:"Spin timed out. Your balance has been restored.", requestId:"req-err-005"}</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

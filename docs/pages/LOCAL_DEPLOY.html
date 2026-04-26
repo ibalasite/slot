@@ -1,585 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LOCAL_DEPLOY — Local Dev Setup — Thunder Blessing GDD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <style>
-    :root {
-      --bg-primary:     #0f1117;
-      --bg-secondary:   #161b27;
-      --bg-tertiary:    #1e2535;
-      --bg-card:        #1a2032;
-      --border:         #2a3347;
-      --text-primary:   #e2e8f0;
-      --text-secondary: #94a3b8;
-      --text-muted:     #64748b;
-      --accent:         #f6ad55;
-      --accent-dim:     #c27d30;
-      --accent-glow:    rgba(246,173,85,0.15);
-      --green:          #4ade80;
-      --blue:           #60a5fa;
-      --purple:         #a78bfa;
-      --red:            #f87171;
-      --sidebar-width:  260px;
-      --header-height:  60px;
-      --font-sans:      'Inter', system-ui, sans-serif;
-      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
-      --radius:         8px;
-      --radius-lg:      12px;
-      --duration-fast:  150ms;
-      --ease-out:       cubic-bezier(0.16,1,0.3,1);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.7;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--header-height);
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 16px;
-      z-index: 100;
-    }
-
-    .header-logo {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: var(--accent);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .header-title {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      border-left: 1px solid var(--border);
-      padding-left: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-back {
-      margin-left: auto;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      transition: all var(--duration-fast);
-      white-space: nowrap;
-    }
-
-    .header-back:hover {
-      color: var(--accent);
-      border-color: var(--accent-dim);
-      background: var(--accent-glow);
-    }
-
-    .menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-    }
-
-    .menu-toggle:hover { background: var(--bg-tertiary); }
-
-    /* Layout */
-    .layout {
-      display: flex;
-      margin-top: var(--header-height);
-      min-height: calc(100vh - var(--header-height));
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: var(--header-height);
-      left: 0; bottom: 0;
-      overflow-y: auto;
-      padding: 20px 0;
-      transition: transform var(--duration-fast) var(--ease-out);
-      z-index: 90;
-    }
-
-    .sidebar::-webkit-scrollbar { width: 4px; }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .nav-section-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      padding: 12px 20px 6px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 20px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.85rem;
-      border-left: 2px solid transparent;
-      transition: all var(--duration-fast);
-    }
-
-    .nav-link:hover {
-      color: var(--text-primary);
-      background: var(--accent-glow);
-      border-left-color: var(--accent-dim);
-    }
-
-    .nav-link.active {
-      color: var(--accent);
-      background: var(--accent-glow);
-      border-left-color: var(--accent);
-      font-weight: 500;
-    }
-
-    /* Main content */
-    .main {
-      margin-left: var(--sidebar-width);
-      flex: 1;
-      padding: 40px 48px;
-      max-width: 920px;
-    }
-
-    /* Page heading */
-    .page-title {
-      font-size: clamp(1.6rem, 2.5vw, 2rem);
-      font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.25;
-    }
-
-    .page-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .page-meta span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Markdown content */
-    .md-content h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 40px 0 16px;
-      color: var(--text-primary);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content h1:first-child { margin-top: 0; }
-
-    .md-content h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 36px 0 14px;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .md-content h2::before {
-      content: '';
-      display: block;
-      width: 3px;
-      height: 16px;
-      background: var(--accent);
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
-    .md-content h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 28px 0 10px;
-      color: var(--text-primary);
-    }
-
-    .md-content h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 20px 0 8px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.82rem;
-    }
-
-    .md-content p {
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .md-content a:hover { text-decoration: underline; }
-
-    .md-content strong { color: var(--text-primary); font-weight: 600; }
-    .md-content em     { color: var(--text-secondary); font-style: italic; }
-
-    /* Inline code */
-    .md-content code {
-      font-family: var(--font-mono);
-      font-size: 0.82em;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 5px;
-      color: var(--accent);
-    }
-
-    /* Code blocks */
-    .md-content pre {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    /* Mermaid */
-    .mermaid-wrap {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin: 16px 0;
-      overflow-x: auto;
-    }
-
-    /* Tables */
-    .table-wrap {
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .md-content table th {
-      text-align: left;
-      padding: 8px 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-muted);
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content table td {
-      padding: 9px 12px;
-      border-bottom: 1px solid rgba(42,51,71,0.5);
-      color: var(--text-secondary);
-      vertical-align: top;
-    }
-
-    .md-content table tr:last-child td { border-bottom: none; }
-    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
-
-    /* Lists */
-    .md-content ul, .md-content ol {
-      padding-left: 20px;
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content li { margin-bottom: 5px; }
-    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
-
-    /* Blockquotes */
-    .md-content blockquote {
-      border-left: 3px solid var(--accent-dim);
-      padding: 10px 16px;
-      background: rgba(246,173,85,0.06);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      margin: 16px 0;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .md-content blockquote p { margin-bottom: 0; }
-
-    /* HR */
-    .md-content hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 28px 0;
-    }
-
-    /* Footer */
-    .site-footer {
-      margin-left: var(--sidebar-width);
-      border-top: 1px solid var(--border);
-      padding: 18px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .footer-accent { color: var(--accent); font-weight: 600; }
-
-    /* Sidebar overlay */
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 89;
-    }
-
-    .sidebar-overlay.active { display: block; }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
-      .main { margin-left: 0; padding: 24px 16px; }
-      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
-      .menu-toggle { display: flex; }
-      .header-title { display: none; }
-    }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>本地部署指南 — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
-
-  <header class="site-header">
-    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6"  x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
-    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
-    <span class="header-title">LOCAL_DEPLOY — Local Dev Setup</span>
-    <a href="index.html" class="header-back">← Docs Hub</a>
-  </header>
-
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-  <div class="layout">
-    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
-      <div class="nav-section-label">Business</div>
-<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
-<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
-<div class="nav-section-label">Design</div>
-<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
-<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
-<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
-<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
-<div class="nav-section-label">Engineering</div>
-<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
-<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
-<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
-<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
-<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
-<div class="nav-section-label">Testing</div>
-<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
-<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
-<div class="nav-section-label">Operations</div>
-<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
-<a href="LOCAL_DEPLOY.html" class="nav-link active"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
-    </nav>
-
-    <main class="main" id="main">
-      <div class="page-meta">
-        <span>🚀 Operations</span>
-        <span>Source: <code>LOCAL_DEPLOY.md</code></span>
-        <span>Generated: 2026-04-26</span>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
       </div>
-      <article class="md-content">
-        <h1 id="local_deploy-local-development-environment-setup-guide">LOCAL_DEPLOY — Local Development Environment Setup Guide</h1>
-<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 本地部署指南</p>
+    <h1 class="banner-title">本地部署指南</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link active" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h1>LOCAL_DEPLOY — Local Development Environment Setup Guide</h1>
+<h1>Thunder Blessing Slot Game</h1>
 <hr>
-<h2 id="h-1-document-control">§1 Document Control</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Field</th>
-<th>Content</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>DOC-ID</strong></td>
-<td>LOCAL_DEPLOY-THUNDERBLESSING-20260426</td>
-</tr>
-<tr>
-<td><strong>Product</strong></td>
-<td>Thunder Blessing Slot Game</td>
-</tr>
-<tr>
-<td><strong>Version</strong></td>
-<td>v1.0</td>
-</tr>
-<tr>
-<td><strong>Date</strong></td>
-<td>2026-04-26</td>
-</tr>
-<tr>
-<td><strong>Scope</strong></td>
-<td>Local development environment setup only — not for production</td>
-</tr>
-<tr>
-<td><strong>Upstream</strong></td>
-<td>EDD v1.3, ARCH v1.7, API v1.0, SCHEMA v1.0, runbook v1.0</td>
-</tr>
-</tbody></table></div>
+<h2>§1 Document Control</h2>
+<table>
+<tr><th>Field</th><th>Content</th></tr>
+<tr><td><strong>DOC-ID</strong></td><td>LOCAL_DEPLOY-THUNDERBLESSING-20260426</td></tr>
+<tr><td><strong>Product</strong></td><td>Thunder Blessing Slot Game</td></tr>
+<tr><td><strong>Version</strong></td><td>v1.0</td></tr>
+<tr><td><strong>Date</strong></td><td>2026-04-26</td></tr>
+<tr><td><strong>Scope</strong></td><td>Local development environment setup only — not for production</td></tr>
+<tr><td><strong>Upstream</strong></td><td>EDD v1.3, ARCH v1.7, API v1.0, SCHEMA v1.0, runbook v1.0</td></tr>
+</table>
 <hr>
-<h2 id="h-2-prerequisites">§2 Prerequisites</h2>
-<h3 id="runtime-and-language">Runtime and Language</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Tool</th>
-<th>Required Version</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Node.js</td>
-<td><strong>20 LTS</strong></td>
-<td>Use <code>nvm</code> or <code>fnm</code> to manage versions</td>
-</tr>
-<tr>
-<td>npm</td>
-<td>10+</td>
-<td>Ships with Node.js 20</td>
-</tr>
-<tr>
-<td>TypeScript</td>
-<td>5.4+</td>
-<td>Installed as a project dev dependency</td>
-</tr>
-</tbody></table></div>
+<h2>§2 Prerequisites</h2>
+<h3>Runtime and Language</h3>
+<table>
+<tr><th>Tool</th><th>Required Version</th><th>Notes</th></tr>
+<tr><td>Node.js</td><td><strong>20 LTS</strong></td><td>Use <code>nvm</code> or <code>fnm</code> to manage versions</td></tr>
+<tr><td>npm</td><td>10+</td><td>Ships with Node.js 20</td></tr>
+<tr><td>TypeScript</td><td>5.4+</td><td>Installed as a project dev dependency</td></tr>
+</table>
 <p>Verify your Node.js version:</p>
 <pre><code class="language-bash">node --version
 # Expected: v20.x.x</code></pre>
-<h3 id="docker">Docker</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Tool</th>
-<th>Required Version</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Docker</td>
-<td>24+</td>
-<td>Docker Desktop on macOS; Docker Engine on Linux</td>
-</tr>
-<tr>
-<td>Docker Compose</td>
-<td>v2.x (plugin)</td>
-<td>Bundled with Docker Desktop; <code>docker compose</code> (no hyphen)</td>
-</tr>
-</tbody></table></div>
+<h3>Docker</h3>
+<table>
+<tr><th>Tool</th><th>Required Version</th><th>Notes</th></tr>
+<tr><td>Docker</td><td>24+</td><td>Docker Desktop on macOS; Docker Engine on Linux</td></tr>
+<tr><td>Docker Compose</td><td>v2.x (plugin)</td><td>Bundled with Docker Desktop; <code>docker compose</code> (no hyphen)</td></tr>
+</table>
 <p>Verify Docker is running:</p>
 <pre><code class="language-bash">docker --version
 # Expected: Docker version 24.x.x or later
 
 docker compose version
 # Expected: Docker Compose version v2.x.x</code></pre>
-<h3 id="cli-tools">CLI Tools</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Tool</th>
-<th>Purpose</th>
-<th>Install</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>git</code></td>
-<td>Source control</td>
-<td>System package manager</td>
-</tr>
-<tr>
-<td><code>psql</code></td>
-<td>PostgreSQL verification queries</td>
-<td><code>brew install libpq</code> (macOS) or <code>apt install postgresql-client</code> (Linux)</td>
-</tr>
-<tr>
-<td><code>redis-cli</code></td>
-<td>Redis connectivity checks</td>
-<td><code>brew install redis</code> (macOS) or <code>apt install redis-tools</code> (Linux)</td>
-</tr>
-<tr>
-<td><code>curl</code></td>
-<td>Smoke testing endpoints</td>
-<td>Pre-installed on macOS and most Linux distros</td>
-</tr>
-</tbody></table></div>
-<h3 id="os-compatibility">OS Compatibility</h3>
-<ul>
-<li><strong>macOS</strong> (Ventura 13+) and <strong>Linux</strong> (Ubuntu 22.04+, Debian 12+): primary supported environments.</li>
-<li><strong>Windows</strong>: use WSL2 (Ubuntu 22.04 image recommended). All commands in this guide run inside the WSL2 shell. Docker Desktop for Windows with WSL2 backend is required.</li>
-</ul>
+<h3>CLI Tools</h3>
+<table>
+<tr><th>Tool</th><th>Purpose</th><th>Install</th></tr>
+<tr><td><code>git</code></td><td>Source control</td><td>System package manager</td></tr>
+<tr><td><code>psql</code></td><td>PostgreSQL verification queries</td><td><code>brew install libpq</code> (macOS) or <code>apt install postgresql-client</code> (Linux)</td></tr>
+<tr><td><code>redis-cli</code></td><td>Redis connectivity checks</td><td><code>brew install redis</code> (macOS) or <code>apt install redis-tools</code> (Linux)</td></tr>
+<tr><td><code>curl</code></td><td>Smoke testing endpoints</td><td>Pre-installed on macOS and most Linux distros</td></tr>
+</table>
+<h3>OS Compatibility</h3>
+<ul><li><strong>macOS</strong> (Ventura 13+) and <strong>Linux</strong> (Ubuntu 22.04+, Debian 12+): primary supported environments.</li><li><strong>Windows</strong>: use WSL2 (Ubuntu 22.04 image recommended). All commands in this guide run inside the WSL2 shell. Docker Desktop for Windows with WSL2 backend is required.</li></ul>
 <hr>
-<h2 id="h-3-repository-setup">§3 Repository Setup</h2>
-<h3 id="clone-and-enter-the-repository">Clone and Enter the Repository</h3>
+<h2>§3 Repository Setup</h2>
+<h3>Clone and Enter the Repository</h3>
 <pre><code class="language-bash">git clone &lt;repo-url&gt; thunder-blessing-slot
 cd thunder-blessing-slot</code></pre>
-<h3 id="configure-environment-variables">Configure Environment Variables</h3>
+<h3>Configure Environment Variables</h3>
 <pre><code class="language-bash">cp .env.example .env</code></pre>
 <p>Open <code>.env</code> in your editor and fill in all values. The table below documents every required variable.</p>
 <p><strong>.env.example — complete template:</strong></p>
@@ -654,7 +204,7 @@ RATE_LIMIT_AUTH_FAIL_MAX=10
 # Comma-separated list of allowed origins. Use * for local development only.
 CORS_ALLOWED_ORIGINS=*</code></pre>
 <hr>
-<h2 id="h-4-infrastructure-setup-docker-compose">§4 Infrastructure Setup (Docker Compose)</h2>
+<h2>§4 Infrastructure Setup (Docker Compose)</h2>
 <p>The following <code>docker-compose.yml</code> starts PostgreSQL 15 and Redis 7 — the two infrastructure dependencies required to run the application locally. pgAdmin is included as an optional DB inspection tool.</p>
 <pre><code class="language-yaml">version: &quot;3.9&quot;
 
@@ -720,7 +270,7 @@ volumes:
   postgres-data:
   redis-data:
   pgadmin-data:</code></pre>
-<h3 id="start-infrastructure">Start Infrastructure</h3>
+<h3>Start Infrastructure</h3>
 <pre><code class="language-bash"># Start PostgreSQL and Redis (detached):
 docker compose up -d postgres redis
 
@@ -731,29 +281,26 @@ docker compose ps
 # Optional — also start pgAdmin for DB inspection:
 docker compose --profile tools up -d
 # Access pgAdmin at: http://localhost:5050</code></pre>
-<h3 id="stop-infrastructure">Stop Infrastructure</h3>
+<h3>Stop Infrastructure</h3>
 <pre><code class="language-bash">docker compose down</code></pre>
 <hr>
-<h2 id="h-5-database-setup">§5 Database Setup</h2>
-<h3 id="run-migrations">Run Migrations</h3>
+<h2>§5 Database Setup</h2>
+<h3>Run Migrations</h3>
 <p>Apply all schema migrations to the local PostgreSQL instance:</p>
 <pre><code class="language-bash">npm run db:migrate</code></pre>
 <p>If the project uses Supabase CLI migrations directly:</p>
 <pre><code class="language-bash">supabase db push --db-url postgresql://postgres:postgres@localhost:5432/thunder_blessing</code></pre>
-<h3 id="seed-data">Seed Data</h3>
+<h3>Seed Data</h3>
 <p>Seed game configuration and a test player account:</p>
 <pre><code class="language-bash">npm run db:seed</code></pre>
 <p>This inserts:</p>
-<ul>
-<li>A test player row in <code>players</code> with a starting balance.</li>
-<li>An initial row in <code>game_config_versions</code> reflecting the current <code>GameConfig.generated.ts</code>.</li>
-</ul>
-<h3 id="verify-tables-exist">Verify Tables Exist</h3>
+<ul><li>A test player row in <code>players</code> with a starting balance.</li><li>An initial row in <code>game_config_versions</code> reflecting the current <code>GameConfig.generated.ts</code>.</li></ul>
+<h3>Verify Tables Exist</h3>
 <p>Connect to PostgreSQL and confirm all required tables are present:</p>
 <pre><code class="language-bash">psql &quot;postgresql://postgres:postgres@localhost:5432/thunder_blessing&quot; \
   -c &quot;SELECT tablename FROM pg_tables WHERE schemaname = &#x27;public&#x27; ORDER BY tablename;&quot;</code></pre>
 <p>Expected output — all five tables must be listed:</p>
-<pre><code>      tablename
+<pre><code class="">      tablename
 ─────────────────────────
  fg_sessions
  game_config_versions
@@ -764,10 +311,10 @@ docker compose --profile tools up -d
 <p>Verify the <code>players</code> table has at least one seeded row:</p>
 <pre><code class="language-sql">SELECT id, email, balance, currency FROM players LIMIT 1;</code></pre>
 <hr>
-<h2 id="h-6-application-startup">§6 Application Startup</h2>
-<h3 id="install-dependencies">Install Dependencies</h3>
+<h2>§6 Application Startup</h2>
+<h3>Install Dependencies</h3>
 <pre><code class="language-bash">npm install</code></pre>
-<h3 id="validate-environment">Validate Environment</h3>
+<h3>Validate Environment</h3>
 <p>Before starting, confirm all required env vars are present:</p>
 <pre><code class="language-bash">node -e &quot;
   const required = [
@@ -781,14 +328,14 @@ docker compose --profile tools up -d
   }
   console.log(&#x27;All required env vars are set.&#x27;);
 &quot;</code></pre>
-<h3 id="start-the-application">Start the Application</h3>
+<h3>Start the Application</h3>
 <pre><code class="language-bash">npm run dev</code></pre>
 <p>In production-parity mode (compiled output):</p>
 <pre><code class="language-bash">npm run build &amp;&amp; npm start</code></pre>
 <p>Successful startup logs include:</p>
 <pre><code class="language-json">{&quot;level&quot;:&quot;info&quot;,&quot;service&quot;:&quot;thunder-blessing-api&quot;,&quot;event&quot;:&quot;server.started&quot;,&quot;port&quot;:3000}
 {&quot;level&quot;:&quot;info&quot;,&quot;service&quot;:&quot;thunder-blessing-api&quot;,&quot;event&quot;:&quot;config.validated&quot;,&quot;engineVersion&quot;:&quot;1.0.0&quot;}</code></pre>
-<h3 id="verify-startup">Verify Startup</h3>
+<h3>Verify Startup</h3>
 <pre><code class="language-bash">curl -s http://localhost:3000/health</code></pre>
 <p>Expected response (HTTP 200):</p>
 <pre><code class="language-json">{&quot;status&quot;:&quot;ok&quot;}</code></pre>
@@ -797,32 +344,32 @@ docker compose --profile tools up -d
 <p>Expected response (HTTP 200):</p>
 <pre><code class="language-json">{&quot;status&quot;:&quot;ok&quot;}</code></pre>
 <hr>
-<h2 id="h-7-running-tests">§7 Running Tests</h2>
-<h3 id="unit-tests">Unit Tests</h3>
+<h2>§7 Running Tests</h2>
+<h3>Unit Tests</h3>
 <p>Runs domain engine, use-case, and utility tests in isolation (no external dependencies):</p>
 <pre><code class="language-bash">npm run test:unit</code></pre>
 <p>Uses Vitest. Target: ≥ 80% coverage.</p>
-<h3 id="integration-tests">Integration Tests</h3>
+<h3>Integration Tests</h3>
 <p>Requires PostgreSQL and Redis to be running (docker compose up):</p>
 <pre><code class="language-bash">npm run test:integration</code></pre>
 <p>Uses Supertest against a real Fastify instance with live DB and Redis.</p>
-<h3 id="e2e-bdd-tests">E2E / BDD Tests</h3>
+<h3>E2E / BDD Tests</h3>
 <p>End-to-end tests covering the full spin flow against the running local server:</p>
 <pre><code class="language-bash">npm run test:e2e</code></pre>
-<h3 id="all-tests-with-coverage-report">All Tests with Coverage Report</h3>
+<h3>All Tests with Coverage Report</h3>
 <pre><code class="language-bash">npm test</code></pre>
 <p>Coverage summary is printed to stdout. The CI gate requires ≥ 80%.</p>
 <hr>
-<h2 id="h-8-local-smoke-test">§8 Local Smoke Test</h2>
+<h2>§8 Local Smoke Test</h2>
 <p>All smoke test commands below assume the server is running on <code>localhost:3000</code> and that you have a valid local JWT. For local development without a real Supabase Auth instance, use the seeded test token (set by <code>npm run db:seed</code>, printed to stdout).</p>
 <p>Set the token in your shell:</p>
 <pre><code class="language-bash">export LOCAL_JWT=&quot;&lt;token-printed-by-db-seed&gt;&quot;
 export PLAYER_ID=&quot;&lt;player-uuid-printed-by-db-seed&gt;&quot;</code></pre>
-<h3 id="get-health">GET /health</h3>
+<h3>GET /health</h3>
 <pre><code class="language-bash">curl -s http://localhost:3000/health</code></pre>
 <p>Expected:</p>
 <pre><code class="language-json">{&quot;status&quot;:&quot;ok&quot;}</code></pre>
-<h3 id="get-v1config">GET /v1/config</h3>
+<h3>GET /v1/config</h3>
 <pre><code class="language-bash">curl -s http://localhost:3000/v1/config \
   -H &quot;Authorization: Bearer $LOCAL_JWT&quot;</code></pre>
 <p>Expected (HTTP 200 — abridged):</p>
@@ -852,7 +399,7 @@ export PLAYER_ID=&quot;&lt;player-uuid-printed-by-db-seed&gt;&quot;</code></pre>
     }
   }
 }</code></pre>
-<h3 id="post-v1spin-base-spin">POST /v1/spin — Base Spin</h3>
+<h3>POST /v1/spin — Base Spin</h3>
 <pre><code class="language-bash">curl -s -X POST http://localhost:3000/v1/spin \
   -H &quot;Authorization: Bearer $LOCAL_JWT&quot; \
   -H &quot;Content-Type: application/json&quot; \
@@ -879,7 +426,7 @@ export PLAYER_ID=&quot;&lt;player-uuid-printed-by-db-seed&gt;&quot;</code></pre>
     &quot;cascadeSequence&quot;: { &quot;steps&quot;: [], &quot;totalWin&quot;: 0 }
   }
 }</code></pre>
-<h3 id="post-v1spin-extra-bet">POST /v1/spin — Extra Bet</h3>
+<h3>POST /v1/spin — Extra Bet</h3>
 <pre><code class="language-bash">curl -s -X POST http://localhost:3000/v1/spin \
   -H &quot;Authorization: Bearer $LOCAL_JWT&quot; \
   -H &quot;Content-Type: application/json&quot; \
@@ -892,8 +439,8 @@ export PLAYER_ID=&quot;&lt;player-uuid-printed-by-db-seed&gt;&quot;</code></pre>
   }&quot;</code></pre>
 <p>Expected: <code>totalBet</code> is <code>1.50</code> (baseBet <code>0.50</code> × 3). A Scatter symbol (<code>&quot;SC&quot;</code>) appears in <code>initialGrid</code>.</p>
 <hr>
-<h2 id="h-9-troubleshooting">§9 Troubleshooting</h2>
-<h3 id="port-already-in-use">Port Already In Use</h3>
+<h2>§9 Troubleshooting</h2>
+<h3>Port Already In Use</h3>
 <p><strong>Symptom:</strong> <code>Error: listen EADDRINUSE 0.0.0.0:3000</code> or Docker fails to bind port 5432 / 6379.</p>
 <p><strong>Fix:</strong></p>
 <pre><code class="language-bash"># Find and kill the process using the port (example for port 3000):
@@ -902,22 +449,18 @@ lsof -ti :3000 | xargs kill -9
 # For Docker port conflicts, stop any competing containers:
 docker ps --filter publish=5432
 docker stop &lt;container-id&gt;</code></pre>
-<h3 id="db-connection-refused">DB Connection Refused</h3>
+<h3>DB Connection Refused</h3>
 <p><strong>Symptom:</strong> <code>Error: connect ECONNREFUSED 127.0.0.1:5432</code> at startup or during tests.</p>
 <p><strong>Cause:</strong> PostgreSQL container is not running or health check has not passed.</p>
 <p><strong>Fix:</strong></p>
 <pre><code class="language-bash">docker compose up -d postgres
 docker compose ps postgres   # wait for &quot;healthy&quot;</code></pre>
-<h3 id="jwt-verification-fails">JWT Verification Fails</h3>
+<h3>JWT Verification Fails</h3>
 <p><strong>Symptom:</strong> All <code>/v1/*</code> requests return <code>401 UNAUTHORIZED</code> with <code>code: &quot;UNAUTHORIZED&quot;</code>.</p>
 <p><strong>Cause:</strong> <code>SUPABASE_JWT_SECRET</code> in <code>.env</code> does not match the key used to sign the token, or the token has expired.</p>
 <p><strong>Fix:</strong></p>
-<ol>
-<li>Re-run <code>npm run db:seed</code> to regenerate a fresh test token.</li>
-<li>Verify <code>SUPABASE_JWT_SECRET</code> matches the value printed by <code>supabase start</code> (or your local Supabase config).</li>
-<li>Check the token expiry: <code>node -e &quot;const [,p]=process.argv[2].split(&#x27;.&#x27;); console.log(JSON.parse(Buffer.from(p,&#x27;base64url&#x27;).toString()))&quot; -- &lt;token&gt;</code> — look at the <code>exp</code> field.</li>
-</ol>
-<h3 id="redis-econnrefused">Redis ECONNREFUSED</h3>
+<ol><li>Re-run <code>npm run db:seed</code> to regenerate a fresh test token.</li><li>Verify <code>SUPABASE_JWT_SECRET</code> matches the value printed by <code>supabase start</code> (or your local Supabase config).</li><li>Check the token expiry: <code>node -e &quot;const [,p]=process.argv[2].split(&#x27;.&#x27;); console.log(JSON.parse(Buffer.from(p,&#x27;base64url&#x27;).toString()))&quot; -- &lt;token&gt;</code> — look at the <code>exp</code> field.</li></ol>
+<h3>Redis ECONNREFUSED</h3>
 <p><strong>Symptom:</strong> <code>Error: connect ECONNREFUSED 127.0.0.1:6379</code> in logs; <code>/ready</code> returns non-200.</p>
 <p><strong>Cause:</strong> Redis container is not running.</p>
 <p><strong>Fix:</strong></p>
@@ -927,7 +470,7 @@ docker compose ps redis   # wait for &quot;healthy&quot;
 # Verify connectivity manually:
 redis-cli -h localhost -p 6379 ping
 # Expected: PONG</code></pre>
-<h3 id="invalid-bet-level-on-smoke-test">&quot;Invalid Bet Level&quot; on Smoke Test</h3>
+<h3>&quot;Invalid Bet Level&quot; on Smoke Test</h3>
 <p><strong>Symptom:</strong> <code>POST /v1/spin</code> returns <code>400 INVALID_BET_LEVEL</code>.</p>
 <p><strong>Cause:</strong> <code>BetRangeConfig.generated.ts</code> is not present, or <code>npm run db:seed</code> has not been run to load game config.</p>
 <p><strong>Fix:</strong></p>
@@ -939,15 +482,15 @@ node tools/engine_generator.js
 
 # Re-seed:
 npm run db:seed</code></pre>
-<h3 id="spin-in-progress-409-on-repeated-requests">&quot;Spin In Progress&quot; (409) on Repeated Requests</h3>
+<h3>&quot;Spin In Progress&quot; (409) on Repeated Requests</h3>
 <p><strong>Symptom:</strong> <code>POST /v1/spin</code> returns <code>409 SPIN_IN_PROGRESS</code>.</p>
 <p><strong>Cause:</strong> A previous spin request left a Redis concurrency lock (<code>session:{sessionId}:lock</code>) that has not yet expired. Lock TTL is 10 seconds.</p>
 <p><strong>Fix:</strong> Wait 10 seconds and retry. To manually clear a stuck lock in local development:</p>
 <pre><code class="language-bash">redis-cli -h localhost -p 6379 DEL &quot;session:&lt;sessionId&gt;:lock&quot;</code></pre>
 <hr>
-<h2 id="h-10-reset-clean-state">§10 Reset / Clean State</h2>
+<h2>§10 Reset / Clean State</h2>
 <p>Use this procedure to wipe all local state and start fresh.</p>
-<h3 id="full-reset">Full Reset</h3>
+<h3>Full Reset</h3>
 <pre><code class="language-bash"># 1. Stop containers and remove all volumes (drops PostgreSQL data and Redis data):
 docker compose down -v
 
@@ -962,52 +505,26 @@ npm run db:migrate
 
 # 5. Re-seed data:
 npm run db:seed</code></pre>
-<h3 id="redis-only-reset">Redis Only Reset</h3>
+<h3>Redis Only Reset</h3>
 <p>Clear all Redis keys without touching PostgreSQL:</p>
 <pre><code class="language-bash">redis-cli -h localhost -p 6379 FLUSHDB</code></pre>
-<h3 id="postgresql-only-reset">PostgreSQL Only Reset</h3>
+<h3>PostgreSQL Only Reset</h3>
 <p>Drop and recreate the database schema without removing the Docker volume:</p>
 <pre><code class="language-bash">psql &quot;postgresql://postgres:postgres@localhost:5432/thunder_blessing&quot; \
   -c &quot;DROP SCHEMA public CASCADE; CREATE SCHEMA public;&quot;
 npm run db:migrate
 npm run db:seed</code></pre>
 <hr>
-<h2 id="h-11-reference">§11 Reference</h2>
-<h3 id="key-ports-summary">Key Ports Summary</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Service</th>
-<th>Host Port</th>
-<th>Container Port</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Fastify API</td>
-<td>3000</td>
-<td>3000</td>
-<td><code>npm run dev</code></td>
-</tr>
-<tr>
-<td>PostgreSQL</td>
-<td>5432</td>
-<td>5432</td>
-<td>docker-compose <code>postgres</code> service</td>
-</tr>
-<tr>
-<td>Redis</td>
-<td>6379</td>
-<td>6379</td>
-<td>docker-compose <code>redis</code> service</td>
-</tr>
-<tr>
-<td>pgAdmin</td>
-<td>5050</td>
-<td>80</td>
-<td><code>--profile tools</code> only</td>
-</tr>
-</tbody></table></div>
-<h3 id="useful-commands-at-a-glance">Useful Commands at a Glance</h3>
+<h2>§11 Reference</h2>
+<h3>Key Ports Summary</h3>
+<table>
+<tr><th>Service</th><th>Host Port</th><th>Container Port</th><th>Notes</th></tr>
+<tr><td>Fastify API</td><td>3000</td><td>3000</td><td><code>npm run dev</code></td></tr>
+<tr><td>PostgreSQL</td><td>5432</td><td>5432</td><td>docker-compose <code>postgres</code> service</td></tr>
+<tr><td>Redis</td><td>6379</td><td>6379</td><td>docker-compose <code>redis</code> service</td></tr>
+<tr><td>pgAdmin</td><td>5050</td><td>80</td><td><code>--profile tools</code> only</td></tr>
+</table>
+<h3>Useful Commands at a Glance</h3>
 <pre><code class="language-bash"># View live application logs:
 npm run dev
 
@@ -1029,85 +546,33 @@ node tools/build_config.js &amp;&amp; \
   node tools/excel_simulator.js &amp;&amp; \
   node tools/verify.js &amp;&amp; \
   node tools/engine_generator.js</code></pre>
-<h3 id="environment-variable-quick-reference">Environment Variable Quick Reference</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Variable</th>
-<th>Local Default</th>
-<th>Purpose</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>NODE_ENV</code></td>
-<td><code>development</code></td>
-<td>Runtime mode</td>
-</tr>
-<tr>
-<td><code>PORT</code></td>
-<td><code>3000</code></td>
-<td>HTTP listen port</td>
-</tr>
-<tr>
-<td><code>SUPABASE_URL</code></td>
-<td><code>http://localhost:54321</code></td>
-<td>Supabase project URL</td>
-</tr>
-<tr>
-<td><code>SUPABASE_SERVICE_KEY</code></td>
-<td><code>&lt;from supabase start&gt;</code></td>
-<td>Service role key (bypasses RLS)</td>
-</tr>
-<tr>
-<td><code>SUPABASE_JWT_SECRET</code></td>
-<td><code>&lt;from supabase start&gt;</code></td>
-<td>RS256 public key for JWT verification</td>
-</tr>
-<tr>
-<td><code>DATABASE_URL</code></td>
-<td><code>postgresql://postgres:postgres@localhost:5432/thunder_blessing</code></td>
-<td>PostgreSQL connection</td>
-</tr>
-<tr>
-<td><code>REDIS_URL</code></td>
-<td><code>redis://localhost:6379</code></td>
-<td>Redis connection</td>
-</tr>
-</tbody></table></div>
-      </article>
-    </main>
+<h3>Environment Variable Quick Reference</h3>
+<table>
+<tr><th>Variable</th><th>Local Default</th><th>Purpose</th></tr>
+<tr><td><code>NODE_ENV</code></td><td><code>development</code></td><td>Runtime mode</td></tr>
+<tr><td><code>PORT</code></td><td><code>3000</code></td><td>HTTP listen port</td></tr>
+<tr><td><code>SUPABASE_URL</code></td><td><code>http://localhost:54321</code></td><td>Supabase project URL</td></tr>
+<tr><td><code>SUPABASE_SERVICE_KEY</code></td><td><code>&lt;from supabase start&gt;</code></td><td>Service role key (bypasses RLS)</td></tr>
+<tr><td><code>SUPABASE_JWT_SECRET</code></td><td><code>&lt;from supabase start&gt;</code></td><td>RS256 public key for JWT verification</td></tr>
+<tr><td><code>DATABASE_URL</code></td><td><code>postgresql://postgres:postgres@localhost:5432/thunder_blessing</code></td><td>PostgreSQL connection</td></tr>
+<tr><td><code>REDIS_URL</code></td><td><code>redis://localhost:6379</code></td><td>Redis connection</td></tr>
+</table></main>
   </div>
-
-  <footer class="site-footer">
-    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
-    <span>LOCAL_DEPLOY — Local Dev Setup</span>
-    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
-  </footer>
-
-  <script>
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const isOpen  = sidebar.classList.toggle('open');
-      overlay.classList.toggle('active', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      themeVariables: {
-        background:         '#1a2032',
-        primaryColor:       '#1e2535',
-        primaryBorderColor: '#2a3347',
-        primaryTextColor:   '#e2e8f0',
-        lineColor:          '#f6ad55',
-        secondaryColor:     '#161b27',
-        tertiaryColor:      '#0f1117',
-        edgeLabelBackground:'#1a2032',
-        clusterBkg:         '#1a2032',
-        titleColor:         '#f6ad55',
-      }
-    });
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>

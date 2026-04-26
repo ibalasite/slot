@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>類別圖：基礎+展示 — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 類別圖：基礎+展示</p>
+    <h1 class="banner-title">類別圖：基礎+展示</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link active" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: class-infra-presentation</p>
+<p>uml-type: class</p>
+<p>source: EDD.md §4.1, §4.5.2, §6; ARCH.md §3.3</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Class Diagram — Infrastructure + Presentation Layer</h1>
+<blockquote><p>來源：EDD.md §4.1 Module Map, §4.5.2, §6 API Design; ARCH.md §3.3 C4 L3 Component Diagram</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">classDiagram
+    %% ─── Port Interfaces (from Domain Layer) ─────────────────────────────────
+
+    class IWalletRepository {
+        <<interface>>
+        +getBalance(playerId: string, currency: string): Promise~number~
+        +debit(playerId: string, amount: number, currency: string): Promise~void~
+        +credit(playerId: string, amount: number, currency: string): Promise~void~
+    }
+
+    class ISessionRepository {
+        <<interface>>
+        +findById(sessionId: string): Promise~SessionState or null~
+        +save(session: SessionState): Promise~void~
+    }
+
+    class ISessionCache {
+        <<interface>>
+        +get(sessionId: string): Promise~SessionState or null~
+        +set(sessionId: string, session: SessionState, ttlSeconds: number): Promise~void~
+        +del(sessionId: string): Promise~void~
+        +acquireLock(sessionId: string): Promise~boolean~
+        +releaseLock(sessionId: string): Promise~void~
+    }
+
+    class IAuthProvider {
+        <<interface>>
+        +verifyJWT(token: string): Promise~PlayerClaims~
+    }
+
+    %% ─── Infrastructure: Repository Implementations ───────────────────────────
+
+    class SupabaseWalletRepository {
+        <<InfrastructureAdapter>>
+        -supabaseClient: SupabaseClient
+        -tableName: string
+        +getBalance(playerId: string, currency: string): Promise~number~
+        +debit(playerId: string, amount: number, currency: string): Promise~void~
+        +credit(playerId: string, amount: number, currency: string): Promise~void~
+        -executeForUpdate(playerId: string): Promise~WalletRow~
+        -insertTransaction(playerId: string, amount: number, type: string): Promise~void~
+    }
+
+    class SupabaseSessionRepository {
+        <<InfrastructureAdapter>>
+        -supabaseClient: SupabaseClient
+        -tableName: string
+        +findById(sessionId: string): Promise~SessionState or null~
+        +save(session: SessionState): Promise~void~
+        -toDBRow(session: SessionState): FGSessionRow
+        -fromDBRow(row: FGSessionRow): SessionState
+    }
+
+    %% ─── Infrastructure: Cache Implementations ────────────────────────────────
+
+    class UpstashCacheAdapter {
+        <<InfrastructureAdapter>>
+        -redisClient: Redis
+        -sessionTtl: number
+        -lockTtl: number
+        +get(sessionId: string): Promise~SessionState or null~
+        +set(sessionId: string, session: SessionState, ttlSeconds: number): Promise~void~
+        +del(sessionId: string): Promise~void~
+        +acquireLock(sessionId: string): Promise~boolean~
+        +releaseLock(sessionId: string): Promise~void~
+        -buildSessionKey(sessionId: string): string
+        -buildLockKey(sessionId: string): string
+        -serialize(session: SessionState): string
+        -deserialize(raw: string): SessionState
+    }
+
+    class RedisSessionCache {
+        <<InfrastructureAdapter>>
+        -adapter: UpstashCacheAdapter
+        +get(sessionId: string): Promise~SessionState or null~
+        +set(sessionId: string, session: SessionState, ttlSeconds: number): Promise~void~
+        +del(sessionId: string): Promise~void~
+        +acquireLock(sessionId: string): Promise~boolean~
+        +releaseLock(sessionId: string): Promise~void~
+    }
+
+    %% ─── Infrastructure: Auth ─────────────────────────────────────────────────
+
+    class SupabaseAuthAdapter {
+        <<InfrastructureAdapter>>
+        -supabaseClient: SupabaseClient
+        -publicKeyCache: Map~string, string~
+        -cacheExpiryMs: number
+        +verifyJWT(token: string): Promise~PlayerClaims~
+        -getPublicKey(): Promise~string~
+        -mapToClaims(user: SupabaseUser): PlayerClaims
+    }
+
+    class PlayerClaims {
+        <<DTO>>
+        +playerId: string
+        +role: string
+        +expiresAt: number
+    }
+
+    class SessionState {
+        <<DTO>>
+        +sessionId: string
+        +playerId: string
+        +status: string
+        +baseBet: number
+        +extraBet: boolean
+        +buyFeature: boolean
+        +fgRound: number
+        +fgMultiplier: number
+        +fgBonusMultiplier: number
+        +totalFGWin: number
+        +lightningMarks: string
+        +floorValue: number
+        +lockToken: string
+        +lockedAt: number
+    }
+
+    %% ─── Presentation: DTOs ───────────────────────────────────────────────────
+
+    class SpinRequestDTO {
+        <<DTO>>
+        +playerId: string
+        +betLevel: number
+        +extraBet: boolean
+        +buyFeature: boolean
+        +currency: string
+        +sessionId: string
+        +validate(): boolean
+    }
+
+    class SpinResponseDTO {
+        <<DTO>>
+        +success: boolean
+        +data: FullSpinOutcomeDTO
+        +requestId: string
+        +timestamp: string
+    }
+
+    class FullSpinOutcomeDTO {
+        <<DTO>>
+        +sessionId: string
+        +playerId: string
+        +baseBet: number
+        +extraBet: boolean
+        +buyFeature: boolean
+        +currency: string
+        +initialGrid: string[][]
+        +finalGrid: string[][]
+        +finalRows: number
+        +cascadeSteps: CascadeStepDTO[]
+        +lightningMarks: PositionDTO[]
+        +thunderBlessingTriggered: boolean
+        +thunderBlessingFirstHit: boolean
+        +thunderBlessingSecondHit: boolean
+        +upgradedSymbol: string
+        +coinTossTriggered: boolean
+        +coinTossResult: string
+        +fgTriggered: boolean
+        +fgMultiplier: number
+        +fgRounds: FGRoundDTO[]
+        +fgBonusMultiplier: number
+        +totalFGWin: number
+        +sessionFloorApplied: boolean
+        +sessionFloorValue: number
+        +totalWin: number
+        +nearMiss: boolean
+        +engineVersion: string
+        +timestamp: string
+    }
+
+    class FGRoundDTO {
+        <<DTO>>
+        +index: number
+        +grid: string[][]
+        +win: number
+        +multiplier: number
+        +lightningMarksBefore: PositionDTO[]
+        +lightningMarksAfter: PositionDTO[]
+        +coinTossResult: string
+    }
+
+    class ErrorResponseDTO {
+        <<DTO>>
+        +success: boolean
+        +code: string
+        +message: string
+        +requestId: string
+        +timestamp: string
+    }
+
+    class PositionDTO {
+        <<DTO>>
+        +row: number
+        +col: number
+    }
+
+    class CascadeStepDTO {
+        <<DTO>>
+        +index: number
+        +grid: string[][]
+        +winLines: WinLineDTO[]
+        +stepWin: number
+        +newLightningMarks: PositionDTO[]
+        +rows: number
+    }
+
+    class WinLineDTO {
+        <<DTO>>
+        +paylineId: number
+        +symbolId: string
+        +matchCount: number
+        +positions: PositionDTO[]
+        +payout: number
+    }
+
+    %% ─── Presentation: Controllers ────────────────────────────────────────────
+
+    class gameController {
+        <<PresentationAdapter>>
+        -spinUseCase: SpinUseCase
+        -buyFeatureUseCase: BuyFeatureUseCase
+        -getSessionStateUseCase: GetSessionStateUseCase
+        -errorMapper: DomainErrorMapper
+        +postSpin(req: FastifyRequest, reply: FastifyReply): Promise~void~
+        +getSession(req: FastifyRequest, reply: FastifyReply): Promise~void~
+        +getConfig(req: FastifyRequest, reply: FastifyReply): Promise~void~
+        -parseSpinRequest(body: unknown): SpinRequestDTO
+    }
+
+    class healthController {
+        <<PresentationAdapter>>
+        -supabaseClient: SupabaseClient
+        -redisClient: Redis
+        +liveness(req: FastifyRequest, reply: FastifyReply): Promise~void~
+        +readiness(req: FastifyRequest, reply: FastifyReply): Promise~void~
+        -checkDB(): Promise~boolean~
+        -checkRedis(): Promise~boolean~
+    }
+
+    %% ─── Presentation: Auth Guard ─────────────────────────────────────────────
+
+    class JwtAuthGuard {
+        <<PresentationAdapter>>
+        -authProvider: IAuthProvider
+        -publicKeyCache: Map~string, string~
+        +verify(req: FastifyRequest, reply: FastifyReply): Promise~void~
+        -extractToken(req: FastifyRequest): string
+        -validateClaims(claims: PlayerClaims): void
+    }
+
+    %% ─── Presentation: Error Mapper ───────────────────────────────────────────
+
+    class DomainErrorMapper {
+        <<PresentationAdapter>>
+        +map(error: Error): ErrorResponseDTO
+        -mapStatusCode(error: Error): number
+        -mapErrorCode(error: Error): string
+        -mapMessage(error: Error): string
+    }
+
+    %% ─── Use Case References (from Application Layer) ─────────────────────────
+
+    class SpinUseCase {
+        <<ApplicationService>>
+        +execute(request: SpinRequest): Promise~FullSpinOutcomeDTO~
+    }
+
+    class BuyFeatureUseCase {
+        <<ApplicationService>>
+        +execute(request: BuyFeatureRequest): Promise~FullSpinOutcomeDTO~
+    }
+
+    class GetSessionStateUseCase {
+        <<ApplicationService>>
+        +execute(sessionId: string): Promise~SessionStateDTO~
+    }
+
+    %% ─── Relationships ────────────────────────────────────────────────────────
+
+    %% Interface implementations
+    SupabaseWalletRepository ..|> IWalletRepository : implements
+    SupabaseSessionRepository ..|> ISessionRepository : implements
+    RedisSessionCache ..|> ISessionCache : implements
+    UpstashCacheAdapter ..|> ISessionCache : implements
+    SupabaseAuthAdapter ..|> IAuthProvider : implements
+    RedisSessionCache --> UpstashCacheAdapter : delegates to
+
+    %% Controller dependencies
+    gameController --> SpinUseCase : calls
+    gameController --> BuyFeatureUseCase : calls
+    gameController --> GetSessionStateUseCase : calls
+    gameController --> DomainErrorMapper : uses
+    gameController ..> SpinRequestDTO : parses
+    gameController ..> SpinResponseDTO : returns
+    gameController ..> FullSpinOutcomeDTO : wraps
+
+    %% Auth
+    JwtAuthGuard --> SupabaseAuthAdapter : verifies via
+    JwtAuthGuard ..> PlayerClaims : produces
+
+    %% DTO compositions
+    SpinResponseDTO *-- "1" FullSpinOutcomeDTO : data
+    FullSpinOutcomeDTO *-- "0..*" CascadeStepDTO : cascadeSteps
+    FullSpinOutcomeDTO *-- "0..*" FGRoundDTO : fgRounds
+    FullSpinOutcomeDTO *-- "0..*" PositionDTO : lightningMarks
+    CascadeStepDTO *-- "0..*" WinLineDTO : winLines
+    CascadeStepDTO *-- "0..*" PositionDTO : marks
+
+    %% Infrastructure auth dependency
+    JwtAuthGuard --> IAuthProvider : depends on</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

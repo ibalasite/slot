@@ -1,2289 +1,420 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RTM — Traceability Matrix — Thunder Blessing GDD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <style>
-    :root {
-      --bg-primary:     #0f1117;
-      --bg-secondary:   #161b27;
-      --bg-tertiary:    #1e2535;
-      --bg-card:        #1a2032;
-      --border:         #2a3347;
-      --text-primary:   #e2e8f0;
-      --text-secondary: #94a3b8;
-      --text-muted:     #64748b;
-      --accent:         #f6ad55;
-      --accent-dim:     #c27d30;
-      --accent-glow:    rgba(246,173,85,0.15);
-      --green:          #4ade80;
-      --blue:           #60a5fa;
-      --purple:         #a78bfa;
-      --red:            #f87171;
-      --sidebar-width:  260px;
-      --header-height:  60px;
-      --font-sans:      'Inter', system-ui, sans-serif;
-      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
-      --radius:         8px;
-      --radius-lg:      12px;
-      --duration-fast:  150ms;
-      --ease-out:       cubic-bezier(0.16,1,0.3,1);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.7;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--header-height);
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 16px;
-      z-index: 100;
-    }
-
-    .header-logo {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: var(--accent);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .header-title {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      border-left: 1px solid var(--border);
-      padding-left: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-back {
-      margin-left: auto;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      transition: all var(--duration-fast);
-      white-space: nowrap;
-    }
-
-    .header-back:hover {
-      color: var(--accent);
-      border-color: var(--accent-dim);
-      background: var(--accent-glow);
-    }
-
-    .menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-    }
-
-    .menu-toggle:hover { background: var(--bg-tertiary); }
-
-    /* Layout */
-    .layout {
-      display: flex;
-      margin-top: var(--header-height);
-      min-height: calc(100vh - var(--header-height));
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: var(--header-height);
-      left: 0; bottom: 0;
-      overflow-y: auto;
-      padding: 20px 0;
-      transition: transform var(--duration-fast) var(--ease-out);
-      z-index: 90;
-    }
-
-    .sidebar::-webkit-scrollbar { width: 4px; }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .nav-section-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      padding: 12px 20px 6px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 20px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.85rem;
-      border-left: 2px solid transparent;
-      transition: all var(--duration-fast);
-    }
-
-    .nav-link:hover {
-      color: var(--text-primary);
-      background: var(--accent-glow);
-      border-left-color: var(--accent-dim);
-    }
-
-    .nav-link.active {
-      color: var(--accent);
-      background: var(--accent-glow);
-      border-left-color: var(--accent);
-      font-weight: 500;
-    }
-
-    /* Main content */
-    .main {
-      margin-left: var(--sidebar-width);
-      flex: 1;
-      padding: 40px 48px;
-      max-width: 920px;
-    }
-
-    /* Page heading */
-    .page-title {
-      font-size: clamp(1.6rem, 2.5vw, 2rem);
-      font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.25;
-    }
-
-    .page-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .page-meta span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Markdown content */
-    .md-content h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 40px 0 16px;
-      color: var(--text-primary);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content h1:first-child { margin-top: 0; }
-
-    .md-content h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 36px 0 14px;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .md-content h2::before {
-      content: '';
-      display: block;
-      width: 3px;
-      height: 16px;
-      background: var(--accent);
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
-    .md-content h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 28px 0 10px;
-      color: var(--text-primary);
-    }
-
-    .md-content h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 20px 0 8px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.82rem;
-    }
-
-    .md-content p {
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .md-content a:hover { text-decoration: underline; }
-
-    .md-content strong { color: var(--text-primary); font-weight: 600; }
-    .md-content em     { color: var(--text-secondary); font-style: italic; }
-
-    /* Inline code */
-    .md-content code {
-      font-family: var(--font-mono);
-      font-size: 0.82em;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 5px;
-      color: var(--accent);
-    }
-
-    /* Code blocks */
-    .md-content pre {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    /* Mermaid */
-    .mermaid-wrap {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin: 16px 0;
-      overflow-x: auto;
-    }
-
-    /* Tables */
-    .table-wrap {
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .md-content table th {
-      text-align: left;
-      padding: 8px 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-muted);
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content table td {
-      padding: 9px 12px;
-      border-bottom: 1px solid rgba(42,51,71,0.5);
-      color: var(--text-secondary);
-      vertical-align: top;
-    }
-
-    .md-content table tr:last-child td { border-bottom: none; }
-    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
-
-    /* Lists */
-    .md-content ul, .md-content ol {
-      padding-left: 20px;
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content li { margin-bottom: 5px; }
-    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
-
-    /* Blockquotes */
-    .md-content blockquote {
-      border-left: 3px solid var(--accent-dim);
-      padding: 10px 16px;
-      background: rgba(246,173,85,0.06);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      margin: 16px 0;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .md-content blockquote p { margin-bottom: 0; }
-
-    /* HR */
-    .md-content hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 28px 0;
-    }
-
-    /* Footer */
-    .site-footer {
-      margin-left: var(--sidebar-width);
-      border-top: 1px solid var(--border);
-      padding: 18px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .footer-accent { color: var(--accent); font-weight: 600; }
-
-    /* Sidebar overlay */
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 89;
-    }
-
-    .sidebar-overlay.active { display: block; }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
-      .main { margin-left: 0; padding: 24px 16px; }
-      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
-      .menu-toggle { display: flex; }
-      .header-title { display: none; }
-    }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>需求追蹤矩陣 (RTM) — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
-
-  <header class="site-header">
-    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6"  x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
-    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
-    <span class="header-title">RTM — Traceability Matrix</span>
-    <a href="index.html" class="header-back">← Docs Hub</a>
-  </header>
-
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-  <div class="layout">
-    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
-      <div class="nav-section-label">Business</div>
-<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
-<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
-<div class="nav-section-label">Design</div>
-<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
-<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
-<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
-<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
-<div class="nav-section-label">Engineering</div>
-<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
-<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
-<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
-<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
-<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
-<div class="nav-section-label">Testing</div>
-<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
-<a href="RTM.html" class="nav-link active"><span>📊</span><span>RTM — Traceability Matrix</span></a>
-<div class="nav-section-label">Operations</div>
-<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
-<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
-    </nav>
-
-    <main class="main" id="main">
-      <div class="page-meta">
-        <span>📊 Testing</span>
-        <span>Source: <code>RTM.md</code></span>
-        <span>Generated: 2026-04-26</span>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
       </div>
-      <article class="md-content">
-        <h1 id="rtm-requirements-traceability-matrix">RTM — Requirements Traceability Matrix</h1>
-<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 需求追蹤矩陣 (RTM)</p>
+    <h1 class="banner-title">需求追蹤矩陣 (RTM)</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link active" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h1>RTM — Requirements Traceability Matrix</h1>
+<h1>Thunder Blessing Slot Game</h1>
 <hr>
-<h2 id="document-control">Document Control</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Field</th>
-<th>Content</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>DOC-ID</strong></td>
-<td>RTM-THUNDERBLESSING-20260426</td>
-</tr>
-<tr>
-<td><strong>Product</strong></td>
-<td>Thunder Blessing Slot Game</td>
-</tr>
-<tr>
-<td><strong>Version</strong></td>
-<td>v1.0</td>
-</tr>
-<tr>
-<td><strong>Status</strong></td>
-<td>DRAFT</td>
-</tr>
-<tr>
-<td><strong>Author</strong></td>
-<td>AI Generated (gendoc D13-RTM)</td>
-</tr>
-<tr>
-<td><strong>Date</strong></td>
-<td>2026-04-26</td>
-</tr>
-<tr>
-<td><strong>Upstream Documents</strong></td>
-<td>PRD.md v0.1, EDD.md v1.3, API.md v1.0, SCHEMA.md v1.0, test-plan.md v1.0</td>
-</tr>
-<tr>
-<td><strong>Reviewers</strong></td>
-<td>QA Lead, Engineering Lead</td>
-</tr>
-<tr>
-<td><strong>Approver</strong></td>
-<td>QA Lead</td>
-</tr>
-</tbody></table></div>
-<h3 id="change-log">Change Log</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Version</th>
-<th>Date</th>
-<th>Author</th>
-<th>Summary</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>v1.0</td>
-<td>2026-04-26</td>
-<td>AI Generated (gendoc D13-RTM)</td>
-<td>Initial generation from PRD, EDD, API, SCHEMA, test-plan, and BDD feature files</td>
-</tr>
-</tbody></table></div>
+<h2>Document Control</h2>
+<table>
+<tr><th>Field</th><th>Content</th></tr>
+<tr><td><strong>DOC-ID</strong></td><td>RTM-THUNDERBLESSING-20260426</td></tr>
+<tr><td><strong>Product</strong></td><td>Thunder Blessing Slot Game</td></tr>
+<tr><td><strong>Version</strong></td><td>v1.0</td></tr>
+<tr><td><strong>Status</strong></td><td>DRAFT</td></tr>
+<tr><td><strong>Author</strong></td><td>AI Generated (gendoc D13-RTM)</td></tr>
+<tr><td><strong>Date</strong></td><td>2026-04-26</td></tr>
+<tr><td><strong>Upstream Documents</strong></td><td>PRD.md v0.1, EDD.md v1.3, API.md v1.0, SCHEMA.md v1.0, test-plan.md v1.0</td></tr>
+<tr><td><strong>Reviewers</strong></td><td>QA Lead, Engineering Lead</td></tr>
+<tr><td><strong>Approver</strong></td><td>QA Lead</td></tr>
+</table>
+<h3>Change Log</h3>
+<table>
+<tr><th>Version</th><th>Date</th><th>Author</th><th>Summary</th></tr>
+<tr><td>v1.0</td><td>2026-04-26</td><td>AI Generated (gendoc D13-RTM)</td><td>Initial generation from PRD, EDD, API, SCHEMA, test-plan, and BDD feature files</td></tr>
+</table>
 <hr>
-<h2 id="table-of-contents">Table of Contents</h2>
-<ol>
-<li><a href="#section-1-requirement--design-traceability">Section 1: Requirement → Design Traceability</a></li>
-<li><a href="#section-2-requirement--test-coverage">Section 2: Requirement → Test Coverage</a></li>
-<li><a href="#section-3-api-endpoint-coverage">Section 3: API Endpoint Coverage</a></li>
-<li><a href="#section-4-coverage-summary">Section 4: Coverage Summary</a></li>
-<li><a href="#section-5-not-covered--risk-items">Section 5: Not-Covered / Risk Items</a></li>
-</ol>
+<h2>Table of Contents</h2>
+<ol><li><a href="#section-1-requirement--design-traceability" target="_blank" rel="noopener">Section 1: Requirement → Design Traceability</a></li><li><a href="#section-2-requirement--test-coverage" target="_blank" rel="noopener">Section 2: Requirement → Test Coverage</a></li><li><a href="#section-3-api-endpoint-coverage" target="_blank" rel="noopener">Section 3: API Endpoint Coverage</a></li><li><a href="#section-4-coverage-summary" target="_blank" rel="noopener">Section 4: Coverage Summary</a></li><li><a href="#section-5-not-covered--risk-items" target="_blank" rel="noopener">Section 5: Not-Covered / Risk Items</a></li></ol>
 <hr>
-<h2 id="section-1-requirement-design-traceability">Section 1: Requirement → Design Traceability</h2>
+<h2>Section 1: Requirement → Design Traceability</h2>
 <p>Maps each PRD requirement / Acceptance Criteria to the EDD section and API endpoint that implements it.</p>
 <blockquote><p><strong>EDD §5.1</strong> refers to the domain component table in EDD §1.3 (PRD Requirement Traceability table). Section references below use the canonical EDD component names.</p></blockquote>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Req ID</th>
-<th>Requirement Summary</th>
-<th>EDD Section / Component</th>
-<th>API Endpoint</th>
-<th>Design Artifact (SCHEMA / Config)</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>US-SPIN-001</strong></td>
-<td>Base reel spin — 5×3 grid, P99 ≤ 500ms, Wild substitution, payline evaluation</td>
-<td>§1.3: <code>SpinUseCase</code>, <code>SlotEngine.spin()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>spins</code> table (SCHEMA §2.2); <code>players</code> table (SCHEMA §2.1)</td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-1</td>
-<td>Spin returns FullSpinOutcome within 500ms (extraBet OFF, no FG)</td>
-<td><code>SpinUseCase</code>, <code>SlotEngine.spin()</code></td>
-<td><code>POST /v1/spin</code> → 200</td>
-<td><code>spins.outcome_json</code>, <code>spins.total_win</code></td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-2</td>
-<td>Balance &lt; baseBet → error, no request issued</td>
-<td><code>SpinUseCase</code> balance check</td>
-<td><code>POST /v1/spin</code> → 400 INSUFFICIENT_FUNDS</td>
-<td><code>players.balance CHECK (balance &gt;= 0)</code></td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-3</td>
-<td>Expired / missing JWT → 401</td>
-<td><code>JwtAuthGuard</code> (Fastify preHandler)</td>
-<td><code>POST /v1/spin</code> → 401 UNAUTHORIZED</td>
-<td>Supabase Auth JWT RS256</td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-4</td>
-<td>Concurrent spin blocked (button locked, 409 on 2nd request)</td>
-<td><code>ConcurrencyLockGuard</code> (Redis NX lock)</td>
-<td><code>POST /v1/spin</code> → 409 SPIN_IN_PROGRESS</td>
-<td>Redis <code>session:{id}:lock</code> key</td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-5</td>
-<td>Wild substitutes all symbols except SC</td>
-<td><code>SlotEngine.generateGrid()</code>, <code>CascadeEngine.detectWinLines()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>spins.outcome_json</code> (winLines)</td>
-</tr>
-<tr>
-<td><strong>US-CASC-001</strong></td>
-<td>Cascade chain elimination + Lightning Mark generation + row expansion</td>
-<td>§1.3: <code>CascadeEngine</code>, <code>SlotEngine</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>spins.thunder_blessing_triggered</code>, <code>cascadeSequence</code> in response</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-1</td>
-<td>Win → Lightning Mark generated, symbols eliminated, rows expand 3→4, paylines 25→33</td>
-<td><code>CascadeEngine.runCascade()</code>, <code>expandRows()</code>, <code>generateLightningMarks()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>cascadeSequence.steps[].newLightningMarks</code>, <code>cascadeSequence.steps[].rows</code></td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-2</td>
-<td>rows = 6 (MAX_ROWS) — no further expansion, cascade continues</td>
-<td><code>CascadeEngine.expandRows()</code> MAX_ROWS guard</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>finalRows</code> ≤ 6 enforced</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-3</td>
-<td>New Main Game spin resets Lightning Marks and rows to 3</td>
-<td><code>SlotEngine.spin()</code> initialization</td>
-<td><code>POST /v1/spin</code></td>
-<td>Redis session cleared; <code>lightningMarks.count = 0</code></td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-4</td>
-<td>Same payline wins not double-counted</td>
-<td><code>CascadeEngine.detectWinLines()</code> deduplication</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>cascadeSequence.steps[].winLines</code></td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-5</td>
-<td>3+ cascade steps — each CascadeStep records grid, wins, marks</td>
-<td><code>CascadeEngine.runCascade()</code> step tracking</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>cascadeSequence.steps[]</code> array</td>
-</tr>
-<tr>
-<td><strong>US-TBSC-001</strong></td>
-<td>Thunder Blessing Scatter — dual-hit symbol upgrade when marks present</td>
-<td>§1.3: <code>ThunderBlessingHandler</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>spins.thunder_blessing_triggered</code>, <code>spins.upgraded_symbol</code></td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-1</td>
-<td>SC lands on marked grid → first hit converts all marks to same premium symbol</td>
-<td><code>ThunderBlessingHandler.applyFirstHit()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>thunderBlessingResult.convertedSymbol</code></td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-2</td>
-<td>RNG &lt; 0.40 → second hit upgrades marked symbols one tier</td>
-<td><code>ThunderBlessingHandler.applySecondHit()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>thunderBlessingSecondHit = true</code></td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-3</td>
-<td>SC + no Lightning Marks → no Thunder Blessing</td>
-<td><code>ThunderBlessingHandler.evaluate()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>thunderBlessingTriggered = false</code></td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-4</td>
-<td>P1 upgrade boundary — stays P1</td>
-<td><code>ThunderBlessingHandler.upgradeSymbol()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td>Upgrade jump table in <code>GameConfig.generated.ts</code></td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-5</td>
-<td>Thunder Blessing → Cascade continues if new win</td>
-<td><code>ThunderBlessingHandler</code> + <code>CascadeEngine</code> pipeline</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>cascadeSequence.steps[]</code> post-TB</td>
-</tr>
-<tr>
-<td><strong>US-COIN-001</strong></td>
-<td>Coin Toss — rows=6 + cascade win → probability gate → FG entry</td>
-<td>§1.3: <code>CoinTossEvaluator</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>spins.coin_toss_result</code>, <code>spins.coin_toss_triggered</code></td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-1</td>
-<td>rows=6 + Cascade success → mgFgTriggerProb (0.009624) → coinProbs[0]=0.80 for Heads</td>
-<td><code>CoinTossEvaluator.evaluate(rng, config, stage=0)</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>coinTossTriggered</code>, <code>coinTossResult</code></td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-2</td>
-<td>Coin Toss Heads (main game) → FG starts at ×3</td>
-<td><code>FreeGameOrchestrator.runSequence()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgTriggered = true</code>, <code>fgMultiplier = 3</code></td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-3</td>
-<td>Coin Toss Tails → no FG, spin ends</td>
-<td><code>CoinTossEvaluator.evaluate()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgTriggered = false</code></td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-4</td>
-<td>buyFG mode → entryBuy=1.00, bypasses mgFgTriggerProb</td>
-<td><code>BuyFeatureUseCase</code>, <code>CoinTossEvaluator</code></td>
-<td><code>POST /v1/spin</code> (buyFeature=true)</td>
-<td><code>spins.buy_feature_active</code></td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-5</td>
-<td>rows &lt; 6 → Coin Toss never triggered</td>
-<td><code>SlotEngine.spin()</code> rows guard</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>coinTossTriggered = false</code> when <code>finalRows &lt; 6</code></td>
-</tr>
-<tr>
-<td><strong>US-FGAM-001</strong></td>
-<td>Free Game — Lightning Marks persist cross-Spin, ×3→×7→×17→×27→×77 sequence</td>
-<td>§1.3: <code>FreeGameOrchestrator</code>, §5.6</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>spins.fg_triggered</code>, <code>spins.fg_multiplier</code>, <code>fg_sessions</code> table (SCHEMA §2.3)</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-1</td>
-<td>FG round 1 uses freeGame weights, inherits marks from main game, win × 3</td>
-<td><code>FreeGameOrchestrator.runSingleRound()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgRounds[0].lightningMarksBefore</code>, <code>fgRounds[0].multiplier = 3</code></td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-2</td>
-<td>2nd FG Coin Toss Heads → multiplier upgrades ×3→×7</td>
-<td><code>FreeGameOrchestrator.runSequence()</code> stage progression</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgRounds[1].multiplier = 7</code></td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-3</td>
-<td>Multiplier at ×77 with Heads → stays at ×77</td>
-<td><code>FreeGameOrchestrator</code> max multiplier guard</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgMultiplier</code> enum [3,7,17,27,77]</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-4</td>
-<td>Any FG Coin Toss Tails → FG ends, marks cleared</td>
-<td><code>FreeGameOrchestrator.runSequence()</code> termination</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgRounds[n].coinTossResult = &quot;TAILS&quot;</code>, <code>lightningMarks = []</code></td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-5</td>
-<td>buyFG mode → exactly 5 FG rounds, multipliers [3,7,17,27,77]</td>
-<td><code>BuyFeatureUseCase</code>, <code>FreeGameOrchestrator</code></td>
-<td><code>POST /v1/spin</code> (buyFeature=true)</td>
-<td><code>fgRounds.length === 5</code></td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-6</td>
-<td>FG Bonus multiplier drawn once (×1/×5/×20/×100) from fgBonus weights</td>
-<td><code>FreeGameOrchestrator.drawBonusMultiplier()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgBonusMultiplier</code>, <code>spins.bonus_multiplier</code></td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-7</td>
-<td>×77 + Tails → FG ends immediately, marks cleared, totalWin returned</td>
-<td><code>FreeGameOrchestrator</code> termination + <code>SessionFloorGuard</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>totalWin</code> in response</td>
-</tr>
-<tr>
-<td><strong>US-FGREC-001</strong></td>
-<td>FG disconnection recovery — restore from Redis/PostgreSQL</td>
-<td>§4.1: <code>RedisSessionCache</code>, <code>SupabaseSessionRepository</code></td>
-<td><code>GET /v1/session/:sessionId</code></td>
-<td><code>fg_sessions</code> table (SCHEMA §2.3); Redis <code>session:{sessionId}:state</code></td>
-</tr>
-<tr>
-<td>US-FGREC-001 / AC-1</td>
-<td>FG in progress + valid JWT → backend restores FG state from Redis</td>
-<td><code>RedisSessionCache.get()</code>, <code>GetSessionStateUseCase</code></td>
-<td><code>GET /v1/session/:sessionId</code> → 200</td>
-<td><code>fg_sessions.fg_multiplier</code>, <code>fg_sessions.lightning_marks</code></td>
-</tr>
-<tr>
-<td>US-FGREC-001 / AC-2</td>
-<td>FG state restored → frontend resumes from breakpoint</td>
-<td><code>GetSessionStateUseCase</code> → <code>SessionStateDTO</code></td>
-<td><code>GET /v1/session/:sessionId</code></td>
-<td><code>status = &quot;FG_ACTIVE&quot;</code>, <code>completedRounds[]</code></td>
-</tr>
-<tr>
-<td>US-FGREC-001 / AC-3</td>
-<td>JWT expired on reconnect → 401, FG state preserved</td>
-<td><code>JwtAuthGuard</code></td>
-<td><code>GET /v1/session/:sessionId</code> → 401</td>
-<td>Session TTL not reset on auth failure</td>
-</tr>
-<tr>
-<td>US-FGREC-001 / AC-4</td>
-<td>FG not in progress → no recovery triggered</td>
-<td><code>GetSessionStateUseCase</code> fg_in_progress check</td>
-<td><code>GET /v1/session/:sessionId</code></td>
-<td><code>status = &quot;COMPLETE&quot;</code> or <code>SPINNING</code></td>
-</tr>
-<tr>
-<td><strong>US-EXBT-001</strong></td>
-<td>Extra Bet — ×3 cost, guaranteed SC in visible 3 rows</td>
-<td>§1.3: <code>SlotEngine.generateGrid()</code> (isExtraBet flag)</td>
-<td><code>POST /v1/spin</code> (extraBet=true)</td>
-<td><code>spins.extra_bet_active</code>, <code>extraBetActive</code> in response</td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-1</td>
-<td>Extra Bet ON + baseBet=$0.25 → debit $0.75, use extraBet weights, SC guaranteed</td>
-<td><code>SlotEngine.generateGrid(isExtraBet=true)</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>totalBet = baseBet × 3</code></td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-2</td>
-<td>Natural SC present → no forced injection</td>
-<td><code>SlotEngine.generateGrid()</code> SC check</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>forceScatter</code> flag logic</td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-3</td>
-<td>No natural SC → random row 0-2 cell replaced with SC</td>
-<td><code>SlotEngine.generateGrid()</code> forced injection</td>
-<td><code>POST /v1/spin</code></td>
-<td>Grid positions with SC in rows 0-2</td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-4</td>
-<td>Extra Bet OFF → mainGame weights, baseBet debit</td>
-<td><code>SlotEngine.generateGrid(isExtraBet=false)</code></td>
-<td><code>POST /v1/spin</code> (extraBet=false)</td>
-<td><code>extraBetActive = false</code></td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-5</td>
-<td>Extra Bet ON + Buy Feature → fee = 300 × baseBet</td>
-<td><code>BuyFeatureUseCase</code> fee calculation</td>
-<td><code>POST /v1/spin</code> (extraBet=true, buyFeature=true)</td>
-<td><code>totalBet = baseBet × 300</code></td>
-</tr>
-<tr>
-<td><strong>US-BUYF-001</strong></td>
-<td>Buy Feature — 100× baseBet, guaranteed 5 Heads, session floor ≥ 20×</td>
-<td>§1.3: <code>BuyFeatureUseCase</code>, <code>SessionFloorGuard</code>, §5.7</td>
-<td><code>POST /v1/spin</code> (buyFeature=true)</td>
-<td><code>spins.buy_feature_active</code>, <code>spins.session_floor_applied</code></td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-1</td>
-<td>Balance ≥ 100×, extraBet OFF → debit 100×, mode=buyFG, 5 rounds guaranteed</td>
-<td><code>BuyFeatureUseCase</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>buyFeatureActive = true</code>, <code>fgRounds.length = 5</code></td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-2</td>
-<td>totalWin &lt; 20× → floor applied, totalWin raised to 20×</td>
-<td><code>SessionFloorGuard.applyFloor()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>sessionFloorApplied = true</code>, <code>sessionFloorValue</code></td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-3</td>
-<td>Extra Bet + Buy Feature → fee=300×, floor=60×</td>
-<td><code>BuyFeatureUseCase</code> + <code>SessionFloorGuard</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>sessionFloorValue = 60 × baseBet</code></td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-4</td>
-<td>Balance &lt; 100× → 400 INSUFFICIENT_FUNDS</td>
-<td><code>SpinUseCase</code> balance check</td>
-<td><code>POST /v1/spin</code> → 400</td>
-<td><code>players.balance</code></td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-5</td>
-<td>buyFG weights used exclusively</td>
-<td><code>SlotEngine.generateGrid()</code> weight selection</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>GameConfig.generated.ts</code> weights.buyFG</td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-6</td>
-<td>Extra Bet ON + balance &lt; 300× → 400</td>
-<td><code>SpinUseCase</code></td>
-<td><code>POST /v1/spin</code> → 400 INSUFFICIENT_FUNDS</td>
-<td><code>players.balance</code></td>
-</tr>
-<tr>
-<td><strong>US-NRMS-001</strong></td>
-<td>Near Miss — Excel-defined, toolchain configured, zero win</td>
-<td>§14.7: <code>NearMissSelector</code> (config-driven)</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>nearMissApplied</code> in response; <code>spins.near_miss_applied</code></td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-1</td>
-<td>Excel DATA tab → build_config.js → GameConfig.generated.ts</td>
-<td><code>build_config.js</code> toolchain</td>
-<td>N/A (build-time)</td>
-<td><code>GameConfig.generated.ts</code> nearMiss config block</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-2</td>
-<td>Near Miss trigger → win = 0, no RTP impact</td>
-<td><code>NearMissSelector.select()</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>totalWin = 0</code>, <code>nearMissApplied = true</code></td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-3</td>
-<td>No hardcoded Near Miss in SlotEngine.ts</td>
-<td>Code convention + CI check</td>
-<td>N/A</td>
-<td><code>GameConfig.generated.ts</code> only source</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-4</td>
-<td>Near Miss does not affect RTP ±1%</td>
-<td><code>verify.js</code> 4-scenario check</td>
-<td>N/A (toolchain)</td>
-<td><code>verify_report.txt</code> PASS</td>
-</tr>
-<tr>
-<td><strong>US-TOOL-001</strong></td>
-<td>slot-engine toolchain — Excel → engine_config.json → GameConfig.generated.ts</td>
-<td>§14.1: <code>build_config.js</code>, <code>excel_simulator.js</code>, <code>verify.js</code>, <code>engine_generator.js</code></td>
-<td>N/A (build-time toolchain)</td>
-<td><code>GameConfig.generated.ts</code>, <code>engine_config.json</code></td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-1</td>
-<td>Excel DATA tab edit → build_config.js → engine_config.json updated</td>
-<td><code>build_config.js</code></td>
-<td>N/A</td>
-<td><code>engine_config.json</code></td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-2</td>
-<td>engine_config.json → excel_simulator.js → 1M Monte Carlo → SIMULATION + DESIGN_VIEW tabs</td>
-<td><code>excel_simulator.js</code></td>
-<td>N/A</td>
-<td>SIMULATION / DESIGN_VIEW Excel tabs</td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-3</td>
-<td>SIMULATION written → verify.js → RTP ±1% → verify_report.txt PASS</td>
-<td><code>verify.js</code></td>
-<td>N/A</td>
-<td><code>verify_report.txt</code></td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-4</td>
-<td>verify.js PASS → engine_generator.js → GameConfig.generated.ts with no-edit header</td>
-<td><code>engine_generator.js</code></td>
-<td>N/A</td>
-<td><code>GameConfig.generated.ts</code></td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-5</td>
-<td>verify.js FAIL → engine_generator.js blocked</td>
-<td><code>verify.js</code> hard gate</td>
-<td>N/A</td>
-<td>CI exit code ≠ 0</td>
-</tr>
-<tr>
-<td><strong>US-RTPV-001</strong></td>
-<td>RTP verification — 4 scenarios ±1% via verify.js 1M Monte Carlo</td>
-<td>§14.4: <code>verify.js</code></td>
-<td>N/A (toolchain)</td>
-<td><code>verify_report.txt</code></td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-1</td>
-<td>Scenario 1 (Main Game, EB Off): RTP 96.5%–98.5%</td>
-<td><code>verify.js</code> scenario 1</td>
-<td>N/A</td>
-<td><code>verify_report.txt</code> ✅</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-2</td>
-<td>Scenario 2 (Main Game, EB On): RTP 96.5%–98.5%</td>
-<td><code>verify.js</code> scenario 2</td>
-<td>N/A</td>
-<td><code>verify_report.txt</code> ✅</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-3</td>
-<td>Scenario 3 (FG, BuyFG Off): RTP 96.5%–98.5%</td>
-<td><code>verify.js</code> scenario 3</td>
-<td>N/A</td>
-<td><code>verify_report.txt</code> ✅</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-4</td>
-<td>Scenario 4 (Buy Free Game): RTP 96.5%–98.5%</td>
-<td><code>verify.js</code> scenario 4</td>
-<td>N/A</td>
-<td><code>verify_report.txt</code> ✅</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-5</td>
-<td>Any scenario fails → verify.js outputs ❌, blocks engine_generator.js</td>
-<td><code>verify.js</code> + CI gate</td>
-<td>N/A</td>
-<td>CI pipeline gate QG-06</td>
-</tr>
-<tr>
-<td><strong>US-CURR-001</strong></td>
-<td>USD / TWD currency — from BetRangeConfig.generated.ts, no hardcoded values</td>
-<td>§6.5: <code>CurrencyFormatter</code></td>
-<td><code>GET /v1/config</code></td>
-<td><code>BetRangeConfig.generated.ts</code></td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-1</td>
-<td>USD fetchBetRange: min $0.25, max $10.00, step $0.25</td>
-<td><code>CurrencyFormatter</code>, <code>BetRangeConfig</code></td>
-<td><code>GET /v1/config</code></td>
-<td><code>betRange.USD.levels[]</code></td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-2</td>
-<td>TWD fetchBetRange: min 10, max 320, step 10</td>
-<td><code>CurrencyFormatter</code>, <code>BetRangeConfig</code></td>
-<td><code>GET /v1/config</code></td>
-<td><code>betRange.TWD.levels[]</code></td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-3</td>
-<td>No hardcoded bet range in BetRangeService.ts</td>
-<td>Code review gate</td>
-<td>N/A</td>
-<td><code>BetRangeConfig.generated.ts</code> only source</td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-4</td>
-<td>Excel BET_MAX_LEVEL change → BetRangeConfig.generated.ts auto-updates</td>
-<td>Toolchain propagation</td>
-<td><code>GET /v1/config</code></td>
-<td><code>BetRangeConfig.generated.ts</code></td>
-</tr>
-<tr>
-<td><strong>US-APIV-001</strong></td>
-<td>Single-trip API — complete FG sequence in one response, JWT on every spin</td>
-<td>§1.3: <code>JwtAuthGuard</code>, ADR-002</td>
-<td><code>POST /v1/spin</code></td>
-<td>Full <code>FullSpinOutcome</code> JSON (API §3.1)</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-1</td>
-<td>Main Game with FG (×3→×7→Tails): one response contains baseSpins + fgSpins</td>
-<td><code>FreeGameOrchestrator</code> embedded in <code>SpinUseCase</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgRounds[]</code> in single response</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-2</td>
-<td>buyFG: fgRounds.length = 5, multipliers [3,7,17,27,77]</td>
-<td><code>BuyFeatureUseCase</code> + <code>FreeGameOrchestrator</code></td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgRounds[0..4].multiplier</code></td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-3</td>
-<td>Base spin P99 ≤ 500ms; FG sequence P99 ≤ 800ms at 100 RPS</td>
-<td>API performance (k6)</td>
-<td><code>POST /v1/spin</code></td>
-<td>QG-07/QG-08 in CI</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-4</td>
-<td>Invalid JWT → 401, no game logic executed</td>
-<td><code>JwtAuthGuard</code></td>
-<td><code>POST /v1/spin</code> → 401</td>
-<td>Supabase Auth</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-5</td>
-<td>UI displays outcome.totalWin only (not session.roundWin)</td>
-<td><code>SpinUseCase</code> authority rule</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>totalWin</code> sole authority</td>
-</tr>
-<tr>
-<td><strong>US-FEND-001</strong> (P1)</td>
-<td>Frontend animation — FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins</td>
-<td>§4.1: <code>SpinResponse.dto.ts</code></td>
-<td><code>POST /v1/spin</code></td>
-<td>Full <code>FullSpinOutcome</code> schema (API §3.1)</td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-1</td>
-<td>FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins with correct structure</td>
-<td><code>SpinResponse.dto.ts</code> serialization</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>cascadeSequence</code>, <code>fgRounds[]</code></td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-2</td>
-<td>FG triggered: frontend plays fgSpins sequentially without extra API requests</td>
-<td>Single-trip design (ADR-002)</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgRounds[]</code> array sequential</td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-3</td>
-<td>Frontend shows outcome.totalWin, not client-computed sum</td>
-<td>API contract + Pure View</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>totalWin</code> field</td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-4</td>
-<td>No FG: fgRounds = [] handled gracefully</td>
-<td><code>SpinUseCase</code> conditional</td>
-<td><code>POST /v1/spin</code></td>
-<td><code>fgRounds: []</code></td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-5</td>
-<td>FullSpinOutcome matches OpenAPI spec</td>
-<td><code>SpinResponse.dto.ts</code> + AJV validation</td>
-<td><code>POST /v1/spin</code></td>
-<td>OpenAPI schema in API §3.1</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Req ID</th><th>Requirement Summary</th><th>EDD Section / Component</th><th>API Endpoint</th><th>Design Artifact (SCHEMA / Config)</th></tr>
+<tr><td><strong>US-SPIN-001</strong></td><td>Base reel spin — 5×3 grid, P99 ≤ 500ms, Wild substitution, payline evaluation</td><td>§1.3: <code>SpinUseCase</code>, <code>SlotEngine.spin()</code></td><td><code>POST /v1/spin</code></td><td><code>spins</code> table (SCHEMA §2.2); <code>players</code> table (SCHEMA §2.1)</td></tr>
+<tr><td>US-SPIN-001 / AC-1</td><td>Spin returns FullSpinOutcome within 500ms (extraBet OFF, no FG)</td><td><code>SpinUseCase</code>, <code>SlotEngine.spin()</code></td><td><code>POST /v1/spin</code> → 200</td><td><code>spins.outcome_json</code>, <code>spins.total_win</code></td></tr>
+<tr><td>US-SPIN-001 / AC-2</td><td>Balance &lt; baseBet → error, no request issued</td><td><code>SpinUseCase</code> balance check</td><td><code>POST /v1/spin</code> → 400 INSUFFICIENT_FUNDS</td><td><code>players.balance CHECK (balance &gt;= 0)</code></td></tr>
+<tr><td>US-SPIN-001 / AC-3</td><td>Expired / missing JWT → 401</td><td><code>JwtAuthGuard</code> (Fastify preHandler)</td><td><code>POST /v1/spin</code> → 401 UNAUTHORIZED</td><td>Supabase Auth JWT RS256</td></tr>
+<tr><td>US-SPIN-001 / AC-4</td><td>Concurrent spin blocked (button locked, 409 on 2nd request)</td><td><code>ConcurrencyLockGuard</code> (Redis NX lock)</td><td><code>POST /v1/spin</code> → 409 SPIN_IN_PROGRESS</td><td>Redis <code>session:{id}:lock</code> key</td></tr>
+<tr><td>US-SPIN-001 / AC-5</td><td>Wild substitutes all symbols except SC</td><td><code>SlotEngine.generateGrid()</code>, <code>CascadeEngine.detectWinLines()</code></td><td><code>POST /v1/spin</code></td><td><code>spins.outcome_json</code> (winLines)</td></tr>
+<tr><td><strong>US-CASC-001</strong></td><td>Cascade chain elimination + Lightning Mark generation + row expansion</td><td>§1.3: <code>CascadeEngine</code>, <code>SlotEngine</code></td><td><code>POST /v1/spin</code></td><td><code>spins.thunder_blessing_triggered</code>, <code>cascadeSequence</code> in response</td></tr>
+<tr><td>US-CASC-001 / AC-1</td><td>Win → Lightning Mark generated, symbols eliminated, rows expand 3→4, paylines 25→33</td><td><code>CascadeEngine.runCascade()</code>, <code>expandRows()</code>, <code>generateLightningMarks()</code></td><td><code>POST /v1/spin</code></td><td><code>cascadeSequence.steps[].newLightningMarks</code>, <code>cascadeSequence.steps[].rows</code></td></tr>
+<tr><td>US-CASC-001 / AC-2</td><td>rows = 6 (MAX_ROWS) — no further expansion, cascade continues</td><td><code>CascadeEngine.expandRows()</code> MAX_ROWS guard</td><td><code>POST /v1/spin</code></td><td><code>finalRows</code> ≤ 6 enforced</td></tr>
+<tr><td>US-CASC-001 / AC-3</td><td>New Main Game spin resets Lightning Marks and rows to 3</td><td><code>SlotEngine.spin()</code> initialization</td><td><code>POST /v1/spin</code></td><td>Redis session cleared; <code>lightningMarks.count = 0</code></td></tr>
+<tr><td>US-CASC-001 / AC-4</td><td>Same payline wins not double-counted</td><td><code>CascadeEngine.detectWinLines()</code> deduplication</td><td><code>POST /v1/spin</code></td><td><code>cascadeSequence.steps[].winLines</code></td></tr>
+<tr><td>US-CASC-001 / AC-5</td><td>3+ cascade steps — each CascadeStep records grid, wins, marks</td><td><code>CascadeEngine.runCascade()</code> step tracking</td><td><code>POST /v1/spin</code></td><td><code>cascadeSequence.steps[]</code> array</td></tr>
+<tr><td><strong>US-TBSC-001</strong></td><td>Thunder Blessing Scatter — dual-hit symbol upgrade when marks present</td><td>§1.3: <code>ThunderBlessingHandler</code></td><td><code>POST /v1/spin</code></td><td><code>spins.thunder_blessing_triggered</code>, <code>spins.upgraded_symbol</code></td></tr>
+<tr><td>US-TBSC-001 / AC-1</td><td>SC lands on marked grid → first hit converts all marks to same premium symbol</td><td><code>ThunderBlessingHandler.applyFirstHit()</code></td><td><code>POST /v1/spin</code></td><td><code>thunderBlessingResult.convertedSymbol</code></td></tr>
+<tr><td>US-TBSC-001 / AC-2</td><td>RNG &lt; 0.40 → second hit upgrades marked symbols one tier</td><td><code>ThunderBlessingHandler.applySecondHit()</code></td><td><code>POST /v1/spin</code></td><td><code>thunderBlessingSecondHit = true</code></td></tr>
+<tr><td>US-TBSC-001 / AC-3</td><td>SC + no Lightning Marks → no Thunder Blessing</td><td><code>ThunderBlessingHandler.evaluate()</code></td><td><code>POST /v1/spin</code></td><td><code>thunderBlessingTriggered = false</code></td></tr>
+<tr><td>US-TBSC-001 / AC-4</td><td>P1 upgrade boundary — stays P1</td><td><code>ThunderBlessingHandler.upgradeSymbol()</code></td><td><code>POST /v1/spin</code></td><td>Upgrade jump table in <code>GameConfig.generated.ts</code></td></tr>
+<tr><td>US-TBSC-001 / AC-5</td><td>Thunder Blessing → Cascade continues if new win</td><td><code>ThunderBlessingHandler</code> + <code>CascadeEngine</code> pipeline</td><td><code>POST /v1/spin</code></td><td><code>cascadeSequence.steps[]</code> post-TB</td></tr>
+<tr><td><strong>US-COIN-001</strong></td><td>Coin Toss — rows=6 + cascade win → probability gate → FG entry</td><td>§1.3: <code>CoinTossEvaluator</code></td><td><code>POST /v1/spin</code></td><td><code>spins.coin_toss_result</code>, <code>spins.coin_toss_triggered</code></td></tr>
+<tr><td>US-COIN-001 / AC-1</td><td>rows=6 + Cascade success → mgFgTriggerProb (0.009624) → coinProbs[0]=0.80 for Heads</td><td><code>CoinTossEvaluator.evaluate(rng, config, stage=0)</code></td><td><code>POST /v1/spin</code></td><td><code>coinTossTriggered</code>, <code>coinTossResult</code></td></tr>
+<tr><td>US-COIN-001 / AC-2</td><td>Coin Toss Heads (main game) → FG starts at ×3</td><td><code>FreeGameOrchestrator.runSequence()</code></td><td><code>POST /v1/spin</code></td><td><code>fgTriggered = true</code>, <code>fgMultiplier = 3</code></td></tr>
+<tr><td>US-COIN-001 / AC-3</td><td>Coin Toss Tails → no FG, spin ends</td><td><code>CoinTossEvaluator.evaluate()</code></td><td><code>POST /v1/spin</code></td><td><code>fgTriggered = false</code></td></tr>
+<tr><td>US-COIN-001 / AC-4</td><td>buyFG mode → entryBuy=1.00, bypasses mgFgTriggerProb</td><td><code>BuyFeatureUseCase</code>, <code>CoinTossEvaluator</code></td><td><code>POST /v1/spin</code> (buyFeature=true)</td><td><code>spins.buy_feature_active</code></td></tr>
+<tr><td>US-COIN-001 / AC-5</td><td>rows &lt; 6 → Coin Toss never triggered</td><td><code>SlotEngine.spin()</code> rows guard</td><td><code>POST /v1/spin</code></td><td><code>coinTossTriggered = false</code> when <code>finalRows &lt; 6</code></td></tr>
+<tr><td><strong>US-FGAM-001</strong></td><td>Free Game — Lightning Marks persist cross-Spin, ×3→×7→×17→×27→×77 sequence</td><td>§1.3: <code>FreeGameOrchestrator</code>, §5.6</td><td><code>POST /v1/spin</code></td><td><code>spins.fg_triggered</code>, <code>spins.fg_multiplier</code>, <code>fg_sessions</code> table (SCHEMA §2.3)</td></tr>
+<tr><td>US-FGAM-001 / AC-1</td><td>FG round 1 uses freeGame weights, inherits marks from main game, win × 3</td><td><code>FreeGameOrchestrator.runSingleRound()</code></td><td><code>POST /v1/spin</code></td><td><code>fgRounds[0].lightningMarksBefore</code>, <code>fgRounds[0].multiplier = 3</code></td></tr>
+<tr><td>US-FGAM-001 / AC-2</td><td>2nd FG Coin Toss Heads → multiplier upgrades ×3→×7</td><td><code>FreeGameOrchestrator.runSequence()</code> stage progression</td><td><code>POST /v1/spin</code></td><td><code>fgRounds[1].multiplier = 7</code></td></tr>
+<tr><td>US-FGAM-001 / AC-3</td><td>Multiplier at ×77 with Heads → stays at ×77</td><td><code>FreeGameOrchestrator</code> max multiplier guard</td><td><code>POST /v1/spin</code></td><td><code>fgMultiplier</code> enum [3,7,17,27,77]</td></tr>
+<tr><td>US-FGAM-001 / AC-4</td><td>Any FG Coin Toss Tails → FG ends, marks cleared</td><td><code>FreeGameOrchestrator.runSequence()</code> termination</td><td><code>POST /v1/spin</code></td><td><code>fgRounds[n].coinTossResult = &quot;TAILS&quot;</code>, <code>lightningMarks = []</code></td></tr>
+<tr><td>US-FGAM-001 / AC-5</td><td>buyFG mode → exactly 5 FG rounds, multipliers [3,7,17,27,77]</td><td><code>BuyFeatureUseCase</code>, <code>FreeGameOrchestrator</code></td><td><code>POST /v1/spin</code> (buyFeature=true)</td><td><code>fgRounds.length === 5</code></td></tr>
+<tr><td>US-FGAM-001 / AC-6</td><td>FG Bonus multiplier drawn once (×1/×5/×20/×100) from fgBonus weights</td><td><code>FreeGameOrchestrator.drawBonusMultiplier()</code></td><td><code>POST /v1/spin</code></td><td><code>fgBonusMultiplier</code>, <code>spins.bonus_multiplier</code></td></tr>
+<tr><td>US-FGAM-001 / AC-7</td><td>×77 + Tails → FG ends immediately, marks cleared, totalWin returned</td><td><code>FreeGameOrchestrator</code> termination + <code>SessionFloorGuard</code></td><td><code>POST /v1/spin</code></td><td><code>totalWin</code> in response</td></tr>
+<tr><td><strong>US-FGREC-001</strong></td><td>FG disconnection recovery — restore from Redis/PostgreSQL</td><td>§4.1: <code>RedisSessionCache</code>, <code>SupabaseSessionRepository</code></td><td><code>GET /v1/session/:sessionId</code></td><td><code>fg_sessions</code> table (SCHEMA §2.3); Redis <code>session:{sessionId}:state</code></td></tr>
+<tr><td>US-FGREC-001 / AC-1</td><td>FG in progress + valid JWT → backend restores FG state from Redis</td><td><code>RedisSessionCache.get()</code>, <code>GetSessionStateUseCase</code></td><td><code>GET /v1/session/:sessionId</code> → 200</td><td><code>fg_sessions.fg_multiplier</code>, <code>fg_sessions.lightning_marks</code></td></tr>
+<tr><td>US-FGREC-001 / AC-2</td><td>FG state restored → frontend resumes from breakpoint</td><td><code>GetSessionStateUseCase</code> → <code>SessionStateDTO</code></td><td><code>GET /v1/session/:sessionId</code></td><td><code>status = &quot;FG_ACTIVE&quot;</code>, <code>completedRounds[]</code></td></tr>
+<tr><td>US-FGREC-001 / AC-3</td><td>JWT expired on reconnect → 401, FG state preserved</td><td><code>JwtAuthGuard</code></td><td><code>GET /v1/session/:sessionId</code> → 401</td><td>Session TTL not reset on auth failure</td></tr>
+<tr><td>US-FGREC-001 / AC-4</td><td>FG not in progress → no recovery triggered</td><td><code>GetSessionStateUseCase</code> fg_in_progress check</td><td><code>GET /v1/session/:sessionId</code></td><td><code>status = &quot;COMPLETE&quot;</code> or <code>SPINNING</code></td></tr>
+<tr><td><strong>US-EXBT-001</strong></td><td>Extra Bet — ×3 cost, guaranteed SC in visible 3 rows</td><td>§1.3: <code>SlotEngine.generateGrid()</code> (isExtraBet flag)</td><td><code>POST /v1/spin</code> (extraBet=true)</td><td><code>spins.extra_bet_active</code>, <code>extraBetActive</code> in response</td></tr>
+<tr><td>US-EXBT-001 / AC-1</td><td>Extra Bet ON + baseBet=$0.25 → debit $0.75, use extraBet weights, SC guaranteed</td><td><code>SlotEngine.generateGrid(isExtraBet=true)</code></td><td><code>POST /v1/spin</code></td><td><code>totalBet = baseBet × 3</code></td></tr>
+<tr><td>US-EXBT-001 / AC-2</td><td>Natural SC present → no forced injection</td><td><code>SlotEngine.generateGrid()</code> SC check</td><td><code>POST /v1/spin</code></td><td><code>forceScatter</code> flag logic</td></tr>
+<tr><td>US-EXBT-001 / AC-3</td><td>No natural SC → random row 0-2 cell replaced with SC</td><td><code>SlotEngine.generateGrid()</code> forced injection</td><td><code>POST /v1/spin</code></td><td>Grid positions with SC in rows 0-2</td></tr>
+<tr><td>US-EXBT-001 / AC-4</td><td>Extra Bet OFF → mainGame weights, baseBet debit</td><td><code>SlotEngine.generateGrid(isExtraBet=false)</code></td><td><code>POST /v1/spin</code> (extraBet=false)</td><td><code>extraBetActive = false</code></td></tr>
+<tr><td>US-EXBT-001 / AC-5</td><td>Extra Bet ON + Buy Feature → fee = 300 × baseBet</td><td><code>BuyFeatureUseCase</code> fee calculation</td><td><code>POST /v1/spin</code> (extraBet=true, buyFeature=true)</td><td><code>totalBet = baseBet × 300</code></td></tr>
+<tr><td><strong>US-BUYF-001</strong></td><td>Buy Feature — 100× baseBet, guaranteed 5 Heads, session floor ≥ 20×</td><td>§1.3: <code>BuyFeatureUseCase</code>, <code>SessionFloorGuard</code>, §5.7</td><td><code>POST /v1/spin</code> (buyFeature=true)</td><td><code>spins.buy_feature_active</code>, <code>spins.session_floor_applied</code></td></tr>
+<tr><td>US-BUYF-001 / AC-1</td><td>Balance ≥ 100×, extraBet OFF → debit 100×, mode=buyFG, 5 rounds guaranteed</td><td><code>BuyFeatureUseCase</code></td><td><code>POST /v1/spin</code></td><td><code>buyFeatureActive = true</code>, <code>fgRounds.length = 5</code></td></tr>
+<tr><td>US-BUYF-001 / AC-2</td><td>totalWin &lt; 20× → floor applied, totalWin raised to 20×</td><td><code>SessionFloorGuard.applyFloor()</code></td><td><code>POST /v1/spin</code></td><td><code>sessionFloorApplied = true</code>, <code>sessionFloorValue</code></td></tr>
+<tr><td>US-BUYF-001 / AC-3</td><td>Extra Bet + Buy Feature → fee=300×, floor=60×</td><td><code>BuyFeatureUseCase</code> + <code>SessionFloorGuard</code></td><td><code>POST /v1/spin</code></td><td><code>sessionFloorValue = 60 × baseBet</code></td></tr>
+<tr><td>US-BUYF-001 / AC-4</td><td>Balance &lt; 100× → 400 INSUFFICIENT_FUNDS</td><td><code>SpinUseCase</code> balance check</td><td><code>POST /v1/spin</code> → 400</td><td><code>players.balance</code></td></tr>
+<tr><td>US-BUYF-001 / AC-5</td><td>buyFG weights used exclusively</td><td><code>SlotEngine.generateGrid()</code> weight selection</td><td><code>POST /v1/spin</code></td><td><code>GameConfig.generated.ts</code> weights.buyFG</td></tr>
+<tr><td>US-BUYF-001 / AC-6</td><td>Extra Bet ON + balance &lt; 300× → 400</td><td><code>SpinUseCase</code></td><td><code>POST /v1/spin</code> → 400 INSUFFICIENT_FUNDS</td><td><code>players.balance</code></td></tr>
+<tr><td><strong>US-NRMS-001</strong></td><td>Near Miss — Excel-defined, toolchain configured, zero win</td><td>§14.7: <code>NearMissSelector</code> (config-driven)</td><td><code>POST /v1/spin</code></td><td><code>nearMissApplied</code> in response; <code>spins.near_miss_applied</code></td></tr>
+<tr><td>US-NRMS-001 / AC-1</td><td>Excel DATA tab → build_config.js → GameConfig.generated.ts</td><td><code>build_config.js</code> toolchain</td><td>N/A (build-time)</td><td><code>GameConfig.generated.ts</code> nearMiss config block</td></tr>
+<tr><td>US-NRMS-001 / AC-2</td><td>Near Miss trigger → win = 0, no RTP impact</td><td><code>NearMissSelector.select()</code></td><td><code>POST /v1/spin</code></td><td><code>totalWin = 0</code>, <code>nearMissApplied = true</code></td></tr>
+<tr><td>US-NRMS-001 / AC-3</td><td>No hardcoded Near Miss in SlotEngine.ts</td><td>Code convention + CI check</td><td>N/A</td><td><code>GameConfig.generated.ts</code> only source</td></tr>
+<tr><td>US-NRMS-001 / AC-4</td><td>Near Miss does not affect RTP ±1%</td><td><code>verify.js</code> 4-scenario check</td><td>N/A (toolchain)</td><td><code>verify_report.txt</code> PASS</td></tr>
+<tr><td><strong>US-TOOL-001</strong></td><td>slot-engine toolchain — Excel → engine_config.json → GameConfig.generated.ts</td><td>§14.1: <code>build_config.js</code>, <code>excel_simulator.js</code>, <code>verify.js</code>, <code>engine_generator.js</code></td><td>N/A (build-time toolchain)</td><td><code>GameConfig.generated.ts</code>, <code>engine_config.json</code></td></tr>
+<tr><td>US-TOOL-001 / AC-1</td><td>Excel DATA tab edit → build_config.js → engine_config.json updated</td><td><code>build_config.js</code></td><td>N/A</td><td><code>engine_config.json</code></td></tr>
+<tr><td>US-TOOL-001 / AC-2</td><td>engine_config.json → excel_simulator.js → 1M Monte Carlo → SIMULATION + DESIGN_VIEW tabs</td><td><code>excel_simulator.js</code></td><td>N/A</td><td>SIMULATION / DESIGN_VIEW Excel tabs</td></tr>
+<tr><td>US-TOOL-001 / AC-3</td><td>SIMULATION written → verify.js → RTP ±1% → verify_report.txt PASS</td><td><code>verify.js</code></td><td>N/A</td><td><code>verify_report.txt</code></td></tr>
+<tr><td>US-TOOL-001 / AC-4</td><td>verify.js PASS → engine_generator.js → GameConfig.generated.ts with no-edit header</td><td><code>engine_generator.js</code></td><td>N/A</td><td><code>GameConfig.generated.ts</code></td></tr>
+<tr><td>US-TOOL-001 / AC-5</td><td>verify.js FAIL → engine_generator.js blocked</td><td><code>verify.js</code> hard gate</td><td>N/A</td><td>CI exit code ≠ 0</td></tr>
+<tr><td><strong>US-RTPV-001</strong></td><td>RTP verification — 4 scenarios ±1% via verify.js 1M Monte Carlo</td><td>§14.4: <code>verify.js</code></td><td>N/A (toolchain)</td><td><code>verify_report.txt</code></td></tr>
+<tr><td>US-RTPV-001 / AC-1</td><td>Scenario 1 (Main Game, EB Off): RTP 96.5%–98.5%</td><td><code>verify.js</code> scenario 1</td><td>N/A</td><td><code>verify_report.txt</code> ✅</td></tr>
+<tr><td>US-RTPV-001 / AC-2</td><td>Scenario 2 (Main Game, EB On): RTP 96.5%–98.5%</td><td><code>verify.js</code> scenario 2</td><td>N/A</td><td><code>verify_report.txt</code> ✅</td></tr>
+<tr><td>US-RTPV-001 / AC-3</td><td>Scenario 3 (FG, BuyFG Off): RTP 96.5%–98.5%</td><td><code>verify.js</code> scenario 3</td><td>N/A</td><td><code>verify_report.txt</code> ✅</td></tr>
+<tr><td>US-RTPV-001 / AC-4</td><td>Scenario 4 (Buy Free Game): RTP 96.5%–98.5%</td><td><code>verify.js</code> scenario 4</td><td>N/A</td><td><code>verify_report.txt</code> ✅</td></tr>
+<tr><td>US-RTPV-001 / AC-5</td><td>Any scenario fails → verify.js outputs ❌, blocks engine_generator.js</td><td><code>verify.js</code> + CI gate</td><td>N/A</td><td>CI pipeline gate QG-06</td></tr>
+<tr><td><strong>US-CURR-001</strong></td><td>USD / TWD currency — from BetRangeConfig.generated.ts, no hardcoded values</td><td>§6.5: <code>CurrencyFormatter</code></td><td><code>GET /v1/config</code></td><td><code>BetRangeConfig.generated.ts</code></td></tr>
+<tr><td>US-CURR-001 / AC-1</td><td>USD fetchBetRange: min $0.25, max $10.00, step $0.25</td><td><code>CurrencyFormatter</code>, <code>BetRangeConfig</code></td><td><code>GET /v1/config</code></td><td><code>betRange.USD.levels[]</code></td></tr>
+<tr><td>US-CURR-001 / AC-2</td><td>TWD fetchBetRange: min 10, max 320, step 10</td><td><code>CurrencyFormatter</code>, <code>BetRangeConfig</code></td><td><code>GET /v1/config</code></td><td><code>betRange.TWD.levels[]</code></td></tr>
+<tr><td>US-CURR-001 / AC-3</td><td>No hardcoded bet range in BetRangeService.ts</td><td>Code review gate</td><td>N/A</td><td><code>BetRangeConfig.generated.ts</code> only source</td></tr>
+<tr><td>US-CURR-001 / AC-4</td><td>Excel BET_MAX_LEVEL change → BetRangeConfig.generated.ts auto-updates</td><td>Toolchain propagation</td><td><code>GET /v1/config</code></td><td><code>BetRangeConfig.generated.ts</code></td></tr>
+<tr><td><strong>US-APIV-001</strong></td><td>Single-trip API — complete FG sequence in one response, JWT on every spin</td><td>§1.3: <code>JwtAuthGuard</code>, ADR-002</td><td><code>POST /v1/spin</code></td><td>Full <code>FullSpinOutcome</code> JSON (API §3.1)</td></tr>
+<tr><td>US-APIV-001 / AC-1</td><td>Main Game with FG (×3→×7→Tails): one response contains baseSpins + fgSpins</td><td><code>FreeGameOrchestrator</code> embedded in <code>SpinUseCase</code></td><td><code>POST /v1/spin</code></td><td><code>fgRounds[]</code> in single response</td></tr>
+<tr><td>US-APIV-001 / AC-2</td><td>buyFG: fgRounds.length = 5, multipliers [3,7,17,27,77]</td><td><code>BuyFeatureUseCase</code> + <code>FreeGameOrchestrator</code></td><td><code>POST /v1/spin</code></td><td><code>fgRounds[0..4].multiplier</code></td></tr>
+<tr><td>US-APIV-001 / AC-3</td><td>Base spin P99 ≤ 500ms; FG sequence P99 ≤ 800ms at 100 RPS</td><td>API performance (k6)</td><td><code>POST /v1/spin</code></td><td>QG-07/QG-08 in CI</td></tr>
+<tr><td>US-APIV-001 / AC-4</td><td>Invalid JWT → 401, no game logic executed</td><td><code>JwtAuthGuard</code></td><td><code>POST /v1/spin</code> → 401</td><td>Supabase Auth</td></tr>
+<tr><td>US-APIV-001 / AC-5</td><td>UI displays outcome.totalWin only (not session.roundWin)</td><td><code>SpinUseCase</code> authority rule</td><td><code>POST /v1/spin</code></td><td><code>totalWin</code> sole authority</td></tr>
+<tr><td><strong>US-FEND-001</strong> (P1)</td><td>Frontend animation — FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins</td><td>§4.1: <code>SpinResponse.dto.ts</code></td><td><code>POST /v1/spin</code></td><td>Full <code>FullSpinOutcome</code> schema (API §3.1)</td></tr>
+<tr><td>US-FEND-001 / AC-1</td><td>FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins with correct structure</td><td><code>SpinResponse.dto.ts</code> serialization</td><td><code>POST /v1/spin</code></td><td><code>cascadeSequence</code>, <code>fgRounds[]</code></td></tr>
+<tr><td>US-FEND-001 / AC-2</td><td>FG triggered: frontend plays fgSpins sequentially without extra API requests</td><td>Single-trip design (ADR-002)</td><td><code>POST /v1/spin</code></td><td><code>fgRounds[]</code> array sequential</td></tr>
+<tr><td>US-FEND-001 / AC-3</td><td>Frontend shows outcome.totalWin, not client-computed sum</td><td>API contract + Pure View</td><td><code>POST /v1/spin</code></td><td><code>totalWin</code> field</td></tr>
+<tr><td>US-FEND-001 / AC-4</td><td>No FG: fgRounds = [] handled gracefully</td><td><code>SpinUseCase</code> conditional</td><td><code>POST /v1/spin</code></td><td><code>fgRounds: []</code></td></tr>
+<tr><td>US-FEND-001 / AC-5</td><td>FullSpinOutcome matches OpenAPI spec</td><td><code>SpinResponse.dto.ts</code> + AJV validation</td><td><code>POST /v1/spin</code></td><td>OpenAPI schema in API §3.1</td></tr>
+</table>
 <hr>
-<h2 id="section-2-requirement-test-coverage">Section 2: Requirement → Test Coverage</h2>
-<p>Maps each requirement to the BDD scenario tags that test it. Server BDD tags are from <code>features/<em>.feature</code> (excluding <code>features/client/</code>). Client BDD tags are from <code>features/client/**/</em>.feature</code>.</p>
+<h2>Section 2: Requirement → Test Coverage</h2>
+<p>Maps each requirement to the BDD scenario tags that test it. Server BDD tags are from <code>features/<em>.feature</code> (excluding <code>features/client/</code>). Client BDD tags are from <code>features/client/</em><em>/</em>.feature</code>.</p>
 <p><strong>Coverage Status Legend:</strong></p>
-<ul>
-<li><strong>COVERED</strong> — At least one server BDD + one client BDD (or equivalent integration/unit) tag maps to this requirement</li>
-<li><strong>PARTIAL</strong> — BDD tags exist but only cover some ACs, or only server or client side is covered</li>
-<li><strong>NOT-COVERED</strong> — No BDD scenario tags directly testing this requirement</li>
-</ul>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Req ID</th>
-<th>Requirement Summary</th>
-<th>Server BDD Tags</th>
-<th>Client BDD Tags</th>
-<th>Coverage Status</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>US-SPIN-001</strong></td>
-<td>Base reel spin (P99 ≤ 500ms, 5×3, Wild)</td>
-<td><code>TC-INT-API-001-HAPPY</code>, <code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-CASC-002-HAPPY</code>, <code>TC-INT-API-004-ERROR</code>, <code>TC-INT-API-005-ERROR</code>, <code>TC-INT-API-006-ERROR</code>, <code>TC-INT-API-002-ERROR</code>, <code>TC-INT-API-003-ERROR</code>, <code>TC-UNIT-MAXWIN-001-BOUNDARY</code>, <code>TC-INT-API-011</code>, <code>TC-INT-API-016</code>, <code>TC-INT-API-017</code>, <code>TC-INT-API-019</code>, <code>TC-INT-API-020</code></td>
-<td><code>TC-E2E-SPIN-001</code>, <code>TC-E2E-SPIN-002</code>, <code>TC-E2E-SPIN-003</code>, <code>TC-E2E-SPIN-004</code>, <code>TC-E2E-SPIN-005</code>, <code>TC-E2E-SPIN-006</code>, <code>TC-E2E-SPIN-007</code>, <code>TC-E2E-SPIN-008</code>, <code>TC-E2E-SPIN-009</code>, <code>TC-E2E-ERR-001</code>, <code>TC-E2E-ERR-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-1</td>
-<td>Spin returns FullSpinOutcome ≤ 500ms</td>
-<td><code>TC-INT-API-001-HAPPY</code></td>
-<td><code>TC-E2E-SPIN-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-2</td>
-<td>Balance &lt; baseBet → error</td>
-<td><code>TC-INT-API-004-ERROR</code></td>
-<td><code>TC-E2E-ERR-001</code>, <code>TC-E2E-SPIN-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-3</td>
-<td>Expired/missing JWT → 401</td>
-<td><code>TC-INT-API-002-ERROR</code>, <code>TC-INT-API-003-ERROR</code>, <code>TC-SEC-AUTH-001</code>, <code>TC-SEC-AUTH-003</code></td>
-<td><code>TC-E2E-ERR-004</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-4</td>
-<td>Concurrent spin → 409, button locked</td>
-<td><code>TC-INT-API-012</code>, <code>TC-INT-API-021</code></td>
-<td><code>TC-E2E-SPIN-003</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-SPIN-001 / AC-5</td>
-<td>Wild substitution logic</td>
-<td><code>TC-UNIT-CASC-002-HAPPY</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td><strong>US-CASC-001</strong></td>
-<td>Cascade elimination + Lightning Mark + row expansion</td>
-<td><code>TC-UNIT-CASC-002-HAPPY</code>, <code>TC-INT-API-010-HAPPY</code>, <code>TC-INT-FG-001-HAPPY</code>, <code>TC-INT-FG-002-HAPPY</code>, <code>TC-INT-FG-003-HAPPY</code></td>
-<td><code>TC-E2E-CASC-001</code>, <code>TC-E2E-CASC-002</code>, <code>TC-E2E-CASC-003</code>, <code>TC-E2E-CASC-004</code>, <code>TC-E2E-CASC-005</code>, <code>TC-E2E-CASC-006</code>, <code>TC-E2E-CASC-007</code>, <code>TC-E2E-CASC-008</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-1</td>
-<td>Win → mark, eliminate, rows 3→4, paylines 25→33</td>
-<td><code>TC-UNIT-CASC-002-HAPPY</code>, <code>TC-INT-API-010-HAPPY</code></td>
-<td><code>TC-E2E-CASC-001</code>, <code>TC-E2E-CASC-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-2</td>
-<td>MAX_ROWS=6 boundary — no further expansion</td>
-<td>—</td>
-<td><code>TC-E2E-CASC-005</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-3</td>
-<td>New spin resets marks + rows</td>
-<td><code>TC-INT-FG-003-HAPPY</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-4</td>
-<td>Same payline not double-counted</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-5</td>
-<td>3+ cascade steps — each CascadeStep recorded</td>
-<td><code>TC-INT-API-010-HAPPY</code>, <code>TC-INT-FG-001-HAPPY</code></td>
-<td><code>TC-E2E-CASC-003</code>, <code>TC-E2E-CASC-004</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td><strong>US-TBSC-001</strong></td>
-<td>Thunder Blessing Scatter dual-hit upgrade</td>
-<td><code>TC-UNIT-TB-001-HAPPY</code>, <code>TC-UNIT-TB-002-HAPPY</code></td>
-<td><code>TC-E2E-TB-001</code>, <code>TC-E2E-TB-002</code>, <code>TC-E2E-TB-003</code>, <code>TC-E2E-TB-004</code>, <code>TC-E2E-TB-005</code>, <code>TC-E2E-TB-006</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-1</td>
-<td>First hit: marks → same premium symbol</td>
-<td><code>TC-UNIT-TB-001-HAPPY</code></td>
-<td><code>TC-E2E-TB-001</code>, <code>TC-E2E-TB-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-2</td>
-<td>Second hit (RNG&lt;0.40): tier upgrade</td>
-<td><code>TC-UNIT-TB-002-HAPPY</code></td>
-<td><code>TC-E2E-TB-003</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-3</td>
-<td>SC + no marks → no Thunder Blessing</td>
-<td>—</td>
-<td><code>TC-E2E-TB-006</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-4</td>
-<td>P1 boundary — stays P1</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-5</td>
-<td>Post-TB cascade continues on win</td>
-<td>—</td>
-<td><code>TC-E2E-TB-004</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td><strong>US-COIN-001</strong></td>
-<td>Coin Toss — rows=6 + cascade win → FG entry</td>
-<td><code>TC-UNIT-COIN-004-HAPPY</code>, <code>TC-UNIT-COIN-006-BOUNDARY</code>, <code>TC-INT-FG-001-HAPPY</code></td>
-<td><code>TC-E2E-COIN-001</code>, <code>TC-E2E-COIN-002</code>, <code>TC-E2E-COIN-003</code>, <code>TC-E2E-COIN-004</code>, <code>TC-E2E-COIN-005</code>, <code>TC-E2E-COIN-006</code>, <code>TC-E2E-COIN-007</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-1</td>
-<td>mgFgTriggerProb + coinProbs[0]=0.80</td>
-<td>—</td>
-<td><code>TC-E2E-COIN-001</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-2</td>
-<td>Heads → FG at ×3</td>
-<td><code>TC-INT-FG-001-HAPPY</code></td>
-<td><code>TC-E2E-COIN-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-3</td>
-<td>Tails → no FG</td>
-<td>—</td>
-<td><code>TC-E2E-COIN-003</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-4</td>
-<td>buyFG → entryBuy=1.00, guaranteed Heads</td>
-<td><code>TC-UNIT-COIN-004-HAPPY</code></td>
-<td><code>TC-E2E-COIN-005</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-5</td>
-<td>rows &lt; 6 → no Coin Toss</td>
-<td><code>TC-UNIT-COIN-006-BOUNDARY</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td><strong>US-FGAM-001</strong></td>
-<td>Free Game ×3→×77 multiplier sequence</td>
-<td><code>TC-UNIT-FG-002-HAPPY</code>, <code>TC-UNIT-FG-003-HAPPY</code>, <code>TC-UNIT-FG-004-BOUNDARY</code>, <code>TC-INT-FG-001-HAPPY</code>, <code>TC-INT-FG-002-HAPPY</code>, <code>TC-INT-FG-003-HAPPY</code></td>
-<td><code>TC-E2E-FG-001</code>, <code>TC-E2E-FG-002</code>, <code>TC-E2E-FG-003</code>, <code>TC-E2E-FG-004</code>, <code>TC-E2E-FG-005</code>, <code>TC-E2E-FG-006</code>, <code>TC-E2E-FG-007</code>, <code>TC-E2E-FG-008</code>, <code>TC-E2E-FG-009</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-1</td>
-<td>FG round 1: freeGame weights, inherited marks, win × 3</td>
-<td><code>TC-INT-FG-001-HAPPY</code></td>
-<td><code>TC-E2E-FG-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-2</td>
-<td>Heads → ×3→×7</td>
-<td><code>TC-UNIT-FG-004-BOUNDARY</code></td>
-<td><code>TC-E2E-FG-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-3</td>
-<td>At ×77 + Heads → stays ×77</td>
-<td><code>TC-UNIT-FG-004-BOUNDARY</code></td>
-<td><code>TC-E2E-FG-005</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-4</td>
-<td>Tails → FG ends, marks cleared</td>
-<td><code>TC-INT-FG-003-HAPPY</code></td>
-<td><code>TC-E2E-FG-006</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-5</td>
-<td>buyFG: exactly 5 rounds, all multipliers</td>
-<td><code>TC-INT-FG-001-HAPPY</code></td>
-<td><code>TC-E2E-FG-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-6</td>
-<td>FG Bonus multiplier drawn once (×1/×5/×20/×100)</td>
-<td><code>TC-UNIT-FG-002-HAPPY</code>, <code>TC-UNIT-FG-003-HAPPY</code></td>
-<td><code>TC-E2E-FG-004</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGAM-001 / AC-7</td>
-<td>×77 + Tails → immediate FG end, marks cleared</td>
-<td><code>TC-INT-FG-003-HAPPY</code></td>
-<td><code>TC-E2E-FG-007</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td><strong>US-FGREC-001</strong> (P1)</td>
-<td>FG disconnection recovery</td>
-<td><code>TC-INT-API-012-HAPPY</code>, <code>TC-INT-API-012b-HAPPY</code>, <code>TC-INT-API-013-ERROR</code>, <code>TC-SEC-SESSION-001</code></td>
-<td><code>TC-E2E-SESS-001</code>, <code>TC-E2E-SESS-002</code>, <code>TC-E2E-SESS-003</code>, <code>TC-E2E-SESS-004</code>, <code>TC-E2E-SESS-005</code>, <code>TC-E2E-SESS-006</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGREC-001 / AC-1</td>
-<td>Valid JWT + FG in progress → restore from Redis</td>
-<td><code>TC-INT-API-012-HAPPY</code></td>
-<td><code>TC-E2E-SESS-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGREC-001 / AC-2</td>
-<td>Restored state → frontend resumes correctly</td>
-<td><code>TC-INT-API-012b-HAPPY</code></td>
-<td><code>TC-E2E-SESS-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGREC-001 / AC-3</td>
-<td>JWT expired on reconnect → 401, state preserved</td>
-<td><code>TC-SEC-SESSION-AUTH-001</code></td>
-<td><code>TC-E2E-SESS-005</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-FGREC-001 / AC-4</td>
-<td>FG not in progress → no recovery</td>
-<td><code>TC-INT-API-013-ERROR</code></td>
-<td><code>TC-E2E-SESS-006</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td><strong>US-EXBT-001</strong></td>
-<td>Extra Bet — ×3 cost, guaranteed SC</td>
-<td><code>TC-UNIT-EXBT-001-HAPPY</code>, <code>TC-UNIT-EXBT-001b-HAPPY</code>, <code>TC-UNIT-EXBT-002-HAPPY</code>, <code>TC-UNIT-EXBT-003-HAPPY</code>, <code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-EXBT-004b-HAPPY</code>, <code>TC-INT-BUYF-002b-HAPPY</code></td>
-<td><code>TC-E2E-EXBT-001</code>, <code>TC-E2E-EXBT-002</code>, <code>TC-E2E-EXBT-003</code>, <code>TC-E2E-EXBT-004</code>, <code>TC-E2E-EXBT-005</code>, <code>TC-E2E-EXBT-006</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-1</td>
-<td>EB ON → debit ×3, extraBet weights, SC guaranteed</td>
-<td><code>TC-UNIT-EXBT-001-HAPPY</code>, <code>TC-UNIT-EXBT-001b-HAPPY</code></td>
-<td><code>TC-E2E-EXBT-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-2</td>
-<td>Natural SC → no forced injection</td>
-<td><code>TC-UNIT-EXBT-002-HAPPY</code></td>
-<td><code>TC-E2E-EXBT-003</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-3</td>
-<td>No natural SC → forced inject</td>
-<td><code>TC-UNIT-EXBT-003-HAPPY</code></td>
-<td><code>TC-E2E-EXBT-004</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-4</td>
-<td>EB OFF → mainGame weights, standard debit</td>
-<td><code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-EXBT-004b-HAPPY</code></td>
-<td><code>TC-E2E-EXBT-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-EXBT-001 / AC-5</td>
-<td>EB + BuyFG → 300× baseBet</td>
-<td><code>TC-INT-BUYF-002b-HAPPY</code></td>
-<td><code>TC-E2E-BUY-005</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td><strong>US-BUYF-001</strong></td>
-<td>Buy Feature — 100× cost, 5 guaranteed Heads, floor ≥ 20×</td>
-<td><code>TC-INT-BUYF-001-HAPPY</code>, <code>TC-INT-BUYF-002-HAPPY</code>, <code>TC-INT-BUYF-002</code>, <code>TC-INT-BUYF-003-HAPPY</code>, <code>TC-UNIT-FLOOR-001-HAPPY</code>, <code>TC-INT-BUYF-003</code>, <code>TC-INT-BUYF-004</code>, <code>TC-INT-API-009-HAPPY</code></td>
-<td><code>TC-E2E-BUY-001</code>, <code>TC-E2E-BUY-002</code>, <code>TC-E2E-BUY-003</code>, <code>TC-E2E-BUY-004</code>, <code>TC-E2E-BUY-005</code>, <code>TC-E2E-BUY-006</code>, <code>TC-E2E-BUY-007</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-1</td>
-<td>Balance ≥ 100× → debit, 5 rounds</td>
-<td><code>TC-INT-BUYF-001-HAPPY</code>, <code>TC-INT-API-009-HAPPY</code></td>
-<td><code>TC-E2E-BUY-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-2</td>
-<td>totalWin &lt; 20× → floor applied</td>
-<td><code>TC-INT-BUYF-003-HAPPY</code>, <code>TC-UNIT-FLOOR-001-HAPPY</code></td>
-<td><code>TC-E2E-BUY-003</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-3</td>
-<td>EB + BuyFG → fee=300×, floor=60×</td>
-<td><code>TC-INT-BUYF-002-HAPPY</code></td>
-<td><code>TC-E2E-BUY-005</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-4</td>
-<td>Balance &lt; 100× → 400</td>
-<td><code>TC-INT-BUYF-004</code></td>
-<td><code>TC-E2E-BUY-006</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-5</td>
-<td>buyFG weights used exclusively</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-6</td>
-<td>EB ON + balance &lt; 300× → 400</td>
-<td><code>TC-INT-BUYF-003</code></td>
-<td><code>TC-E2E-BUY-007</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td><strong>US-NRMS-001</strong></td>
-<td>Near Miss — Excel-defined, no code customization, zero win</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-1</td>
-<td>Excel → build_config.js → GameConfig</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-2</td>
-<td>Near Miss → win=0, no RTP impact</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-3</td>
-<td>No hardcoded Near Miss in SlotEngine.ts</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-4</td>
-<td>Near Miss in all 4 RTP scenarios passes verify.js</td>
-<td><code>TC-INT-PROB-001</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td><strong>US-TOOL-001</strong></td>
-<td>Toolchain Excel → engine_config.json → GameConfig.generated.ts</td>
-<td><code>TC-UNIT-PROB-001-HAPPY</code>, <code>TC-UNIT-PROB-002-BOUNDARY</code>, <code>TC-UNIT-PROB-003-ERROR</code>, <code>TC-INT-PROB-001</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-1</td>
-<td>Excel DATA → build_config.js → engine_config.json</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-2</td>
-<td>excel_simulator.js → 1M Monte Carlo → SIMULATION tab</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-3</td>
-<td>verify.js → RTP ±1% → PASS</td>
-<td><code>TC-INT-PROB-001</code>, <code>TC-UNIT-PROB-001-HAPPY</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-4</td>
-<td>PASS → engine_generator.js → GameConfig</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-5</td>
-<td>FAIL → engine_generator.js blocked</td>
-<td><code>TC-UNIT-PROB-003-ERROR</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td><strong>US-RTPV-001</strong></td>
-<td>RTP verification — 4 scenarios ±1% Monte Carlo</td>
-<td><code>TC-UNIT-PROB-001-HAPPY</code>, <code>TC-UNIT-PROB-002-BOUNDARY</code>, <code>TC-INT-PROB-001</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-1</td>
-<td>Scenario 1 RTP 96.5%–98.5%</td>
-<td><code>TC-INT-PROB-001</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-2</td>
-<td>Scenario 2 RTP 96.5%–98.5%</td>
-<td><code>TC-INT-PROB-001</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-3</td>
-<td>Scenario 3 RTP 96.5%–98.5%</td>
-<td><code>TC-INT-PROB-001</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-4</td>
-<td>Scenario 4 RTP 96.5%–98.5%</td>
-<td><code>TC-INT-PROB-001</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-5</td>
-<td>Failure → ❌ output, blocks generation</td>
-<td><code>TC-UNIT-PROB-003-ERROR</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td><strong>US-CURR-001</strong></td>
-<td>USD/TWD currency from BetRangeConfig (no hardcoded values)</td>
-<td><code>TC-INT-CURR-001-HAPPY</code>, <code>TC-INT-CURR-001b-HAPPY</code>, <code>TC-INT-CURR-001c-HAPPY</code>, <code>TC-INT-API-014</code></td>
-<td><code>TC-E2E-BET-001</code>, <code>TC-E2E-BET-002</code>, <code>TC-E2E-BET-003</code>, <code>TC-E2E-BET-004</code>, <code>TC-E2E-BET-005</code>, <code>TC-E2E-BET-006</code>, <code>TC-E2E-BET-007</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-1</td>
-<td>USD bet range correct</td>
-<td><code>TC-INT-CURR-001-HAPPY</code>, <code>TC-INT-CURR-001b-HAPPY</code></td>
-<td><code>TC-E2E-BET-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-2</td>
-<td>TWD bet range correct</td>
-<td><code>TC-INT-CURR-001c-HAPPY</code></td>
-<td><code>TC-E2E-BET-002</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-3</td>
-<td>No hardcoded values in BetRangeService.ts</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-4</td>
-<td>Excel change → BetRangeConfig auto-updates</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td><strong>US-APIV-001</strong></td>
-<td>Single-trip API + JWT on every spin</td>
-<td><code>TC-INT-API-001-HAPPY</code>, <code>TC-INT-API-002-ERROR</code>, <code>TC-INT-API-003-ERROR</code>, <code>TC-INT-API-010-HAPPY</code>, <code>TC-SEC-AUTH-001</code>, <code>TC-SEC-AUTH-001b</code>, <code>TC-SEC-AUTH-001c</code>, <code>TC-SEC-AUTH-002</code>, <code>TC-SEC-AUTH-003</code>, <code>TC-SEC-AUTH-004</code>, <code>TC-SEC-AUTH-005</code>, <code>TC-SEC-AUTH-007</code>, <code>TC-INT-API-019</code>, <code>TC-INT-API-020</code></td>
-<td><code>TC-E2E-SPIN-001</code>, <code>TC-E2E-SESS-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-1</td>
-<td>Main Game + FG in one response</td>
-<td><code>TC-INT-API-010-HAPPY</code></td>
-<td><code>TC-E2E-FG-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-2</td>
-<td>buyFG: fgRounds=5, multipliers in sequence</td>
-<td><code>TC-INT-API-009-HAPPY</code></td>
-<td><code>TC-E2E-BUY-001</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-3</td>
-<td>P99 ≤ 500ms (no FG), ≤ 800ms (FG)</td>
-<td><code>TC-INT-API-016</code>, <code>TC-INT-API-017</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-4</td>
-<td>Invalid JWT → 401, no game logic</td>
-<td><code>TC-SEC-AUTH-001</code>, <code>TC-INT-API-002-ERROR</code></td>
-<td><code>TC-E2E-ERR-004</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-5</td>
-<td>totalWin sole authority</td>
-<td><code>TC-INT-API-019</code>, <code>TC-INT-API-020</code></td>
-<td>—</td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td><strong>US-FEND-001</strong> (P1)</td>
-<td>Frontend — FullSpinOutcome includes all animation data</td>
-<td>—</td>
-<td><code>TC-E2E-SPIN-001</code>, <code>TC-E2E-CASC-001</code>, <code>TC-E2E-FG-001</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-1</td>
-<td>FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins with correct structure</td>
-<td>—</td>
-<td><code>TC-E2E-SPIN-001</code>, <code>TC-E2E-CASC-001</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-2</td>
-<td>FG triggered: frontend plays fgSpins sequentially without extra API requests</td>
-<td>—</td>
-<td><code>TC-E2E-FG-001</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-3</td>
-<td>Frontend shows outcome.totalWin, not client-computed sum</td>
-<td>—</td>
-<td><code>TC-E2E-SPIN-001</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-4</td>
-<td>No FG: fgRounds = [] handled gracefully</td>
-<td>—</td>
-<td><code>TC-E2E-SPIN-002</code></td>
-<td>PARTIAL</td>
-</tr>
-<tr>
-<td>US-FEND-001 / AC-5</td>
-<td>FullSpinOutcome matches OpenAPI spec</td>
-<td>—</td>
-<td><code>TC-E2E-SPIN-001</code></td>
-<td>PARTIAL</td>
-</tr>
-</tbody></table></div>
+<ul><li><strong>COVERED</strong> — At least one server BDD + one client BDD (or equivalent integration/unit) tag maps to this requirement</li><li><strong>PARTIAL</strong> — BDD tags exist but only cover some ACs, or only server or client side is covered</li><li><strong>NOT-COVERED</strong> — No BDD scenario tags directly testing this requirement</li></ul>
+<table>
+<tr><th>Req ID</th><th>Requirement Summary</th><th>Server BDD Tags</th><th>Client BDD Tags</th><th>Coverage Status</th></tr>
+<tr><td><strong>US-SPIN-001</strong></td><td>Base reel spin (P99 ≤ 500ms, 5×3, Wild)</td><td><code>TC-INT-API-001-HAPPY</code>, <code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-CASC-002-HAPPY</code>, <code>TC-INT-API-004-ERROR</code>, <code>TC-INT-API-005-ERROR</code>, <code>TC-INT-API-006-ERROR</code>, <code>TC-INT-API-002-ERROR</code>, <code>TC-INT-API-003-ERROR</code>, <code>TC-UNIT-MAXWIN-001-BOUNDARY</code>, <code>TC-INT-API-011</code>, <code>TC-INT-API-016</code>, <code>TC-INT-API-017</code>, <code>TC-INT-API-019</code>, <code>TC-INT-API-020</code></td><td><code>TC-E2E-SPIN-001</code>, <code>TC-E2E-SPIN-002</code>, <code>TC-E2E-SPIN-003</code>, <code>TC-E2E-SPIN-004</code>, <code>TC-E2E-SPIN-005</code>, <code>TC-E2E-SPIN-006</code>, <code>TC-E2E-SPIN-007</code>, <code>TC-E2E-SPIN-008</code>, <code>TC-E2E-SPIN-009</code>, <code>TC-E2E-ERR-001</code>, <code>TC-E2E-ERR-002</code></td><td>COVERED</td></tr>
+<tr><td>US-SPIN-001 / AC-1</td><td>Spin returns FullSpinOutcome ≤ 500ms</td><td><code>TC-INT-API-001-HAPPY</code></td><td><code>TC-E2E-SPIN-001</code></td><td>COVERED</td></tr>
+<tr><td>US-SPIN-001 / AC-2</td><td>Balance &lt; baseBet → error</td><td><code>TC-INT-API-004-ERROR</code></td><td><code>TC-E2E-ERR-001</code>, <code>TC-E2E-SPIN-002</code></td><td>COVERED</td></tr>
+<tr><td>US-SPIN-001 / AC-3</td><td>Expired/missing JWT → 401</td><td><code>TC-INT-API-002-ERROR</code>, <code>TC-INT-API-003-ERROR</code>, <code>TC-SEC-AUTH-001</code>, <code>TC-SEC-AUTH-003</code></td><td><code>TC-E2E-ERR-004</code></td><td>COVERED</td></tr>
+<tr><td>US-SPIN-001 / AC-4</td><td>Concurrent spin → 409, button locked</td><td><code>TC-INT-API-012</code>, <code>TC-INT-API-021</code></td><td><code>TC-E2E-SPIN-003</code></td><td>COVERED</td></tr>
+<tr><td>US-SPIN-001 / AC-5</td><td>Wild substitution logic</td><td><code>TC-UNIT-CASC-002-HAPPY</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td><strong>US-CASC-001</strong></td><td>Cascade elimination + Lightning Mark + row expansion</td><td><code>TC-UNIT-CASC-002-HAPPY</code>, <code>TC-INT-API-010-HAPPY</code>, <code>TC-INT-FG-001-HAPPY</code>, <code>TC-INT-FG-002-HAPPY</code>, <code>TC-INT-FG-003-HAPPY</code></td><td><code>TC-E2E-CASC-001</code>, <code>TC-E2E-CASC-002</code>, <code>TC-E2E-CASC-003</code>, <code>TC-E2E-CASC-004</code>, <code>TC-E2E-CASC-005</code>, <code>TC-E2E-CASC-006</code>, <code>TC-E2E-CASC-007</code>, <code>TC-E2E-CASC-008</code></td><td>COVERED</td></tr>
+<tr><td>US-CASC-001 / AC-1</td><td>Win → mark, eliminate, rows 3→4, paylines 25→33</td><td><code>TC-UNIT-CASC-002-HAPPY</code>, <code>TC-INT-API-010-HAPPY</code></td><td><code>TC-E2E-CASC-001</code>, <code>TC-E2E-CASC-002</code></td><td>COVERED</td></tr>
+<tr><td>US-CASC-001 / AC-2</td><td>MAX_ROWS=6 boundary — no further expansion</td><td>—</td><td><code>TC-E2E-CASC-005</code></td><td>PARTIAL</td></tr>
+<tr><td>US-CASC-001 / AC-3</td><td>New spin resets marks + rows</td><td><code>TC-INT-FG-003-HAPPY</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-CASC-001 / AC-4</td><td>Same payline not double-counted</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-CASC-001 / AC-5</td><td>3+ cascade steps — each CascadeStep recorded</td><td><code>TC-INT-API-010-HAPPY</code>, <code>TC-INT-FG-001-HAPPY</code></td><td><code>TC-E2E-CASC-003</code>, <code>TC-E2E-CASC-004</code></td><td>COVERED</td></tr>
+<tr><td><strong>US-TBSC-001</strong></td><td>Thunder Blessing Scatter dual-hit upgrade</td><td><code>TC-UNIT-TB-001-HAPPY</code>, <code>TC-UNIT-TB-002-HAPPY</code></td><td><code>TC-E2E-TB-001</code>, <code>TC-E2E-TB-002</code>, <code>TC-E2E-TB-003</code>, <code>TC-E2E-TB-004</code>, <code>TC-E2E-TB-005</code>, <code>TC-E2E-TB-006</code></td><td>COVERED</td></tr>
+<tr><td>US-TBSC-001 / AC-1</td><td>First hit: marks → same premium symbol</td><td><code>TC-UNIT-TB-001-HAPPY</code></td><td><code>TC-E2E-TB-001</code>, <code>TC-E2E-TB-002</code></td><td>COVERED</td></tr>
+<tr><td>US-TBSC-001 / AC-2</td><td>Second hit (RNG&lt;0.40): tier upgrade</td><td><code>TC-UNIT-TB-002-HAPPY</code></td><td><code>TC-E2E-TB-003</code></td><td>COVERED</td></tr>
+<tr><td>US-TBSC-001 / AC-3</td><td>SC + no marks → no Thunder Blessing</td><td>—</td><td><code>TC-E2E-TB-006</code></td><td>PARTIAL</td></tr>
+<tr><td>US-TBSC-001 / AC-4</td><td>P1 boundary — stays P1</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-TBSC-001 / AC-5</td><td>Post-TB cascade continues on win</td><td>—</td><td><code>TC-E2E-TB-004</code></td><td>PARTIAL</td></tr>
+<tr><td><strong>US-COIN-001</strong></td><td>Coin Toss — rows=6 + cascade win → FG entry</td><td><code>TC-UNIT-COIN-004-HAPPY</code>, <code>TC-UNIT-COIN-006-BOUNDARY</code>, <code>TC-INT-FG-001-HAPPY</code></td><td><code>TC-E2E-COIN-001</code>, <code>TC-E2E-COIN-002</code>, <code>TC-E2E-COIN-003</code>, <code>TC-E2E-COIN-004</code>, <code>TC-E2E-COIN-005</code>, <code>TC-E2E-COIN-006</code>, <code>TC-E2E-COIN-007</code></td><td>COVERED</td></tr>
+<tr><td>US-COIN-001 / AC-1</td><td>mgFgTriggerProb + coinProbs[0]=0.80</td><td>—</td><td><code>TC-E2E-COIN-001</code></td><td>PARTIAL</td></tr>
+<tr><td>US-COIN-001 / AC-2</td><td>Heads → FG at ×3</td><td><code>TC-INT-FG-001-HAPPY</code></td><td><code>TC-E2E-COIN-002</code></td><td>COVERED</td></tr>
+<tr><td>US-COIN-001 / AC-3</td><td>Tails → no FG</td><td>—</td><td><code>TC-E2E-COIN-003</code></td><td>PARTIAL</td></tr>
+<tr><td>US-COIN-001 / AC-4</td><td>buyFG → entryBuy=1.00, guaranteed Heads</td><td><code>TC-UNIT-COIN-004-HAPPY</code></td><td><code>TC-E2E-COIN-005</code></td><td>COVERED</td></tr>
+<tr><td>US-COIN-001 / AC-5</td><td>rows &lt; 6 → no Coin Toss</td><td><code>TC-UNIT-COIN-006-BOUNDARY</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td><strong>US-FGAM-001</strong></td><td>Free Game ×3→×77 multiplier sequence</td><td><code>TC-UNIT-FG-002-HAPPY</code>, <code>TC-UNIT-FG-003-HAPPY</code>, <code>TC-UNIT-FG-004-BOUNDARY</code>, <code>TC-INT-FG-001-HAPPY</code>, <code>TC-INT-FG-002-HAPPY</code>, <code>TC-INT-FG-003-HAPPY</code></td><td><code>TC-E2E-FG-001</code>, <code>TC-E2E-FG-002</code>, <code>TC-E2E-FG-003</code>, <code>TC-E2E-FG-004</code>, <code>TC-E2E-FG-005</code>, <code>TC-E2E-FG-006</code>, <code>TC-E2E-FG-007</code>, <code>TC-E2E-FG-008</code>, <code>TC-E2E-FG-009</code></td><td>COVERED</td></tr>
+<tr><td>US-FGAM-001 / AC-1</td><td>FG round 1: freeGame weights, inherited marks, win × 3</td><td><code>TC-INT-FG-001-HAPPY</code></td><td><code>TC-E2E-FG-001</code></td><td>COVERED</td></tr>
+<tr><td>US-FGAM-001 / AC-2</td><td>Heads → ×3→×7</td><td><code>TC-UNIT-FG-004-BOUNDARY</code></td><td><code>TC-E2E-FG-002</code></td><td>COVERED</td></tr>
+<tr><td>US-FGAM-001 / AC-3</td><td>At ×77 + Heads → stays ×77</td><td><code>TC-UNIT-FG-004-BOUNDARY</code></td><td><code>TC-E2E-FG-005</code></td><td>COVERED</td></tr>
+<tr><td>US-FGAM-001 / AC-4</td><td>Tails → FG ends, marks cleared</td><td><code>TC-INT-FG-003-HAPPY</code></td><td><code>TC-E2E-FG-006</code></td><td>COVERED</td></tr>
+<tr><td>US-FGAM-001 / AC-5</td><td>buyFG: exactly 5 rounds, all multipliers</td><td><code>TC-INT-FG-001-HAPPY</code></td><td><code>TC-E2E-FG-001</code></td><td>COVERED</td></tr>
+<tr><td>US-FGAM-001 / AC-6</td><td>FG Bonus multiplier drawn once (×1/×5/×20/×100)</td><td><code>TC-UNIT-FG-002-HAPPY</code>, <code>TC-UNIT-FG-003-HAPPY</code></td><td><code>TC-E2E-FG-004</code></td><td>COVERED</td></tr>
+<tr><td>US-FGAM-001 / AC-7</td><td>×77 + Tails → immediate FG end, marks cleared</td><td><code>TC-INT-FG-003-HAPPY</code></td><td><code>TC-E2E-FG-007</code></td><td>COVERED</td></tr>
+<tr><td><strong>US-FGREC-001</strong> (P1)</td><td>FG disconnection recovery</td><td><code>TC-INT-API-012-HAPPY</code>, <code>TC-INT-API-012b-HAPPY</code>, <code>TC-INT-API-013-ERROR</code>, <code>TC-SEC-SESSION-001</code></td><td><code>TC-E2E-SESS-001</code>, <code>TC-E2E-SESS-002</code>, <code>TC-E2E-SESS-003</code>, <code>TC-E2E-SESS-004</code>, <code>TC-E2E-SESS-005</code>, <code>TC-E2E-SESS-006</code></td><td>COVERED</td></tr>
+<tr><td>US-FGREC-001 / AC-1</td><td>Valid JWT + FG in progress → restore from Redis</td><td><code>TC-INT-API-012-HAPPY</code></td><td><code>TC-E2E-SESS-001</code></td><td>COVERED</td></tr>
+<tr><td>US-FGREC-001 / AC-2</td><td>Restored state → frontend resumes correctly</td><td><code>TC-INT-API-012b-HAPPY</code></td><td><code>TC-E2E-SESS-002</code></td><td>COVERED</td></tr>
+<tr><td>US-FGREC-001 / AC-3</td><td>JWT expired on reconnect → 401, state preserved</td><td><code>TC-SEC-SESSION-AUTH-001</code></td><td><code>TC-E2E-SESS-005</code></td><td>COVERED</td></tr>
+<tr><td>US-FGREC-001 / AC-4</td><td>FG not in progress → no recovery</td><td><code>TC-INT-API-013-ERROR</code></td><td><code>TC-E2E-SESS-006</code></td><td>COVERED</td></tr>
+<tr><td><strong>US-EXBT-001</strong></td><td>Extra Bet — ×3 cost, guaranteed SC</td><td><code>TC-UNIT-EXBT-001-HAPPY</code>, <code>TC-UNIT-EXBT-001b-HAPPY</code>, <code>TC-UNIT-EXBT-002-HAPPY</code>, <code>TC-UNIT-EXBT-003-HAPPY</code>, <code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-EXBT-004b-HAPPY</code>, <code>TC-INT-BUYF-002b-HAPPY</code></td><td><code>TC-E2E-EXBT-001</code>, <code>TC-E2E-EXBT-002</code>, <code>TC-E2E-EXBT-003</code>, <code>TC-E2E-EXBT-004</code>, <code>TC-E2E-EXBT-005</code>, <code>TC-E2E-EXBT-006</code></td><td>COVERED</td></tr>
+<tr><td>US-EXBT-001 / AC-1</td><td>EB ON → debit ×3, extraBet weights, SC guaranteed</td><td><code>TC-UNIT-EXBT-001-HAPPY</code>, <code>TC-UNIT-EXBT-001b-HAPPY</code></td><td><code>TC-E2E-EXBT-001</code></td><td>COVERED</td></tr>
+<tr><td>US-EXBT-001 / AC-2</td><td>Natural SC → no forced injection</td><td><code>TC-UNIT-EXBT-002-HAPPY</code></td><td><code>TC-E2E-EXBT-003</code></td><td>COVERED</td></tr>
+<tr><td>US-EXBT-001 / AC-3</td><td>No natural SC → forced inject</td><td><code>TC-UNIT-EXBT-003-HAPPY</code></td><td><code>TC-E2E-EXBT-004</code></td><td>COVERED</td></tr>
+<tr><td>US-EXBT-001 / AC-4</td><td>EB OFF → mainGame weights, standard debit</td><td><code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-EXBT-004b-HAPPY</code></td><td><code>TC-E2E-EXBT-002</code></td><td>COVERED</td></tr>
+<tr><td>US-EXBT-001 / AC-5</td><td>EB + BuyFG → 300× baseBet</td><td><code>TC-INT-BUYF-002b-HAPPY</code></td><td><code>TC-E2E-BUY-005</code></td><td>COVERED</td></tr>
+<tr><td><strong>US-BUYF-001</strong></td><td>Buy Feature — 100× cost, 5 guaranteed Heads, floor ≥ 20×</td><td><code>TC-INT-BUYF-001-HAPPY</code>, <code>TC-INT-BUYF-002-HAPPY</code>, <code>TC-INT-BUYF-002</code>, <code>TC-INT-BUYF-003-HAPPY</code>, <code>TC-UNIT-FLOOR-001-HAPPY</code>, <code>TC-INT-BUYF-003</code>, <code>TC-INT-BUYF-004</code>, <code>TC-INT-API-009-HAPPY</code></td><td><code>TC-E2E-BUY-001</code>, <code>TC-E2E-BUY-002</code>, <code>TC-E2E-BUY-003</code>, <code>TC-E2E-BUY-004</code>, <code>TC-E2E-BUY-005</code>, <code>TC-E2E-BUY-006</code>, <code>TC-E2E-BUY-007</code></td><td>COVERED</td></tr>
+<tr><td>US-BUYF-001 / AC-1</td><td>Balance ≥ 100× → debit, 5 rounds</td><td><code>TC-INT-BUYF-001-HAPPY</code>, <code>TC-INT-API-009-HAPPY</code></td><td><code>TC-E2E-BUY-001</code></td><td>COVERED</td></tr>
+<tr><td>US-BUYF-001 / AC-2</td><td>totalWin &lt; 20× → floor applied</td><td><code>TC-INT-BUYF-003-HAPPY</code>, <code>TC-UNIT-FLOOR-001-HAPPY</code></td><td><code>TC-E2E-BUY-003</code></td><td>COVERED</td></tr>
+<tr><td>US-BUYF-001 / AC-3</td><td>EB + BuyFG → fee=300×, floor=60×</td><td><code>TC-INT-BUYF-002-HAPPY</code></td><td><code>TC-E2E-BUY-005</code></td><td>COVERED</td></tr>
+<tr><td>US-BUYF-001 / AC-4</td><td>Balance &lt; 100× → 400</td><td><code>TC-INT-BUYF-004</code></td><td><code>TC-E2E-BUY-006</code></td><td>COVERED</td></tr>
+<tr><td>US-BUYF-001 / AC-5</td><td>buyFG weights used exclusively</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-BUYF-001 / AC-6</td><td>EB ON + balance &lt; 300× → 400</td><td><code>TC-INT-BUYF-003</code></td><td><code>TC-E2E-BUY-007</code></td><td>COVERED</td></tr>
+<tr><td><strong>US-NRMS-001</strong></td><td>Near Miss — Excel-defined, no code customization, zero win</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-NRMS-001 / AC-1</td><td>Excel → build_config.js → GameConfig</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-NRMS-001 / AC-2</td><td>Near Miss → win=0, no RTP impact</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-NRMS-001 / AC-3</td><td>No hardcoded Near Miss in SlotEngine.ts</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-NRMS-001 / AC-4</td><td>Near Miss in all 4 RTP scenarios passes verify.js</td><td><code>TC-INT-PROB-001</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td><strong>US-TOOL-001</strong></td><td>Toolchain Excel → engine_config.json → GameConfig.generated.ts</td><td><code>TC-UNIT-PROB-001-HAPPY</code>, <code>TC-UNIT-PROB-002-BOUNDARY</code>, <code>TC-UNIT-PROB-003-ERROR</code>, <code>TC-INT-PROB-001</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-TOOL-001 / AC-1</td><td>Excel DATA → build_config.js → engine_config.json</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-TOOL-001 / AC-2</td><td>excel_simulator.js → 1M Monte Carlo → SIMULATION tab</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-TOOL-001 / AC-3</td><td>verify.js → RTP ±1% → PASS</td><td><code>TC-INT-PROB-001</code>, <code>TC-UNIT-PROB-001-HAPPY</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-TOOL-001 / AC-4</td><td>PASS → engine_generator.js → GameConfig</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-TOOL-001 / AC-5</td><td>FAIL → engine_generator.js blocked</td><td><code>TC-UNIT-PROB-003-ERROR</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td><strong>US-RTPV-001</strong></td><td>RTP verification — 4 scenarios ±1% Monte Carlo</td><td><code>TC-UNIT-PROB-001-HAPPY</code>, <code>TC-UNIT-PROB-002-BOUNDARY</code>, <code>TC-INT-PROB-001</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-RTPV-001 / AC-1</td><td>Scenario 1 RTP 96.5%–98.5%</td><td><code>TC-INT-PROB-001</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-RTPV-001 / AC-2</td><td>Scenario 2 RTP 96.5%–98.5%</td><td><code>TC-INT-PROB-001</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-RTPV-001 / AC-3</td><td>Scenario 3 RTP 96.5%–98.5%</td><td><code>TC-INT-PROB-001</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-RTPV-001 / AC-4</td><td>Scenario 4 RTP 96.5%–98.5%</td><td><code>TC-INT-PROB-001</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-RTPV-001 / AC-5</td><td>Failure → ❌ output, blocks generation</td><td><code>TC-UNIT-PROB-003-ERROR</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td><strong>US-CURR-001</strong></td><td>USD/TWD currency from BetRangeConfig (no hardcoded values)</td><td><code>TC-INT-CURR-001-HAPPY</code>, <code>TC-INT-CURR-001b-HAPPY</code>, <code>TC-INT-CURR-001c-HAPPY</code>, <code>TC-INT-API-014</code></td><td><code>TC-E2E-BET-001</code>, <code>TC-E2E-BET-002</code>, <code>TC-E2E-BET-003</code>, <code>TC-E2E-BET-004</code>, <code>TC-E2E-BET-005</code>, <code>TC-E2E-BET-006</code>, <code>TC-E2E-BET-007</code></td><td>COVERED</td></tr>
+<tr><td>US-CURR-001 / AC-1</td><td>USD bet range correct</td><td><code>TC-INT-CURR-001-HAPPY</code>, <code>TC-INT-CURR-001b-HAPPY</code></td><td><code>TC-E2E-BET-001</code></td><td>COVERED</td></tr>
+<tr><td>US-CURR-001 / AC-2</td><td>TWD bet range correct</td><td><code>TC-INT-CURR-001c-HAPPY</code></td><td><code>TC-E2E-BET-002</code></td><td>COVERED</td></tr>
+<tr><td>US-CURR-001 / AC-3</td><td>No hardcoded values in BetRangeService.ts</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td>US-CURR-001 / AC-4</td><td>Excel change → BetRangeConfig auto-updates</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td><strong>US-APIV-001</strong></td><td>Single-trip API + JWT on every spin</td><td><code>TC-INT-API-001-HAPPY</code>, <code>TC-INT-API-002-ERROR</code>, <code>TC-INT-API-003-ERROR</code>, <code>TC-INT-API-010-HAPPY</code>, <code>TC-SEC-AUTH-001</code>, <code>TC-SEC-AUTH-001b</code>, <code>TC-SEC-AUTH-001c</code>, <code>TC-SEC-AUTH-002</code>, <code>TC-SEC-AUTH-003</code>, <code>TC-SEC-AUTH-004</code>, <code>TC-SEC-AUTH-005</code>, <code>TC-SEC-AUTH-007</code>, <code>TC-INT-API-019</code>, <code>TC-INT-API-020</code></td><td><code>TC-E2E-SPIN-001</code>, <code>TC-E2E-SESS-001</code></td><td>COVERED</td></tr>
+<tr><td>US-APIV-001 / AC-1</td><td>Main Game + FG in one response</td><td><code>TC-INT-API-010-HAPPY</code></td><td><code>TC-E2E-FG-001</code></td><td>COVERED</td></tr>
+<tr><td>US-APIV-001 / AC-2</td><td>buyFG: fgRounds=5, multipliers in sequence</td><td><code>TC-INT-API-009-HAPPY</code></td><td><code>TC-E2E-BUY-001</code></td><td>COVERED</td></tr>
+<tr><td>US-APIV-001 / AC-3</td><td>P99 ≤ 500ms (no FG), ≤ 800ms (FG)</td><td><code>TC-INT-API-016</code>, <code>TC-INT-API-017</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td>US-APIV-001 / AC-4</td><td>Invalid JWT → 401, no game logic</td><td><code>TC-SEC-AUTH-001</code>, <code>TC-INT-API-002-ERROR</code></td><td><code>TC-E2E-ERR-004</code></td><td>COVERED</td></tr>
+<tr><td>US-APIV-001 / AC-5</td><td>totalWin sole authority</td><td><code>TC-INT-API-019</code>, <code>TC-INT-API-020</code></td><td>—</td><td>PARTIAL</td></tr>
+<tr><td><strong>US-FEND-001</strong> (P1)</td><td>Frontend — FullSpinOutcome includes all animation data</td><td>—</td><td><code>TC-E2E-SPIN-001</code>, <code>TC-E2E-CASC-001</code>, <code>TC-E2E-FG-001</code></td><td>PARTIAL</td></tr>
+<tr><td>US-FEND-001 / AC-1</td><td>FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins with correct structure</td><td>—</td><td><code>TC-E2E-SPIN-001</code>, <code>TC-E2E-CASC-001</code></td><td>PARTIAL</td></tr>
+<tr><td>US-FEND-001 / AC-2</td><td>FG triggered: frontend plays fgSpins sequentially without extra API requests</td><td>—</td><td><code>TC-E2E-FG-001</code></td><td>PARTIAL</td></tr>
+<tr><td>US-FEND-001 / AC-3</td><td>Frontend shows outcome.totalWin, not client-computed sum</td><td>—</td><td><code>TC-E2E-SPIN-001</code></td><td>PARTIAL</td></tr>
+<tr><td>US-FEND-001 / AC-4</td><td>No FG: fgRounds = [] handled gracefully</td><td>—</td><td><code>TC-E2E-SPIN-002</code></td><td>PARTIAL</td></tr>
+<tr><td>US-FEND-001 / AC-5</td><td>FullSpinOutcome matches OpenAPI spec</td><td>—</td><td><code>TC-E2E-SPIN-001</code></td><td>PARTIAL</td></tr>
+</table>
 <hr>
-<h2 id="section-3-api-endpoint-coverage">Section 3: API Endpoint Coverage</h2>
+<h2>Section 3: API Endpoint Coverage</h2>
 <p>Maps each API endpoint to the BDD scenarios that test it.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Endpoint</th>
-<th>Method</th>
-<th>Description</th>
-<th>Server BDD Tags</th>
-<th>Client BDD Tags</th>
-<th>Coverage</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>/v1/spin</code></td>
-<td>POST</td>
-<td>Execute a spin — core game endpoint</td>
-<td><code>TC-INT-API-001-HAPPY</code>, <code>TC-INT-API-002-ERROR</code>, <code>TC-INT-API-003-ERROR</code>, <code>TC-INT-API-004-ERROR</code>, <code>TC-INT-API-005-ERROR</code>, <code>TC-INT-API-006-ERROR</code>, <code>TC-INT-API-010-HAPPY</code>, <code>TC-INT-API-011</code>, <code>TC-INT-API-012</code>, <code>TC-INT-API-013</code>, <code>TC-INT-API-014</code>, <code>TC-INT-API-016</code>, <code>TC-INT-API-017</code>, <code>TC-INT-API-019</code>, <code>TC-INT-API-020</code>, <code>TC-INT-API-021</code>, <code>TC-INT-BUYF-001-HAPPY</code>, <code>TC-INT-BUYF-002-HAPPY</code>, <code>TC-INT-BUYF-002b-HAPPY</code>, <code>TC-INT-BUYF-003</code>, <code>TC-INT-BUYF-004</code>, <code>TC-INT-FG-001-HAPPY</code>, <code>TC-INT-FG-002-HAPPY</code>, <code>TC-INT-FG-003-HAPPY</code>, <code>TC-SEC-AUTH-001</code>, <code>TC-SEC-AUTH-001b</code>, <code>TC-SEC-AUTH-001c</code>, <code>TC-SEC-AUTH-002</code>, <code>TC-SEC-AUTH-003</code>, <code>TC-SEC-AUTH-004</code>, <code>TC-SEC-AUTH-005</code>, <code>TC-SEC-AUTH-007</code>, <code>TC-SEC-BET-001</code>, <code>TC-SEC-BET-002</code>, <code>TC-SEC-BET-003</code>, <code>TC-SEC-INJ-001</code>, <code>TC-SEC-INJ-002</code>, <code>TC-SEC-CORS-001</code>, <code>TC-SEC-CORS-001b</code>, <code>TC-UNIT-EXBT-001-HAPPY</code>, <code>TC-UNIT-EXBT-001b-HAPPY</code>, <code>TC-UNIT-EXBT-002-HAPPY</code>, <code>TC-UNIT-EXBT-003-HAPPY</code>, <code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-EXBT-004b-HAPPY</code>, <code>TC-UNIT-TB-001-HAPPY</code>, <code>TC-UNIT-TB-002-HAPPY</code>, <code>TC-UNIT-COIN-004-HAPPY</code>, <code>TC-UNIT-COIN-006-BOUNDARY</code>, <code>TC-UNIT-FG-002-HAPPY</code>, <code>TC-UNIT-FG-003-HAPPY</code>, <code>TC-UNIT-FG-004-BOUNDARY</code>, <code>TC-UNIT-FLOOR-001-HAPPY</code>, <code>TC-UNIT-MAXWIN-001-BOUNDARY</code>, <code>TC-UNIT-PROB-001-HAPPY</code>, <code>TC-UNIT-PROB-002-BOUNDARY</code>, <code>TC-INT-API-009-HAPPY</code></td>
-<td><code>TC-E2E-SPIN-001</code> through <code>TC-E2E-SPIN-009</code>, <code>TC-E2E-CASC-001</code> through <code>TC-E2E-CASC-008</code>, <code>TC-E2E-TB-001</code> through <code>TC-E2E-TB-006</code>, <code>TC-E2E-COIN-001</code> through <code>TC-E2E-COIN-007</code>, <code>TC-E2E-FG-001</code> through <code>TC-E2E-FG-009</code>, <code>TC-E2E-EXBT-001</code> through <code>TC-E2E-EXBT-006</code>, <code>TC-E2E-BUY-001</code> through <code>TC-E2E-BUY-007</code>, <code>TC-E2E-ERR-001</code>, <code>TC-E2E-ERR-001b</code>, <code>TC-E2E-ERR-002</code> through <code>TC-E2E-ERR-007</code>, <code>TC-E2E-ERR-004b</code>, <code>TC-E2E-BET-001</code> through <code>TC-E2E-BET-007</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td><code>/v1/session/:sessionId</code></td>
-<td>GET</td>
-<td>FG reconnect / session state retrieval</td>
-<td><code>TC-INT-API-012-HAPPY</code>, <code>TC-INT-API-012b-HAPPY</code>, <code>TC-INT-API-013-ERROR</code>, <code>TC-SEC-SESSION-001</code>, <code>TC-SEC-SESSION-AUTH-001</code>, <code>TC-SEC-AUTH-006</code></td>
-<td><code>TC-E2E-SESS-001</code> through <code>TC-E2E-SESS-006</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td><code>/v1/config</code></td>
-<td>GET</td>
-<td>Game config + bet ranges (USD/TWD)</td>
-<td><code>TC-INT-API-014-HAPPY</code>, <code>TC-INT-CURR-001-HAPPY</code>, <code>TC-INT-CURR-001b-HAPPY</code>, <code>TC-INT-CURR-001c-HAPPY</code>, <code>TC-SEC-CONFIG-AUTH-001</code></td>
-<td><code>TC-E2E-BET-001</code> through <code>TC-E2E-BET-007</code></td>
-<td>COVERED</td>
-</tr>
-<tr>
-<td><code>/health</code></td>
-<td>GET</td>
-<td>Health probe (no auth required)</td>
-<td>— (TC-INT-API-018 tests Near Miss behavior in probability-engine.feature, not the /health probe)</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-<tr>
-<td><code>/ready</code></td>
-<td>GET</td>
-<td>Readiness probe (DB + Redis healthy)</td>
-<td>—</td>
-<td>—</td>
-<td>NOT-COVERED</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Endpoint</th><th>Method</th><th>Description</th><th>Server BDD Tags</th><th>Client BDD Tags</th><th>Coverage</th></tr>
+<tr><td><code>/v1/spin</code></td><td>POST</td><td>Execute a spin — core game endpoint</td><td><code>TC-INT-API-001-HAPPY</code>, <code>TC-INT-API-002-ERROR</code>, <code>TC-INT-API-003-ERROR</code>, <code>TC-INT-API-004-ERROR</code>, <code>TC-INT-API-005-ERROR</code>, <code>TC-INT-API-006-ERROR</code>, <code>TC-INT-API-010-HAPPY</code>, <code>TC-INT-API-011</code>, <code>TC-INT-API-012</code>, <code>TC-INT-API-013</code>, <code>TC-INT-API-014</code>, <code>TC-INT-API-016</code>, <code>TC-INT-API-017</code>, <code>TC-INT-API-019</code>, <code>TC-INT-API-020</code>, <code>TC-INT-API-021</code>, <code>TC-INT-BUYF-001-HAPPY</code>, <code>TC-INT-BUYF-002-HAPPY</code>, <code>TC-INT-BUYF-002b-HAPPY</code>, <code>TC-INT-BUYF-003</code>, <code>TC-INT-BUYF-004</code>, <code>TC-INT-FG-001-HAPPY</code>, <code>TC-INT-FG-002-HAPPY</code>, <code>TC-INT-FG-003-HAPPY</code>, <code>TC-SEC-AUTH-001</code>, <code>TC-SEC-AUTH-001b</code>, <code>TC-SEC-AUTH-001c</code>, <code>TC-SEC-AUTH-002</code>, <code>TC-SEC-AUTH-003</code>, <code>TC-SEC-AUTH-004</code>, <code>TC-SEC-AUTH-005</code>, <code>TC-SEC-AUTH-007</code>, <code>TC-SEC-BET-001</code>, <code>TC-SEC-BET-002</code>, <code>TC-SEC-BET-003</code>, <code>TC-SEC-INJ-001</code>, <code>TC-SEC-INJ-002</code>, <code>TC-SEC-CORS-001</code>, <code>TC-SEC-CORS-001b</code>, <code>TC-UNIT-EXBT-001-HAPPY</code>, <code>TC-UNIT-EXBT-001b-HAPPY</code>, <code>TC-UNIT-EXBT-002-HAPPY</code>, <code>TC-UNIT-EXBT-003-HAPPY</code>, <code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-EXBT-004b-HAPPY</code>, <code>TC-UNIT-TB-001-HAPPY</code>, <code>TC-UNIT-TB-002-HAPPY</code>, <code>TC-UNIT-COIN-004-HAPPY</code>, <code>TC-UNIT-COIN-006-BOUNDARY</code>, <code>TC-UNIT-FG-002-HAPPY</code>, <code>TC-UNIT-FG-003-HAPPY</code>, <code>TC-UNIT-FG-004-BOUNDARY</code>, <code>TC-UNIT-FLOOR-001-HAPPY</code>, <code>TC-UNIT-MAXWIN-001-BOUNDARY</code>, <code>TC-UNIT-PROB-001-HAPPY</code>, <code>TC-UNIT-PROB-002-BOUNDARY</code>, <code>TC-INT-API-009-HAPPY</code></td><td><code>TC-E2E-SPIN-001</code> through <code>TC-E2E-SPIN-009</code>, <code>TC-E2E-CASC-001</code> through <code>TC-E2E-CASC-008</code>, <code>TC-E2E-TB-001</code> through <code>TC-E2E-TB-006</code>, <code>TC-E2E-COIN-001</code> through <code>TC-E2E-COIN-007</code>, <code>TC-E2E-FG-001</code> through <code>TC-E2E-FG-009</code>, <code>TC-E2E-EXBT-001</code> through <code>TC-E2E-EXBT-006</code>, <code>TC-E2E-BUY-001</code> through <code>TC-E2E-BUY-007</code>, <code>TC-E2E-ERR-001</code>, <code>TC-E2E-ERR-001b</code>, <code>TC-E2E-ERR-002</code> through <code>TC-E2E-ERR-007</code>, <code>TC-E2E-ERR-004b</code>, <code>TC-E2E-BET-001</code> through <code>TC-E2E-BET-007</code></td><td>COVERED</td></tr>
+<tr><td><code>/v1/session/:sessionId</code></td><td>GET</td><td>FG reconnect / session state retrieval</td><td><code>TC-INT-API-012-HAPPY</code>, <code>TC-INT-API-012b-HAPPY</code>, <code>TC-INT-API-013-ERROR</code>, <code>TC-SEC-SESSION-001</code>, <code>TC-SEC-SESSION-AUTH-001</code>, <code>TC-SEC-AUTH-006</code></td><td><code>TC-E2E-SESS-001</code> through <code>TC-E2E-SESS-006</code></td><td>COVERED</td></tr>
+<tr><td><code>/v1/config</code></td><td>GET</td><td>Game config + bet ranges (USD/TWD)</td><td><code>TC-INT-API-014-HAPPY</code>, <code>TC-INT-CURR-001-HAPPY</code>, <code>TC-INT-CURR-001b-HAPPY</code>, <code>TC-INT-CURR-001c-HAPPY</code>, <code>TC-SEC-CONFIG-AUTH-001</code></td><td><code>TC-E2E-BET-001</code> through <code>TC-E2E-BET-007</code></td><td>COVERED</td></tr>
+<tr><td><code>/health</code></td><td>GET</td><td>Health probe (no auth required)</td><td>— (TC-INT-API-018 tests Near Miss behavior in probability-engine.feature, not the /health probe)</td><td>—</td><td>NOT-COVERED</td></tr>
+<tr><td><code>/ready</code></td><td>GET</td><td>Readiness probe (DB + Redis healthy)</td><td>—</td><td>—</td><td>NOT-COVERED</td></tr>
+</table>
 <hr>
-<h2 id="section-4-coverage-summary">Section 4: Coverage Summary</h2>
-<h3 id="h-41-requirement-coverage-by-req-id">4.1 Requirement Coverage by Req ID</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Metric</th>
-<th>Count</th>
-<th>Percentage</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Total top-level requirements (PRD US-IDs)</td>
-<td>14</td>
-<td>100%</td>
-</tr>
-<tr>
-<td>Total AC-level requirements (all sub-ACs)</td>
-<td>70</td>
-<td>100%</td>
-</tr>
-<tr>
-<td><strong>US-ID level: COVERED</strong></td>
-<td>10</td>
-<td>71%</td>
-</tr>
-<tr>
-<td><strong>US-ID level: PARTIAL</strong></td>
-<td>3</td>
-<td>21%</td>
-</tr>
-<tr>
-<td><strong>US-ID level: NOT-COVERED</strong></td>
-<td>1</td>
-<td>7%</td>
-</tr>
-<tr>
-<td><strong>AC level: COVERED</strong></td>
-<td>36</td>
-<td>51%</td>
-</tr>
-<tr>
-<td><strong>AC level: PARTIAL</strong></td>
-<td>23</td>
-<td>33%</td>
-</tr>
-<tr>
-<td><strong>AC level: NOT-COVERED</strong></td>
-<td>11</td>
-<td>16%</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-42-bdd-scenario-count">4.2 BDD Scenario Count</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Category</th>
-<th>Count</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Server BDD tags (unique, non-client features/)</strong></td>
-<td>81</td>
-</tr>
-<tr>
-<td><strong>Client BDD tags (unique, features/client/)</strong></td>
-<td>74</td>
-</tr>
-<tr>
-<td><strong>Total unique TC tags</strong></td>
-<td>155</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-43-server-bdd-tags-breakdown">4.3 Server BDD Tags Breakdown</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Module</th>
-<th>Count</th>
-<th>Tags</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>API integration (TC-INT-API-*)</td>
-<td>23</td>
-<td><code>TC-INT-API-001</code> through <code>TC-INT-API-021</code> (includes variant suffixes -HAPPY, -ERROR, -008-ERROR, -009-HAPPY, -012-HAPPY, -012b-HAPPY, -013-ERROR, -014-HAPPY)</td>
-</tr>
-<tr>
-<td>Buy Feature integration (TC-INT-BUYF-*)</td>
-<td>7</td>
-<td><code>TC-INT-BUYF-001-HAPPY</code>, <code>TC-INT-BUYF-002</code>, <code>TC-INT-BUYF-002-HAPPY</code>, <code>TC-INT-BUYF-002b-HAPPY</code>, <code>TC-INT-BUYF-003</code>, <code>TC-INT-BUYF-003-HAPPY</code>, <code>TC-INT-BUYF-004</code></td>
-</tr>
-<tr>
-<td>Free Game integration (TC-INT-FG-*)</td>
-<td>3</td>
-<td><code>TC-INT-FG-001-HAPPY</code>, <code>TC-INT-FG-002-HAPPY</code>, <code>TC-INT-FG-003-HAPPY</code></td>
-</tr>
-<tr>
-<td>Currency integration (TC-INT-CURR-*)</td>
-<td>3</td>
-<td><code>TC-INT-CURR-001-HAPPY</code>, <code>TC-INT-CURR-001b-HAPPY</code>, <code>TC-INT-CURR-001c-HAPPY</code></td>
-</tr>
-<tr>
-<td>Probability integration (TC-INT-PROB-*)</td>
-<td>1</td>
-<td><code>TC-INT-PROB-001</code></td>
-</tr>
-<tr>
-<td>Security (TC-SEC-*)</td>
-<td>20</td>
-<td>Auth (001–007 including 001b, 001c), BET (001–003), INJ (001–002), CORS (001, 001b), SESSION (001, SESSION-AUTH-001), CONFIG-AUTH-001, RATE-001</td>
-</tr>
-<tr>
-<td>Unit — Extra Bet (TC-UNIT-EXBT-*)</td>
-<td>7</td>
-<td><code>TC-UNIT-EXBT-001-HAPPY</code>, <code>TC-UNIT-EXBT-001b-HAPPY</code>, <code>TC-UNIT-EXBT-002-HAPPY</code>, <code>TC-UNIT-EXBT-003-HAPPY</code>, <code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-EXBT-004b-HAPPY</code>, <code>TC-UNIT-EXBT-005-HAPPY</code></td>
-</tr>
-<tr>
-<td>Unit — Cascade (TC-UNIT-CASC-*)</td>
-<td>2</td>
-<td><code>TC-UNIT-CASC-001-HAPPY</code>, <code>TC-UNIT-CASC-002-HAPPY</code></td>
-</tr>
-<tr>
-<td>Unit — Thunder Blessing (TC-UNIT-TB-*)</td>
-<td>2</td>
-<td><code>TC-UNIT-TB-001-HAPPY</code>, <code>TC-UNIT-TB-002-HAPPY</code></td>
-</tr>
-<tr>
-<td>Unit — Coin Toss (TC-UNIT-COIN-*)</td>
-<td>4</td>
-<td><code>TC-UNIT-COIN-001-HAPPY</code>, <code>TC-UNIT-COIN-003-BOUNDARY</code>, <code>TC-UNIT-COIN-004-HAPPY</code>, <code>TC-UNIT-COIN-006-BOUNDARY</code></td>
-</tr>
-<tr>
-<td>Unit — Free Game (TC-UNIT-FG-*)</td>
-<td>4</td>
-<td><code>TC-UNIT-FG-001-HAPPY</code>, <code>TC-UNIT-FG-002-HAPPY</code>, <code>TC-UNIT-FG-003-HAPPY</code>, <code>TC-UNIT-FG-004-BOUNDARY</code></td>
-</tr>
-<tr>
-<td>Unit — Floor/MaxWin/Prob (misc)</td>
-<td>5</td>
-<td><code>TC-UNIT-FLOOR-001-HAPPY</code>, <code>TC-UNIT-MAXWIN-001-BOUNDARY</code>, <code>TC-UNIT-PROB-001-HAPPY</code>, <code>TC-UNIT-PROB-002-BOUNDARY</code>, <code>TC-UNIT-PROB-003-ERROR</code></td>
-</tr>
-</tbody></table></div>
-<h3 id="h-44-client-bdd-tags-breakdown">4.4 Client BDD Tags Breakdown</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Module</th>
-<th>Count</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>TC-E2E-SPIN-*</code></td>
-<td>9</td>
-</tr>
-<tr>
-<td><code>TC-E2E-CASC-*</code></td>
-<td>8</td>
-</tr>
-<tr>
-<td><code>TC-E2E-TB-*</code></td>
-<td>6</td>
-</tr>
-<tr>
-<td><code>TC-E2E-COIN-*</code></td>
-<td>7</td>
-</tr>
-<tr>
-<td><code>TC-E2E-FG-*</code></td>
-<td>9</td>
-</tr>
-<tr>
-<td><code>TC-E2E-EXBT-*</code></td>
-<td>6</td>
-</tr>
-<tr>
-<td><code>TC-E2E-BUY-*</code></td>
-<td>7</td>
-</tr>
-<tr>
-<td><code>TC-E2E-ERR-*</code></td>
-<td>9 (includes ERR-001b, ERR-004b variants)</td>
-</tr>
-<tr>
-<td><code>TC-E2E-BET-*</code></td>
-<td>7</td>
-</tr>
-<tr>
-<td><code>TC-E2E-SESS-*</code></td>
-<td>6</td>
-</tr>
-<tr>
-<td><strong>Total</strong></td>
-<td><strong>74</strong></td>
-</tr>
-</tbody></table></div>
+<h2>Section 4: Coverage Summary</h2>
+<h3>4.1 Requirement Coverage by Req ID</h3>
+<table>
+<tr><th>Metric</th><th>Count</th><th>Percentage</th></tr>
+<tr><td>Total top-level requirements (PRD US-IDs)</td><td>14</td><td>100%</td></tr>
+<tr><td>Total AC-level requirements (all sub-ACs)</td><td>70</td><td>100%</td></tr>
+<tr><td><strong>US-ID level: COVERED</strong></td><td>10</td><td>71%</td></tr>
+<tr><td><strong>US-ID level: PARTIAL</strong></td><td>3</td><td>21%</td></tr>
+<tr><td><strong>US-ID level: NOT-COVERED</strong></td><td>1</td><td>7%</td></tr>
+<tr><td><strong>AC level: COVERED</strong></td><td>36</td><td>51%</td></tr>
+<tr><td><strong>AC level: PARTIAL</strong></td><td>23</td><td>33%</td></tr>
+<tr><td><strong>AC level: NOT-COVERED</strong></td><td>11</td><td>16%</td></tr>
+</table>
+<h3>4.2 BDD Scenario Count</h3>
+<table>
+<tr><th>Category</th><th>Count</th></tr>
+<tr><td><strong>Server BDD tags (unique, non-client features/)</strong></td><td>81</td></tr>
+<tr><td><strong>Client BDD tags (unique, features/client/)</strong></td><td>74</td></tr>
+<tr><td><strong>Total unique TC tags</strong></td><td>155</td></tr>
+</table>
+<h3>4.3 Server BDD Tags Breakdown</h3>
+<table>
+<tr><th>Module</th><th>Count</th><th>Tags</th></tr>
+<tr><td>API integration (TC-INT-API-*)</td><td>23</td><td><code>TC-INT-API-001</code> through <code>TC-INT-API-021</code> (includes variant suffixes -HAPPY, -ERROR, -008-ERROR, -009-HAPPY, -012-HAPPY, -012b-HAPPY, -013-ERROR, -014-HAPPY)</td></tr>
+<tr><td>Buy Feature integration (TC-INT-BUYF-*)</td><td>7</td><td><code>TC-INT-BUYF-001-HAPPY</code>, <code>TC-INT-BUYF-002</code>, <code>TC-INT-BUYF-002-HAPPY</code>, <code>TC-INT-BUYF-002b-HAPPY</code>, <code>TC-INT-BUYF-003</code>, <code>TC-INT-BUYF-003-HAPPY</code>, <code>TC-INT-BUYF-004</code></td></tr>
+<tr><td>Free Game integration (TC-INT-FG-*)</td><td>3</td><td><code>TC-INT-FG-001-HAPPY</code>, <code>TC-INT-FG-002-HAPPY</code>, <code>TC-INT-FG-003-HAPPY</code></td></tr>
+<tr><td>Currency integration (TC-INT-CURR-*)</td><td>3</td><td><code>TC-INT-CURR-001-HAPPY</code>, <code>TC-INT-CURR-001b-HAPPY</code>, <code>TC-INT-CURR-001c-HAPPY</code></td></tr>
+<tr><td>Probability integration (TC-INT-PROB-*)</td><td>1</td><td><code>TC-INT-PROB-001</code></td></tr>
+<tr><td>Security (TC-SEC-*)</td><td>20</td><td>Auth (001–007 including 001b, 001c), BET (001–003), INJ (001–002), CORS (001, 001b), SESSION (001, SESSION-AUTH-001), CONFIG-AUTH-001, RATE-001</td></tr>
+<tr><td>Unit — Extra Bet (TC-UNIT-EXBT-*)</td><td>7</td><td><code>TC-UNIT-EXBT-001-HAPPY</code>, <code>TC-UNIT-EXBT-001b-HAPPY</code>, <code>TC-UNIT-EXBT-002-HAPPY</code>, <code>TC-UNIT-EXBT-003-HAPPY</code>, <code>TC-UNIT-EXBT-004-HAPPY</code>, <code>TC-UNIT-EXBT-004b-HAPPY</code>, <code>TC-UNIT-EXBT-005-HAPPY</code></td></tr>
+<tr><td>Unit — Cascade (TC-UNIT-CASC-*)</td><td>2</td><td><code>TC-UNIT-CASC-001-HAPPY</code>, <code>TC-UNIT-CASC-002-HAPPY</code></td></tr>
+<tr><td>Unit — Thunder Blessing (TC-UNIT-TB-*)</td><td>2</td><td><code>TC-UNIT-TB-001-HAPPY</code>, <code>TC-UNIT-TB-002-HAPPY</code></td></tr>
+<tr><td>Unit — Coin Toss (TC-UNIT-COIN-*)</td><td>4</td><td><code>TC-UNIT-COIN-001-HAPPY</code>, <code>TC-UNIT-COIN-003-BOUNDARY</code>, <code>TC-UNIT-COIN-004-HAPPY</code>, <code>TC-UNIT-COIN-006-BOUNDARY</code></td></tr>
+<tr><td>Unit — Free Game (TC-UNIT-FG-*)</td><td>4</td><td><code>TC-UNIT-FG-001-HAPPY</code>, <code>TC-UNIT-FG-002-HAPPY</code>, <code>TC-UNIT-FG-003-HAPPY</code>, <code>TC-UNIT-FG-004-BOUNDARY</code></td></tr>
+<tr><td>Unit — Floor/MaxWin/Prob (misc)</td><td>5</td><td><code>TC-UNIT-FLOOR-001-HAPPY</code>, <code>TC-UNIT-MAXWIN-001-BOUNDARY</code>, <code>TC-UNIT-PROB-001-HAPPY</code>, <code>TC-UNIT-PROB-002-BOUNDARY</code>, <code>TC-UNIT-PROB-003-ERROR</code></td></tr>
+</table>
+<h3>4.4 Client BDD Tags Breakdown</h3>
+<table>
+<tr><th>Module</th><th>Count</th></tr>
+<tr><td><code>TC-E2E-SPIN-*</code></td><td>9</td></tr>
+<tr><td><code>TC-E2E-CASC-*</code></td><td>8</td></tr>
+<tr><td><code>TC-E2E-TB-*</code></td><td>6</td></tr>
+<tr><td><code>TC-E2E-COIN-*</code></td><td>7</td></tr>
+<tr><td><code>TC-E2E-FG-*</code></td><td>9</td></tr>
+<tr><td><code>TC-E2E-EXBT-*</code></td><td>6</td></tr>
+<tr><td><code>TC-E2E-BUY-*</code></td><td>7</td></tr>
+<tr><td><code>TC-E2E-ERR-*</code></td><td>9 (includes ERR-001b, ERR-004b variants)</td></tr>
+<tr><td><code>TC-E2E-BET-*</code></td><td>7</td></tr>
+<tr><td><code>TC-E2E-SESS-*</code></td><td>6</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>74</strong></td></tr>
+</table>
 <hr>
-<h2 id="section-5-not-covered-risk-items">Section 5: Not-Covered / Risk Items</h2>
+<h2>Section 5: Not-Covered / Risk Items</h2>
 <p>The following requirements have NO BDD coverage or only PARTIAL coverage. Each is assessed for gap severity and risk.</p>
-<h3 id="h-51-not-covered-requirements">5.1 NOT-COVERED Requirements</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Req ID</th>
-<th>Summary</th>
-<th>Gap Description</th>
-<th>Risk Level</th>
-<th>Recommended Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>US-CASC-001 / AC-4</td>
-<td>Same payline not double-counted in win calculation</td>
-<td>No server or client BDD scenario validates that the same winning position is not counted twice across cascade steps</td>
-<td>HIGH</td>
-<td>Add <code>TC-UNIT-CASC-009-BOUNDARY</code> to <code>features/spin.feature</code> testing double-count prevention</td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-4</td>
-<td>P1 symbol upgrade boundary — stays P1</td>
-<td>The upgrade boundary for the highest-tier symbol (P1→P1) has no BDD coverage; only covered in test-plan description</td>
-<td>HIGH</td>
-<td>Add <code>TC-UNIT-TB-004-BOUNDARY</code> to <code>features/spin.feature</code> covering all symbol transition paths (L1/L2/L3/L4→P4, P4→P3, P3→P2, P2→P1, P1→P1)</td>
-</tr>
-<tr>
-<td>US-BUYF-001 / AC-5</td>
-<td>buyFG weights used exclusively (no cross-contamination)</td>
-<td>Symbol weight isolation between buyFG scenario and other scenarios has no dedicated BDD scenario; RISK-01 flags weight contamination as HIGH risk</td>
-<td>HIGH</td>
-<td>Add <code>TC-UNIT-PROB-004-BOUNDARY</code> testing that <code>weights.buyFG</code> is never referenced in mainGame and vice versa</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-1</td>
-<td>Near Miss Excel → build_config.js → GameConfig</td>
-<td>No BDD scenario covers the toolchain flow for Near Miss configuration</td>
-<td>MEDIUM</td>
-<td>Add integration test in <code>features/probability-engine.feature</code> covering Near Miss config propagation through toolchain</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-2</td>
-<td>Near Miss → win=0 (no RTP impact)</td>
-<td>No BDD scenario validates that Near Miss arrangements produce zero win</td>
-<td>MEDIUM</td>
-<td>Add <code>TC-UNIT-NRMS-001-BOUNDARY</code> asserting <code>totalWin=0</code> when Near Miss is applied (<code>nearMissApplied=true</code>)</td>
-</tr>
-<tr>
-<td>US-NRMS-001 / AC-3</td>
-<td>No hardcoded Near Miss in SlotEngine.ts</td>
-<td>Code review gate only; no automated BDD or unit test</td>
-<td>LOW</td>
-<td>Add static analysis / code review checklist item; consider CI lint rule against literal symbol arrangement arrays in <code>SlotEngine.ts</code></td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-1</td>
-<td>Excel DATA → engine_config.json via build_config.js</td>
-<td>No BDD scenario covers the full toolchain step execution</td>
-<td>MEDIUM</td>
-<td>Add <code>TC-INT-TOOL-001</code> integration test executing <code>build_config.js</code> against fixture Excel and asserting <code>engine_config.json</code> output</td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-2</td>
-<td>excel_simulator.js → 1M Monte Carlo → SIMULATION tab</td>
-<td>No BDD scenario covers the simulation runner step</td>
-<td>MEDIUM</td>
-<td>Add toolchain smoke test asserting <code>excel_simulator.js</code> produces non-empty SIMULATION tab output</td>
-</tr>
-<tr>
-<td>US-TOOL-001 / AC-4</td>
-<td>verify.js PASS → engine_generator.js → GameConfig</td>
-<td>Generation step after PASS not covered by BDD (only FAIL path covered)</td>
-<td>MEDIUM</td>
-<td>Extend <code>TC-INT-PROB-001</code> or add <code>TC-INT-TOOL-002</code> asserting <code>GameConfig.generated.ts</code> is regenerated after <code>verify.js</code> PASS</td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-3</td>
-<td>No hardcoded values in BetRangeService.ts</td>
-<td>Code review gate only; no automated validation</td>
-<td>LOW</td>
-<td>Add a unit test asserting <code>BetRangeService</code> instantiates values exclusively from <code>BetRangeConfig.generated.ts</code></td>
-</tr>
-<tr>
-<td>US-CURR-001 / AC-4</td>
-<td>Excel BET_MAX_LEVEL change → BetRangeConfig auto-updates</td>
-<td>Toolchain propagation for currency config not covered by BDD</td>
-<td>MEDIUM</td>
-<td>Add <code>TC-INT-TOOL-003</code> testing toolchain round-trip: modify Excel BET_MAX_LEVEL → verify <code>BetRangeConfig.generated.ts</code> changes</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-52-partial-coverage-higher-risk-items">5.2 PARTIAL Coverage — Higher-Risk Items</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Req ID</th>
-<th>Summary</th>
-<th>Current Coverage</th>
-<th>Gap</th>
-<th>Risk Level</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>US-SPIN-001 / AC-5</td>
-<td>Wild substitution logic</td>
-<td><code>TC-UNIT-CASC-002-HAPPY</code> (server only)</td>
-<td>No client E2E validates Wild symbol visual replacement</td>
-<td>MEDIUM</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-2</td>
-<td>MAX_ROWS=6 boundary</td>
-<td><code>TC-E2E-CASC-005</code> (client only)</td>
-<td>No server-side BDD validates the row-cap guard in <code>CascadeEngine.expandRows()</code></td>
-<td>HIGH</td>
-</tr>
-<tr>
-<td>US-CASC-001 / AC-3</td>
-<td>New spin resets marks + rows</td>
-<td><code>TC-INT-FG-003-HAPPY</code> (verifies marks cleared at FG end)</td>
-<td>Lacks explicit test for Main Game spin reset without preceding FG</td>
-<td>MEDIUM</td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-1</td>
-<td>mgFgTriggerProb (0.009624) gate</td>
-<td><code>TC-E2E-COIN-001</code> (client only)</td>
-<td>Server-side unit test for trigger probability gate is absent from BDD</td>
-<td>HIGH</td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-3</td>
-<td>Coin Toss Tails → no FG</td>
-<td><code>TC-E2E-COIN-003</code> (client only)</td>
-<td>No server-side BDD validates Tails path returns <code>fgTriggered=false</code></td>
-<td>MEDIUM</td>
-</tr>
-<tr>
-<td>US-COIN-001 / AC-5</td>
-<td>rows &lt; 6 → no Coin Toss</td>
-<td><code>TC-UNIT-COIN-006-BOUNDARY</code> (boundary on threshold values)</td>
-<td>Does not explicitly test rows=5 as non-trigger</td>
-<td>MEDIUM</td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-3</td>
-<td>SC + no marks → no trigger</td>
-<td><code>TC-E2E-TB-006</code> (client only)</td>
-<td>No server BDD scenario for this path</td>
-<td>MEDIUM</td>
-</tr>
-<tr>
-<td>US-TBSC-001 / AC-5</td>
-<td>Post-TB cascade on new win</td>
-<td><code>TC-E2E-TB-004</code> (client only)</td>
-<td>No server integration BDD validates cascade continues after Thunder Blessing</td>
-<td>HIGH</td>
-</tr>
-<tr>
-<td>US-RTPV-001 / AC-1 to AC-4</td>
-<td>4-scenario RTP via verify.js</td>
-<td><code>TC-INT-PROB-001</code> covers all 4 scenarios in one tag</td>
-<td>Individual per-scenario FAIL isolation is not separately tagged</td>
-<td>MEDIUM</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-3</td>
-<td>P99 latency targets</td>
-<td><code>TC-INT-API-016</code>, <code>TC-INT-API-017</code> (listed in test plan)</td>
-<td>No separate k6 BDD scenario tags; performance tests are k6 scripts outside BDD</td>
-<td>LOW</td>
-</tr>
-<tr>
-<td>US-APIV-001 / AC-5</td>
-<td>totalWin sole authority</td>
-<td><code>TC-INT-API-019</code>, <code>TC-INT-API-020</code></td>
-<td>No client-side E2E asserting <code>window.__debug_clientComputedWin</code> undefined</td>
-<td>MEDIUM</td>
-</tr>
-<tr>
-<td><code>/health</code></td>
-<td>Health probe</td>
-<td>None (TC-INT-API-018 tests Near Miss / probability-engine behavior, not the health probe)</td>
-<td>No dedicated health probe BDD scenario exists</td>
-<td>LOW</td>
-</tr>
-<tr>
-<td><code>/ready</code></td>
-<td>Readiness probe</td>
-<td>None</td>
-<td>No BDD coverage for readiness (DB+Redis healthy path or 503 path)</td>
-<td>MEDIUM</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-53-priority-remediation-plan">5.3 Priority Remediation Plan</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Priority</th>
-<th>Action</th>
-<th>Target Req</th>
-<th>Estimated Effort</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>P0</td>
-<td>Add <code>TC-UNIT-CASC-009-BOUNDARY</code> — double-count prevention</td>
-<td>US-CASC-001/AC-4</td>
-<td>1 day</td>
-</tr>
-<tr>
-<td>P0</td>
-<td>Add <code>TC-UNIT-TB-004-BOUNDARY</code> — all symbol upgrade paths</td>
-<td>US-TBSC-001/AC-4</td>
-<td>0.5 day</td>
-</tr>
-<tr>
-<td>P0</td>
-<td>Add server BDD for MAX_ROWS=6 boundary (rows never &gt; 6)</td>
-<td>US-CASC-001/AC-2</td>
-<td>0.5 day</td>
-</tr>
-<tr>
-<td>P0</td>
-<td>Add server BDD for Coin Toss trigger gate (mgFgTriggerProb)</td>
-<td>US-COIN-001/AC-1</td>
-<td>0.5 day</td>
-</tr>
-<tr>
-<td>P0</td>
-<td>Add server BDD for post-Thunder-Blessing cascade continuation</td>
-<td>US-TBSC-001/AC-5</td>
-<td>0.5 day</td>
-</tr>
-<tr>
-<td>P0</td>
-<td>Add <code>TC-UNIT-PROB-004-BOUNDARY</code> — buyFG weight isolation</td>
-<td>US-BUYF-001/AC-5</td>
-<td>0.5 day</td>
-</tr>
-<tr>
-<td>P1</td>
-<td>Add toolchain integration BDD (TC-INT-TOOL-001 to 003)</td>
-<td>US-TOOL-001/AC-1,AC-2,AC-4</td>
-<td>2 days</td>
-</tr>
-<tr>
-<td>P1</td>
-<td>Add Near Miss BDD scenarios (zero-win assertion, config propagation)</td>
-<td>US-NRMS-001/AC-1,AC-2</td>
-<td>1 day</td>
-</tr>
-<tr>
-<td>P1</td>
-<td>Add readiness probe BDD (TC-INT-READY-001)</td>
-<td><code>/ready</code> endpoint</td>
-<td>0.5 day</td>
-</tr>
-<tr>
-<td>P2</td>
-<td>Add currency toolchain round-trip BDD</td>
-<td>US-CURR-001/AC-4</td>
-<td>1 day</td>
-</tr>
-<tr>
-<td>P2</td>
-<td>Add client E2E for Wild substitution visual</td>
-<td>US-SPIN-001/AC-5</td>
-<td>0.5 day</td>
-</tr>
-</tbody></table></div>
+<h3>5.1 NOT-COVERED Requirements</h3>
+<table>
+<tr><th>Req ID</th><th>Summary</th><th>Gap Description</th><th>Risk Level</th><th>Recommended Action</th></tr>
+<tr><td>US-CASC-001 / AC-4</td><td>Same payline not double-counted in win calculation</td><td>No server or client BDD scenario validates that the same winning position is not counted twice across cascade steps</td><td>HIGH</td><td>Add <code>TC-UNIT-CASC-009-BOUNDARY</code> to <code>features/spin.feature</code> testing double-count prevention</td></tr>
+<tr><td>US-TBSC-001 / AC-4</td><td>P1 symbol upgrade boundary — stays P1</td><td>The upgrade boundary for the highest-tier symbol (P1→P1) has no BDD coverage; only covered in test-plan description</td><td>HIGH</td><td>Add <code>TC-UNIT-TB-004-BOUNDARY</code> to <code>features/spin.feature</code> covering all symbol transition paths (L1/L2/L3/L4→P4, P4→P3, P3→P2, P2→P1, P1→P1)</td></tr>
+<tr><td>US-BUYF-001 / AC-5</td><td>buyFG weights used exclusively (no cross-contamination)</td><td>Symbol weight isolation between buyFG scenario and other scenarios has no dedicated BDD scenario; RISK-01 flags weight contamination as HIGH risk</td><td>HIGH</td><td>Add <code>TC-UNIT-PROB-004-BOUNDARY</code> testing that <code>weights.buyFG</code> is never referenced in mainGame and vice versa</td></tr>
+<tr><td>US-NRMS-001 / AC-1</td><td>Near Miss Excel → build_config.js → GameConfig</td><td>No BDD scenario covers the toolchain flow for Near Miss configuration</td><td>MEDIUM</td><td>Add integration test in <code>features/probability-engine.feature</code> covering Near Miss config propagation through toolchain</td></tr>
+<tr><td>US-NRMS-001 / AC-2</td><td>Near Miss → win=0 (no RTP impact)</td><td>No BDD scenario validates that Near Miss arrangements produce zero win</td><td>MEDIUM</td><td>Add <code>TC-UNIT-NRMS-001-BOUNDARY</code> asserting <code>totalWin=0</code> when Near Miss is applied (<code>nearMissApplied=true</code>)</td></tr>
+<tr><td>US-NRMS-001 / AC-3</td><td>No hardcoded Near Miss in SlotEngine.ts</td><td>Code review gate only; no automated BDD or unit test</td><td>LOW</td><td>Add static analysis / code review checklist item; consider CI lint rule against literal symbol arrangement arrays in <code>SlotEngine.ts</code></td></tr>
+<tr><td>US-TOOL-001 / AC-1</td><td>Excel DATA → engine_config.json via build_config.js</td><td>No BDD scenario covers the full toolchain step execution</td><td>MEDIUM</td><td>Add <code>TC-INT-TOOL-001</code> integration test executing <code>build_config.js</code> against fixture Excel and asserting <code>engine_config.json</code> output</td></tr>
+<tr><td>US-TOOL-001 / AC-2</td><td>excel_simulator.js → 1M Monte Carlo → SIMULATION tab</td><td>No BDD scenario covers the simulation runner step</td><td>MEDIUM</td><td>Add toolchain smoke test asserting <code>excel_simulator.js</code> produces non-empty SIMULATION tab output</td></tr>
+<tr><td>US-TOOL-001 / AC-4</td><td>verify.js PASS → engine_generator.js → GameConfig</td><td>Generation step after PASS not covered by BDD (only FAIL path covered)</td><td>MEDIUM</td><td>Extend <code>TC-INT-PROB-001</code> or add <code>TC-INT-TOOL-002</code> asserting <code>GameConfig.generated.ts</code> is regenerated after <code>verify.js</code> PASS</td></tr>
+<tr><td>US-CURR-001 / AC-3</td><td>No hardcoded values in BetRangeService.ts</td><td>Code review gate only; no automated validation</td><td>LOW</td><td>Add a unit test asserting <code>BetRangeService</code> instantiates values exclusively from <code>BetRangeConfig.generated.ts</code></td></tr>
+<tr><td>US-CURR-001 / AC-4</td><td>Excel BET_MAX_LEVEL change → BetRangeConfig auto-updates</td><td>Toolchain propagation for currency config not covered by BDD</td><td>MEDIUM</td><td>Add <code>TC-INT-TOOL-003</code> testing toolchain round-trip: modify Excel BET_MAX_LEVEL → verify <code>BetRangeConfig.generated.ts</code> changes</td></tr>
+</table>
+<h3>5.2 PARTIAL Coverage — Higher-Risk Items</h3>
+<table>
+<tr><th>Req ID</th><th>Summary</th><th>Current Coverage</th><th>Gap</th><th>Risk Level</th></tr>
+<tr><td>US-SPIN-001 / AC-5</td><td>Wild substitution logic</td><td><code>TC-UNIT-CASC-002-HAPPY</code> (server only)</td><td>No client E2E validates Wild symbol visual replacement</td><td>MEDIUM</td></tr>
+<tr><td>US-CASC-001 / AC-2</td><td>MAX_ROWS=6 boundary</td><td><code>TC-E2E-CASC-005</code> (client only)</td><td>No server-side BDD validates the row-cap guard in <code>CascadeEngine.expandRows()</code></td><td>HIGH</td></tr>
+<tr><td>US-CASC-001 / AC-3</td><td>New spin resets marks + rows</td><td><code>TC-INT-FG-003-HAPPY</code> (verifies marks cleared at FG end)</td><td>Lacks explicit test for Main Game spin reset without preceding FG</td><td>MEDIUM</td></tr>
+<tr><td>US-COIN-001 / AC-1</td><td>mgFgTriggerProb (0.009624) gate</td><td><code>TC-E2E-COIN-001</code> (client only)</td><td>Server-side unit test for trigger probability gate is absent from BDD</td><td>HIGH</td></tr>
+<tr><td>US-COIN-001 / AC-3</td><td>Coin Toss Tails → no FG</td><td><code>TC-E2E-COIN-003</code> (client only)</td><td>No server-side BDD validates Tails path returns <code>fgTriggered=false</code></td><td>MEDIUM</td></tr>
+<tr><td>US-COIN-001 / AC-5</td><td>rows &lt; 6 → no Coin Toss</td><td><code>TC-UNIT-COIN-006-BOUNDARY</code> (boundary on threshold values)</td><td>Does not explicitly test rows=5 as non-trigger</td><td>MEDIUM</td></tr>
+<tr><td>US-TBSC-001 / AC-3</td><td>SC + no marks → no trigger</td><td><code>TC-E2E-TB-006</code> (client only)</td><td>No server BDD scenario for this path</td><td>MEDIUM</td></tr>
+<tr><td>US-TBSC-001 / AC-5</td><td>Post-TB cascade on new win</td><td><code>TC-E2E-TB-004</code> (client only)</td><td>No server integration BDD validates cascade continues after Thunder Blessing</td><td>HIGH</td></tr>
+<tr><td>US-RTPV-001 / AC-1 to AC-4</td><td>4-scenario RTP via verify.js</td><td><code>TC-INT-PROB-001</code> covers all 4 scenarios in one tag</td><td>Individual per-scenario FAIL isolation is not separately tagged</td><td>MEDIUM</td></tr>
+<tr><td>US-APIV-001 / AC-3</td><td>P99 latency targets</td><td><code>TC-INT-API-016</code>, <code>TC-INT-API-017</code> (listed in test plan)</td><td>No separate k6 BDD scenario tags; performance tests are k6 scripts outside BDD</td><td>LOW</td></tr>
+<tr><td>US-APIV-001 / AC-5</td><td>totalWin sole authority</td><td><code>TC-INT-API-019</code>, <code>TC-INT-API-020</code></td><td>No client-side E2E asserting <code>window.__debug_clientComputedWin</code> undefined</td><td>MEDIUM</td></tr>
+<tr><td><code>/health</code></td><td>Health probe</td><td>None (TC-INT-API-018 tests Near Miss / probability-engine behavior, not the health probe)</td><td>No dedicated health probe BDD scenario exists</td><td>LOW</td></tr>
+<tr><td><code>/ready</code></td><td>Readiness probe</td><td>None</td><td>No BDD coverage for readiness (DB+Redis healthy path or 503 path)</td><td>MEDIUM</td></tr>
+</table>
+<h3>5.3 Priority Remediation Plan</h3>
+<table>
+<tr><th>Priority</th><th>Action</th><th>Target Req</th><th>Estimated Effort</th></tr>
+<tr><td>P0</td><td>Add <code>TC-UNIT-CASC-009-BOUNDARY</code> — double-count prevention</td><td>US-CASC-001/AC-4</td><td>1 day</td></tr>
+<tr><td>P0</td><td>Add <code>TC-UNIT-TB-004-BOUNDARY</code> — all symbol upgrade paths</td><td>US-TBSC-001/AC-4</td><td>0.5 day</td></tr>
+<tr><td>P0</td><td>Add server BDD for MAX_ROWS=6 boundary (rows never &gt; 6)</td><td>US-CASC-001/AC-2</td><td>0.5 day</td></tr>
+<tr><td>P0</td><td>Add server BDD for Coin Toss trigger gate (mgFgTriggerProb)</td><td>US-COIN-001/AC-1</td><td>0.5 day</td></tr>
+<tr><td>P0</td><td>Add server BDD for post-Thunder-Blessing cascade continuation</td><td>US-TBSC-001/AC-5</td><td>0.5 day</td></tr>
+<tr><td>P0</td><td>Add <code>TC-UNIT-PROB-004-BOUNDARY</code> — buyFG weight isolation</td><td>US-BUYF-001/AC-5</td><td>0.5 day</td></tr>
+<tr><td>P1</td><td>Add toolchain integration BDD (TC-INT-TOOL-001 to 003)</td><td>US-TOOL-001/AC-1,AC-2,AC-4</td><td>2 days</td></tr>
+<tr><td>P1</td><td>Add Near Miss BDD scenarios (zero-win assertion, config propagation)</td><td>US-NRMS-001/AC-1,AC-2</td><td>1 day</td></tr>
+<tr><td>P1</td><td>Add readiness probe BDD (TC-INT-READY-001)</td><td><code>/ready</code> endpoint</td><td>0.5 day</td></tr>
+<tr><td>P2</td><td>Add currency toolchain round-trip BDD</td><td>US-CURR-001/AC-4</td><td>1 day</td></tr>
+<tr><td>P2</td><td>Add client E2E for Wild substitution visual</td><td>US-SPIN-001/AC-5</td><td>0.5 day</td></tr>
+</table>
 <hr>
-<p><em>Document generated by gendoc D13-RTM agent on 2026-04-26. All traceability mappings are derived from: PRD.md v0.1, EDD.md v1.3, API.md v1.0, SCHEMA.md v1.0, test-plan.md v1.0, and live BDD feature files under <code>features/</code>.</em></p>
-      </article>
-    </main>
+<p><em>Document generated by gendoc D13-RTM agent on 2026-04-26. All traceability mappings are derived from: PRD.md v0.1, EDD.md v1.3, API.md v1.0, SCHEMA.md v1.0, test-plan.md v1.0, and live BDD feature files under <code>features/</code>.</em></p></main>
   </div>
-
-  <footer class="site-footer">
-    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
-    <span>RTM — Traceability Matrix</span>
-    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
-  </footer>
-
-  <script>
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const isOpen  = sidebar.classList.toggle('open');
-      overlay.classList.toggle('active', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      themeVariables: {
-        background:         '#1a2032',
-        primaryColor:       '#1e2535',
-        primaryBorderColor: '#2a3347',
-        primaryTextColor:   '#e2e8f0',
-        lineColor:          '#f6ad55',
-        secondaryColor:     '#161b27',
-        tertiaryColor:      '#0f1117',
-        edgeLabelBackground:'#1a2032',
-        clusterBkg:         '#1a2032',
-        titleColor:         '#f6ad55',
-      }
-    });
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>

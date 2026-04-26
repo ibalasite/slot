@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server BDD — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › Server BDD Scenarios</p>
+    <h1 class="banner-title">Server BDD Scenarios</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link active" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h2>buy-feature.feature</h2>
+<pre><code class="language-gherkin">@buy-feature
+Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
+  As a player
+  I want to purchase Free Game entry via buyFeature=true
+  So that I bypass the main game and enter a guaranteed 5-round FG sequence with a session floor guarantee
+
+  Background:
+    Given a player &quot;player_001&quot; exists with balance 5000.00 USD
+    And the player has a valid RS256 JWT token with sub &quot;player_001&quot;
+    And the slot game is configured with standard bet levels
+    And no active FG session exists for &quot;player_001&quot;
+
+  # ─────────────────────────────────────────────
+  # Happy Path — Buy Feature
+  # ─────────────────────────────────────────────
+
+  @smoke @contract @TC-INT-API-009-HAPPY @TC-INT-BUYF-001-HAPPY
+  Scenario: Buy Feature with sufficient balance triggers guaranteed 5-round FG sequence
+    Given the player balance is 5000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | true       |
+    Then the response status should be 200
+    And the response body field &quot;success&quot; should be true
+    And the response body field &quot;data.totalBet&quot; should equal 50.00
+    And the response body field &quot;data.baseBet&quot; should equal 0.50
+    And the response body field &quot;data.buyFeatureActive&quot; should be true
+    And the response body field &quot;data.fgTriggered&quot; should be true
+    And the response body field &quot;data.fgRounds&quot; should have exactly 5 elements
+    And each FG round&#x27;s &quot;coinTossResult&quot; should equal &quot;HEADS&quot; for rounds 1 through 5
+    And the FG multiplier sequence across rounds should be 3, 7, 17, 27, 77
+    And the response body field &quot;data.sessionFloorApplied&quot; should be true
+    And the response body field &quot;data.sessionFloorValue&quot; should equal 10.00
+    And the player balance should be decreased by exactly 50.00 USD
+    And the &quot;spins&quot; table should have buy_feature_active set to true for this spin
+
+  @TC-INT-BUYF-002-HAPPY
+  Scenario: Extra Bet ON plus Buy Feature deducts 300× baseBet combined cost
+    Given the player balance is 5000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | true       |
+      | buyFeature | true       |
+    Then the response status should be 200
+    And the response body field &quot;data.totalBet&quot; should equal 150.00
+    And the response body field &quot;data.baseBet&quot; should equal 0.50
+    And the response body field &quot;data.extraBetActive&quot; should be true
+    And the response body field &quot;data.buyFeatureActive&quot; should be true
+    And the response body field &quot;data.fgRounds&quot; should have exactly 5 elements
+    And the response body field &quot;data.sessionFloorValue&quot; should equal 30.00
+    And the player balance should be decreased by exactly 150.00 USD
+
+  @TC-INT-BUYF-003-HAPPY @TC-UNIT-FLOOR-001-HAPPY
+  Scenario: Buy Feature session floor guarantees totalWin is at least 20× baseBet
+    Given the player balance is 5000.00 USD
+    And the RNG seed is set to &quot;seed-008&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | true       |
+    Then the response status should be 200
+    And the response body field &quot;data.fgTriggered&quot; should be true
+    And the response body field &quot;data.totalWin&quot; should be greater than or equal to 10.00
+    And the response body field &quot;data.sessionFloorApplied&quot; should be true
+    And the response body field &quot;data.sessionFloorValue&quot; should equal 10.00
+    And the &quot;spins&quot; table record should have session_floor_applied set to true
+
+  # ─────────────────────────────────────────────
+  # Error Scenarios
+  # ─────────────────────────────────────────────
+
+  @TC-INT-BUYF-002
+  Scenario: Buy Feature with insufficient balance returns 400 INSUFFICIENT_FUNDS
+    Given the player balance is 40.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | true       |
+    Then the response status should be 400
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;INSUFFICIENT_FUNDS&quot;
+    And the player balance should remain 40.00 USD
+    And no new record should be inserted into the &quot;spins&quot; table
+
+  @TC-INT-BUYF-003
+  Scenario: Extra Bet ON + Buy Feature insufficient balance for 300× returns 400 INSUFFICIENT_FUNDS
+    Given the player balance is 100.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | true       |
+      | buyFeature | true       |
+    Then the response status should be 400
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;INSUFFICIENT_FUNDS&quot;
+    And the player balance should remain 100.00 USD
+
+  @TC-INT-BUYF-004
+  Scenario: Buy Feature rejected due to jurisdiction restriction returns 400 BUY_FEATURE_NOT_ALLOWED
+    Given the game configuration has buyFeature disabled for the current jurisdiction
+    And the player balance is 5000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | true       |
+    Then the response status should be 400
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;BUY_FEATURE_NOT_ALLOWED&quot;
+    And the player balance should remain unchanged
+</code></pre>
+<h2>config.feature</h2>
+<pre><code class="language-gherkin">@config
+Feature: GET /v1/config — Game Configuration
+  As a player or operator
+  I want to retrieve the current game configuration
+  So that I can see valid bet levels, currency ranges, and game parameters before placing a bet
+
+  Background:
+    Given a player &quot;player_001&quot; exists with balance 1000.00 USD
+    And the player has a valid RS256 JWT token with sub &quot;player_001&quot;
+
+  # ─────────────────────────────────────────────
+  # Happy Path
+  # ─────────────────────────────────────────────
+
+  @smoke @contract @TC-INT-API-014-HAPPY @TC-INT-CURR-001-HAPPY
+  Scenario: Config endpoint returns BetRangeConfig with USD and TWD bet ranges
+    When I send GET /v1/config with valid JWT for &quot;player_001&quot;
+    Then the response status should be 200
+    And the response body field &quot;success&quot; should be true
+    And the response body field &quot;data&quot; should contain a bet range configuration
+    And the response body field &quot;data.betRange&quot; should be a non-empty object
+    And the response body field &quot;data.betRange&quot; should contain key &quot;USD&quot;
+    And the response body field &quot;data.betRange&quot; should contain key &quot;TWD&quot;
+    And the response body field &quot;data.engineVersion&quot; should be a non-empty string
+
+  @TC-INT-CURR-001b-HAPPY
+  Scenario: Config returns correct USD bet level range with min $0.10 and max $10.00
+    When I send GET /v1/config with valid JWT for &quot;player_001&quot;
+    Then the response status should be 200
+    And the USD bet range should have at least 1 bet level
+    And the USD bet range minimum baseBet should equal 0.10
+    And the USD bet range maximum baseBet should equal 10.00
+    And each USD bet level should be a positive number
+    And the USD bet levels should be in ascending order
+
+  @TC-INT-CURR-001c-HAPPY
+  Scenario: Config returns correct TWD bet level range with min baseBet 10 TWD and max baseBet 320 TWD
+    When I send GET /v1/config with valid JWT for &quot;player_001&quot;
+    Then the response status should be 200
+    And the TWD bet range should have at least 1 bet level
+    And the TWD bet range minimum baseBet should equal 10
+    And the TWD bet range maximum baseBet should equal 320
+    And each TWD bet level should be a positive integer
+    And the TWD bet levels should be in ascending order
+
+  # ─────────────────────────────────────────────
+  # Error Scenarios
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-CONFIG-AUTH-001
+  Scenario: Config endpoint without JWT returns 401 UNAUTHORIZED
+    Given no Authorization header is included
+    When I send GET /v1/config without any Authorization header
+    Then the response status should be 401
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+    And the response body field &quot;message&quot; should be a non-empty string
+    And the response body field &quot;requestId&quot; should be a UUID string
+</code></pre>
+<h2>extra-bet.feature</h2>
+<pre><code class="language-gherkin">@extra-bet
+Feature: Extra Bet Mechanics — POST /v1/spin with extraBet=true
+  As a player
+  I want to enable Extra Bet to guarantee a Scatter symbol appears in the grid
+  So that I pay 3× baseBet per spin and increase my Thunder Blessing and Free Game trigger rate
+
+  Background:
+    Given a player &quot;player_001&quot; exists with balance 1000.00 USD
+    And the player has a valid RS256 JWT token with sub &quot;player_001&quot;
+    And the slot game is configured with standard bet levels
+    And no active FG session exists for &quot;player_001&quot;
+
+  # ─────────────────────────────────────────────
+  # Happy Path
+  # ─────────────────────────────────────────────
+
+  @smoke @TC-UNIT-EXBT-001b-HAPPY
+  Scenario: Extra Bet ON deducts 3× baseBet from player balance
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | true       |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.totalBet&quot; should equal 1.50
+    And the response body field &quot;data.baseBet&quot; should equal 0.50
+    And the response body field &quot;data.extraBetActive&quot; should be true
+    And the player balance should be decreased by exactly 1.50 USD
+    And the &quot;spins&quot; table should have extra_bet_active set to true for this spin
+
+  @TC-UNIT-EXBT-002-HAPPY
+  Scenario: Extra Bet ON with natural SC in grid preserves it without forced injection
+    Given the player balance is 1000.00 USD
+    And the RNG seed produces a grid that naturally contains SC in the visible 3 rows
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | true       |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.initialGrid&quot; should contain at least one &quot;SC&quot; symbol in rows 0 to 2
+    And the response body field &quot;data.extraBetActive&quot; should be true
+
+  @TC-UNIT-EXBT-003-HAPPY
+  Scenario: Extra Bet ON without natural SC forces SC injection into visible grid
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to &quot;seed-009&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | true       |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.extraBetActive&quot; should be true
+    And the response body field &quot;data.initialGrid&quot; should contain exactly one &quot;SC&quot; symbol in rows 0 to 2
+
+  @TC-UNIT-EXBT-004b-HAPPY
+  Scenario: Extra Bet OFF spin uses standard mainGame weights and standard baseBet cost
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.totalBet&quot; should equal 0.50
+    And the response body field &quot;data.extraBetActive&quot; should be false
+    And the player balance should be decreased by exactly 0.50 USD
+
+  @TC-UNIT-EXBT-005-HAPPY @TC-INT-BUYF-002b-HAPPY
+  Scenario: Extra Bet ON combined with Buy Feature deducts 300× baseBet
+    Given the player balance is 5000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | true       |
+      | buyFeature | true       |
+    Then the response status should be 200
+    And the response body field &quot;data.totalBet&quot; should equal 150.00
+    And the response body field &quot;data.extraBetActive&quot; should be true
+    And the response body field &quot;data.buyFeatureActive&quot; should be true
+    And the player balance should be decreased by exactly 150.00 USD
+    And the response body field &quot;data.sessionFloorValue&quot; should equal 30.00
+</code></pre>
+<h2>probability-engine.feature</h2>
+<pre><code class="language-gherkin">@probability-engine
+Feature: Probability Engine — Server-Side RTP and Config Validation
+  As a QA engineer
+  I want to verify that the probability engine loads correct configuration and applies accurate probabilities
+  So that the game&#x27;s RTP and mechanical boundaries conform to design specifications
+
+  Background:
+    Given the slot engine is initialized with GameConfig.generated.ts
+    And the verify.js gate has passed for all 4 scenario configurations
+
+  # ─────────────────────────────────────────────
+  # GameConfig Loading
+  # ─────────────────────────────────────────────
+
+  @smoke @TC-UNIT-PROB-001-HAPPY
+  Scenario: GameConfig loads successfully with valid RTP parameters for all 4 scenarios
+    Given the engine_config.json file is present and has passed verify.js
+    When the slot engine loads GameConfig.generated.ts at startup
+    Then the game configuration should load without errors
+    # Weight total 90 per Thunder_Config.xlsx DATA tab specification
+    And the mainGame symbol weight table should have total weight equal to 90
+    And the extraBet symbol weight table should have total weight equal to 90
+    And the freeGame symbol weight table should have total weight equal to 90
+    And the buyFG symbol weight table should have total weight equal to 90
+    And the coinProbs array should equal [0.80, 0.68, 0.56, 0.48, 0.40]
+    And the fgMultipliers array should equal [3, 7, 17, 27, 77]
+    And the mgFgTriggerProb should equal 0.009624
+    And the tbSecondHit probability should equal 0.40
+    And the buyFGMinWin should equal 20
+
+  @TC-UNIT-PROB-002-BOUNDARY
+  Scenario: All 4 scenario configs load without validation errors and are isolated
+    Given the engine_config.json file contains configurations for Main, ExtraBet, BuyFG, and EBBuyFG
+    When the slot engine validates all 4 scenario symbol weight tables
+    Then the mainGame symbol weights should not contain any entries from extraBet weights
+    And the extraBet symbol weights should not contain any entries from freeGame weights
+    And the freeGame symbol weights should not contain any entries from buyFG weights
+    And no scenario&#x27;s symbol weights should reference another scenario&#x27;s weight table
+    And loading all 4 configs should produce 0 validation errors
+
+  @TC-UNIT-PROB-003-ERROR
+  Scenario: verify.js gate rejects invalid config before engine generation
+    Given an engine_config.json with a missing &quot;fgMults&quot; field
+    When verify.js is executed against the invalid config
+    Then verify.js should exit with a non-zero exit code
+    And verify.js output should contain a descriptive error referencing &quot;fgMults&quot;
+    And engine_generator.js should not execute
+    And GameConfig.generated.ts should not be updated
+
+  # ─────────────────────────────────────────────
+  # FG Multiplier Sequence
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-FG-001-HAPPY @TC-UNIT-FG-004-BOUNDARY
+  Scenario: FG multiplier sequence is correct and terminates at 77×
+    Given a Buy Feature spin is triggered with RNG seed &quot;seed-006&quot;
+    When the FreeGameOrchestrator runs all 5 guaranteed Heads rounds
+    Then fgRounds[0].multiplier should equal 3
+    And fgRounds[1].multiplier should equal 7
+    And fgRounds[2].multiplier should equal 17
+    And fgRounds[3].multiplier should equal 27
+    And fgRounds[4].multiplier should equal 77
+    And no FG round should have a multiplier value other than 3, 7, 17, 27, or 77
+    And the maximum multiplier should be 77 regardless of additional Heads results
+
+  @TC-UNIT-FG-003-HAPPY
+  Scenario: FG bonus multiplier is drawn once before round 1 and is identical in all rounds
+    Given a FG sequence is triggered with at least 2 rounds
+    When the FreeGameOrchestrator executes the FG sequence
+    Then fgBonusMultiplier in the FullSpinOutcome should be one of 1, 5, 20, or 100
+    And every fgRound object&#x27;s &quot;bonusMultiplier&quot; field should equal the top-level &quot;fgBonusMultiplier&quot; value
+    And the bonus multiplier should not change between FG rounds within the same sequence
+
+  # ─────────────────────────────────────────────
+  # Coin Toss Probabilities
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-COIN-003-BOUNDARY @TC-UNIT-COIN-006-BOUNDARY
+  Scenario: Coin Toss probabilities are correct for each FG stage
+    Given the CoinTossEvaluator is loaded with GameConfig coinProbs
+    When the evaluator is queried for stage probabilities
+    Then stage 0 (FG entry) probability should equal 0.80
+    And stage 1 (multiplier ×7) probability should equal 0.68
+    And stage 2 (multiplier ×17) probability should equal 0.56
+    And stage 3 (multiplier ×27) probability should equal 0.48
+    And stage 4 (multiplier ×77) probability should equal 0.40
+    And an RNG value strictly less than the stage probability should yield &quot;HEADS&quot;
+    And an RNG value equal to or greater than the stage probability should yield &quot;TAILS&quot;
+
+  @TC-UNIT-COIN-004-HAPPY
+  Scenario: Buy Feature mode always returns HEADS regardless of RNG value at entry
+    Given the CoinTossEvaluator is configured with entryBuy probability 1.00
+    When the evaluator is called in buyFG mode with any RNG value between 0 and 1
+    Then the result should always be &quot;HEADS&quot;
+    And mgFgTriggerProb check should be bypassed entirely
+
+  @TC-UNIT-FG-002-HAPPY
+  Scenario: FG bonus multiplier draw respects weight distribution
+    Given the FreeGameOrchestrator&#x27;s drawBonusMultiplier function
+    When 10000 bonus multiplier draws are executed with random RNG values
+    Then approximately 90.0% of draws should return multiplier 1
+    And approximately 8.0% of draws should return multiplier 5
+    And approximately 1.5% of draws should return multiplier 20
+    And approximately 0.5% of draws should return multiplier 100
+    And no draw should return a value outside the set 1, 5, 20, 100
+
+  # ─────────────────────────────────────────────
+  # Near Miss Adjustment (US-NRMS-001)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-API-018
+  Scenario: Near Miss produces zero win and sets near_miss_applied flag
+    Given the RNG seed &quot;SEED_NEAR_MISS&quot; triggers near miss adjustment
+    And player &quot;player_001&quot; has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 200
+    And the response body field &quot;data.nearMissApplied&quot; should be true
+    And the response body field &quot;data.totalWin&quot; should equal 0.00
+    And the &quot;spins&quot; table should have near_miss_applied equal to true for the latest spin
+
+  # ─────────────────────────────────────────────
+  # RTP Verification (US-RTPV-001)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-PROB-001
+  Scenario: verify.js validates all 4 scenario RTPs within bounds
+    Given the slot-engine toolchain has an Excel config with valid probability tables
+    When the verify.js tool is executed for all 4 scenarios
+    Then all 4 scenarios should return PASS status
+    And each scenario RTP should be within 96.5% and 98.5%
+    And engine_generator.js should be permitted to execute
+</code></pre>
+<h2>security.feature</h2>
+<pre><code class="language-gherkin">@security
+Feature: Security Constraints — Authentication, Authorization, and Injection Prevention
+  As a security engineer
+  I want to verify that all API endpoints enforce JWT authentication, reject manipulated bets, and prevent injection attacks
+  So that the game backend is protected against unauthorized access and financial manipulation
+
+  Background:
+    Given a player &quot;player_001&quot; exists with balance 1000.00 USD
+    And the player has a valid RS256 JWT token with sub &quot;player_001&quot;
+    And the slot game is configured with standard bet levels
+
+  # ─────────────────────────────────────────────
+  # JWT Authentication Required on All Endpoints
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-AUTH-001
+  Scenario: POST /v1/spin requires JWT — missing Authorization header returns 401
+    Given no Authorization header is included
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 401
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+
+  @TC-SEC-AUTH-001b
+  Scenario: GET /v1/session/:sessionId requires JWT — missing Authorization header returns 401
+    Given no Authorization header is included
+    When I send GET /v1/session/sess-abc123 without any Authorization header
+    Then the response status should be 401
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+
+  @TC-SEC-AUTH-001c
+  Scenario: GET /v1/config requires JWT — missing Authorization header returns 401
+    Given no Authorization header is included
+    When I send GET /v1/config without any Authorization header
+    Then the response status should be 401
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+
+  # ─────────────────────────────────────────────
+  # Expired JWT
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-AUTH-003
+  Scenario: Expired JWT is rejected with 401 UNAUTHORIZED on spin endpoint
+    Given the player has a JWT token with exp claim set 60 seconds in the past
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 401
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+    And the player balance should remain unchanged
+
+  # ─────────────────────────────────────────────
+  # Invalid JWT Signature
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-AUTH-004
+  Scenario: JWT with tampered sub claim is rejected with 401 UNAUTHORIZED
+    Given the player holds a JWT where the sub claim has been modified after signing
+    When I send POST /v1/spin with the tampered JWT
+    Then the response status should be 401
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+
+  @TC-SEC-AUTH-002
+  Scenario: JWT signed with HS256 algorithm instead of RS256 is rejected with 401
+    Given the player holds a JWT signed using HS256 algorithm
+    When I send POST /v1/spin with the HS256-signed JWT
+    Then the response status should be 401
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+
+  # ─────────────────────────────────────────────
+  # Server totalWin is Authoritative
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-BET-003
+  Scenario: Server totalWin is the sole accounting authority — client cannot inject a higher value
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the player balance update should equal exactly &quot;previous balance minus totalBet plus data.totalWin&quot;
+    And the &quot;spins&quot; table record &quot;total_win&quot; should equal &quot;data.totalWin&quot; from the response
+    And no client-provided win value should affect the wallet credit amount
+
+  # ─────────────────────────────────────────────
+  # Bet Manipulation Prevention
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-BET-001
+  Scenario: Bet amount not in allowed bet levels is rejected with 400 INVALID_BET_LEVEL
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 9999       |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 400
+    And the response body field &quot;code&quot; should equal &quot;INVALID_BET_LEVEL&quot;
+    And the player balance should remain unchanged
+
+  @TC-SEC-BET-002
+  Scenario: betLevel as a non-integer string fails JSON schema validation with 400 VALIDATION_ERROR
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with betLevel set to &quot;abc&quot; as a string value
+    Then the response status should be 400
+    And the response body field &quot;code&quot; should equal &quot;VALIDATION_ERROR&quot;
+    And the player balance should remain unchanged
+
+  # ─────────────────────────────────────────────
+  # Rate Limiting
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-RATE-001 @performance
+  Scenario: More than 5 spin requests per second from one player returns 429 RATE_LIMITED
+    Given the player has a valid JWT token
+    When I send 6 POST /v1/spin requests within a 1-second window for &quot;player_001&quot;
+    Then the 6th response status should be 429
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;RATE_LIMITED&quot;
+    And the response header &quot;Retry-After&quot; should be present and contain a positive integer
+
+  # ─────────────────────────────────────────────
+  # Injection Prevention
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-INJ-001
+  Scenario: SQL injection attempt in betLevel is rejected with 400 VALIDATION_ERROR
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with betLevel set to &quot;1; DROP TABLE players;--&quot;
+    Then the response status should be 400
+    And the response body field &quot;code&quot; should equal &quot;VALIDATION_ERROR&quot;
+    And the &quot;players&quot; table should still exist and be queryable
+    And the player balance should remain unchanged
+
+  @TC-SEC-INJ-002
+  Scenario: NoSQL injection attempt in sessionId is rejected with 400 VALIDATION_ERROR
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with sessionId set to the object {&quot;$gt&quot;: &quot;&quot;}
+    Then the response status should be 400
+    And the response body field &quot;code&quot; should equal &quot;VALIDATION_ERROR&quot;
+
+  # ─────────────────────────────────────────────
+  # CORS Policy
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-CORS-001
+  Scenario: Access-Control-Allow-Origin does not return wildcard in production responses
+    When I send a POST /v1/spin request from an untrusted cross-origin
+    Then the response header &quot;Access-Control-Allow-Origin&quot; should not equal &quot;*&quot;
+    And the response header &quot;Access-Control-Allow-Origin&quot; should be restricted to a configured allowlist
+
+  @TC-SEC-CORS-001b
+  Scenario: GET /v1/config does not return CORS wildcard in production
+    When I send a GET /v1/config request from an untrusted cross-origin
+    Then the response header &quot;Access-Control-Allow-Origin&quot; should not equal &quot;*&quot;
+
+  # ─────────────────────────────────────────────
+  # Cross-Player Authorization
+  # ─────────────────────────────────────────────
+
+  @TC-SEC-AUTH-005
+  Scenario: Player A cannot access an FG session belonging to Player B
+    Given a player &quot;player_002&quot; has a valid JWT token
+    And an active FG session &quot;sess-belongs-to-player001&quot; exists belonging to &quot;player_001&quot;
+    When player &quot;player_002&quot; sends GET /v1/session/sess-belongs-to-player001 with their JWT
+    Then the response status should be 403
+    And the response body field &quot;code&quot; should equal &quot;FORBIDDEN&quot;
+</code></pre>
+<h2>session.feature</h2>
+<pre><code class="language-gherkin">@session
+Feature: GET /v1/session/:sessionId — FG Session State
+  As a player
+  I want to retrieve my in-progress Free Game session state
+  So that I can resume an interrupted FG sequence from the correct round, multiplier, and Lightning Mark positions
+
+  Background:
+    Given a player &quot;player_001&quot; exists with balance 1000.00 USD
+    And the player has a valid RS256 JWT token with sub &quot;player_001&quot;
+    And the slot game is configured with standard bet levels
+
+  # ─────────────────────────────────────────────
+  # Happy Path
+  # ─────────────────────────────────────────────
+
+  @smoke @contract @TC-INT-API-012-HAPPY
+  Scenario: Active FG session returns correct session state
+    Given an active FG session exists for &quot;player_001&quot; with session ID &quot;sess-abc123&quot;
+    And the session has fg_multiplier 7
+    And the session has fg_round 2
+    And the session has 5 accumulated lightning marks
+    And the session has bonus_multiplier 5
+    When I send GET /v1/session/sess-abc123 with valid JWT for &quot;player_001&quot;
+    Then the response status should be 200
+    And the response body field &quot;success&quot; should be true
+    And the response body field &quot;data.sessionId&quot; should equal &quot;sess-abc123&quot;
+    And the response body field &quot;data.playerId&quot; should equal the player UUID for &quot;player_001&quot;
+    And the response body field &quot;data.status&quot; should equal &quot;FG_ACTIVE&quot;
+    And the response body field &quot;data.fgMultiplier&quot; should equal 7
+    And the response body field &quot;data.fgRound&quot; should equal 2
+    And the response body field &quot;data.fgBonusMultiplier&quot; should equal 5
+    And the response body field &quot;data.lightningMarks.count&quot; should equal 5
+    And the response body field &quot;data.lightningMarks.positions&quot; should be an array of 5 position objects
+    And each position object should have integer fields &quot;row&quot; and &quot;col&quot;
+
+  @TC-INT-API-012b-HAPPY
+  Scenario: Session returns correct FG round number and accumulated marks
+    Given an active FG session exists for &quot;player_001&quot; with session ID &quot;sess-def456&quot;
+    And the session has fg_multiplier 17
+    And the session has fg_round 3
+    And the session has 8 accumulated lightning marks
+    When I send GET /v1/session/sess-def456 with valid JWT for &quot;player_001&quot;
+    Then the response status should be 200
+    And the response body field &quot;data.status&quot; should equal &quot;FG_ACTIVE&quot;
+    And the response body field &quot;data.fgMultiplier&quot; should equal 17
+    And the response body field &quot;data.fgRound&quot; should equal 3
+    And the response body field &quot;data.lightningMarks.count&quot; should equal 8
+    And the response body field &quot;data.totalFGWin&quot; should be a number greater than or equal to 0
+
+  @TC-SEC-SESSION-001
+  Scenario: Session expires after 300 seconds of inactivity and returns 404
+    Given a FG session &quot;sess-expired-001&quot; was last updated more than 300 seconds ago for &quot;player_001&quot;
+    And the Redis TTL for &quot;sess-expired-001&quot; has elapsed
+    When I send GET /v1/session/sess-expired-001 with valid JWT for &quot;player_001&quot;
+    Then the response status should be 404
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;SESSION_NOT_FOUND&quot;
+
+  # ─────────────────────────────────────────────
+  # Error Scenarios
+  # ─────────────────────────────────────────────
+
+  @TC-INT-API-013-ERROR
+  Scenario: Non-existent session ID returns 404 SESSION_NOT_FOUND
+    Given no session exists with ID &quot;sess-does-not-exist&quot;
+    When I send GET /v1/session/sess-does-not-exist with valid JWT for &quot;player_001&quot;
+    Then the response status should be 404
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;SESSION_NOT_FOUND&quot;
+    And the response body field &quot;message&quot; should be a non-empty string
+    And the response body field &quot;requestId&quot; should be a UUID string
+    And the response body field &quot;timestamp&quot; should be a valid ISO 8601 datetime string
+
+  @TC-SEC-SESSION-AUTH-001
+  Scenario: Missing JWT on session endpoint returns 401 UNAUTHORIZED
+    Given no Authorization header is included
+    When I send GET /v1/session/sess-abc123 without any Authorization header
+    Then the response status should be 401
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+
+  @contract @TC-SEC-AUTH-006
+  Scenario: Player &quot;player_002&quot; cannot access session belonging to &quot;player_001&quot;
+    Given a player &quot;player_002&quot; has a valid JWT token
+    And an active FG session &quot;sess-player001-session&quot; exists belonging to &quot;player_001&quot;
+    When player &quot;player_002&quot; sends GET /v1/session/sess-player001-session with their own JWT
+    Then the response status should be 403
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;FORBIDDEN&quot;
+</code></pre>
+<h2>spin.feature</h2>
+<pre><code class="language-gherkin">@spin
+Feature: POST /v1/spin — Core Spin Mechanics
+  As a player
+  I want to execute a spin via POST /v1/spin
+  So that I receive a complete FullSpinOutcome with correct accounting and game state
+
+  Background:
+    Given a player &quot;player_001&quot; exists with balance 1000.00 USD
+    And the player has a valid RS256 JWT token with sub &quot;player_001&quot;
+    And the slot game is configured with standard bet levels
+    And no active FG session exists for &quot;player_001&quot;
+
+  # ─────────────────────────────────────────────
+  # Happy Path — Basic Spin
+  # ─────────────────────────────────────────────
+
+  @smoke @contract @TC-INT-API-001-HAPPY
+  Scenario: Happy path spin with no special features triggered
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;success&quot; should be true
+    And the response body field &quot;data.totalWin&quot; should be a number greater than or equal to 0
+    And the response body field &quot;data.totalBet&quot; should equal 0.50
+    And the response body field &quot;data.baseBet&quot; should equal 0.50
+    And the response body field &quot;data.currency&quot; should equal &quot;USD&quot;
+    And the response body field &quot;data.extraBetActive&quot; should be false
+    And the response body field &quot;data.buyFeatureActive&quot; should be false
+    And the response body field &quot;data.fgTriggered&quot; should be false
+    And the response body field &quot;data.fgRounds&quot; should be an empty array
+    And the response body field &quot;data.fgMultiplier&quot; should be null
+    And the response body field &quot;data.fgBonusMultiplier&quot; should be null
+    And the response body field &quot;data.totalFGWin&quot; should be null
+    And the response body field &quot;data.initialGrid&quot; should be a 3-row by 5-column array
+    And the response body field &quot;data.spinId&quot; should match pattern &quot;spin-[uuid]&quot;
+    And the response body field &quot;data.sessionId&quot; should match pattern &quot;sess-[uuid]&quot;
+    And the player balance should be decreased by 0.50 USD
+    And the &quot;spins&quot; table should have a new record with player_id &quot;player_001&quot; and bet_level 5
+
+  @smoke @TC-UNIT-EXBT-004-HAPPY
+  Scenario: Extra Bet OFF spin uses standard bet deduction and mainGame weights
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.totalBet&quot; should equal 0.50
+    And the response body field &quot;data.extraBetActive&quot; should be false
+    And the player balance should be decreased by exactly 0.50 USD
+
+  @contract @TC-UNIT-EXBT-001-HAPPY
+  Scenario: Extra Bet ON spin deducts 3× baseBet and guarantees SC in grid
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | true       |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.totalBet&quot; should equal 1.50
+    And the response body field &quot;data.baseBet&quot; should equal 0.50
+    And the response body field &quot;data.extraBetActive&quot; should be true
+    And the response body field &quot;data.initialGrid&quot; should contain at least one &quot;SC&quot; symbol in rows 0 to 2
+    And the player balance should be decreased by exactly 1.50 USD
+
+  # ─────────────────────────────────────────────
+  # Cascade Chain
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-CASC-001-HAPPY @TC-INT-API-010-HAPPY
+  Scenario: Cascade chain executes multiple steps with correct balance after all cascades
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to &quot;seed-002&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.cascadeSequence.steps&quot; should have at least 3 elements
+    And each cascade step should have an &quot;index&quot; field incrementing from 0
+    And each cascade step should have a &quot;stepWin&quot; field greater than or equal to 0
+    And each cascade step should have a &quot;rows&quot; field between 3 and 6
+    And the response body field &quot;data.finalRows&quot; should be between 3 and 6
+    And the player balance should equal 1000.00 minus 0.50 plus data.totalWin
+
+  @TC-UNIT-CASC-002-HAPPY
+  Scenario: Lightning Marks accumulate correctly across multiple cascade steps
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to &quot;seed-002&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.cascadeSequence.lightningMarks.count&quot; should be greater than 0
+    And each cascade step&#x27;s &quot;newLightningMarks&quot; positions should not contain duplicates
+    And the total accumulated lightning mark positions should not contain duplicate grid coordinates
+    And the response body field &quot;data.cascadeSequence.lightningMarks.positions&quot; should be an array of objects with &quot;row&quot; and &quot;col&quot; fields
+
+  # ─────────────────────────────────────────────
+  # Thunder Blessing
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-TB-001-HAPPY
+  Scenario: Thunder Blessing triggers when SC lands on a grid with Lightning Marks
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to &quot;seed-003&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.thunderBlessingTriggered&quot; should be true
+    And the response body field &quot;data.thunderBlessingFirstHit&quot; should be true
+    And the response body field &quot;data.upgradedSymbol&quot; should be one of &quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;, &quot;P4&quot;
+    And the response body field &quot;data.thunderBlessingResult.convertedSymbol&quot; should equal the value of response body field &quot;data.upgradedSymbol&quot;
+    And the response body field &quot;data.thunderBlessingResult.marksConverted&quot; should be a non-empty array
+    And the response body field &quot;data.thunderBlessingResult.firstHitApplied&quot; should be true
+    And the &quot;spins&quot; table should have thunder_blessing_triggered set to true for this spin
+
+  @TC-UNIT-TB-002-HAPPY
+  Scenario: Thunder Blessing second hit applies when RNG is below 0.40 threshold
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to &quot;seed-004&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.thunderBlessingTriggered&quot; should be true
+    And the response body field &quot;data.thunderBlessingSecondHit&quot; should be true
+    And the response body field &quot;data.thunderBlessingResult.secondHitApplied&quot; should be true
+
+  # ─────────────────────────────────────────────
+  # Coin Toss
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-COIN-001-HAPPY @TC-INT-FG-001-HAPPY
+  Scenario: Coin Toss triggers after grid reaches 6 rows with a cascade win
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to &quot;seed-005&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.coinTossTriggered&quot; should be true
+    And the response body field &quot;data.coinTossResult&quot; should be one of &quot;HEADS&quot;, &quot;TAILS&quot;
+    And the response body field &quot;data.finalRows&quot; should equal 6
+
+  @contract @TC-INT-FG-003-HAPPY
+  Scenario: Coin Toss Heads triggers Free Game and returns FG rounds in single response
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to &quot;seed-005&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.coinTossResult&quot; should equal &quot;HEADS&quot;
+    And the response body field &quot;data.fgTriggered&quot; should be true
+    And the response body field &quot;data.fgMultiplier&quot; should be one of 3, 7, 17, 27, 77
+    And the response body field &quot;data.fgRounds&quot; should have at least 1 element
+    And the response body field &quot;data.fgBonusMultiplier&quot; should be one of 1, 5, 20, 100
+    And the response body field &quot;data.totalFGWin&quot; should be a number greater than or equal to 0
+    And each FG round should have fields &quot;round&quot;, &quot;multiplier&quot;, &quot;bonusMultiplier&quot;, &quot;grid&quot;, &quot;cascadeSequence&quot;, &quot;roundWin&quot;, &quot;coinTossResult&quot;, &quot;lightningMarksBefore&quot;, &quot;lightningMarksAfter&quot;
+
+  # ─────────────────────────────────────────────
+  # Free Game — Lightning Marks Across Rounds
+  # ─────────────────────────────────────────────
+
+  @TC-INT-FG-002-HAPPY
+  Scenario: Lightning Marks accumulate and persist across Free Game rounds
+    Given the player balance is 1000.00 USD
+    And the RNG seed is set to &quot;seed-006&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.fgTriggered&quot; should be true
+    And each fgRound[N+1].lightningMarksBefore.count should equal fgRound[N].lightningMarksAfter.count
+    And the last FG round with coinTossResult &quot;TAILS&quot; should have &quot;lightningMarksAfter.count&quot; equal to 0
+
+  # ─────────────────────────────────────────────
+  # Error Scenarios
+  # ─────────────────────────────────────────────
+
+  @TC-INT-API-004-ERROR
+  Scenario: Insufficient balance returns 400 INSUFFICIENT_FUNDS
+    Given the player balance is 0.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 400
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;INSUFFICIENT_FUNDS&quot;
+    And the response body field &quot;message&quot; should be a non-empty string
+    And the response body field &quot;requestId&quot; should be a UUID string
+    And the player balance should remain 0.00 USD
+    And no new record should be inserted into the &quot;spins&quot; table
+
+  @TC-INT-API-005-ERROR
+  Scenario: Invalid betLevel outside USD range returns 400 INVALID_BET_LEVEL
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 999        |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 400
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;INVALID_BET_LEVEL&quot;
+
+  @TC-INT-API-002-ERROR
+  Scenario: Missing JWT returns 401 UNAUTHORIZED
+    Given no Authorization header is included
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 401
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+
+  @TC-INT-API-003-ERROR
+  Scenario: Expired JWT returns 401 UNAUTHORIZED
+    Given the player has a JWT token with exp claim set 1 second in the past
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 401
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;UNAUTHORIZED&quot;
+
+  @TC-INT-API-006-ERROR
+  Scenario: Invalid currency returns 400 INVALID_CURRENCY
+    Given the player balance is 1000.00 USD
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | EUR        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 400
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;INVALID_CURRENCY&quot;
+
+  @TC-INT-API-008-ERROR @performance
+  Scenario: Rate limit exceeded returns 429 RATE_LIMITED
+    Given the player has a valid JWT token
+    When I send 6 POST /v1/spin requests within 1 second from player &quot;player_001&quot;
+    Then the 6th response status should be 429
+    And the response body field &quot;success&quot; should be false
+    And the response body field &quot;code&quot; should equal &quot;RATE_LIMITED&quot;
+    And the response header &quot;Retry-After&quot; should be present
+
+  # ─────────────────────────────────────────────
+  # Max Win Cap
+  # ─────────────────────────────────────────────
+
+  @TC-UNIT-MAXWIN-001-BOUNDARY
+  Scenario: Main Game totalWin is capped at 30,000× baseBet
+    Given the player balance is 50000.00 USD
+    And the RNG seed is set to &quot;seed-010&quot;
+    When I send POST /v1/spin with body:
+      | playerId   | player_001 |
+      | betLevel   | 5          |
+      | currency   | USD        |
+      | extraBet   | false      |
+      | buyFeature | false      |
+    Then the response status should be 200
+    And the response body field &quot;data.totalWin&quot; should be less than or equal to 15000.00
+    And the &quot;spins&quot; table record for this spin should have total_win at most 15000.00
+
+  # ─────────────────────────────────────────────
+  # Concurrency and Infrastructure Error Scenarios
+  # ─────────────────────────────────────────────
+
+  @contract @security @TC-INT-API-011
+  Scenario: Concurrent spin attempt returns 409 SPIN_IN_PROGRESS
+    Given player &quot;player_001&quot; has an active spin in progress (spin lock held)
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 409
+    And the response body field &quot;code&quot; should equal &quot;SPIN_IN_PROGRESS&quot;
+    And the player balance should be unchanged
+
+  @contract @TC-INT-API-012
+  Scenario: Engine timeout results in 504 and compensating credit
+    Given the spin engine is configured to time out after 2000ms
+    And player &quot;player_001&quot; has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 504
+    And the response body field &quot;code&quot; should equal &quot;ENGINE_TIMEOUT&quot;
+    And the &quot;wallet_transactions&quot; table should have a compensating credit of 0.10 for &quot;player_001&quot;
+
+  @contract @TC-INT-API-013
+  Scenario: Circuit breaker open returns 503 SERVICE_UNAVAILABLE
+    Given the database circuit breaker is OPEN
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 503
+    And the response body field &quot;code&quot; should equal &quot;SERVICE_UNAVAILABLE&quot;
+    And the player balance should be unchanged
+
+  @contract @security @TC-SEC-AUTH-007
+  Scenario: Suspended player account is forbidden from spinning
+    Given player &quot;player_suspended&quot; has account status &quot;suspended&quot;
+    And player &quot;player_suspended&quot; has a valid JWT token
+    When I send POST /v1/spin as &quot;player_suspended&quot; with betLevel 1 and extraBet false
+    Then the response status should be 403
+    And the response body field &quot;code&quot; should equal &quot;FORBIDDEN&quot;
+
+  # ─────────────────────────────────────────────
+  # Grid State and Cascade Mechanics (US-CASC-001)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-API-014
+  Scenario: New main game spin starts with clean grid state
+    Given player &quot;player_001&quot; completed a cascade sequence producing lightning marks
+    When I send a new POST /v1/spin with betLevel 1 and extraBet false
+    Then the response body field &quot;data.initialGrid&quot; should be an array with 3 rows
+    And the response body field &quot;data.cascadeSequence.lightningMarks.count&quot; should equal 0
+    And the response body field &quot;data.cascadeSequence.lightningMarks.positions&quot; should be empty
+    And the response body field &quot;data.cascadeSequence.steps&quot; should not be empty
+
+  # ─────────────────────────────────────────────
+  # Coin Toss Boundary (US-COIN-001/AC-5)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-API-021
+  Scenario: Cascade expanding to 5 rows does not trigger Coin Toss
+    Given the RNG seed &quot;SEED_5ROWS_ONLY&quot; is configured to produce a 5-row expansion
+    And player &quot;player_001&quot; has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 200
+    And the response body field &quot;data.finalRows&quot; should equal 5
+    And the response body field &quot;data.coinTossTriggered&quot; should be false
+    And the response body field &quot;data.fgTriggered&quot; should be false
+
+  # ─────────────────────────────────────────────
+  # Thunder Blessing Scatter Conditions (US-TBSC-001)
+  # ─────────────────────────────────────────────
+
+  @contract @TC-INT-API-016
+  Scenario: Scatter lands on grid with no lightning marks - Thunder Blessing not triggered
+    Given the RNG seed &quot;SEED_SC_NO_MARKS&quot; produces a Scatter but no cascade wins
+    And player &quot;player_001&quot; has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 200
+    And the response body field &quot;data.thunderBlessingTriggered&quot; should be false
+    And the response body field &quot;data.cascadeSequence.lightningMarks.count&quot; should equal 0
+    And the response body field &quot;data.cascadeSequence.lightningMarks.positions&quot; should be empty
+
+  @contract @TC-INT-API-017
+  Scenario: Thunder Blessing second hit on P1 symbol does not cause tier overflow
+    Given the RNG seed &quot;SEED_P1_DOUBLE_HIT&quot; forces all marks to P1 with second hit
+    And player &quot;player_001&quot; has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 200
+    And the response body field &quot;data.upgradedSymbol&quot; should equal &quot;P1&quot;
+    And the response body field &quot;data.thunderBlessingResult.secondHitApplied&quot; should be true
+    And the response body field &quot;data.thunderBlessingResult.convertedSymbol&quot; should equal &quot;P1&quot;
+
+  @smoke @contract @TC-INT-API-019
+  Scenario: Coin Toss Tails result ends game without entering Free Game
+    Given the RNG seed &quot;SEED_COIN_TAILS&quot; produces a 6-row expansion and Coin Toss result Tails
+    And player &quot;player_001&quot; has balance 1000.00 USD
+    When I send POST /v1/spin with betLevel 1 and extraBet false
+    Then the response status should be 200
+    And the response body field &quot;data.coinTossTriggered&quot; should be true
+    And the response body field &quot;data.coinTossResult&quot; should equal &quot;TAILS&quot;
+    And the response body field &quot;data.fgTriggered&quot; should be false
+    And the response body field &quot;data.fgRounds&quot; should be an empty array
+    And the player balance should be decreased by 0.10
+
+  @smoke @contract @TC-INT-API-020
+  Scenario: Spin with TWD currency deducts correct TWD amount
+    Given player &quot;player_002&quot; exists with balance 1000 TWD
+    And player &quot;player_002&quot; has a valid JWT token with currency &quot;TWD&quot;
+    When I send POST /v1/spin as &quot;player_002&quot; with betLevel 1 and extraBet false
+    Then the response status should be 200
+    And the response body field &quot;data.totalBet&quot; should equal 3
+    And the player &quot;player_002&quot; balance should be decreased by 3 TWD
+    And the &quot;spins&quot; table should have a new record with currency &quot;TWD&quot;
+</code></pre></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

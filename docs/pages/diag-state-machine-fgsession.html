@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State Machine Fgsession — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › State Machine Fgsession</p>
+    <h1 class="banner-title">State Machine Fgsession</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link active" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: state-machine-fgsession</p>
+<p>uml-type: state-machine</p>
+<p>source: EDD.md §4.5.8, §5.1, §5.6, §5.7; ARCH.md §5.3</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>State Machine — FreeGameSession Lifecycle</h1>
+<blockquote><p>來源：EDD.md §4.5.8, §5.1 CoinToss stages, §5.6 FG Bonus Multiplier, §5.7 Buy Feature Session Floor</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">stateDiagram-v2
+    [*] --> INACTIVE : initial state no FG session
+
+    INACTIVE --> COIN_TOSS_PENDING : coinTossCondition [finalRows eq 6 AND cascadeWin gt 0] / CascadeEngine returns cascadeSequence.finalRows eq 6
+
+    COIN_TOSS_PENDING --> INACTIVE : tailsResult [rng gte coinProbs[0] at stage 0 prob 0.80] / no FG triggered totalWin equals mainWin only
+
+    COIN_TOSS_PENDING --> FG_ACTIVE_X3 : headsResult [rng lt coinProbs[0] at stage 0 prob 0.80] / create FreeGameSession currentMultiplier=3 store in Redis TTL=300s
+
+    state FG_ACTIVE_X3 {
+        [*] --> FG_ROUND_RUNNING_X3
+        FG_ROUND_RUNNING_X3 --> FG_ROUND_COMPLETE_X3 : roundDone / accumulate roundWin=cascadeWin times 3 update totalFGWin persist lightningMarks in Redis
+        FG_ROUND_COMPLETE_X3 --> COIN_TOSS_X3 : evalNextCoin / CoinTossEvaluator.evaluate(rng, coinProbs[1] at stage 1 prob 0.68)
+        COIN_TOSS_X3 --> [*] : tailsAtX3 [rng gte 0.68] / FG sequence ends draw bonusMultiplier apply floor check
+        COIN_TOSS_X3 --> FG_ACTIVE_X7_ENTRY : headsAtX3 [rng lt 0.68] / advance stage=2 currentMultiplier=7
+    }
+
+    state FG_ACTIVE_X7 {
+        [*] --> FG_ROUND_RUNNING_X7
+        FG_ROUND_RUNNING_X7 --> FG_ROUND_COMPLETE_X7 : roundDone / accumulate roundWin=cascadeWin times 7 update totalFGWin
+        FG_ROUND_COMPLETE_X7 --> COIN_TOSS_X7 : evalNextCoin / CoinTossEvaluator.evaluate(rng, coinProbs[2] at stage 2 prob 0.56)
+        COIN_TOSS_X7 --> [*] : tailsAtX7 [rng gte 0.56] / FG sequence ends draw bonusMultiplier
+        COIN_TOSS_X7 --> FG_ACTIVE_X17_ENTRY : headsAtX7 [rng lt 0.56] / advance stage=3 currentMultiplier=17
+    }
+
+    state FG_ACTIVE_X17 {
+        [*] --> FG_ROUND_RUNNING_X17
+        FG_ROUND_RUNNING_X17 --> FG_ROUND_COMPLETE_X17 : roundDone / accumulate roundWin=cascadeWin times 17 update totalFGWin
+        FG_ROUND_COMPLETE_X17 --> COIN_TOSS_X17 : evalNextCoin / CoinTossEvaluator.evaluate(rng, coinProbs[3] at stage 3 prob 0.48)
+        COIN_TOSS_X17 --> [*] : tailsAtX17 [rng gte 0.48] / FG sequence ends draw bonusMultiplier
+        COIN_TOSS_X17 --> FG_ACTIVE_X27_ENTRY : headsAtX17 [rng lt 0.48] / advance stage=4 currentMultiplier=27
+    }
+
+    state FG_ACTIVE_X27 {
+        [*] --> FG_ROUND_RUNNING_X27
+        FG_ROUND_RUNNING_X27 --> FG_ROUND_COMPLETE_X27 : roundDone / accumulate roundWin=cascadeWin times 27 update totalFGWin
+        FG_ROUND_COMPLETE_X27 --> COIN_TOSS_X27 : evalNextCoin / CoinTossEvaluator.evaluate(rng, coinProbs[4] at stage 4 prob 0.40)
+        COIN_TOSS_X27 --> [*] : tailsAtX27 [rng gte 0.40] / FG sequence ends draw bonusMultiplier
+        COIN_TOSS_X27 --> FG_ACTIVE_X77_ENTRY : headsAtX27 [rng lt 0.40] / advance stage=5 MAX multiplier currentMultiplier=77
+    }
+
+    state FG_ACTIVE_X77 {
+        [*] --> FG_ROUND_RUNNING_X77
+        FG_ROUND_RUNNING_X77 --> FG_ROUND_COMPLETE_X77 : roundDone / accumulate roundWin=cascadeWin times 77 update totalFGWin
+        FG_ROUND_COMPLETE_X77 --> FG_FORCE_END_X77 : maxStageReached [stage eq 5 no further Coin Toss] / FG sequence terminates unconditionally
+        FG_FORCE_END_X77 --> [*] : sequenceEnd / draw bonusMultiplier
+    }
+
+    %% Transitions between composite states
+    FG_ACTIVE_X3 --> FG_ACTIVE_X7 : FG_ACTIVE_X7_ENTRY
+    FG_ACTIVE_X7 --> FG_ACTIVE_X17 : FG_ACTIVE_X17_ENTRY
+    FG_ACTIVE_X17 --> FG_ACTIVE_X27 : FG_ACTIVE_X27_ENTRY
+    FG_ACTIVE_X27 --> FG_ACTIVE_X77 : FG_ACTIVE_X77_ENTRY
+
+    %% Converging to BONUS_DRAW
+    FG_ACTIVE_X3 --> BONUS_DRAW : tailsAtX3
+    FG_ACTIVE_X7 --> BONUS_DRAW : tailsAtX7
+    FG_ACTIVE_X17 --> BONUS_DRAW : tailsAtX17
+    FG_ACTIVE_X27 --> BONUS_DRAW : tailsAtX27
+    FG_ACTIVE_X77 --> BONUS_DRAW : maxStageReached
+
+    BONUS_DRAW --> FLOOR_CHECK : bonusDrawn [FreeGameOrchestrator.drawBonusMultiplier from fgBonusWeights X1 X5 X20 X100] / totalFGWin times bonusMultiplier
+
+    FLOOR_CHECK --> COMPLETING : floorNotNeeded [totalFGWin gte floorValue OR NOT buyFeature session] / totalWin equals mainWin plus totalFGWin
+    FLOOR_CHECK --> FLOOR_APPLIED : floorTriggered [totalFGWin lt 20 times baseBet AND buyFeature eq true] / SessionFloorGuard.applyFloor sets sessionFloorApplied=true adjustedWin=20 times baseBet
+
+    FLOOR_APPLIED --> COMPLETING : floorAdjusted / totalWin equals mainWin plus floorValue
+
+    COMPLETING --> COMPLETE : winFinalized / enforce maxWin cap emit SpinCompleted event DEL Redis session key
+    COMPLETE --> [*] : sessionClosed
+
+    note right of INACTIVE
+        New Main Game spin: lightningMarks cleared,
+        rows reset to 3, paylines reset to 25.
+    end note
+
+    note right of BONUS_DRAW
+        Bonus multipliers: X1 (high weight),
+        X5 (medium), X20 (low), X100 (very low).
+        Drawn ONCE per FG sequence total.
+    end note
+
+    note right of FLOOR_CHECK
+        Floor = 20 x baseBet, only for BuyFeature.
+        Applied at session level, NEVER per-spin.
+    end note</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

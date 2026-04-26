@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence Reconnect — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › Sequence Reconnect</p>
+    <h1 class="banner-title">Sequence Reconnect</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link active" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: sequence-reconnect</p>
+<p>uml-type: sequence</p>
+<p>source: EDD.md §6.1, §5.3 Redis Session Schema; ARCH.md §3.3 GetSessionStateUseCase</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Sequence Diagram — GET /v1/session/:sessionId (FG Reconnect)</h1>
+<blockquote><p>來源：EDD.md §6.1 Endpoints, §5.3 Redis Session Schema; ARCH.md §3.3, §3.4</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">sequenceDiagram
+    autonumber
+
+    participant Client as Client (Frontend)
+    participant Fastify as Fastify Router
+    participant JwtAuthGuard as JwtAuthGuard
+    participant GetSessionUseCase as GetSessionStateUseCase
+    participant Redis as UpstashCacheAdapter (Redis)
+    participant SessionRepo as SupabaseSessionRepository
+    participant SupaDB as Supabase PostgreSQL
+    participant ErrorMapper as DomainErrorMapper
+
+    Note over Client,ErrorMapper: ─── Path A: Cache HIT (Redis has active FG session) ───
+
+    Client->>Fastify: GET /v1/session/sess-7f3d1c28-a95e-4b17-8e42-c0d9f1a23456 {Authorization: Bearer <token>}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "b1c2d3e4...", role: "player"}
+
+    Fastify->>GetSessionUseCase: execute(sessionId: "sess-7f3d1c28-a95e-4b17-8e42-c0d9f1a23456")
+
+    GetSessionUseCase->>Redis: GET session:sess-7f3d1c28-a95e-4b17-8e42-c0d9f1a23456
+    Note over Redis: Key exists (TTL = 287s remaining)
+    Redis-->>GetSessionUseCase: SessionState { playerId: "b1c2d3e4...", status: "FG_ACTIVE", baseBet: 1.00, fgRound: 3, fgMultiplier: 17, fgBonusMultiplier: 5, totalFGWin: 410.00, lightningMarks: "[{r:1,c:0},{r:2,c:2},{r:3,c:1},{r:0,c:4},{r:4,c:3},{r:5,c:2}]", floorValue: 0, lockToken: "lock-a1b2c3d4...", lockedAt: 1745712345000 }
+
+    GetSessionUseCase->>GetSessionUseCase: Validate: playerId from JWT == session.playerId → OK
+    GetSessionUseCase-->>Fastify: SessionStateDTO { sessionId: "sess-7f3d1c28...", status: "FG_ACTIVE", fgRound: 3, fgMultiplier: 17, totalFGWin: 410.00, lightningMarks: [{r:1,c:0}, {r:2,c:2}, {r:3,c:1}, {r:0,c:4}, {r:4,c:3}, {r:5,c:2}] }
+
+    Fastify-->>Client: 200 OK { success: true, data: { sessionId: "sess-7f3d1c28-a95e-4b17-8e42-c0d9f1a23456", status: "FG_ACTIVE", fgRound: 3, fgMultiplier: 17, totalFGWin: 410.00, lightningMarks: [...6 positions...] }, requestId: "req-reconnect-001" }
+
+    Note over Client: Client resumes animation from round 3 / multiplier ×17 / 6 lightning marks
+
+    Note over Client,ErrorMapper: ─── Path B: Cache MISS → PostgreSQL Fallback ───
+
+    Client->>Fastify: GET /v1/session/sess-old-1234-5678-9abc-def012345678 {Authorization: Bearer <token>}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "b1c2d3e4..."}
+
+    Fastify->>GetSessionUseCase: execute(sessionId: "sess-old-1234-5678-9abc-def012345678")
+
+    GetSessionUseCase->>Redis: GET session:sess-old-1234-5678-9abc-def012345678
+    Note over Redis: Key does NOT exist (TTL expired after 300s)
+    Redis-->>GetSessionUseCase: null
+
+    Note over GetSessionUseCase: Cache MISS → fallback to PostgreSQL
+    GetSessionUseCase->>SessionRepo: findById("sess-old-1234-5678-9abc-def012345678")
+    SessionRepo->>SupaDB: SELECT * FROM fg_sessions WHERE session_id='sess-old-1234...' AND status='FG_ACTIVE'
+    SupaDB-->>SessionRepo: FGSessionRow { session_id, player_id, fg_round:2, fg_multiplier:7, total_fg_win:67.50, lightning_marks_json: [...], status: "FG_ACTIVE" }
+    SessionRepo-->>GetSessionUseCase: SessionState (from DB)
+
+    GetSessionUseCase->>GetSessionUseCase: Validate: playerId from JWT == session.playerId → OK
+
+    Note over GetSessionUseCase: Re-populate Redis cache for subsequent spins
+    GetSessionUseCase->>Redis: SET session:sess-old-1234... {restored session data} EX 300
+    Redis-->>GetSessionUseCase: OK
+
+    GetSessionUseCase-->>Fastify: SessionStateDTO { sessionId: "sess-old-1234...", status: "FG_ACTIVE", fgRound: 2, fgMultiplier: 7, totalFGWin: 67.50, lightningMarks: [...] }
+    Fastify-->>Client: 200 OK { success: true, data: SessionStateDTO, requestId: "req-reconnect-002" }
+
+    Note over Client,ErrorMapper: ─── Path C: Session Not Found → 404 ───
+
+    Client->>Fastify: GET /v1/session/sess-nonexistent-00000000-0000 {Authorization: Bearer <token>}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "c3d4e5f6..."}
+
+    Fastify->>GetSessionUseCase: execute(sessionId: "sess-nonexistent-00000000-0000")
+
+    GetSessionUseCase->>Redis: GET session:sess-nonexistent-00000000-0000
+    Redis-->>GetSessionUseCase: null
+
+    GetSessionUseCase->>SessionRepo: findById("sess-nonexistent-00000000-0000")
+    SessionRepo->>SupaDB: SELECT * FROM fg_sessions WHERE session_id='sess-nonexistent...'
+    SupaDB-->>SessionRepo: (empty result set)
+    SessionRepo-->>GetSessionUseCase: null
+
+    GetSessionUseCase->>ErrorMapper: map(SessionNotFoundError("sess-nonexistent-00000000-0000"))
+    ErrorMapper-->>GetSessionUseCase: {httpStatus: 404, code: "SESSION_NOT_FOUND"}
+    GetSessionUseCase-->>Fastify: 404 SessionNotFoundError
+
+    Fastify-->>Client: 404 { success: false, code: "SESSION_NOT_FOUND", message: "FG session sess-nonexistent-00000000-0000 not found or already expired", requestId: "req-reconnect-003" }</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

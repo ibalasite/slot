@@ -1,0 +1,207 @@
+{
+  "index.html": {
+    "url": "index.html",
+    "title": "slot 文件中心",
+    "excerpt": "Thunder Blessing Slot Game — GDD &amp; Technical Documentation\nFull design and specification suite for the Thunder Blessing slot game, generated via t"
+  },
+  "idea.html": {
+    "url": "idea.html",
+    "title": "構想文件 (IDEA)",
+    "excerpt": "專案名稱：Thunder Blessing Slot GDD\n1. 核心概念（Elevator Pitch）\nThunder Blessing 是一款希臘神話主題的 5×3（最大5×6）老虎機遊戲，以「滾輪持續擴展 × 符號鍊式消除 × 閃電能量蓄積」為核心遊戲循環：每次獲獎觸發 Cascade 連"
+  },
+  "brd.html": {
+    "url": "brd.html",
+    "title": "商業需求文件 (BRD)",
+    "excerpt": "BRD — Thunder Blessing Slot GDD\n版本：1.0 | 狀態：DRAFT | 日期：2026-04-26\n\n§0 Elevator Pitch\nThunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪持續擴展 × 符號鍊式消除 × 閃電能量蓄積」為核心遊"
+  },
+  "prd.html": {
+    "url": "prd.html",
+    "title": "產品需求文件 (PRD)",
+    "excerpt": "PRD — Product Requirements Document\n&lt;!-- 對應學術標準：IEEE 830 (SRS)，對應業界：Google PRD / Amazon PRFAQ --&gt;\n\nDocument Control\n\n欄位內容\nDOC-IDPRD-THUNDERBLESS"
+  },
+  "pdd.html": {
+    "url": "pdd.html",
+    "title": "產品設計文件 (PDD)",
+    "excerpt": "PDD — Product Design Document\nThunder Blessing Slot Game\n\n§0 Document Control\n\n欄位內容\nDOC-IDPDD-THUNDERBLESSING-20260426\n產品名稱Thunder Blessing Slot Game\n"
+  },
+  "vdd.html": {
+    "url": "vdd.html",
+    "title": "視覺設計文件 (VDD)",
+    "excerpt": "VDD — Visual Design Document\nThunder Blessing Slot Game\n\n§0 Document Control\n\n欄位內容\nDOC-IDVDD-THUNDERBLESSING-20260426\n產品名稱Thunder Blessing Slot Game\n文"
+  },
+  "constants.html": {
+    "url": "constants.html",
+    "title": "遊戲常數 (CONSTANTS)",
+    "excerpt": "CONSTANTS — Thunder Blessing Slot Game\n&lt;!-- Canonical Single Source of Truth for all game constants --&gt;\n&lt;!-- Generated: D03.5-CONSTANTS (cust"
+  },
+  "edd.html": {
+    "url": "edd.html",
+    "title": "工程設計文件 (EDD)",
+    "excerpt": "EDD — Engineering Design Document\n&lt;!-- Standard: IEEE 1016 Software Design Description; aligned with C4 Model (Brown, 2018) and Clean Architecture "
+  },
+  "arch.html": {
+    "url": "arch.html",
+    "title": "架構設計",
+    "excerpt": "ARCH — Architecture Design Document\nThunder Blessing Slot Game\n\n§0 Document Control\n\nFieldContent\nDOC-IDARCH-THUNDERBLESSING-20260426\nProductThunder B"
+  },
+  "api.html": {
+    "url": "api.html",
+    "title": "API 文件",
+    "excerpt": "API.md — API Design Document\nThunder Blessing Slot Game\n\n§0 Document Control\n\nFieldContent\nDOC-IDAPI-THUNDERBLESSING-20260426\nProductThunder Blessing "
+  },
+  "schema.html": {
+    "url": "schema.html",
+    "title": "Schema 文件",
+    "excerpt": "SCHEMA — Database Schema Design Document\nThunder Blessing Slot Game\n\n§0 Document Control\n\nFieldContent\nDOC-IDSCHEMA-THUNDERBLESSING-20260426\nProductTh"
+  },
+  "frontend.html": {
+    "url": "frontend.html",
+    "title": "前端設計文件",
+    "excerpt": "FRONTEND.md — Frontend Technical Design Document\nThunder Blessing Slot Game\n\n§0 Document Control\n\nFieldContent\nDOC-IDFRONTEND-THUNDERBLESSING-20260426"
+  },
+  "audio.html": {
+    "url": "audio.html",
+    "title": "音效設計文件",
+    "excerpt": "AUDIO.md — Audio Design Document\nThunder Blessing Slot Game\n\n§0 Document Control\n\nFieldContent\nDOC-IDAUDIO-THUNDERBLESSING-20260426\nProductThunder Ble"
+  },
+  "anim.html": {
+    "url": "anim.html",
+    "title": "動畫特效文件",
+    "excerpt": "ANIM.md — Animation Effects Design Document\nThunder Blessing Slot Game\n\n§0 Document Control\n\nFieldContent\nDOC-IDANIM-THUNDERBLESSING-20260426\nProductT"
+  },
+  "test-plan.html": {
+    "url": "test-plan.html",
+    "title": "測試計畫 (Test Plan)",
+    "excerpt": "Test Plan — Thunder Blessing Slot Game\n&lt;!-- Standard: IEEE 829-2008 Software and System Test Documentation --&gt;\n\nDocument Control\n\nFieldContent\nD"
+  },
+  "runbook.html": {
+    "url": "runbook.html",
+    "title": "Runbook",
+    "excerpt": "Operations Runbook — Thunder Blessing Slot Game\n\n§1 Document Control\n\nFieldValue\nDOC-IDRUNBOOK-THUNDERBLESSING-20260426\nProductThunder Blessing Slot G"
+  },
+  "local_deploy.html": {
+    "url": "local_deploy.html",
+    "title": "本地部署指南",
+    "excerpt": "LOCAL_DEPLOY — Local Development Environment Setup Guide\nThunder Blessing Slot Game\n\n§1 Document Control\n\nFieldContent\nDOC-IDLOCAL_DEPLOY-THUNDERBLESS"
+  },
+  "rtm.html": {
+    "url": "rtm.html",
+    "title": "需求追蹤矩陣 (RTM)",
+    "excerpt": "RTM — Requirements Traceability Matrix\nThunder Blessing Slot Game\n\nDocument Control\n\nFieldContent\nDOC-IDRTM-THUNDERBLESSING-20260426\nProductThunder Bl"
+  },
+  "align_report.html": {
+    "url": "align_report.html",
+    "title": "對齊報告",
+    "excerpt": "gendoc — 對齊掃描報告\n專案： thunder-blessing-slot-gdd\n日期： 2026-04-26\n掃描範圍： Dimension 0–5（全維度）\n\n╔══════════════════════════════════════════════════════════════"
+  },
+  "bdd-server.html": {
+    "url": "bdd-server.html",
+    "title": "Server BDD",
+    "excerpt": "buy-feature.feature\n@buy-feature\nFeature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics\n  As a player\n  I want to purchase Free Game entr"
+  },
+  "bdd-client.html": {
+    "url": "bdd-client.html",
+    "title": "Client BDD",
+    "excerpt": "buy_feature/buy_feature_panel.feature\n@client @buy_feature @panel\nFeature: Buy Feature Panel — UI Behavior\n  As a player who wants to purchase a Free "
+  },
+  "req.html": {
+    "url": "req.html",
+    "title": "原始素材 (req/)",
+    "excerpt": "📎 原始素材 (req/)📎 附件與素材 (req/)📄 GDD-Thunder-Blessing-Slot-Game.pdf (20811 KB)📎 GDD_Thunder_Blessing_Slot.md (32 KB)📎 Probability_Design.md (13 KB)📎 codeb"
+  },
+  "diag-activity-cascade.html": {
+    "url": "diag-activity-cascade.html",
+    "title": "Activity Cascade",
+    "excerpt": "\ndiagram: activity-cascade\numl-type: activity\nsource: EDD.md §4.5.10, §5.1 step 3a-3b; ARCH.md §3.3 CascadeEngine component\ngenerated: 2026-04-26T00:0"
+  },
+  "diag-activity-spin.html": {
+    "url": "diag-activity-spin.html",
+    "title": "活動圖：Spin 主流程",
+    "excerpt": "\ndiagram: activity-spin\numl-type: activity\nsource: EDD.md §4.5.9, §5.1, §6; ARCH.md §3.4 Write Path\ngenerated: 2026-04-26T00:00:00Z\n\nActivity Diagram "
+  },
+  "diag-activity-toolchain.html": {
+    "url": "diag-activity-toolchain.html",
+    "title": "Activity Toolchain",
+    "excerpt": "\ndiagram: activity-toolchain\numl-type: activity\nsource: EDD.md §4.5.11, §1.1, §5.4; ARCH.md §3.2 Toolchain Container; PRD.md §4.1\ngenerated: 2026-04-2"
+  },
+  "diag-class-application.html": {
+    "url": "diag-class-application.html",
+    "title": "類別圖：應用層",
+    "excerpt": "\ndiagram: class-application\numl-type: class\nsource: EDD.md §4.5.2, §4.1 Module Map; ARCH.md §3.3 Component Inventory\ngenerated: 2026-04-26T00:00:00Z\n\n"
+  },
+  "diag-class-domain.html": {
+    "url": "diag-class-domain.html",
+    "title": "類別圖：領域模型",
+    "excerpt": "\ndiagram: class-domain\numl-type: class\nsource: EDD.md §3, §4.5.2, §5.1–§5.8; ARCH.md §3 Domain Model\ngenerated: 2026-04-26T00:00:00Z\n\nClass Diagram — "
+  },
+  "diag-class-infra-presentation.html": {
+    "url": "diag-class-infra-presentation.html",
+    "title": "類別圖：基礎+展示",
+    "excerpt": "\ndiagram: class-infra-presentation\numl-type: class\nsource: EDD.md §4.1, §4.5.2, §6; ARCH.md §3.3\ngenerated: 2026-04-26T00:00:00Z\n\nClass Diagram — Infr"
+  },
+  "diag-communication.html": {
+    "url": "diag-communication.html",
+    "title": "協作圖",
+    "excerpt": "\ndiagram: communication\numl-type: communication\nsource: EDD.md §4.5.7, §6; ARCH.md §3, §5.1, §9.2\ngenerated: 2026-04-26T00:00:00Z\n\nCommunication Diagr"
+  },
+  "diag-component.html": {
+    "url": "diag-component.html",
+    "title": "元件圖",
+    "excerpt": "\ndiagram: component\numl-type: component\nsource: EDD.md §4.5.12, §3.3; ARCH.md §3.3 C4 L3, §11 Technology Stack\ngenerated: 2026-04-26T00:00:00Z\n\nCompon"
+  },
+  "diag-deployment.html": {
+    "url": "diag-deployment.html",
+    "title": "部署圖",
+    "excerpt": "\ndiagram: deployment\numl-type: deployment\nsource: EDD.md §4.5.13, §3.5 Environment Matrix; ARCH.md §7 HA Design, §8 DR, §10 Scalability\ngenerated: 202"
+  },
+  "diag-object-snapshot.html": {
+    "url": "diag-object-snapshot.html",
+    "title": "物件圖：快照",
+    "excerpt": "\ndiagram: object-snapshot\numl-type: object\nsource: EDD.md §4.5.3, §5.2, §5.6; ARCH.md §3 Domain Model\ngenerated: 2026-04-26T00:00:00Z\n\nObject Diagram "
+  },
+  "diag-sequence-buy-feature.html": {
+    "url": "diag-sequence-buy-feature.html",
+    "title": "循序圖：Buy Feature",
+    "excerpt": "\ndiagram: sequence-buy-feature\numl-type: sequence\nsource: EDD.md §4.5.6, §5.7, §6.1; ARCH.md §3.3, §5.1\ngenerated: 2026-04-26T00:00:00Z\n\nSequence Diag"
+  },
+  "diag-sequence-reconnect.html": {
+    "url": "diag-sequence-reconnect.html",
+    "title": "Sequence Reconnect",
+    "excerpt": "\ndiagram: sequence-reconnect\numl-type: sequence\nsource: EDD.md §6.1, §5.3 Redis Session Schema; ARCH.md §3.3 GetSessionStateUseCase\ngenerated: 2026-04"
+  },
+  "diag-sequence-spin-error.html": {
+    "url": "diag-sequence-spin-error.html",
+    "title": "Sequence Spin Error",
+    "excerpt": "\ndiagram: sequence-spin-error\numl-type: sequence\nsource: EDD.md §6.3 Error Codes, §5.1; ARCH.md §5.1, §6 Partial Failure Compensation\ngenerated: 2026-"
+  },
+  "diag-sequence-spin-fg.html": {
+    "url": "diag-sequence-spin-fg.html",
+    "title": "Sequence Spin Fg",
+    "excerpt": "\ndiagram: sequence-spin-fg\numl-type: sequence\nsource: EDD.md §4.5.5, §5.1, §5.6; ARCH.md §3.4 Write Path\ngenerated: 2026-04-26T00:00:00Z\n\nSequence Dia"
+  },
+  "diag-sequence-spin-happy.html": {
+    "url": "diag-sequence-spin-happy.html",
+    "title": "Sequence Spin Happy",
+    "excerpt": "\ndiagram: sequence-spin-happy\numl-type: sequence\nsource: EDD.md §4.5.4, §5.1, §6.1–§6.2; ARCH.md §3.4 Write Path\ngenerated: 2026-04-26T00:00:00Z\n\nSequ"
+  },
+  "diag-state-machine-coingame.html": {
+    "url": "diag-state-machine-coingame.html",
+    "title": "State Machine Coingame",
+    "excerpt": "\ndiagram: state-machine-coingame\numl-type: state-machine\nsource: EDD.md §5.1 step 3c, §5.6 FG Multiplier Sequence; ARCH.md §3.3 CoinTossEvaluator\ngene"
+  },
+  "diag-state-machine-fgsession.html": {
+    "url": "diag-state-machine-fgsession.html",
+    "title": "State Machine Fgsession",
+    "excerpt": "\ndiagram: state-machine-fgsession\numl-type: state-machine\nsource: EDD.md §4.5.8, §5.1, §5.6, §5.7; ARCH.md §5.3\ngenerated: 2026-04-26T00:00:00Z\n\nState"
+  },
+  "diag-state-machine-spin.html": {
+    "url": "diag-state-machine-spin.html",
+    "title": "State Machine Spin",
+    "excerpt": "\ndiagram: state-machine-spin\numl-type: state-machine\nsource: EDD.md §4.5.8, §5.1, §6.3; ARCH.md §5.1, §6\ngenerated: 2026-04-26T00:00:00Z\n\nState Machin"
+  },
+  "diag-use-case.html": {
+    "url": "diag-use-case.html",
+    "title": "用例圖 (Use Case)",
+    "excerpt": "\ndiagram: use-case\numl-type: use-case\nsource: PRD.md §4–§5, EDD.md §4.5.1, §6\ngenerated: 2026-04-26T00:00:00Z\n\nUse Case Diagram — Thunder Blessing Slo"
+  }
+}

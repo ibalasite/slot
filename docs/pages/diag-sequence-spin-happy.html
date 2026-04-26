@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence Spin Happy — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › Sequence Spin Happy</p>
+    <h1 class="banner-title">Sequence Spin Happy</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link active" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: sequence-spin-happy</p>
+<p>uml-type: sequence</p>
+<p>source: EDD.md §4.5.4, §5.1, §6.1–§6.2; ARCH.md §3.4 Write Path</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Sequence Diagram — POST /v1/spin Happy Path (No FG Triggered)</h1>
+<blockquote><p>來源：EDD.md §4.5.4, §5.1 SlotEngine Algorithm, §6 API Design; ARCH.md §3.4 Data Flow</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">sequenceDiagram
+    autonumber
+
+    participant Client as Client (Frontend)
+    participant Fastify as Fastify Router
+    participant JwtAuthGuard as JwtAuthGuard
+    participant SupabaseAuth as SupabaseAuthAdapter
+    participant SpinUseCase as SpinUseCase
+    participant ConcurrencyLockGuard as ConcurrencyLockGuard
+    participant UpstashCache as UpstashCacheAdapter (Redis)
+    participant WalletRepo as SupabaseWalletRepository
+    participant SupaDB as Supabase PostgreSQL
+    participant SlotEngine as SlotEngine
+    participant CascadeEngine as CascadeEngine
+    participant NearMiss as NearMissSelector
+    participant SessionRepo as SupabaseSessionRepository
+    participant AuditLog as AuditLogger (spin_logs)
+
+    Note over Client,AuditLog: Request payload: POST /v1/spin
+    Note over Client: { "playerId": "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", "betLevel": 50, "extraBet": false, "buyFeature": false, "currency": "USD", "sessionId": null }
+
+    Client->>Fastify: POST /v1/spin {Authorization: Bearer eyJhbGci...RS256}
+    Fastify->>JwtAuthGuard: verify(token: string)
+    JwtAuthGuard->>SupabaseAuth: verifyJWT("eyJhbGci...RS256")
+    SupabaseAuth-->>JwtAuthGuard: PlayerClaims { playerId: "a3f7c2d1...", role: "player", expiresAt: 1745712000 }
+    JwtAuthGuard-->>Fastify: PlayerClaims (attached to request context)
+
+    Fastify->>SpinUseCase: execute(SpinRequest { playerId, betLevel=50, extraBet=false, buyFeature=false, currency="USD" })
+
+    SpinUseCase->>ConcurrencyLockGuard: acquire(sessionId: "sess-new-auto")
+    ConcurrencyLockGuard->>UpstashCache: SET session:sess-new-auto:lock {lockToken="lock-uuid-001"} NX EX 10
+    UpstashCache-->>ConcurrencyLockGuard: OK
+    ConcurrencyLockGuard-->>SpinUseCase: lockToken = "lock-uuid-001"
+
+    SpinUseCase->>WalletRepo: getBalance(playerId: "a3f7c2d1...", currency: "USD")
+    WalletRepo->>SupaDB: SELECT balance FROM wallets WHERE player_id='a3f7c2d1...' AND currency='USD' FOR UPDATE
+    SupaDB-->>WalletRepo: balance = 250.00
+    WalletRepo-->>SpinUseCase: 250.00
+
+    Note over SpinUseCase: Validate: 250.00 >= cost(0.50) → OK
+
+    SpinUseCase->>WalletRepo: debit(playerId: "a3f7c2d1...", amount: 0.50, currency: "USD")
+    WalletRepo->>SupaDB: UPDATE wallets SET balance = 249.50 WHERE player_id='a3f7c2d1...' (FOR UPDATE row lock)
+    WalletRepo->>SupaDB: INSERT INTO wallet_transactions (player_id, amount, type, created_at) VALUES ('a3f7c2d1...', 0.50, 'DEBIT', now())
+    SupaDB-->>WalletRepo: OK
+    WalletRepo-->>SpinUseCase: void
+
+    SpinUseCase->>SlotEngine: spin(SpinRequest { baseBet=0.50, extraBet=false, ... })
+
+    SlotEngine->>SlotEngine: generateGrid(config, extraBet=false)
+    Note over SlotEngine: Produces 5x3 grid using per-column symbol weights from GameConfig.generated.ts
+
+    SlotEngine->>NearMiss: select(grid: Grid, config: NearMissConfig)
+    NearMiss-->>SlotEngine: grid (no near-miss applied this spin, rng > nearMissProb)
+
+    SlotEngine->>CascadeEngine: runCascade(grid: Grid, config: GameConfig)
+
+    loop Cascade iteration (2 steps in this spin)
+        CascadeEngine->>CascadeEngine: detectWinLines(grid, paylines[0..24])
+        CascadeEngine->>CascadeEngine: eliminateSymbols(grid, winLines)
+        CascadeEngine->>CascadeEngine: applyGravity(grid)
+        CascadeEngine->>CascadeEngine: expandRows(grid)
+        Note over CascadeEngine: rows: 3 → 4 (step 0), 4 → 4 (step 1 stays)
+    end
+
+    CascadeEngine-->>SlotEngine: CascadeSequence { steps: [CascadeStep×2], totalWin: 1.25, finalRows: 4, lightningMarks: {count:3} }
+
+    Note over SlotEngine: rows=4 (not 6) → NO CoinToss. fgTriggered=false.
+    Note over SlotEngine: thunderBlessingTriggered=false (no SC in new symbols)
+
+    SlotEngine-->>SpinUseCase: SpinEntity { sessionId: "sess-9e2b1a34...", totalWin: 1.25, fgTriggered: false, cascadeSequence: {2 steps} }
+
+    SpinUseCase->>WalletRepo: credit(playerId: "a3f7c2d1...", amount: 1.25, currency: "USD")
+    WalletRepo->>SupaDB: UPDATE wallets SET balance = 250.75 WHERE player_id='a3f7c2d1...'
+    WalletRepo->>SupaDB: INSERT INTO wallet_transactions (player_id, amount, type) VALUES ('a3f7c2d1...', 1.25, 'CREDIT')
+    SupaDB-->>WalletRepo: OK
+
+    SpinUseCase->>SessionRepo: save(SpinEntity → spin_log row)
+    SessionRepo->>SupaDB: INSERT INTO spin_logs (session_id, player_id, bet_level, outcome_jsonb, total_win, created_at)
+    SupaDB-->>SessionRepo: OK
+
+    SpinUseCase->>ConcurrencyLockGuard: release(sessionId: "sess-new-auto", lockToken: "lock-uuid-001")
+    ConcurrencyLockGuard->>UpstashCache: DEL session:sess-new-auto:lock
+    UpstashCache-->>ConcurrencyLockGuard: OK
+
+    SpinUseCase-->>Fastify: FullSpinOutcomeDTO { totalWin: 1.25, fgTriggered: false, cascadeSteps: [...], ... }
+
+    Fastify->>AuditLog: emit SpinCompleted { sessionId, playerId, totalWin: 1.25, timestamp }
+
+    Note over Client,AuditLog: Response payload: 200 OK
+    Note over Fastify: { "success": true, "data": { "sessionId": "sess-9e2b1a34-cf87-4d12-a951-bc7d3e4f5678", "totalWin": 1.25, "fgTriggered": false, "cascadeSteps": [{index:0, stepWin:0.75, rows:4, newLightningMarks:[...]}, {index:1, stepWin:0.50, rows:4, newLightningMarks:[...]}], "coinTossTriggered": false, "thunderBlessingTriggered": false, "engineVersion": "1.0.0", "timestamp": "2026-04-26T10:30:00Z" }, "requestId": "req-abc123", "timestamp": "2026-04-26T10:30:00Z" }
+
+    Fastify-->>Client: 200 OK {success: true, data: FullSpinOutcomeDTO, requestId: "req-abc123"}</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

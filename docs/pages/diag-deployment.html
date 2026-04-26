@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>部署圖 — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 部署圖</p>
+    <h1 class="banner-title">部署圖</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link active" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: deployment</p>
+<p>uml-type: deployment</p>
+<p>source: EDD.md §4.5.13, §3.5 Environment Matrix; ARCH.md §7 HA Design, §8 DR, §10 Scalability</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Deployment Diagram — Kubernetes Production Environment</h1>
+<blockquote><p>來源：EDD.md §4.5.13 Deployment Diagram, §3.5 Environment Matrix; ARCH.md §7 High Availability, §8 DR, §10 Scalability</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">flowchart TD
+    subgraph Internet["Internet Zone"]
+        Player(["Player Browser / Native App"])
+        CDN["Cloudflare CDN\nHTTPS :443\nDDoS mitigation\nStatic asset cache\nEdge PoP global"]
+    end
+
+    subgraph DMZ["DMZ — nginx Ingress Controller"]
+        Ingress["nginx-ingress-controller\nImage: nginx/nginx-ingress:3.x\nHTTPS :443 TLS 1.3 termination\nRate limit: 5 req/s per player JWT sub\nHTTP → K8s Service :3000"]
+        Cert["cert-manager\nLet's Encrypt TLS\nCertificate auto-renewal"]
+    end
+
+    subgraph K8sCluster["Kubernetes Cluster — thunder-prod namespace"]
+        direction TB
+
+        subgraph HPAScaling["HPA — HorizontalPodAutoscaler"]
+            HPA["HPA: thunder-api\nminReplicas: 3\nmaxReplicas: 10\nCPU target: 70%\nscaleUp: +1 pod per 60s\nscaleDown: -1 pod per 120s"]
+        end
+
+        subgraph PDBControl["PDB — PodDisruptionBudget"]
+            PDB["PDB: thunder-api\nminAvailable: 2\nPrevents evicting below 2 pods\nduring rolling updates or node drain"]
+        end
+
+        subgraph APIPods["API Pod Replicas — thunder-blessing-api:latest"]
+            Pod1["Pod: thunder-api-1\nImage: thunder-blessing-api:latest\nCPU request: 0.5 limit: 1.0\nMem request: 512Mi limit: 1Gi\nPort :3000\nLivenessProbe: GET /health every 10s\nReadinessProbe: GET /ready every 5s\nRestartPolicy: Always"]
+            Pod2["Pod: thunder-api-2\nImage: thunder-blessing-api:latest\nCPU request: 0.5 limit: 1.0\nMem request: 512Mi limit: 1Gi\nPort :3000\nLivenessProbe: GET /health every 10s\nReadinessProbe: GET /ready every 5s"]
+            Pod3["Pod: thunder-api-3\nImage: thunder-blessing-api:latest\nCPU request: 0.5 limit: 1.0\nMem request: 512Mi limit: 1Gi\nPort :3000\nLivenessProbe: GET /health every 10s\nReadinessProbe: GET /ready every 5s"]
+            PodN["Pod: thunder-api-N\n(HPA scales 4-10)\nSame spec as above\nauto-provisioned on CPU 70%"]
+        end
+
+        subgraph K8sService["K8s Service — thunder-api"]
+            SVC["Service: thunder-api\ntype: ClusterIP\nPort :3000 → Pod :3000\nSessionAffinity: None"]
+        end
+
+        subgraph ConfigMaps["ConfigMaps + Secrets"]
+            CM["ConfigMap: thunder-config\nNODE_ENV=production\nLOG_LEVEL=info\nLOG_RNG_VALUES=false\nENGINE_TIMEOUT_MS=2000\nRATE_LIMIT_MAX=5\nRATE_LIMIT_WINDOW=1s"]
+            SEC["Secret: thunder-secrets\nSUPABASE_URL (base64)\nSUPABASE_SERVICE_KEY (base64)\nUPSTASH_REDIS_URL (base64)\nSUPABASE_JWT_SECRET (base64)"]
+        end
+
+        subgraph ObsStack["Observability — monitoring namespace"]
+            OTELDeploy["OTELCollector Deployment\nImage: otel/opentelemetry-collector:latest\nPort :4317 gRPC\nPort :4318 HTTP"]
+            GrafanaDeploy["Grafana Deployment\nImage: grafana/grafana:10.x\nPort :3001\nDatasources: Prometheus + Tempo"]
+            PromDeploy["Prometheus\nScrape interval: 15s\nspin_duration_seconds histogram\nwallet_error_total counter"]
+        end
+    end
+
+    subgraph DataZone["Data Zone — External Managed Services"]
+        subgraph SupabaseCloud["Supabase Cloud — Pro Plan"]
+            SupaDB[("Supabase PostgreSQL 15\ndb.zzz.supabase.co\nPort :5432 TLS\nRLS row-level security\nAES-256 at rest\nTables: players wallets\nwallet_transactions spin_logs\nfg_sessions")]
+            SupaAuth["Supabase Auth Service\nauth.supabase.co\nHTTPS :443\nRS256 JWT\nAccess TTL=3600s\nRefresh TTL=604800s\nPublicKey cached 1h in pods"]
+        end
+
+        subgraph UpstashCloud["Upstash — Standard Plan"]
+            UpstashRedis[("Upstash Redis 7\nGlobal replication\nPort :6379 TLS\nPersistence: disabled TTL-only\nMax memory: evict volatile-lru\nSession: session:{id} Hash TTL=300s\nLock: session:{id}:lock String TTL=10s")]
+        end
+    end
+
+    %% ─── Internet → DMZ ───────────────────────────────────────────────────────
+    Player -->|"HTTPS :443"| CDN
+    CDN -->|"Origin pull HTTPS :443"| Ingress
+    Player -->|"API calls HTTPS :443"| Ingress
+    Cert --> Ingress
+
+    %% ─── Ingress → Service → Pods ─────────────────────────────────────────────
+    Ingress -->|"HTTP :3000 round-robin"| SVC
+    SVC -->|"ClusterIP :3000"| Pod1
+    SVC -->|"ClusterIP :3000"| Pod2
+    SVC -->|"ClusterIP :3000"| Pod3
+    SVC -.->|"ClusterIP :3000 auto-scaled"| PodN
+
+    %% ─── HPA manages pods ────────────────────────────────────────────────────
+    HPA -.->|"manages replicas CPU 70%"| Pod1
+    HPA -.->|"manages replicas"| Pod2
+    HPA -.->|"manages replicas"| Pod3
+    HPA -.->|"auto-provisions"| PodN
+
+    %% ─── PDB protects pods ───────────────────────────────────────────────────
+    PDB -.->|"minAvailable=2 guards"| Pod1
+    PDB -.->|"minAvailable=2 guards"| Pod2
+
+    %% ─── Pods → External Services ────────────────────────────────────────────
+    Pod1 -->|"SQL TLS :5432"| SupaDB
+    Pod2 -->|"SQL TLS :5432"| SupaDB
+    Pod3 -->|"SQL TLS :5432"| SupaDB
+    Pod1 -->|"HTTPS :443 JWT verify"| SupaAuth
+    Pod2 -->|"HTTPS :443 JWT verify"| SupaAuth
+    Pod3 -->|"HTTPS :443 JWT verify"| SupaAuth
+    Pod1 -->|"Redis Protocol TLS :6379"| UpstashRedis
+    Pod2 -->|"Redis Protocol TLS :6379"| UpstashRedis
+    Pod3 -->|"Redis Protocol TLS :6379"| UpstashRedis
+
+    %% ─── Pods → Observability ─────────────────────────────────────────────────
+    Pod1 -->|"OTLP gRPC :4317"| OTELDeploy
+    Pod2 -->|"OTLP gRPC :4317"| OTELDeploy
+    Pod3 -->|"OTLP gRPC :4317"| OTELDeploy
+    OTELDeploy --> GrafanaDeploy
+    OTELDeploy --> PromDeploy
+
+    %% ─── Config injection ─────────────────────────────────────────────────────
+    CM -.->|"envFrom configMapRef"| Pod1
+    CM -.->|"envFrom configMapRef"| Pod2
+    CM -.->|"envFrom configMapRef"| Pod3
+    SEC -.->|"envFrom secretRef"| Pod1
+    SEC -.->|"envFrom secretRef"| Pod2
+    SEC -.->|"envFrom secretRef"| Pod3</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

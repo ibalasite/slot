@@ -1,859 +1,208 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PDD — Product Design — Thunder Blessing GDD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <style>
-    :root {
-      --bg-primary:     #0f1117;
-      --bg-secondary:   #161b27;
-      --bg-tertiary:    #1e2535;
-      --bg-card:        #1a2032;
-      --border:         #2a3347;
-      --text-primary:   #e2e8f0;
-      --text-secondary: #94a3b8;
-      --text-muted:     #64748b;
-      --accent:         #f6ad55;
-      --accent-dim:     #c27d30;
-      --accent-glow:    rgba(246,173,85,0.15);
-      --green:          #4ade80;
-      --blue:           #60a5fa;
-      --purple:         #a78bfa;
-      --red:            #f87171;
-      --sidebar-width:  260px;
-      --header-height:  60px;
-      --font-sans:      'Inter', system-ui, sans-serif;
-      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
-      --radius:         8px;
-      --radius-lg:      12px;
-      --duration-fast:  150ms;
-      --ease-out:       cubic-bezier(0.16,1,0.3,1);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.7;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--header-height);
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 16px;
-      z-index: 100;
-    }
-
-    .header-logo {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: var(--accent);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .header-title {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      border-left: 1px solid var(--border);
-      padding-left: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-back {
-      margin-left: auto;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      transition: all var(--duration-fast);
-      white-space: nowrap;
-    }
-
-    .header-back:hover {
-      color: var(--accent);
-      border-color: var(--accent-dim);
-      background: var(--accent-glow);
-    }
-
-    .menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-    }
-
-    .menu-toggle:hover { background: var(--bg-tertiary); }
-
-    /* Layout */
-    .layout {
-      display: flex;
-      margin-top: var(--header-height);
-      min-height: calc(100vh - var(--header-height));
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: var(--header-height);
-      left: 0; bottom: 0;
-      overflow-y: auto;
-      padding: 20px 0;
-      transition: transform var(--duration-fast) var(--ease-out);
-      z-index: 90;
-    }
-
-    .sidebar::-webkit-scrollbar { width: 4px; }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .nav-section-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      padding: 12px 20px 6px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 20px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.85rem;
-      border-left: 2px solid transparent;
-      transition: all var(--duration-fast);
-    }
-
-    .nav-link:hover {
-      color: var(--text-primary);
-      background: var(--accent-glow);
-      border-left-color: var(--accent-dim);
-    }
-
-    .nav-link.active {
-      color: var(--accent);
-      background: var(--accent-glow);
-      border-left-color: var(--accent);
-      font-weight: 500;
-    }
-
-    /* Main content */
-    .main {
-      margin-left: var(--sidebar-width);
-      flex: 1;
-      padding: 40px 48px;
-      max-width: 920px;
-    }
-
-    /* Page heading */
-    .page-title {
-      font-size: clamp(1.6rem, 2.5vw, 2rem);
-      font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.25;
-    }
-
-    .page-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .page-meta span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Markdown content */
-    .md-content h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 40px 0 16px;
-      color: var(--text-primary);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content h1:first-child { margin-top: 0; }
-
-    .md-content h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 36px 0 14px;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .md-content h2::before {
-      content: '';
-      display: block;
-      width: 3px;
-      height: 16px;
-      background: var(--accent);
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
-    .md-content h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 28px 0 10px;
-      color: var(--text-primary);
-    }
-
-    .md-content h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 20px 0 8px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.82rem;
-    }
-
-    .md-content p {
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .md-content a:hover { text-decoration: underline; }
-
-    .md-content strong { color: var(--text-primary); font-weight: 600; }
-    .md-content em     { color: var(--text-secondary); font-style: italic; }
-
-    /* Inline code */
-    .md-content code {
-      font-family: var(--font-mono);
-      font-size: 0.82em;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 5px;
-      color: var(--accent);
-    }
-
-    /* Code blocks */
-    .md-content pre {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    /* Mermaid */
-    .mermaid-wrap {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin: 16px 0;
-      overflow-x: auto;
-    }
-
-    /* Tables */
-    .table-wrap {
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .md-content table th {
-      text-align: left;
-      padding: 8px 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-muted);
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content table td {
-      padding: 9px 12px;
-      border-bottom: 1px solid rgba(42,51,71,0.5);
-      color: var(--text-secondary);
-      vertical-align: top;
-    }
-
-    .md-content table tr:last-child td { border-bottom: none; }
-    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
-
-    /* Lists */
-    .md-content ul, .md-content ol {
-      padding-left: 20px;
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content li { margin-bottom: 5px; }
-    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
-
-    /* Blockquotes */
-    .md-content blockquote {
-      border-left: 3px solid var(--accent-dim);
-      padding: 10px 16px;
-      background: rgba(246,173,85,0.06);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      margin: 16px 0;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .md-content blockquote p { margin-bottom: 0; }
-
-    /* HR */
-    .md-content hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 28px 0;
-    }
-
-    /* Footer */
-    .site-footer {
-      margin-left: var(--sidebar-width);
-      border-top: 1px solid var(--border);
-      padding: 18px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .footer-accent { color: var(--accent); font-weight: 600; }
-
-    /* Sidebar overlay */
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 89;
-    }
-
-    .sidebar-overlay.active { display: block; }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
-      .main { margin-left: 0; padding: 24px 16px; }
-      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
-      .menu-toggle { display: flex; }
-      .header-title { display: none; }
-    }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>產品設計文件 (PDD) — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
-
-  <header class="site-header">
-    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6"  x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
-    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
-    <span class="header-title">PDD — Product Design</span>
-    <a href="index.html" class="header-back">← Docs Hub</a>
-  </header>
-
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-  <div class="layout">
-    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
-      <div class="nav-section-label">Business</div>
-<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
-<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
-<div class="nav-section-label">Design</div>
-<a href="PDD.html" class="nav-link active"><span>🎨</span><span>PDD — Product Design</span></a>
-<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
-<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
-<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
-<div class="nav-section-label">Engineering</div>
-<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
-<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
-<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
-<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
-<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
-<div class="nav-section-label">Testing</div>
-<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
-<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
-<div class="nav-section-label">Operations</div>
-<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
-<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
-    </nav>
-
-    <main class="main" id="main">
-      <div class="page-meta">
-        <span>🎨 Design</span>
-        <span>Source: <code>PDD.md</code></span>
-        <span>Generated: 2026-04-26</span>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
       </div>
-      <article class="md-content">
-        <h1 id="pdd-product-design-document">PDD — Product Design Document</h1>
-<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 產品設計文件 (PDD)</p>
+    <h1 class="banner-title">產品設計文件 (PDD)</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link active" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h1>PDD — Product Design Document</h1>
+<h1>Thunder Blessing Slot Game</h1>
 <hr>
-<h2 id="h-0-document-control">§0 Document Control</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>欄位</th>
-<th>內容</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>DOC-ID</strong></td>
-<td>PDD-THUNDERBLESSING-20260426</td>
-</tr>
-<tr>
-<td><strong>產品名稱</strong></td>
-<td>Thunder Blessing Slot Game</td>
-</tr>
-<tr>
-<td><strong>文件版本</strong></td>
-<td>v1.0</td>
-</tr>
-<tr>
-<td><strong>狀態</strong></td>
-<td>DRAFT</td>
-</tr>
-<tr>
-<td><strong>作者</strong></td>
-<td>AI Generated (gendoc-gen agent)</td>
-</tr>
-<tr>
-<td><strong>日期</strong></td>
-<td>2026-04-26</td>
-</tr>
-<tr>
-<td><strong>上游文件</strong></td>
-<td>IDEA.md, BRD.md, PRD.md, engine_config.json, GDD_Thunder_Blessing_Slot.md</td>
-</tr>
-<tr>
-<td><strong>審閱者</strong></td>
-<td>遊戲企劃, 前端工程師, UI/UX 設計師</td>
-</tr>
-<tr>
-<td><strong>核准者</strong></td>
-<td>Art Director, Engineering Lead</td>
-</tr>
-</tbody></table></div>
-<h3 id="change-log">Change Log</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>版本</th>
-<th>日期</th>
-<th>作者</th>
-<th>變更摘要</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>v1.0</td>
-<td>2026-04-26</td>
-<td>AI Generated</td>
-<td>初始生成，涵蓋全套視覺與 UI 設計規格</td>
-</tr>
-</tbody></table></div>
+<h2>§0 Document Control</h2>
+<table>
+<tr><th>欄位</th><th>內容</th></tr>
+<tr><td><strong>DOC-ID</strong></td><td>PDD-THUNDERBLESSING-20260426</td></tr>
+<tr><td><strong>產品名稱</strong></td><td>Thunder Blessing Slot Game</td></tr>
+<tr><td><strong>文件版本</strong></td><td>v1.0</td></tr>
+<tr><td><strong>狀態</strong></td><td>DRAFT</td></tr>
+<tr><td><strong>作者</strong></td><td>AI Generated (gendoc-gen agent)</td></tr>
+<tr><td><strong>日期</strong></td><td>2026-04-26</td></tr>
+<tr><td><strong>上游文件</strong></td><td>IDEA.md, BRD.md, PRD.md, engine_config.json, GDD_Thunder_Blessing_Slot.md</td></tr>
+<tr><td><strong>審閱者</strong></td><td>遊戲企劃, 前端工程師, UI/UX 設計師</td></tr>
+<tr><td><strong>核准者</strong></td><td>Art Director, Engineering Lead</td></tr>
+</table>
+<h3>Change Log</h3>
+<table>
+<tr><th>版本</th><th>日期</th><th>作者</th><th>變更摘要</th></tr>
+<tr><td>v1.0</td><td>2026-04-26</td><td>AI Generated</td><td>初始生成，涵蓋全套視覺與 UI 設計規格</td></tr>
+</table>
 <hr>
-<h2 id="h-1-design-vision設計願景">§1 Design Vision（設計願景）</h2>
-<h3 id="h-11-主題定義">1.1 主題定義</h3>
+<h2>§1 Design Vision（設計願景）</h2>
+<h3>1.1 主題定義</h3>
 <p>Thunder Blessing 以<strong>希臘神話</strong>為核心敘事框架，世界觀設定在眾神之巔奧林匹斯山。Zeus（宙斯）是最高神祇，掌管閃電與天空；Pegasus（天馬）是翼馬神獸；Athena（雅典娜）是智慧與戰略女神；Eagle（雄鷹）是宙斯的神聖信使。</p>
 <p>遊戲符號系統映射神話層級：</p>
-<ul>
-<li><strong>Wild（百搭）</strong>：Divine Lightning（神聖閃電）／Golden Thunderbolt（黃金雷霆），Zeus 的神聖力量象徵物，可代替一切（除 Scatter）</li>
-<li><strong>Scatter</strong>：Thunder Blessing 符文，具有引爆閃電力量的神諭符號</li>
-<li><strong>P1（最高賠）</strong>：Zeus（宙斯），雷電之神</li>
-<li><strong>P2</strong>：Pegasus（天馬），翼馬神獸</li>
-<li><strong>P3</strong>：Athena（雅典娜），智慧與戰略女神</li>
-<li><strong>P4</strong>：Eagle（雄鷹），宙斯的神聖信使</li>
-<li><strong>Low 符號（L1–L4）</strong>：Zeus 名字的四個字母 Z / E / U / S，以金色銘文呈現</li>
-</ul>
-<h3 id="h-12-視覺風格方向">1.2 視覺風格方向</h3>
+<ul><li><strong>Wild（百搭）</strong>：Divine Lightning（神聖閃電）／Golden Thunderbolt（黃金雷霆），Zeus 的神聖力量象徵物，可代替一切（除 Scatter）</li><li><strong>Scatter</strong>：Thunder Blessing 符文，具有引爆閃電力量的神諭符號</li><li><strong>P1（最高賠）</strong>：Zeus（宙斯），雷電之神</li><li><strong>P2</strong>：Pegasus（天馬），翼馬神獸</li><li><strong>P3</strong>：Athena（雅典娜），智慧與戰略女神</li><li><strong>P4</strong>：Eagle（雄鷹），宙斯的神聖信使</li><li><strong>Low 符號（L1–L4）</strong>：Zeus 名字的四個字母 Z / E / U / S，以金色銘文呈現</li></ul>
+<h3>1.2 視覺風格方向</h3>
 <p><strong>史詩電影感（Epic Cinematic）</strong></p>
 <p>主視覺定調為「神殿巔峰，雷霆降臨」：</p>
-<ul>
-<li>宏大的立體空間感，滾輪坐落於帕德嫩神殿列柱之間</li>
-<li>雲層與光影動態渲染，呈現時序從黃昏到雷暴的戲劇性氛圍</li>
-<li>閃電特效以體積光（Volumetric Light）呈現，光錐從天空貫穿雲層照射神殿</li>
-<li>金屬鍛刻質感的符號，帶有浮雕凸紋、鍍金邊框與皮革紋理細節</li>
-<li>整體色調偏向史詩繪畫：琥珀金、深海藍、皇家紫，配以白色閃電輝光</li>
-</ul>
-<h3 id="h-13-設計原則">1.3 設計原則</h3>
-<ol>
-<li><strong>層次即敘事</strong>：每一個視覺元素的尺寸、亮度、動態幅度都服務於「哪件事最重要」——Wild 最亮、Scatter 最動態、Low 符號最克制。</li>
-<li><strong>張力累積可視化</strong>：閃電標記的累積、FREE 字母的亮燈、倍率進度條的填充，都是視覺化的「能量蓄積」，驅動玩家情緒跟著遊戲進程高漲。</li>
-<li><strong>特效有目的，不濫用</strong>：每種特效只在對應的遊戲事件觸發時出現，絕不為裝飾而插播；動畫播放不阻礙遊戲節奏。</li>
-<li><strong>一致的神話美學語言</strong>：所有 UI 元素（按鈕、HUD、對話框、進度條）均使用同一套希臘神話風格語彙——石刻字體、鍛金框架、神殿柱式裝飾。</li>
-<li><strong>行動優先的可讀性</strong>：在 320px 至 1440px 的所有尺寸下，關鍵資訊（餘額、押注、WIN 值）必須無障礙易讀，符號圖案必須可辨識。</li>
-</ol>
+<ul><li>宏大的立體空間感，滾輪坐落於帕德嫩神殿列柱之間</li><li>雲層與光影動態渲染，呈現時序從黃昏到雷暴的戲劇性氛圍</li><li>閃電特效以體積光（Volumetric Light）呈現，光錐從天空貫穿雲層照射神殿</li><li>金屬鍛刻質感的符號，帶有浮雕凸紋、鍍金邊框與皮革紋理細節</li><li>整體色調偏向史詩繪畫：琥珀金、深海藍、皇家紫，配以白色閃電輝光</li></ul>
+<h3>1.3 設計原則</h3>
+<ol><li><strong>層次即敘事</strong>：每一個視覺元素的尺寸、亮度、動態幅度都服務於「哪件事最重要」——Wild 最亮、Scatter 最動態、Low 符號最克制。</li><li><strong>張力累積可視化</strong>：閃電標記的累積、FREE 字母的亮燈、倍率進度條的填充，都是視覺化的「能量蓄積」，驅動玩家情緒跟著遊戲進程高漲。</li><li><strong>特效有目的，不濫用</strong>：每種特效只在對應的遊戲事件觸發時出現，絕不為裝飾而插播；動畫播放不阻礙遊戲節奏。</li><li><strong>一致的神話美學語言</strong>：所有 UI 元素（按鈕、HUD、對話框、進度條）均使用同一套希臘神話風格語彙——石刻字體、鍛金框架、神殿柱式裝飾。</li><li><strong>行動優先的可讀性</strong>：在 320px 至 1440px 的所有尺寸下，關鍵資訊（餘額、押注、WIN 值）必須無障礙易讀，符號圖案必須可辨識。</li></ol>
 <hr>
-<h2 id="h-2-symbol-design-specifications符號設計規格">§2 Symbol Design Specifications（符號設計規格）</h2>
-<h3 id="h-21-符號尺寸規格基準解析度-19201080">2.1 符號尺寸規格（基準解析度 1920×1080）</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>符號</th>
-<th>設計尺寸（像素）</th>
-<th>含邊框出血尺寸</th>
-<th>圖檔格式</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Wild（W）</td>
-<td>200×200</td>
-<td>220×220</td>
-<td>PNG-32</td>
-</tr>
-<tr>
-<td>Scatter（SC）</td>
-<td>200×200</td>
-<td>220×220</td>
-<td>PNG-32</td>
-</tr>
-<tr>
-<td>P1 / P2 / P3 / P4</td>
-<td>180×180</td>
-<td>200×200</td>
-<td>PNG-32</td>
-</tr>
-<tr>
-<td>L1 / L2 / L3 / L4</td>
-<td>160×160</td>
-<td>180×180</td>
-<td>PNG-32</td>
-</tr>
-</tbody></table></div>
+<h2>§2 Symbol Design Specifications（符號設計規格）</h2>
+<h3>2.1 符號尺寸規格（基準解析度 1920×1080）</h3>
+<table>
+<tr><th>符號</th><th>設計尺寸（像素）</th><th>含邊框出血尺寸</th><th>圖檔格式</th></tr>
+<tr><td>Wild（W）</td><td>200×200</td><td>220×220</td><td>PNG-32</td></tr>
+<tr><td>Scatter（SC）</td><td>200×200</td><td>220×220</td><td>PNG-32</td></tr>
+<tr><td>P1 / P2 / P3 / P4</td><td>180×180</td><td>200×200</td><td>PNG-32</td></tr>
+<tr><td>L1 / L2 / L3 / L4</td><td>160×160</td><td>180×180</td><td>PNG-32</td></tr>
+</table>
 <blockquote><p>滾輪格子實際渲染尺寸依各平台解析度縮放；設計原稿以上表尺寸為基準輸出。</p></blockquote>
 <hr>
-<h3 id="h-22-wild-符號-divine-lightning神聖閃電">2.2 Wild 符號 — Divine Lightning（神聖閃電）</h3>
+<h3>2.2 Wild 符號 — Divine Lightning（神聖閃電）</h3>
 <p><strong>視覺描述</strong></p>
-<ul>
-<li>黃金雷霆（Golden Thunderbolt）正面構圖，Zeus 神力象徵物，非 Zeus 人物本身</li>
-<li>閃電叉造型宏偉，中段有鍛刻符文，末端電弧向外散射</li>
-<li>底部有「WILD」金色銘文，字體採鍛刻浮雕效果</li>
-<li>符號外框為八角形金色邊框，四角有小型閃電圖案點綴</li>
-<li>整體以深藍漸層為底，雷霆後方有白色放射光暈</li>
-</ul>
+<ul><li>黃金雷霆（Golden Thunderbolt）正面構圖，Zeus 神力象徵物，非 Zeus 人物本身</li><li>閃電叉造型宏偉，中段有鍛刻符文，末端電弧向外散射</li><li>底部有「WILD」金色銘文，字體採鍛刻浮雕效果</li><li>符號外框為八角形金色邊框，四角有小型閃電圖案點綴</li><li>整體以深藍漸層為底，雷霆後方有白色放射光暈</li></ul>
 <p><strong>動畫狀態</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>狀態</th>
-<th>描述</th>
-<th>時長</th>
-<th>觸發條件</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Idle</td>
-<td>雷霆末端電弧緩慢閃爍（呼吸循環），符文輕微發光脈衝</td>
-<td>2s loop</td>
-<td>符號停止後，未中獎待機</td>
-</tr>
-<tr>
-<td>Win</td>
-<td>雷霆爆發，光柱衝出，外框電弧擴散至整個格子</td>
-<td>1.2s</td>
-<td>此符號參與中獎連線</td>
-</tr>
-<tr>
-<td>Special</td>
-<td>雷霆全力釋放，金光爆炸，閃電從符號輻射至整個滾輪，配合 Thunder Blessing 觸發演出</td>
-<td>2.5s</td>
-<td>Scatter 引爆後，Wild 格位升階演出</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>狀態</th><th>描述</th><th>時長</th><th>觸發條件</th></tr>
+<tr><td>Idle</td><td>雷霆末端電弧緩慢閃爍（呼吸循環），符文輕微發光脈衝</td><td>2s loop</td><td>符號停止後，未中獎待機</td></tr>
+<tr><td>Win</td><td>雷霆爆發，光柱衝出，外框電弧擴散至整個格子</td><td>1.2s</td><td>此符號參與中獎連線</td></tr>
+<tr><td>Special</td><td>雷霆全力釋放，金光爆炸，閃電從符號輻射至整個滾輪，配合 Thunder Blessing 觸發演出</td><td>2.5s</td><td>Scatter 引爆後，Wild 格位升階演出</td></tr>
+</table>
 <hr>
-<h3 id="h-23-scatter-符號-thunder-blessing-scatter">2.3 Scatter 符號 — Thunder Blessing Scatter</h3>
+<h3>2.3 Scatter 符號 — Thunder Blessing Scatter</h3>
 <p><strong>視覺描述</strong></p>
-<ul>
-<li>圓形石板符文，中央為 Zeus 閃電叉圖騰（金色銘刻）</li>
-<li>外環為雙層石刻圓框，內層刻有希臘幾何紋飾（回紋），外層有「THUNDER BLESSING」銘文</li>
-<li>符文表面有藍色電弧持續流動</li>
-<li>符號整體有輕微懸浮感（投影陰影）</li>
-<li>「SCATTER」字樣以發光金色字體顯示於符號下方</li>
-</ul>
+<ul><li>圓形石板符文，中央為 Zeus 閃電叉圖騰（金色銘刻）</li><li>外環為雙層石刻圓框，內層刻有希臘幾何紋飾（回紋），外層有「THUNDER BLESSING」銘文</li><li>符文表面有藍色電弧持續流動</li><li>符號整體有輕微懸浮感（投影陰影）</li><li>「SCATTER」字樣以發光金色字體顯示於符號下方</li></ul>
 <p><strong>動畫狀態</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>狀態</th>
-<th>描述</th>
-<th>時長</th>
-<th>觸發條件</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Idle</td>
-<td>外環電弧持續旋轉，符文中央閃電圖騰每 3 秒脈衝一次</td>
-<td>3s loop</td>
-<td>符號在盤面停止後待機</td>
-</tr>
-<tr>
-<td>Win（觸發）</td>
-<td>符文爆開，放射出藍白電弧；「THUNDER BLESSING」文字從符號飛出放大消散</td>
-<td>1.8s</td>
-<td>Scatter 落下且盤面有閃電標記，雷霆祝福觸發</td>
-</tr>
-<tr>
-<td>Special（第二擊）</td>
-<td>符文再次引爆，金色光浪從中心擴散至整個滾輪，符號升階演出（tbSecondHit=0.40 機率觸發，非必然）</td>
-<td>1.5s</td>
-<td>雷霆祝福第二擊（tbSecondHit = 40%）觸發</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>狀態</th><th>描述</th><th>時長</th><th>觸發條件</th></tr>
+<tr><td>Idle</td><td>外環電弧持續旋轉，符文中央閃電圖騰每 3 秒脈衝一次</td><td>3s loop</td><td>符號在盤面停止後待機</td></tr>
+<tr><td>Win（觸發）</td><td>符文爆開，放射出藍白電弧；「THUNDER BLESSING」文字從符號飛出放大消散</td><td>1.8s</td><td>Scatter 落下且盤面有閃電標記，雷霆祝福觸發</td></tr>
+<tr><td>Special（第二擊）</td><td>符文再次引爆，金色光浪從中心擴散至整個滾輪，符號升階演出（tbSecondHit=0.40 機率觸發，非必然）</td><td>1.5s</td><td>雷霆祝福第二擊（tbSecondHit = 40%）觸發</td></tr>
+</table>
 <hr>
-<h3 id="h-24-p1-符號-zeus宙斯">2.4 P1 符號 — Zeus（宙斯）</h3>
+<h3>2.4 P1 符號 — Zeus（宙斯）</h3>
 <p><strong>視覺描述</strong></p>
-<ul>
-<li>Zeus 半身像，正面構圖，白髮如雷電飛揚，眼神充滿神威</li>
-<li>手持金色閃電叉（雷霆），指向觀者</li>
-<li>外框為八角形帝王金框架，四角有小型閃電圖案點綴</li>
-<li>整體以深藍漸層為底，Zeus 頭部後方有白色放射光暈</li>
-<li>底部「ZEUS」帝王金銘文</li>
-</ul>
+<ul><li>Zeus 半身像，正面構圖，白髮如雷電飛揚，眼神充滿神威</li><li>手持金色閃電叉（雷霆），指向觀者</li><li>外框為八角形帝王金框架，四角有小型閃電圖案點綴</li><li>整體以深藍漸層為底，Zeus 頭部後方有白色放射光暈</li><li>底部「ZEUS」帝王金銘文</li></ul>
 <p><strong>動畫狀態</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>狀態</th>
-<th>描述</th>
-<th>時長</th>
-<th>觸發條件</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Idle</td>
-<td>Zeus 雙眼緩慢發光（呼吸循環），閃電叉末端有電弧閃爍</td>
-<td>3s loop</td>
-<td>待機</td>
-</tr>
-<tr>
-<td>Win</td>
-<td>Zeus 揮動閃電叉，光柱爆發，外框電弧擴散至整個格子</td>
-<td>1.5s</td>
-<td>參與中獎連線</td>
-</tr>
-<tr>
-<td>Special</td>
-<td>全身金光爆炸，閃電從符號輻射至整個滾輪，符號位置升階爆光</td>
-<td>2.0s</td>
-<td>雷霆祝福升階至 P1</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>狀態</th><th>描述</th><th>時長</th><th>觸發條件</th></tr>
+<tr><td>Idle</td><td>Zeus 雙眼緩慢發光（呼吸循環），閃電叉末端有電弧閃爍</td><td>3s loop</td><td>待機</td></tr>
+<tr><td>Win</td><td>Zeus 揮動閃電叉，光柱爆發，外框電弧擴散至整個格子</td><td>1.5s</td><td>參與中獎連線</td></tr>
+<tr><td>Special</td><td>全身金光爆炸，閃電從符號輻射至整個滾輪，符號位置升階爆光</td><td>2.0s</td><td>雷霆祝福升階至 P1</td></tr>
+</table>
 <hr>
-<h3 id="h-25-p2-符號-pegasus天馬">2.5 P2 符號 — Pegasus（天馬）</h3>
+<h3>2.5 P2 符號 — Pegasus（天馬）</h3>
 <p><strong>視覺描述</strong></p>
-<ul>
-<li>天馬側身展翅的精緻繪畫，身體為白金色，翅膀帶紫金漸層</li>
-<li>背景為深藍夜空，雲霧環繞</li>
-<li>外框為圓角矩形，金色大理石紋框架</li>
-<li>底部「PEGASUS」紫金銘文</li>
-</ul>
+<ul><li>天馬側身展翅的精緻繪畫，身體為白金色，翅膀帶紫金漸層</li><li>背景為深藍夜空，雲霧環繞</li><li>外框為圓角矩形，金色大理石紋框架</li><li>底部「PEGASUS」紫金銘文</li></ul>
 <p><strong>動畫狀態</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>狀態</th>
-<th>描述</th>
-<th>時長</th>
-<th>觸發條件</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Idle</td>
-<td>翅膀緩慢扇動（小幅），鬃毛隨風飄動</td>
-<td>3s loop</td>
-<td>待機</td>
-</tr>
-<tr>
-<td>Win</td>
-<td>天馬仰天嘶鳴，翅膀大幅展開，金色光粒子從翅膀散落</td>
-<td>1.3s</td>
-<td>參與中獎連線</td>
-</tr>
-<tr>
-<td>Special</td>
-<td>天馬飛越整個滾輪，留下金色軌跡，符號位置升階爆光</td>
-<td>1.8s</td>
-<td>雷霆祝福升階至 P2</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>狀態</th><th>描述</th><th>時長</th><th>觸發條件</th></tr>
+<tr><td>Idle</td><td>翅膀緩慢扇動（小幅），鬃毛隨風飄動</td><td>3s loop</td><td>待機</td></tr>
+<tr><td>Win</td><td>天馬仰天嘶鳴，翅膀大幅展開，金色光粒子從翅膀散落</td><td>1.3s</td><td>參與中獎連線</td></tr>
+<tr><td>Special</td><td>天馬飛越整個滾輪，留下金色軌跡，符號位置升階爆光</td><td>1.8s</td><td>雷霆祝福升階至 P2</td></tr>
+</table>
 <hr>
-<h3 id="h-26-p3-符號-athena雅典娜">2.6 P3 符號 — Athena（雅典娜）</h3>
+<h3>2.6 P3 符號 — Athena（雅典娜）</h3>
 <p><strong>視覺描述</strong></p>
-<ul>
-<li>雅典娜胸像，頭戴希臘戰盔，左手持橄欖枝，右手持長矛</li>
-<li>色調為銀藍色調，具有大理石雕像質感</li>
-<li>外框為橢圓形銀色框架，四周有橄欖葉紋</li>
-<li>底部「ATHENA」銀色銘文</li>
-</ul>
+<ul><li>雅典娜胸像，頭戴希臘戰盔，左手持橄欖枝，右手持長矛</li><li>色調為銀藍色調，具有大理石雕像質感</li><li>外框為橢圓形銀色框架，四周有橄欖葉紋</li><li>底部「ATHENA」銀色銘文</li></ul>
 <p><strong>動畫狀態</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>狀態</th>
-<th>描述</th>
-<th>時長</th>
-<th>觸發條件</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Idle</td>
-<td>橄欖枝輕輕搖曳，頭盔上的紅羽毛隨風動</td>
-<td>2.5s loop</td>
-<td>待機</td>
-</tr>
-<tr>
-<td>Win</td>
-<td>長矛揮動，藍色魔法光環從雅典娜向外擴散</td>
-<td>1.2s</td>
-<td>參與中獎連線</td>
-</tr>
-<tr>
-<td>Special</td>
-<td>雅典娜散發神聖光芒，符號爆白光升階</td>
-<td>1.8s</td>
-<td>雷霆祝福升階至 P3</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>狀態</th><th>描述</th><th>時長</th><th>觸發條件</th></tr>
+<tr><td>Idle</td><td>橄欖枝輕輕搖曳，頭盔上的紅羽毛隨風動</td><td>2.5s loop</td><td>待機</td></tr>
+<tr><td>Win</td><td>長矛揮動，藍色魔法光環從雅典娜向外擴散</td><td>1.2s</td><td>參與中獎連線</td></tr>
+<tr><td>Special</td><td>雅典娜散發神聖光芒，符號爆白光升階</td><td>1.8s</td><td>雷霆祝福升階至 P3</td></tr>
+</table>
 <hr>
-<h3 id="h-27-p4-符號-eagle雄鷹">2.7 P4 符號 — Eagle（雄鷹）</h3>
+<h3>2.7 P4 符號 — Eagle（雄鷹）</h3>
 <p><strong>視覺描述</strong></p>
-<ul>
-<li>金色雄鷹展翅正面構圖，雙眼銳利，爪持閃電，宙斯的神聖信使</li>
-<li>暗金色羽毛質感，具有金屬光澤</li>
-<li>外框為圓角矩形，銅製紋理框架</li>
-<li>底部「EAGLE」琥珀色銘文</li>
-</ul>
+<ul><li>金色雄鷹展翅正面構圖，雙眼銳利，爪持閃電，宙斯的神聖信使</li><li>暗金色羽毛質感，具有金屬光澤</li><li>外框為圓角矩形，銅製紋理框架</li><li>底部「EAGLE」琥珀色銘文</li></ul>
 <p><strong>動畫狀態</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>狀態</th>
-<th>描述</th>
-<th>時長</th>
-<th>觸發條件</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Idle</td>
-<td>翅膀末端輕微顫動，雙眼發出琥珀色光點</td>
-<td>2s loop</td>
-<td>待機</td>
-</tr>
-<tr>
-<td>Win</td>
-<td>雄鷹展翅大展，爪上閃電爆發，金色羽毛飛散</td>
-<td>1.0s</td>
-<td>參與中獎連線</td>
-</tr>
-<tr>
-<td>Special</td>
-<td>雄鷹衝天飛出符號格，金色軌跡殘留後符號升階（L* → P4 升階落地）</td>
-<td>1.5s</td>
-<td>雷霆祝福升階至 P4</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>狀態</th><th>描述</th><th>時長</th><th>觸發條件</th></tr>
+<tr><td>Idle</td><td>翅膀末端輕微顫動，雙眼發出琥珀色光點</td><td>2s loop</td><td>待機</td></tr>
+<tr><td>Win</td><td>雄鷹展翅大展，爪上閃電爆發，金色羽毛飛散</td><td>1.0s</td><td>參與中獎連線</td></tr>
+<tr><td>Special</td><td>雄鷹衝天飛出符號格，金色軌跡殘留後符號升階（L* → P4 升階落地）</td><td>1.5s</td><td>雷霆祝福升階至 P4</td></tr>
+</table>
 <hr>
-<h3 id="h-28-low-符號-z-e-u-s字母組">2.8 Low 符號 — Z / E / U / S（字母組）</h3>
+<h3>2.8 Low 符號 — Z / E / U / S（字母組）</h3>
 <p><strong>視覺描述（通用規格）</strong></p>
-<ul>
-<li>希臘風格石刻字體，字母鍛造於黃銅質感的石板上</li>
-<li>每個字母有獨立配色區分：</li>
-<li><strong>Z（L1）</strong>：金色，帶電弧紋飾，最高賠低賠符號</li>
-<li><strong>E（L2）</strong>：橙金色，略低於 Z</li>
-<li><strong>U（L3）</strong>：銅金色</li>
-<li><strong>S（L4）</strong>：暗銅色，最低賠低賠符號</li>
-<li>外框為圓角方形石板框</li>
-<li>字母下方各有對應希臘銘文裝飾線</li>
-</ul>
+<ul><li>希臘風格石刻字體，字母鍛造於黃銅質感的石板上</li><li>每個字母有獨立配色區分：</li><li style="margin-left:1.0rem"><strong>Z（L1）</strong>：金色，帶電弧紋飾，最高賠低賠符號</li><li style="margin-left:1.0rem"><strong>E（L2）</strong>：橙金色，略低於 Z</li><li style="margin-left:1.0rem"><strong>U（L3）</strong>：銅金色</li><li style="margin-left:1.0rem"><strong>S（L4）</strong>：暗銅色，最低賠低賠符號</li><li>外框為圓角方形石板框</li><li>字母下方各有對應希臘銘文裝飾線</li></ul>
 <p><strong>動畫狀態（低賠符號簡化規格）</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>狀態</th>
-<th>描述</th>
-<th>時長</th>
-<th>觸發條件</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Idle</td>
-<td>字母表面輕微金屬閃光（靜態為主，極小幅度）</td>
-<td>靜態</td>
-<td>待機</td>
-</tr>
-<tr>
-<td>Win</td>
-<td>字母發光，外框金色邊框閃爍</td>
-<td>0.8s</td>
-<td>參與中獎連線</td>
-</tr>
-<tr>
-<td>Special</td>
-<td>字母爆炸，光粒子散射後升階為 P4 符號</td>
-<td>1.5s</td>
-<td>雷霆祝福 L* → P4 升階</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>狀態</th><th>描述</th><th>時長</th><th>觸發條件</th></tr>
+<tr><td>Idle</td><td>字母表面輕微金屬閃光（靜態為主，極小幅度）</td><td>靜態</td><td>待機</td></tr>
+<tr><td>Win</td><td>字母發光，外框金色邊框閃爍</td><td>0.8s</td><td>參與中獎連線</td></tr>
+<tr><td>Special</td><td>字母爆炸，光粒子散射後升階為 P4 符號</td><td>1.5s</td><td>雷霆祝福 L* → P4 升階</td></tr>
+</table>
 <blockquote><p><strong>升級路徑視覺規格</strong>：L1/L2/L3/L4 → P4（一步直升，不經中間階）；P4 → P3 → P2 → P1（逐階）。每次升階播放對應的「爆光升階」動畫（0.8s 爆炸 + 0.5s 新符號浮現）。</p></blockquote>
 <hr>
-<h2 id="h-3-reel-layout-ui-design滾輪佈局與介面設計">§3 Reel Layout &amp; UI Design（滾輪佈局與介面設計）</h2>
-<h3 id="h-31-基礎滾輪佈局">3.1 基礎滾輪佈局</h3>
-<pre><code>╔═══════════════════════════════════════════════════════════╗
+<h2>§3 Reel Layout &amp; UI Design（滾輪佈局與介面設計）</h2>
+<h3>3.1 基礎滾輪佈局</h3>
+<pre><code class="">╔═══════════════════════════════════════════════════════════╗
 ║                    天空背景層（雲層 + 光束）                  ║
 ║  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐               ║
 ║  │ 1×1 │ │ 2×1 │ │ 3×1 │ │ 4×1 │ │ 5×1 │ ← 列 1        ║
@@ -863,108 +212,30 @@
 ║          [Cascade 後逐行向下擴展 → 列 4 → 5 → 6]          ║
 ╚═══════════════════════════════════════════════════════════╝</code></pre>
 <p><strong>滾輪格子規格（基準 1920×1080）</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>滾輪列數</th>
-<th>格子寬度</th>
-<th>格子高度</th>
-<th>總滾輪寬度</th>
-<th>總滾輪高度</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>3 列</td>
-<td>190px</td>
-<td>190px</td>
-<td>1000px</td>
-<td>590px</td>
-</tr>
-<tr>
-<td>4 列</td>
-<td>190px</td>
-<td>190px</td>
-<td>1000px</td>
-<td>780px</td>
-</tr>
-<tr>
-<td>5 列</td>
-<td>190px</td>
-<td>190px</td>
-<td>1000px</td>
-<td>970px</td>
-</tr>
-<tr>
-<td>6 列（MAX）</td>
-<td>190px</td>
-<td>190px</td>
-<td>1000px</td>
-<td>1160px（特效遮蔽下方）</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>滾輪列數</th><th>格子寬度</th><th>格子高度</th><th>總滾輪寬度</th><th>總滾輪高度</th></tr>
+<tr><td>3 列</td><td>190px</td><td>190px</td><td>1000px</td><td>590px</td></tr>
+<tr><td>4 列</td><td>190px</td><td>190px</td><td>1000px</td><td>780px</td></tr>
+<tr><td>5 列</td><td>190px</td><td>190px</td><td>1000px</td><td>970px</td></tr>
+<tr><td>6 列（MAX）</td><td>190px</td><td>190px</td><td>1000px</td><td>1160px（特效遮蔽下方）</td></tr>
+</table>
 <blockquote><p>格子間距：水平 10px；垂直 10px。滾輪框架固定寬度，高度隨列數動態伸縮。</p></blockquote>
-<h3 id="h-32-背景分層設計parallax-layer-system">3.2 背景分層設計（Parallax Layer System）</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>層次</th>
-<th>元素</th>
-<th>移動速度（視差係數）</th>
-<th>說明</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>0（最遠）</td>
-<td>天空漸層（深藍 → 紫 → 橙黃）</td>
-<td>0（靜止）</td>
-<td>基礎色調背景，無動畫</td>
-</tr>
-<tr>
-<td>1</td>
-<td>遠景雲層</td>
-<td>0.05</td>
-<td>緩慢橫移白雲，觸發特效時增速並閃電照亮</td>
-</tr>
-<tr>
-<td>2</td>
-<td>奧林匹斯山輪廓</td>
-<td>0.1</td>
-<td>山脊剪影，略微視差移動</td>
-</tr>
-<tr>
-<td>3</td>
-<td>帕德嫩神殿遠景</td>
-<td>0.2</td>
-<td>神殿列柱，半透明，在滾輪後方</td>
-</tr>
-<tr>
-<td>4</td>
-<td>神殿前景裝飾柱</td>
-<td>0.4</td>
-<td>左右兩側前景柱，框住滾輪區域</td>
-</tr>
-<tr>
-<td>5（最近）</td>
-<td>滾輪框架 + 符號</td>
-<td>1.0（固定）</td>
-<td>遊戲主體，最前景</td>
-</tr>
-</tbody></table></div>
+<h3>3.2 背景分層設計（Parallax Layer System）</h3>
+<table>
+<tr><th>層次</th><th>元素</th><th>移動速度（視差係數）</th><th>說明</th></tr>
+<tr><td>0（最遠）</td><td>天空漸層（深藍 → 紫 → 橙黃）</td><td>0（靜止）</td><td>基礎色調背景，無動畫</td></tr>
+<tr><td>1</td><td>遠景雲層</td><td>0.05</td><td>緩慢橫移白雲，觸發特效時增速並閃電照亮</td></tr>
+<tr><td>2</td><td>奧林匹斯山輪廓</td><td>0.1</td><td>山脊剪影，略微視差移動</td></tr>
+<tr><td>3</td><td>帕德嫩神殿遠景</td><td>0.2</td><td>神殿列柱，半透明，在滾輪後方</td></tr>
+<tr><td>4</td><td>神殿前景裝飾柱</td><td>0.4</td><td>左右兩側前景柱，框住滾輪區域</td></tr>
+<tr><td>5（最近）</td><td>滾輪框架 + 符號</td><td>1.0（固定）</td><td>遊戲主體，最前景</td></tr>
+</table>
 <p><strong>特效狀態背景切換：</strong></p>
-<ul>
-<li><strong>Main Game</strong>：黃昏神殿，橙金色光線從右側照入</li>
-<li><strong>Thunder Blessing 觸發</strong>：天空閃電，背景短暫強白光閃爍（0.3s）</li>
-<li><strong>Coin Toss</strong>：場景聚焦（背景模糊 blur），聚光燈打在硬幣上</li>
-<li><strong>Free Game</strong>：天空神殿場景，夜空繁星，金色神殿列柱更明亮，背景整體偏深藍紫</li>
-</ul>
-<h3 id="h-33-滾輪框架設計">3.3 滾輪框架設計</h3>
-<ul>
-<li><strong>外框材質感</strong>：鍛造黃金框架，四角有閃電符文裝飾，頂部中央有小型 Zeus 徽章</li>
-<li><strong>內框</strong>：每個滾輪格子有細金色邊線分隔</li>
-<li><strong>滾輪頂部遮罩</strong>：每個滾輪頂端有半透明漸層遮罩（符號滾動進入時淡入）</li>
-<li><strong>滾輪底部遮罩</strong>：相同設計，符號滾動出底部時淡出</li>
-<li><strong>FREE 字母進度指示器</strong>：滾輪框架頂部正中央，4 個「F R E E」字母暗燈（待亮燈設計見 §4）</li>
-</ul>
-<h3 id="h-34-hud-佈局橫屏-169-基準">3.4 HUD 佈局（橫屏 16:9 基準）</h3>
-<pre><code>┌──────────────────────────────────────────────────────────────┐
+<ul><li><strong>Main Game</strong>：黃昏神殿，橙金色光線從右側照入</li><li><strong>Thunder Blessing 觸發</strong>：天空閃電，背景短暫強白光閃爍（0.3s）</li><li><strong>Coin Toss</strong>：場景聚焦（背景模糊 blur），聚光燈打在硬幣上</li><li><strong>Free Game</strong>：天空神殿場景，夜空繁星，金色神殿列柱更明亮，背景整體偏深藍紫</li></ul>
+<h3>3.3 滾輪框架設計</h3>
+<ul><li><strong>外框材質感</strong>：鍛造黃金框架，四角有閃電符文裝飾，頂部中央有小型 Zeus 徽章</li><li><strong>內框</strong>：每個滾輪格子有細金色邊線分隔</li><li><strong>滾輪頂部遮罩</strong>：每個滾輪頂端有半透明漸層遮罩（符號滾動進入時淡入）</li><li><strong>滾輪底部遮罩</strong>：相同設計，符號滾動出底部時淡出</li><li><strong>FREE 字母進度指示器</strong>：滾輪框架頂部正中央，4 個「F R E E」字母暗燈（待亮燈設計見 §4）</li></ul>
+<h3>3.4 HUD 佈局（橫屏 16:9 基準）</h3>
+<pre><code class="">┌──────────────────────────────────────────────────────────────┐
 │ [INFO] [SOUND]                    [LINES: 25]  [SETTINGS]    │ ← 頂部工具列
 │                                                              │
 │                   ← 滾輪主體區域 →                            │
@@ -980,149 +251,51 @@
 │  [−BET+]    [EXTRA BET OFF/ON]   [SPIN]   [AUTO]  [BUY FG]  │
 └──────────────────────────────────────────────────────────────┘</code></pre>
 <p><strong>底部 HUD 元素規格</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>元素</th>
-<th>功能</th>
-<th>字體大小</th>
-<th>顏色</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>BALANCE</td>
-<td>玩家餘額，引擎讀取，唯讀</td>
-<td>20px</td>
-<td>白色，值為金色</td>
-</tr>
-<tr>
-<td>WIN</td>
-<td>當輪累計獎金，Cascade 期間滾動更新</td>
-<td>24px Bold</td>
-<td>金色，大獎時放大動畫</td>
-</tr>
-<tr>
-<td>BET（Total Bet）</td>
-<td>當前總押注額（Extra Bet ON 時顯示 ×3 後值）</td>
-<td>20px</td>
-<td>白色</td>
-</tr>
-<tr>
-<td>LINES</td>
-<td>當前有效連線數（25 / 33 / 45 / 57）；頂部工具列 LINES 顯示為初始值 25，隨 Cascade 行數擴展動態更新（由遊戲引擎回傳值驅動，UI 不自行計算）</td>
-<td>16px</td>
-<td>灰白色</td>
-</tr>
-<tr>
-<td>SPIN 按鈕</td>
-<td>主要行動按鈕，圓形，金屬質感</td>
-<td>—</td>
-<td>金色，按下有凹陷效果</td>
-</tr>
-<tr>
-<td>AUTO SPIN</td>
-<td>自動旋轉，長按顯示次數選單</td>
-<td>—</td>
-<td>銀色</td>
-</tr>
-<tr>
-<td>EXTRA BET 開關</td>
-<td>切換 ON/OFF，Toggle 樣式</td>
-<td>14px</td>
-<td>OFF=灰色，ON=金色發光</td>
-</tr>
-<tr>
-<td>BUY FREE GAME</td>
-<td>購買按鈕，矩形，右下角</td>
-<td>14px</td>
-<td>紫金色，帶「BUY FG」標籤</td>
-</tr>
-<tr>
-<td>BET 調整（−/+）</td>
-<td>步進調整押注額</td>
-<td>—</td>
-<td>左右箭頭，銀色</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>元素</th><th>功能</th><th>字體大小</th><th>顏色</th></tr>
+<tr><td>BALANCE</td><td>玩家餘額，引擎讀取，唯讀</td><td>20px</td><td>白色，值為金色</td></tr>
+<tr><td>WIN</td><td>當輪累計獎金，Cascade 期間滾動更新</td><td>24px Bold</td><td>金色，大獎時放大動畫</td></tr>
+<tr><td>BET（Total Bet）</td><td>當前總押注額（Extra Bet ON 時顯示 ×3 後值）</td><td>20px</td><td>白色</td></tr>
+<tr><td>LINES</td><td>當前有效連線數（25 / 33 / 45 / 57）；頂部工具列 LINES 顯示為初始值 25，隨 Cascade 行數擴展動態更新（由遊戲引擎回傳值驅動，UI 不自行計算）</td><td>16px</td><td>灰白色</td></tr>
+<tr><td>SPIN 按鈕</td><td>主要行動按鈕，圓形，金屬質感</td><td>—</td><td>金色，按下有凹陷效果</td></tr>
+<tr><td>AUTO SPIN</td><td>自動旋轉，長按顯示次數選單</td><td>—</td><td>銀色</td></tr>
+<tr><td>EXTRA BET 開關</td><td>切換 ON/OFF，Toggle 樣式</td><td>14px</td><td>OFF=灰色，ON=金色發光</td></tr>
+<tr><td>BUY FREE GAME</td><td>購買按鈕，矩形，右下角</td><td>14px</td><td>紫金色，帶「BUY FG」標籤</td></tr>
+<tr><td>BET 調整（−/+）</td><td>步進調整押注額</td><td>—</td><td>左右箭頭，銀色</td></tr>
+</table>
 <hr>
-<h2 id="h-4-lightning-mark-design閃電標記設計">§4 Lightning Mark Design（閃電標記設計）</h2>
-<h3 id="h-41-閃電標記視覺外觀">4.1 閃電標記視覺外觀</h3>
+<h2>§4 Lightning Mark Design（閃電標記設計）</h2>
+<h3>4.1 閃電標記視覺外觀</h3>
 <p><strong>單一標記</strong></p>
-<ul>
-<li>形狀：黃金閃電叉圖案（Zeus 閃電符號，比例 1:1）</li>
-<li>尺寸：覆蓋符號格子面積的 40%，疊加於符號右上角</li>
-<li>顏色：黃金色（#FFD700）帶白色電弧光暈</li>
-<li>效果：標記本身有持續的電弧粒子從頂端散落（particle system，低強度）</li>
-<li>透明度：符號底部仍可見，標記以 60% 不透明度疊加，不完全遮蔽符號</li>
-</ul>
+<ul><li>形狀：黃金閃電叉圖案（Zeus 閃電符號，比例 1:1）</li><li>尺寸：覆蓋符號格子面積的 40%，疊加於符號右上角</li><li>顏色：黃金色（#FFD700）帶白色電弧光暈</li><li>效果：標記本身有持續的電弧粒子從頂端散落（particle system，低強度）</li><li>透明度：符號底部仍可見，標記以 60% 不透明度疊加，不完全遮蔽符號</li></ul>
 <p><strong>標記生成動畫</strong></p>
-<ul>
-<li>從符號消除位置中心爆出（scale 0 → 1.2 → 1.0，Ease Out Back）</li>
-<li>時長：0.4s</li>
-<li>同步：與 Cascade 消除動畫同步，消除完成後 0.1s 出現標記</li>
-</ul>
-<h3 id="h-42-累積顯示進度指示">4.2 累積顯示（進度指示）</h3>
+<ul><li>從符號消除位置中心爆出（scale 0 → 1.2 → 1.0，Ease Out Back）</li><li>時長：0.4s</li><li>同步：與 Cascade 消除動畫同步，消除完成後 0.1s 出現標記</li></ul>
+<h3>4.2 累積顯示（進度指示）</h3>
 <p>當盤面存在閃電標記時，滾輪框架右上角出現<strong>閃電標記計數器</strong>：</p>
-<pre><code>閃電標記計數器（滾輪框架右上角外側）
+<pre><code class="">閃電標記計數器（滾輪框架右上角外側）
 ┌───────────────┐
 │ ⚡ × [N]      │  ← N = 當前盤面閃電標記總數
 └───────────────┘</code></pre>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>標記數量</th>
-<th>計數器視覺效果</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>1–2 個</td>
-<td>計數器常亮，金色數字</td>
-</tr>
-<tr>
-<td>3–4 個</td>
-<td>計數器數字有電弧閃爍效果，橙金色</td>
-</tr>
-<tr>
-<td>5 個以上</td>
-<td>計數器背景發光擴大，黃白色脈衝，預示高爆發</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-43-thunder-blessing-scatter-觸發視覺序列">4.3 Thunder Blessing Scatter 觸發視覺序列</h3>
-<ol>
-<li><strong>Scatter 落盤</strong>（0.0s）：SC 符號落定，電弧從 SC 位置向外擴散</li>
-<li><strong>感應動畫</strong>（0.2s）：盤面所有閃電標記同步閃爍，SC 與各標記之間出現電弧連線</li>
-<li><strong>引爆開始</strong>（0.8s）：所有閃電標記同時爆炸（金色光球），背景閃白光</li>
-<li><strong>符號轉換</strong>（1.2s）：標記格符號以「碎片化 → 重組」方式替換為目標符號</li>
-<li><strong>完成顯示</strong>（1.8s）：新符號放大落定，整體盤面金色光暈持續 0.5s</li>
-<li><strong>第二擊（若觸發）</strong>（2.3s）：再次脈衝，符號依升階路徑再次轉換，播放升階動畫</li>
-<li><strong>重新判定</strong>（3.0s）：恢復正常狀態，重新計算連線</li>
-</ol>
+<table>
+<tr><th>標記數量</th><th>計數器視覺效果</th></tr>
+<tr><td>1–2 個</td><td>計數器常亮，金色數字</td></tr>
+<tr><td>3–4 個</td><td>計數器數字有電弧閃爍效果，橙金色</td></tr>
+<tr><td>5 個以上</td><td>計數器背景發光擴大，黃白色脈衝，預示高爆發</td></tr>
+</table>
+<h3>4.3 Thunder Blessing Scatter 觸發視覺序列</h3>
+<ol><li><strong>Scatter 落盤</strong>（0.0s）：SC 符號落定，電弧從 SC 位置向外擴散</li><li><strong>感應動畫</strong>（0.2s）：盤面所有閃電標記同步閃爍，SC 與各標記之間出現電弧連線</li><li><strong>引爆開始</strong>（0.8s）：所有閃電標記同時爆炸（金色光球），背景閃白光</li><li><strong>符號轉換</strong>（1.2s）：標記格符號以「碎片化 → 重組」方式替換為目標符號</li><li><strong>完成顯示</strong>（1.8s）：新符號放大落定，整體盤面金色光暈持續 0.5s</li><li><strong>第二擊（若觸發）</strong>（2.3s）：再次脈衝，符號依升階路徑再次轉換，播放升階動畫</li><li><strong>重新判定</strong>（3.0s）：恢復正常狀態，重新計算連線</li></ol>
 <hr>
-<h2 id="h-5-cascade-animation-design連鎖消除動畫設計">§5 Cascade Animation Design（連鎖消除動畫設計）</h2>
-<h3 id="h-51-符號消除動畫">5.1 符號消除動畫</h3>
+<h2>§5 Cascade Animation Design（連鎖消除動畫設計）</h2>
+<h3>5.1 符號消除動畫</h3>
 <p><strong>標準消除（無雷霆祝福）</strong></p>
-<ul>
-<li>中獎符號觸發 Win 動畫（0.6s）</li>
-<li>符號爆裂：以符號中心為原點，向外碎片飛散（12–16 個碎片粒子）</li>
-<li>碎片材質：金屬碎片，帶各符號主色調，重力加速度下落</li>
-<li>消除完成：格子透明，等待新符號填入</li>
-<li>時長：消除動畫 0.5s + 碎片殘留 0.3s（後台可繼續計算）</li>
-</ul>
+<ul><li>中獎符號觸發 Win 動畫（0.6s）</li><li>符號爆裂：以符號中心為原點，向外碎片飛散（12–16 個碎片粒子）</li><li>碎片材質：金屬碎片，帶各符號主色調，重力加速度下落</li><li>消除完成：格子透明，等待新符號填入</li><li>時長：消除動畫 0.5s + 碎片殘留 0.3s（後台可繼續計算）</li></ul>
 <p><strong>雷霆祝福消除（SC 引爆）</strong></p>
-<ul>
-<li>電弧爆炸效果，碎片為電弧粒子（藍白色閃電碎片）</li>
-<li>規模更大，輻射範圍覆蓋整個格子並外溢 20%</li>
-<li>時長：1.0s（含電弧殘留效果）</li>
-</ul>
-<h3 id="h-52-新符號落下動畫">5.2 新符號落下動畫</h3>
-<ul>
-<li><strong>落下物理</strong>：彈性碰撞感（Ease Out Bounce），模擬重力加速度</li>
-<li>每個新符號獨立時序，從上方（或滾輪頂端遮罩外）落入</li>
-<li>落下速度：約 60px/frame（60fps），格子間有 0.05s 延遲（階梯效果）</li>
-<li>落定後：輕微彈跳（scale 1.0 → 1.05 → 1.0，0.15s）</li>
-<li>新落入符號在第一幀有短暫半透明（opacity 0→1，0.1s）</li>
-</ul>
-<h3 id="h-53-滾輪行數擴展動畫">5.3 滾輪行數擴展動畫</h3>
+<ul><li>電弧爆炸效果，碎片為電弧粒子（藍白色閃電碎片）</li><li>規模更大，輻射範圍覆蓋整個格子並外溢 20%</li><li>時長：1.0s（含電弧殘留效果）</li></ul>
+<h3>5.2 新符號落下動畫</h3>
+<ul><li><strong>落下物理</strong>：彈性碰撞感（Ease Out Bounce），模擬重力加速度</li><li>每個新符號獨立時序，從上方（或滾輪頂端遮罩外）落入</li><li>落下速度：約 60px/frame（60fps），格子間有 0.05s 延遲（階梯效果）</li><li>落定後：輕微彈跳（scale 1.0 → 1.05 → 1.0，0.15s）</li><li>新落入符號在第一幀有短暫半透明（opacity 0→1，0.1s）</li></ul>
+<h3>5.3 滾輪行數擴展動畫</h3>
 <p><strong>擴展觸發（Cascade 成功，rows &lt; 6）</strong></p>
-<pre><code>第 N 次 Cascade 成功：
+<pre><code class="">第 N 次 Cascade 成功：
   1. 消除動畫播完（0.5s）
   2. 滾輪框架高度動畫向下延伸（0.3s，Ease Out Cubic）
      → 新的一列從雲層中「衝破」出現
@@ -1131,101 +304,40 @@
   5. 新列的格子從半透明淡入（0.3s）
   6. 新符號落下至新格（使用 §5.2 落下動畫）</code></pre>
 <p><strong>FREE 字母亮燈規則</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Cascade 次數</th>
-<th>亮燈字母</th>
-<th>配色</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>第 1 次</td>
-<td>F</td>
-<td>金色點亮，有光暈</td>
-</tr>
-<tr>
-<td>第 2 次</td>
-<td>R</td>
-<td>金色點亮，有光暈</td>
-</tr>
-<tr>
-<td>第 3 次</td>
-<td>E（第 3 個）</td>
-<td>金色點亮，有光暈</td>
-</tr>
-<tr>
-<td>第 4 次（及以後）</td>
-<td>E（第 4 個）</td>
-<td>所有字母全亮，金色脈衝循環，等待 Coin Toss 觸發</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Cascade 次數</th><th>亮燈字母</th><th>配色</th></tr>
+<tr><td>第 1 次</td><td>F</td><td>金色點亮，有光暈</td></tr>
+<tr><td>第 2 次</td><td>R</td><td>金色點亮，有光暈</td></tr>
+<tr><td>第 3 次</td><td>E（第 3 個）</td><td>金色點亮，有光暈</td></tr>
+<tr><td>第 4 次（及以後）</td><td>E（第 4 個）</td><td>所有字母全亮，金色脈衝循環，等待 Coin Toss 觸發</td></tr>
+</table>
 <p>當 rows 已達 MAX_ROWS（6）時，Cascade 成功後仍點亮剩餘 FREE 字母（第 4 個 E），不再觸發滾輪擴展動畫，僅播放字母亮燈特效。</p>
-<h3 id="h-54-連鎖計數顯示">5.4 連鎖計數顯示</h3>
-<ul>
-<li>每次 Cascade 成功，在滾輪中央上方短暫顯示「CASCADE × N」浮字</li>
-<li>字體：金色、粗體，帶閃電圖案前綴</li>
-<li>動畫：從中心放大出現（scale 0.5 → 1.2 → 1.0），後 0.5s 淡出</li>
-<li>位置：滾輪區域水平中線以上 20%</li>
-</ul>
+<h3>5.4 連鎖計數顯示</h3>
+<ul><li>每次 Cascade 成功，在滾輪中央上方短暫顯示「CASCADE × N」浮字</li><li>字體：金色、粗體，帶閃電圖案前綴</li><li>動畫：從中心放大出現（scale 0.5 → 1.2 → 1.0），後 0.5s 淡出</li><li>位置：滾輪區域水平中線以上 20%</li></ul>
 <hr>
-<h2 id="h-6-coin-toss-ui-design硬幣翻轉介面設計">§6 Coin Toss UI Design（硬幣翻轉介面設計）</h2>
-<h3 id="h-61-coin-toss-舞台設計">6.1 Coin Toss 舞台設計</h3>
+<h2>§6 Coin Toss UI Design（硬幣翻轉介面設計）</h2>
+<h3>6.1 Coin Toss 舞台設計</h3>
 <p>觸發 Coin Toss 時，背景進入<strong>聚光燈模式</strong>：</p>
-<ul>
-<li>滾輪與背景套用暗化遮罩（opacity 0 → 0.7，0.4s）</li>
-<li>場景中央出現聚光燈光錐（從畫面頂部射下）</li>
-<li>硬幣從畫面上方落入光錐中央（飛入動畫，0.5s）</li>
-</ul>
-<h3 id="h-62-硬幣視覺設計">6.2 硬幣視覺設計</h3>
+<ul><li>滾輪與背景套用暗化遮罩（opacity 0 → 0.7，0.4s）</li><li>場景中央出現聚光燈光錐（從畫面頂部射下）</li><li>硬幣從畫面上方落入光錐中央（飛入動畫，0.5s）</li></ul>
+<h3>6.2 硬幣視覺設計</h3>
 <p><strong>硬幣規格</strong></p>
-<ul>
-<li>形狀：圓形 3D 渲染硬幣，具厚度（側面可見）</li>
-<li>直徑：畫面寬度的 25%（16:9 下約 480px）</li>
-<li>材質：黃金鑄造，邊緣有月桂葉紋飾</li>
-</ul>
+<ul><li>形狀：圓形 3D 渲染硬幣，具厚度（側面可見）</li><li>直徑：畫面寬度的 25%（16:9 下約 480px）</li><li>材質：黃金鑄造，邊緣有月桂葉紋飾</li></ul>
 <p><strong>正面（Heads — ZEUS）</strong></p>
-<ul>
-<li>中央：Zeus 側臉浮雕（仿古希臘錢幣風格）</li>
-<li>外環銘文：「THUNDER BLESSING」</li>
-<li>底部：月桂枝紋飾</li>
-</ul>
+<ul><li>中央：Zeus 側臉浮雕（仿古希臘錢幣風格）</li><li>外環銘文：「THUNDER BLESSING」</li><li>底部：月桂枝紋飾</li></ul>
 <p><strong>反面（Tails — 閃電圖案）</strong></p>
-<ul>
-<li>中央：Zeus 閃電叉俯視圖（對稱構圖）</li>
-<li>外環銘文：「OLYMPUS」</li>
-<li>底部：橄欖枝紋飾</li>
-</ul>
-<h3 id="h-63-硬幣翻轉動畫">6.3 硬幣翻轉動畫</h3>
+<ul><li>中央：Zeus 閃電叉俯視圖（對稱構圖）</li><li>外環銘文：「OLYMPUS」</li><li>底部：橄欖枝紋飾</li></ul>
+<h3>6.3 硬幣翻轉動畫</h3>
 <p><strong>翻轉物理模擬</strong></p>
-<ul>
-<li>硬幣在 3D 空間旋轉（Y 軸快速旋轉，模擬真實拋幣）</li>
-<li>旋轉速度：開始快速（720°/s），逐漸減速至停止</li>
-<li>翻轉圈數：7–12 圈（隨機，讓玩家感受懸念）</li>
-<li>時長：2.5s – 3.5s（含開始加速與結尾減速）</li>
-<li>硬幣邊緣在旋轉過程中反射聚光燈光斑</li>
-</ul>
+<ul><li>硬幣在 3D 空間旋轉（Y 軸快速旋轉，模擬真實拋幣）</li><li>旋轉速度：開始快速（720°/s），逐漸減速至停止</li><li>翻轉圈數：7–12 圈（隨機，讓玩家感受懸念）</li><li>時長：2.5s – 3.5s（含開始加速與結尾減速）</li><li>硬幣邊緣在旋轉過程中反射聚光燈光斑</li></ul>
 <p><strong>結果展示</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>結果</th>
-<th>視覺效果</th>
-<th>文字提示</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Heads（正面落定）</td>
-<td>金色光芒從硬幣爆出，粒子向上飛散</td>
-<td>「ZEUS SMILES!」金色大字</td>
-</tr>
-<tr>
-<td>Tails（反面落定）</td>
-<td>硬幣暗沉，藍灰色光效</td>
-<td>「NOT THIS TIME」銀色字</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-64-fg-multiplier-進度條">6.4 FG Multiplier 進度條</h3>
+<table>
+<tr><th>結果</th><th>視覺效果</th><th>文字提示</th></tr>
+<tr><td>Heads（正面落定）</td><td>金色光芒從硬幣爆出，粒子向上飛散</td><td>「ZEUS SMILES!」金色大字</td></tr>
+<tr><td>Tails（反面落定）</td><td>硬幣暗沉，藍灰色光效</td><td>「NOT THIS TIME」銀色字</td></tr>
+</table>
+<h3>6.4 FG Multiplier 進度條</h3>
 <p>Coin Toss 舞台下方展示倍率進度條（Heads 時驅動進度）：</p>
-<pre><code>倍率進度條佈局：
+<pre><code class="">倍率進度條佈局：
 ┌─────────────────────────────────────────────────┐
 │  ×3  ──→──  ×7  ──→──  ×17  ──→──  ×27  ──→──  ×77  │
 │  [●]         [○]         [○]          [○]         [○]  │
@@ -1233,31 +345,16 @@
   當前倍率節點為填充金色，未達到為暗色</code></pre>
 <p>難度遞增視覺設計：進度線顏色隨倍率升高從綠色（×3，Heads 機率 80%）漸變至黃色（×7，68%）→橙色（×17，56%）→橘紅（×27，48%）→紅色（×77，40%），以直觀傳達 Heads 機率逐步降低的設計意圖。節點粒子特效隨難度增強（×77 節點額外加入紅色閃電弧光）。</p>
 <p><strong>進度條動畫（Heads 時）</strong></p>
-<ul>
-<li>進度線從當前節點向下一節點延伸（0.5s，Ease In Out Cubic）</li>
-<li>下一節點點亮（scale 0.8 → 1.3 → 1.0，配金色閃光）</li>
-<li>倍率數字飛入顯示（×7 / ×17 / ×27 / ×77）</li>
-</ul>
+<ul><li>進度線從當前節點向下一節點延伸（0.5s，Ease In Out Cubic）</li><li>下一節點點亮（scale 0.8 → 1.3 → 1.0，配金色閃光）</li><li>倍率數字飛入顯示（×7 / ×17 / ×27 / ×77）</li></ul>
 <p><strong>達到 ×77 時</strong></p>
-<ul>
-<li>所有節點同時金色脈衝</li>
-<li>倍率條背景出現彩虹光效（0.5s 爆光）</li>
-<li>「MAX MULTIPLIER ×77」橫幅出現（2.0s 展示後消失）</li>
-</ul>
+<ul><li>所有節點同時金色脈衝</li><li>倍率條背景出現彩虹光效（0.5s 爆光）</li><li>「MAX MULTIPLIER ×77」橫幅出現（2.0s 展示後消失）</li></ul>
 <hr>
-<h2 id="h-7-free-game-ui自由遊戲介面設計">§7 Free Game UI（自由遊戲介面設計）</h2>
-<h3 id="h-71-fg-場景切換動畫">7.1 FG 場景切換動畫</h3>
+<h2>§7 Free Game UI（自由遊戲介面設計）</h2>
+<h3>7.1 FG 場景切換動畫</h3>
 <p><strong>從 Main Game 進入 FG（Heads 觸發後）</strong></p>
-<ol>
-<li>遮罩從畫面中央向外擴散，舊場景溶解（0.8s cross-dissolve）</li>
-<li>新場景：天空神殿（Sky Temple），夜空取代黃昏天空</li>
-<li>神殿列柱更加明亮，金色輝光增強</li>
-<li>繁星粒子出現（點狀粒子系統，slow drift）</li>
-<li>FG 標題橫幅從頂部落下：「FREE GAME」金色大字</li>
-<li>當前倍率「×3」在中央放大顯示後縮至固定位置</li>
-</ol>
+<ol><li>遮罩從畫面中央向外擴散，舊場景溶解（0.8s cross-dissolve）</li><li>新場景：天空神殿（Sky Temple），夜空取代黃昏天空</li><li>神殿列柱更加明亮，金色輝光增強</li><li>繁星粒子出現（點狀粒子系統，slow drift）</li><li>FG 標題橫幅從頂部落下：「FREE GAME」金色大字</li><li>當前倍率「×3」在中央放大顯示後縮至固定位置</li></ol>
 <p><strong>FG 進入完成狀態（恆常 UI）</strong></p>
-<pre><code>┌──────────────────────────────────────────────────────────────┐
+<pre><code class="">┌──────────────────────────────────────────────────────────────┐
 │ FREE GAME     [×3 MULTIPLIER]                   [SPIN COUNT]  │
 │                                                              │
 │           ← 滾輪主體（FG 場景背景）→                           │
@@ -1270,79 +367,32 @@
 │           [EXTRA BET OFF/ON]     [AUTO SPIN]                 │
 └──────────────────────────────────────────────────────────────┘</code></pre>
 <blockquote><p>FG 期間 SPIN 按鈕自動觸發；BUY FG 按鈕隱藏；BET 調整鎖定（不可變動）。</p></blockquote>
-<h3 id="h-72-fg-計數器">7.2 FG 計數器</h3>
-<ul>
-<li>位置：HUD 右下角（「SPIN COUNT」標籤）</li>
-<li>顯示：每一輪 FG Spin 完成後更新（顯示當前 FG 是否仍在進行中）</li>
-<li>樣式：金色數字，Coin Toss Tails 後顯示「FINAL」並閃爍</li>
-</ul>
+<h3>7.2 FG 計數器</h3>
+<ul><li>位置：HUD 右下角（「SPIN COUNT」標籤）</li><li>顯示：每一輪 FG Spin 完成後更新（顯示當前 FG 是否仍在進行中）</li><li>樣式：金色數字，Coin Toss Tails 後顯示「FINAL」並閃爍</li></ul>
 <blockquote><p>注意：依 PRD §3，FG 次數非固定，由每局 Coin Toss 決定是否繼續；計數器顯示「FG 已進行局數 / 不限上限」，非倒數。</p></blockquote>
 <p><strong>FG 計數器狀態機</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>時機</th>
-<th>計數器顯示</th>
-<th>視覺效果</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>FG 剛進入（首次 Coin Toss 前）</td>
-<td>顯示「——」</td>
-<td>暗色待機，等待首次 Coin Toss 結果</td>
-</tr>
-<tr>
-<td>每局 FG Spin 開始前（Coin Toss 執行前）</td>
-<td>「Spin #N」（N 為當前局數）</td>
-<td>金色數字常亮</td>
-</tr>
-<tr>
-<td>Coin Toss Heads（繼續 FG）</td>
-<td>計數器 +1，顯示「Spin #(N+1)」</td>
-<td>數字翻轉更新動畫（0.3s）</td>
-</tr>
-<tr>
-<td>Coin Toss Tails（FG 結束）</td>
-<td>計數器顯示「FINAL」</td>
-<td>金色閃爍 2 秒後靜止</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>時機</th><th>計數器顯示</th><th>視覺效果</th></tr>
+<tr><td>FG 剛進入（首次 Coin Toss 前）</td><td>顯示「——」</td><td>暗色待機，等待首次 Coin Toss 結果</td></tr>
+<tr><td>每局 FG Spin 開始前（Coin Toss 執行前）</td><td>「Spin #N」（N 為當前局數）</td><td>金色數字常亮</td></tr>
+<tr><td>Coin Toss Heads（繼續 FG）</td><td>計數器 +1，顯示「Spin #(N+1)」</td><td>數字翻轉更新動畫（0.3s）</td></tr>
+<tr><td>Coin Toss Tails（FG 結束）</td><td>計數器顯示「FINAL」</td><td>金色閃爍 2 秒後靜止</td></tr>
+</table>
 <blockquote><p><strong>重要</strong>：計數器更新數據來源為後端回傳的 <code>fgSpins</code> 數組，UI 不自行計算局數；FG 無固定局數上限，計數器僅顯示已進行局數。</p></blockquote>
-<h3 id="h-73-當前倍率顯示">7.3 當前倍率顯示</h3>
-<ul>
-<li>位置：滾輪左上方外側，固定顯示區</li>
-<li>樣式：</li>
-<li>×3 ~ ×17：金色大數字，石刻底座</li>
-<li>×27：橙金色，帶電弧光暈</li>
-<li>×77：彩虹金色、閃電輝光，動態呼吸（scale 1.0 ↔ 1.05 循環）</li>
-</ul>
+<h3>7.3 當前倍率顯示</h3>
+<ul><li>位置：滾輪左上方外側，固定顯示區</li><li>樣式：</li><li style="margin-left:1.0rem">×3 ~ ×17：金色大數字，石刻底座</li><li style="margin-left:1.0rem">×27：橙金色，帶電弧光暈</li><li style="margin-left:1.0rem">×77：彩虹金色、閃電輝光，動態呼吸（scale 1.0 ↔ 1.05 循環）</li></ul>
 <p><strong>倍率升級動畫（Coin Toss Heads 後）</strong></p>
-<ul>
-<li>舊倍率數字從位置爆散</li>
-<li>新倍率數字從中央大字縮入固定位置（2s 展示 → 縮小）</li>
-<li>配合進度條更新動畫（見 §6.4）</li>
-</ul>
-<h3 id="h-74-fg-bonus-100-全屏特效">7.4 FG Bonus ×100 全屏特效</h3>
+<ul><li>舊倍率數字從位置爆散</li><li>新倍率數字從中央大字縮入固定位置（2s 展示 → 縮小）</li><li>配合進度條更新動畫（見 §6.4）</li></ul>
+<h3>7.4 FG Bonus ×100 全屏特效</h3>
 <p>觸發機率（weight: 5/1000），視覺規格：</p>
-<ul>
-<li>全屏金色粒子爆炸（3000+ 粒子，持續 3.0s）</li>
-<li>「×100 BONUS!」文字從中心爆出放大（scale 0 → 3.0，然後縮至螢幕 60% 大小）</li>
-<li>文字帶有金色發光效果與描邊</li>
-<li>背景短暫白色閃光（0.2s）</li>
-<li>配合音效：雷霆轟鳴 + 金幣瀑布聲</li>
-<li>展示時間：3.5s 後動畫自動收起，恢復 FG 進行</li>
-</ul>
-<h3 id="h-75-near-miss-視覺效果br-08">7.5 Near Miss 視覺效果（BR-08）</h3>
+<ul><li>全屏金色粒子爆炸（3000+ 粒子，持續 3.0s）</li><li>「×100 BONUS!」文字從中心爆出放大（scale 0 → 3.0，然後縮至螢幕 60% 大小）</li><li>文字帶有金色發光效果與描邊</li><li>背景短暫白色閃光（0.2s）</li><li>配合音效：雷霆轟鳴 + 金幣瀑布聲</li><li>展示時間：3.5s 後動畫自動收起，恢復 FG 進行</li></ul>
+<h3>7.5 Near Miss 視覺效果（BR-08）</h3>
 <p>Near Miss 為特殊符號排列（引擎定義），視覺表現：</p>
-<ul>
-<li>符號停止時，近乎中獎的滾輪格子有<strong>短暫金邊閃爍</strong>（0.4s 振動 + 邊框橙色高亮）</li>
-<li>隨即恢復正常顏色</li>
-<li><strong>沒有任何文字提示</strong>（不顯示「ALMOST!」等字樣，避免誤導玩家）</li>
-<li>此為純視覺張力效果，不觸發任何獎金計算</li>
-</ul>
-<h3 id="h-76-fg-reconnect-visual-statesfg-斷線重連視覺狀態">7.6 FG Reconnect Visual States（FG 斷線重連視覺狀態）</h3>
+<ul><li>符號停止時，近乎中獎的滾輪格子有<strong>短暫金邊閃爍</strong>（0.4s 振動 + 邊框橙色高亮）</li><li>隨即恢復正常顏色</li><li><strong>沒有任何文字提示</strong>（不顯示「ALMOST!」等字樣，避免誤導玩家）</li><li>此為純視覺張力效果，不觸發任何獎金計算</li></ul>
+<h3>7.6 FG Reconnect Visual States（FG 斷線重連視覺狀態）</h3>
 <p>玩家在 Free Game 期間斷線後重新連線時，UI 依後端還原狀態顯示對應視覺：</p>
 <p><strong>狀態流程</strong></p>
-<pre><code>斷線重連
+<pre><code class="">斷線重連
     │
     ▼
 重連加載中（Loading）
@@ -1351,48 +401,22 @@
     │
     └──► 還原失敗（Expired）→ 返回 Main Game</code></pre>
 <p><strong>各狀態視覺規格</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>狀態</th>
-<th>視覺表現</th>
-<th>說明</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>重連加載中（Loading）</strong></td>
-<td>旋轉 Loading 圖標覆蓋畫面中央，FG 背景（夜空神殿）保持顯示，中央提示文字「Restoring Session...」（白色，Open Sans，18px）</td>
-<td>等待後端回傳 session 狀態中</td>
-</tr>
-<tr>
-<td><strong>還原完成（Restored）</strong></td>
-<td>從 Redis 讀回 <code>fg_multiplier</code> 後，FG 倍率進度條以動畫更新至正確倍率節點（0.5s Ease Out Cubic）；盤面上的 Lightning Mark 依 session 狀態重新繪製；提示文字消失，正常 FG 介面恢復</td>
-<td>從中斷局繼續進行 FG</td>
-</tr>
-<tr>
-<td><strong>還原失敗 — JWT 過期（Expired）</strong></td>
-<td>返回主遊戲背景（Main Game 場景），顯示「Session Expired」提示對話框（石刻框架，金色邊框），玩家點擊確認後關閉提示，正常進行 Main Game</td>
-<td>JWT 過期導致 session 無法恢復</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>狀態</th><th>視覺表現</th><th>說明</th></tr>
+<tr><td><strong>重連加載中（Loading）</strong></td><td>旋轉 Loading 圖標覆蓋畫面中央，FG 背景（夜空神殿）保持顯示，中央提示文字「Restoring Session...」（白色，Open Sans，18px）</td><td>等待後端回傳 session 狀態中</td></tr>
+<tr><td><strong>還原完成（Restored）</strong></td><td>從 Redis 讀回 <code>fg_multiplier</code> 後，FG 倍率進度條以動畫更新至正確倍率節點（0.5s Ease Out Cubic）；盤面上的 Lightning Mark 依 session 狀態重新繪製；提示文字消失，正常 FG 介面恢復</td><td>從中斷局繼續進行 FG</td></tr>
+<tr><td><strong>還原失敗 — JWT 過期（Expired）</strong></td><td>返回主遊戲背景（Main Game 場景），顯示「Session Expired」提示對話框（石刻框架，金色邊框），玩家點擊確認後關閉提示，正常進行 Main Game</td><td>JWT 過期導致 session 無法恢復</td></tr>
+</table>
 <p><strong>完整視覺狀態轉換</strong></p>
-<pre><code>Loading  →  Restored（從中斷局繼續 FG）
+<pre><code class="">Loading  →  Restored（從中斷局繼續 FG）
          └→  Expired（返回 Main Game）</code></pre>
 <hr>
-<h2 id="h-8-buy-feature-ui購買功能介面">§8 Buy Feature UI（購買功能介面）</h2>
-<h3 id="h-81-buy-feature-按鈕">8.1 Buy Feature 按鈕</h3>
-<ul>
-<li>位置：HUD 底部右側，SPIN 按鈕右方</li>
-<li>尺寸：140×50px（16:9 基準）</li>
-<li>樣式：紫金色矩形按鈕，帶「BUY FREE GAME」標籤</li>
-<li>圖標：小型硬幣圖案（Coin Toss 符號縮小版）</li>
-<li>狀態：</li>
-<li>正常：紫金色，有光澤</li>
-<li>Hover：邊框金色發光，略微放大（scale 1.05）</li>
-<li>禁用（FG 期間 / Balance 不足）：灰色，半透明，不可點擊</li>
-</ul>
-<h3 id="h-82-buy-feature-確認對話框">8.2 Buy Feature 確認對話框</h3>
+<h2>§8 Buy Feature UI（購買功能介面）</h2>
+<h3>8.1 Buy Feature 按鈕</h3>
+<ul><li>位置：HUD 底部右側，SPIN 按鈕右方</li><li>尺寸：140×50px（16:9 基準）</li><li>樣式：紫金色矩形按鈕，帶「BUY FREE GAME」標籤</li><li>圖標：小型硬幣圖案（Coin Toss 符號縮小版）</li><li>狀態：</li><li style="margin-left:1.0rem">正常：紫金色，有光澤</li><li style="margin-left:1.0rem">Hover：邊框金色發光，略微放大（scale 1.05）</li><li style="margin-left:1.0rem">禁用（FG 期間 / Balance 不足）：灰色，半透明，不可點擊</li></ul>
+<h3>8.2 Buy Feature 確認對話框</h3>
 <p>點擊 Buy Feature 按鈕後彈出對話框：</p>
-<pre><code>┌────────────────────────────────────┐
+<pre><code class="">┌────────────────────────────────────┐
 │         BUY FREE GAME              │
 │                                    │
 │  Cost: 100 × BET = $25.00          │
@@ -1404,225 +428,62 @@
 │  [CONFIRM]         [CANCEL]        │
 └────────────────────────────────────┘</code></pre>
 <p><strong>對話框設計規格</strong></p>
-<ul>
-<li>背景：石刻框架，深藍底色，金色邊框</li>
-<li>標題：「BUY FREE GAME」，希臘風格大字</li>
-<li>費用顯示：金色粗體（根據 Extra Bet 狀態動態計算）</li>
-<li>Extra Bet 狀態徽章：當 Extra Bet ON 時，費用旁顯示「×3 EXTRA BET」橙色標籤</li>
-<li>CONFIRM 按鈕：金色實心按鈕，按下有點擊音效與視覺凹陷效果</li>
-<li>CANCEL 按鈕：銀色空心按鈕，按下取消並關閉對話框</li>
-</ul>
-<h3 id="h-83-extra-bet-切換開關設計">8.3 Extra Bet 切換開關設計</h3>
-<ul>
-<li>位置：HUD 底部，BET 顯示右側</li>
-<li>樣式：Toggle 開關，左「OFF」右「ON」</li>
-<li>OFF 狀態：灰色底，白色圓形滑塊，「EXTRA BET」文字灰色</li>
-<li>ON 狀態：</li>
-<li>底色：金色，帶電弧粒子動畫</li>
-<li>滑塊：金色，位於右側</li>
-<li>「EXTRA BET」文字：金色發光</li>
-<li>BET 顯示欄位同步更新為 ×3 後的金額，數字以橙色標示以提醒玩家</li>
-<li>切換動畫：滑塊滑動（0.2s），底色漸變（0.3s）</li>
-</ul>
+<ul><li>背景：石刻框架，深藍底色，金色邊框</li><li>標題：「BUY FREE GAME」，希臘風格大字</li><li>費用顯示：金色粗體（根據 Extra Bet 狀態動態計算）</li><li>Extra Bet 狀態徽章：當 Extra Bet ON 時，費用旁顯示「×3 EXTRA BET」橙色標籤</li><li>CONFIRM 按鈕：金色實心按鈕，按下有點擊音效與視覺凹陷效果</li><li>CANCEL 按鈕：銀色空心按鈕，按下取消並關閉對話框</li></ul>
+<h3>8.3 Extra Bet 切換開關設計</h3>
+<ul><li>位置：HUD 底部，BET 顯示右側</li><li>樣式：Toggle 開關，左「OFF」右「ON」</li><li>OFF 狀態：灰色底，白色圓形滑塊，「EXTRA BET」文字灰色</li><li>ON 狀態：</li><li style="margin-left:1.0rem">底色：金色，帶電弧粒子動畫</li><li style="margin-left:1.0rem">滑塊：金色，位於右側</li><li style="margin-left:1.0rem">「EXTRA BET」文字：金色發光</li><li style="margin-left:1.0rem">BET 顯示欄位同步更新為 ×3 後的金額，數字以橙色標示以提醒玩家</li><li>切換動畫：滑塊滑動（0.2s），底色漸變（0.3s）</li></ul>
 <hr>
-<h2 id="h-9-win-presentation獲勝展示設計">§9 Win Presentation（獲勝展示設計）</h2>
-<h3 id="h-91-win-展示層次">9.1 Win 展示層次</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>層次</th>
-<th>觸發條件</th>
-<th>展示樣式</th>
-<th>時長</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Small Win</td>
-<td>0 &lt; win &lt; 5× BET</td>
-<td>WIN 數字滾動更新，無特別特效</td>
-<td>自動</td>
-</tr>
-<tr>
-<td>Medium Win</td>
-<td>5× ≤ win &lt; 20× BET</td>
-<td>WIN 數字放大 + 金色粒子噴射</td>
-<td>1.5s</td>
-</tr>
-<tr>
-<td>Big Win</td>
-<td>20× ≤ win &lt; 100× BET</td>
-<td>全屏「BIG WIN」橫幅，計數器滾動至最終值，金幣雨效果</td>
-<td>3.0s</td>
-</tr>
-<tr>
-<td>Mega Win</td>
-<td>100× ≤ win &lt; 500× BET</td>
-<td>全屏「MEGA WIN」橫幅，閃電特效，計數器快速滾動</td>
-<td>4.0s</td>
-</tr>
-<tr>
-<td>Jackpot</td>
-<td>win ≥ 500× BET</td>
-<td>全屏「JACKPOT!」特效，Zeus 出現，雷霆降臨演出</td>
-<td>5.0s</td>
-</tr>
-<tr>
-<td>Max Win（30,000×）</td>
-<td>達到上限（Main Game 上限；Extra Bet + Buy FG 場景上限為 90,000×，詳見 §9.4）</td>
-<td>「MAX WIN 30,000×」特殊彩虹演出，所有特效疊加</td>
-<td>6.0s</td>
-</tr>
-<tr>
-<td>Max Win（90,000×）</td>
-<td>Extra Bet + Buy FG 場景達上限</td>
-<td>同 30,000× 演出 + LEGENDARY WIN 疊加彩虹光環，Zeus、Pegasus、Athena 三主角同台</td>
-<td>10 秒+，見 §9.4</td>
-</tr>
-</tbody></table></div>
+<h2>§9 Win Presentation（獲勝展示設計）</h2>
+<h3>9.1 Win 展示層次</h3>
+<table>
+<tr><th>層次</th><th>觸發條件</th><th>展示樣式</th><th>時長</th></tr>
+<tr><td>Small Win</td><td>0 &lt; win &lt; 5× BET</td><td>WIN 數字滾動更新，無特別特效</td><td>自動</td></tr>
+<tr><td>Medium Win</td><td>5× ≤ win &lt; 20× BET</td><td>WIN 數字放大 + 金色粒子噴射</td><td>1.5s</td></tr>
+<tr><td>Big Win</td><td>20× ≤ win &lt; 100× BET</td><td>全屏「BIG WIN」橫幅，計數器滾動至最終值，金幣雨效果</td><td>3.0s</td></tr>
+<tr><td>Mega Win</td><td>100× ≤ win &lt; 500× BET</td><td>全屏「MEGA WIN」橫幅，閃電特效，計數器快速滾動</td><td>4.0s</td></tr>
+<tr><td>Jackpot</td><td>win ≥ 500× BET</td><td>全屏「JACKPOT!」特效，Zeus 出現，雷霆降臨演出</td><td>5.0s</td></tr>
+<tr><td>Max Win（30,000×）</td><td>達到上限（Main Game 上限；Extra Bet + Buy FG 場景上限為 90,000×，詳見 §9.4）</td><td>「MAX WIN 30,000×」特殊彩虹演出，所有特效疊加</td><td>6.0s</td></tr>
+<tr><td>Max Win（90,000×）</td><td>Extra Bet + Buy FG 場景達上限</td><td>同 30,000× 演出 + LEGENDARY WIN 疊加彩虹光環，Zeus、Pegasus、Athena 三主角同台</td><td>10 秒+，見 §9.4</td></tr>
+</table>
 <p><strong>Big Win 及以上展示通用規格</strong></p>
-<ul>
-<li>背景：全屏暗化遮罩（opacity 0.8）</li>
-<li>WIN 數字：螢幕中央，字體超大（min 120px），金色，帶描邊</li>
-<li>計數器動畫：從 0 滾動至最終值（滾動時長 = min(win_amount / 50, 5.0)s）</li>
-<li>玩家可點擊螢幕任意位置跳過（skip）展示，直接顯示最終值</li>
-</ul>
-<h3 id="h-92-win-lines-高亮動畫">9.2 Win Lines 高亮動畫</h3>
-<ul>
-<li>中獎連線路徑以金色高亮線條顯示（breadth: 4px，帶發光效果）</li>
-<li>高亮線條循環播放：每條中獎線逐條展示，停留 0.8s，然後切換至下一條</li>
-<li>同時中獎多條連線時：所有連線同時高亮（若超過 5 條），或輪流展示（≤ 5 條）</li>
-<li>高亮期間非中獎符號降低不透明度（opacity 0.5），突出中獎符號</li>
-<li>線條顏色：每條 Payline 有固定顏色對應，以便多線中獎時區分（金、橙、紅、藍、綠共 5 色組循環）</li>
-</ul>
-<h3 id="h-93-連線路徑視覺化57-條連線">9.3 連線路徑視覺化（57 條連線）</h3>
-<ul>
-<li><strong>主遊戲（25 條）</strong>：當前滾輪狀態為 3 列，顯示 25 條基礎連線</li>
-<li><strong>擴展後（57 條）</strong>：隨滾輪行數增加，連線路徑自動更新顯示</li>
-<li>線條路徑從左側第 1 格延伸至右側第 5 格，折線路徑（兩格間以直角連接）</li>
-<li>Info 頁面可查看完整 57 條連線圖解（靜態圖，按 i 按鈕開啟）</li>
-</ul>
-<h3 id="h-94-最大獎特殊慶祝動畫">9.4 最大獎特殊慶祝動畫</h3>
+<ul><li>背景：全屏暗化遮罩（opacity 0.8）</li><li>WIN 數字：螢幕中央，字體超大（min 120px），金色，帶描邊</li><li>計數器動畫：從 0 滾動至最終值（滾動時長 = min(win_amount / 50, 5.0)s）</li><li>玩家可點擊螢幕任意位置跳過（skip）展示，直接顯示最終值</li></ul>
+<h3>9.2 Win Lines 高亮動畫</h3>
+<ul><li>中獎連線路徑以金色高亮線條顯示（breadth: 4px，帶發光效果）</li><li>高亮線條循環播放：每條中獎線逐條展示，停留 0.8s，然後切換至下一條</li><li>同時中獎多條連線時：所有連線同時高亮（若超過 5 條），或輪流展示（≤ 5 條）</li><li>高亮期間非中獎符號降低不透明度（opacity 0.5），突出中獎符號</li><li>線條顏色：每條 Payline 有固定顏色對應，以便多線中獎時區分（金、橙、紅、藍、綠共 5 色組循環）</li></ul>
+<h3>9.3 連線路徑視覺化（57 條連線）</h3>
+<ul><li><strong>主遊戲（25 條）</strong>：當前滾輪狀態為 3 列，顯示 25 條基礎連線</li><li><strong>擴展後（57 條）</strong>：隨滾輪行數增加，連線路徑自動更新顯示</li><li>線條路徑從左側第 1 格延伸至右側第 5 格，折線路徑（兩格間以直角連接）</li><li>Info 頁面可查看完整 57 條連線圖解（靜態圖，按 i 按鈕開啟）</li></ul>
+<h3>9.4 最大獎特殊慶祝動畫</h3>
 <p><strong>30,000× 達成演出（Main Game Max Win）</strong></p>
-<ol>
-<li>全屏彩色光爆（RGB 交替閃爍，0.5s）</li>
-<li>Zeus 從滾輪後方升起（角色動畫，揮舞閃電叉，3.0s）</li>
-<li>「MAX WIN」文字從天而降（scale 3.0 → 1.0，帶閃電特效）</li>
-<li>金幣雨持續 4.0s（全屏高密度粒子）</li>
-<li>計數器從 0 滾動至 30,000（2.5s）</li>
-<li>遊戲自動進入結算</li>
-</ol>
+<ol><li>全屏彩色光爆（RGB 交替閃爍，0.5s）</li><li>Zeus 從滾輪後方升起（角色動畫，揮舞閃電叉，3.0s）</li><li>「MAX WIN」文字從天而降（scale 3.0 → 1.0，帶閃電特效）</li><li>金幣雨持續 4.0s（全屏高密度粒子）</li><li>計數器從 0 滾動至 30,000（2.5s）</li><li>遊戲自動進入結算</li></ol>
 <p><strong>90,000× 達成演出（Extra Bet + Buy FG Max Win）</strong></p>
-<ul>
-<li>同 30,000× 演出，額外加入彩虹光環與「LEGENDARY WIN」字樣</li>
-<li>Zeus + Pegasus + Athena 全部角色同時出現（分三幕，各 1s）</li>
-</ul>
+<ul><li>同 30,000× 演出，額外加入彩虹光環與「LEGENDARY WIN」字樣</li><li>Zeus + Pegasus + Athena 全部角色同時出現（分三幕，各 1s）</li></ul>
 <hr>
-<h2 id="h-10-responsive-design響應式設計規格">§10 Responsive Design（響應式設計規格）</h2>
-<h3 id="h-100-關鍵斷點規格表">10.0 關鍵斷點規格表</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>斷點</th>
-<th>裝置</th>
-<th>Canvas 尺寸</th>
-<th>HUD 調整</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>320px</td>
-<td>iPhone SE 最小</td>
-<td>320×240</td>
-<td>HUD 折疊，按鈕縮至 36px</td>
-</tr>
-<tr>
-<td>375px</td>
-<td>iPhone 標準</td>
-<td>375×280</td>
-<td>標準行動佈局</td>
-</tr>
-<tr>
-<td>768px</td>
-<td>平板直屏</td>
-<td>600×450</td>
-<td>側欄縮進</td>
-</tr>
-<tr>
-<td>1024px</td>
-<td>平板橫屏</td>
-<td>800×600</td>
-<td>兩欄佈局可用</td>
-</tr>
-<tr>
-<td>1440px</td>
-<td>桌面</td>
-<td>1200×900</td>
-<td>完整佈局（見 §10.1 基準規格）</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-101-橫屏landscape規格">10.1 橫屏（Landscape）規格</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>解析度</th>
-<th>比例</th>
-<th>滾輪格子尺寸</th>
-<th>備註</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>1920×1080</td>
-<td>16:9</td>
-<td>190×190px</td>
-<td>基準解析度，所有設計原稿此尺寸製作</td>
-</tr>
-<tr>
-<td>1280×720</td>
-<td>16:9</td>
-<td>127×127px</td>
-<td>縮放係數 0.667</td>
-</tr>
-<tr>
-<td>2560×1440</td>
-<td>16:9</td>
-<td>253×253px</td>
-<td>縮放係數 1.333</td>
-</tr>
-<tr>
-<td>1334×750（iPhone 橫屏）</td>
-<td>16:9</td>
-<td>134×134px</td>
-<td>行動裝置橫屏</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-102-直屏portrait規格">10.2 直屏（Portrait）規格</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>解析度</th>
-<th>比例</th>
-<th>滾輪格子尺寸</th>
-<th>HUD 位置</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>750×1334（iPhone 直屏）</td>
-<td>9:16</td>
-<td>140×140px</td>
-<td>HUD 固定底部，比例更高</td>
-</tr>
-<tr>
-<td>1080×1920（Android 直屏）</td>
-<td>9:16</td>
-<td>196×196px</td>
-<td>同上</td>
-</tr>
-</tbody></table></div>
+<h2>§10 Responsive Design（響應式設計規格）</h2>
+<h3>10.0 關鍵斷點規格表</h3>
+<table>
+<tr><th>斷點</th><th>裝置</th><th>Canvas 尺寸</th><th>HUD 調整</th></tr>
+<tr><td>320px</td><td>iPhone SE 最小</td><td>320×240</td><td>HUD 折疊，按鈕縮至 36px</td></tr>
+<tr><td>375px</td><td>iPhone 標準</td><td>375×280</td><td>標準行動佈局</td></tr>
+<tr><td>768px</td><td>平板直屏</td><td>600×450</td><td>側欄縮進</td></tr>
+<tr><td>1024px</td><td>平板橫屏</td><td>800×600</td><td>兩欄佈局可用</td></tr>
+<tr><td>1440px</td><td>桌面</td><td>1200×900</td><td>完整佈局（見 §10.1 基準規格）</td></tr>
+</table>
+<h3>10.1 橫屏（Landscape）規格</h3>
+<table>
+<tr><th>解析度</th><th>比例</th><th>滾輪格子尺寸</th><th>備註</th></tr>
+<tr><td>1920×1080</td><td>16:9</td><td>190×190px</td><td>基準解析度，所有設計原稿此尺寸製作</td></tr>
+<tr><td>1280×720</td><td>16:9</td><td>127×127px</td><td>縮放係數 0.667</td></tr>
+<tr><td>2560×1440</td><td>16:9</td><td>253×253px</td><td>縮放係數 1.333</td></tr>
+<tr><td>1334×750（iPhone 橫屏）</td><td>16:9</td><td>134×134px</td><td>行動裝置橫屏</td></tr>
+</table>
+<h3>10.2 直屏（Portrait）規格</h3>
+<table>
+<tr><th>解析度</th><th>比例</th><th>滾輪格子尺寸</th><th>HUD 位置</th></tr>
+<tr><td>750×1334（iPhone 直屏）</td><td>9:16</td><td>140×140px</td><td>HUD 固定底部，比例更高</td></tr>
+<tr><td>1080×1920（Android 直屏）</td><td>9:16</td><td>196×196px</td><td>同上</td></tr>
+</table>
 <p><strong>直屏佈局調整</strong></p>
-<ul>
-<li>滾輪寬度佔螢幕 95%</li>
-<li>HUD 底部高度固定 160px（無論螢幕高度）</li>
-<li>FREE 字母進度條移至滾輪框架頂端內側，不佔額外空間</li>
-<li>Win 展示文字縮小 20%（避免超出螢幕）</li>
-<li>Buy FG 按鈕移至 HUD 右下角，EXTRA BET 開關移至 HUD 左下角</li>
-</ul>
-<h3 id="h-103-安全區域safe-area定義">10.3 安全區域（Safe Area）定義</h3>
-<pre><code>橫屏安全區域（iOS/Android 適配）：
+<ul><li>滾輪寬度佔螢幕 95%</li><li>HUD 底部高度固定 160px（無論螢幕高度）</li><li>FREE 字母進度條移至滾輪框架頂端內側，不佔額外空間</li><li>Win 展示文字縮小 20%（避免超出螢幕）</li><li>Buy FG 按鈕移至 HUD 右下角，EXTRA BET 開關移至 HUD 左下角</li></ul>
+<h3>10.3 安全區域（Safe Area）定義</h3>
+<pre><code class="">橫屏安全區域（iOS/Android 適配）：
   上邊：+34px（狀態列）
   下邊：+34px（Home Indicator）
   左邊：+44px（圓角避讓）
@@ -1632,583 +493,143 @@
   上邊：+44px（劉海 / 動態島）
   下邊：+34px（Home Indicator）
   左右：+0px（全螢幕）</code></pre>
-<ul>
-<li>HUD 所有可點擊元素必須在安全區域內</li>
-<li>滾輪主體可延伸至安全區域外（背景視覺效果）</li>
-<li>任何彈窗（Buy Feature 確認框）必須完整在安全區域內</li>
-</ul>
-<h3 id="h-104-行動裝置特殊規格">10.4 行動裝置特殊規格</h3>
-<ul>
-<li>觸控目標最小尺寸：48×48px（WCAG 2.1 AA 觸控目標建議）</li>
-<li>SPIN 按鈕直徑最小：80px（行動裝置）</li>
-<li>Extra Bet 開關最小寬度：80px</li>
-<li>符號格子縮小時（&lt; 120px），省略 Idle 動畫（只保留 Win 和 Special 動畫）</li>
-<li>特效粒子數量行動裝置減半（效能優化）</li>
-</ul>
+<ul><li>HUD 所有可點擊元素必須在安全區域內</li><li>滾輪主體可延伸至安全區域外（背景視覺效果）</li><li>任何彈窗（Buy Feature 確認框）必須完整在安全區域內</li></ul>
+<h3>10.4 行動裝置特殊規格</h3>
+<ul><li>觸控目標最小尺寸：48×48px（WCAG 2.1 AA 觸控目標建議）</li><li>SPIN 按鈕直徑最小：80px（行動裝置）</li><li>Extra Bet 開關最小寬度：80px</li><li>符號格子縮小時（&lt; 120px），省略 Idle 動畫（只保留 Win 和 Special 動畫）</li><li>特效粒子數量行動裝置減半（效能優化）</li></ul>
 <hr>
-<h2 id="h-11-color-system色彩系統">§11 Color System（色彩系統）</h2>
-<h3 id="h-111-主色調">11.1 主色調</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>色彩名稱</th>
-<th>HEX</th>
-<th>OKLCH</th>
-<th>用途</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Divine Gold（神聖金）</td>
-<td>#D4AF37</td>
-<td>oklch(75% 0.14 80)</td>
-<td>主要強調色，框架、按鈕、WIN 數字</td>
-</tr>
-<tr>
-<td>Olympus Blue（奧林匹斯藍）</td>
-<td>#1B2A4A</td>
-<td>oklch(22% 0.06 250)</td>
-<td>主背景色、HUD 底色</td>
-</tr>
-<tr>
-<td>Zeus Purple（宙斯紫）</td>
-<td>#4A1B6B</td>
-<td>oklch(25% 0.12 300)</td>
-<td>次要強調、Free Game 場景色</td>
-</tr>
-<tr>
-<td>Marble White（大理石白）</td>
-<td>#F5F0E8</td>
-<td>oklch(95% 0.01 80)</td>
-<td>文字主色、對話框背景</td>
-</tr>
-<tr>
-<td>Thunder Orange（雷霆橙）</td>
-<td>#FF8C00</td>
-<td>oklch(68% 0.18 55)</td>
-<td>Extra Bet ON 狀態、Near Miss 高亮</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-112-功能色">11.2 功能色</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>色彩名稱</th>
-<th>HEX</th>
-<th>OKLCH</th>
-<th>用途</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Win Gold（獎金金）</td>
-<td>#FFD700</td>
-<td>oklch(88% 0.19 92)</td>
-<td>Win 數字、閃電標記顏色</td>
-</tr>
-<tr>
-<td>Lightning Arc（電弧白）</td>
-<td>#E8F4FF</td>
-<td>oklch(96% 0.02 230)</td>
-<td>電弧粒子效果顏色</td>
-</tr>
-<tr>
-<td>FG Multiplier Blue（FG 倍率藍）</td>
-<td>#00BFFF</td>
-<td>oklch(75% 0.12 220)</td>
-<td>FG 倍率進度條填充色</td>
-</tr>
-<tr>
-<td>Error Red（錯誤紅）</td>
-<td>#D32F2F</td>
-<td>oklch(42% 0.18 28)</td>
-<td>系統錯誤提示、Tails 結果文字</td>
-</tr>
-<tr>
-<td>Disabled Gray（禁用灰）</td>
-<td>#757575</td>
-<td>oklch(50% 0 0)</td>
-<td>禁用按鈕、關閉狀態</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-113-符號專屬色">11.3 符號專屬色</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>符號</th>
-<th>主色</th>
-<th>HEX</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Wild / Divine Lightning</td>
-<td>帝王金</td>
-<td>#FFD700</td>
-</tr>
-<tr>
-<td>Scatter</td>
-<td>神聖藍白</td>
-<td>#E8F4FF / #1A6EBF</td>
-</tr>
-<tr>
-<td>P1 Zeus</td>
-<td>帝王金</td>
-<td>#FFD700</td>
-</tr>
-<tr>
-<td>P2 Pegasus</td>
-<td>白金紫</td>
-<td>#D4BBFF</td>
-</tr>
-<tr>
-<td>P3 Athena</td>
-<td>銀藍</td>
-<td>#B0C4DE</td>
-</tr>
-<tr>
-<td>P4 Eagle</td>
-<td>琥珀金</td>
-<td>#DAA520</td>
-</tr>
-<tr>
-<td>L1 Z</td>
-<td>黃金</td>
-<td>#FFD700</td>
-</tr>
-<tr>
-<td>L2 E</td>
-<td>橙金</td>
-<td>#FFA500</td>
-</tr>
-<tr>
-<td>L3 U</td>
-<td>銅金</td>
-<td>#CD7F32</td>
-</tr>
-<tr>
-<td>L4 S</td>
-<td>暗銅</td>
-<td>#8B6914</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-114-無障礙色彩對比要求wcag-aa">11.4 無障礙色彩對比要求（WCAG AA）</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>前景</th>
-<th>背景</th>
-<th>對比比率</th>
-<th>要求</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Marble White #F5F0E8</td>
-<td>Olympus Blue #1B2A4A</td>
-<td>≥ 7:1</td>
-<td>通過 AAA</td>
-</tr>
-<tr>
-<td>Divine Gold #D4AF37</td>
-<td>Olympus Blue #1B2A4A</td>
-<td>≥ 4.5:1</td>
-<td>通過 AA</td>
-</tr>
-<tr>
-<td>Win Gold #FFD700（文字）</td>
-<td>Olympus Blue #1B2A4A</td>
-<td>≥ 4.5:1</td>
-<td>通過 AA</td>
-</tr>
-<tr>
-<td>Marble White #F5F0E8（HUD 文字）</td>
-<td>HUD 背景 rgba(27,42,74,0.85) @ #0A0F1E 底層（混合色 ≈ #1F3154）</td>
-<td>≈ 10.2:1（AA ✅ AAA ✅）</td>
-<td>通過</td>
-</tr>
-</tbody></table></div>
+<h2>§11 Color System（色彩系統）</h2>
+<h3>11.1 主色調</h3>
+<table>
+<tr><th>色彩名稱</th><th>HEX</th><th>OKLCH</th><th>用途</th></tr>
+<tr><td>Divine Gold（神聖金）</td><td>#D4AF37</td><td>oklch(75% 0.14 80)</td><td>主要強調色，框架、按鈕、WIN 數字</td></tr>
+<tr><td>Olympus Blue（奧林匹斯藍）</td><td>#1B2A4A</td><td>oklch(22% 0.06 250)</td><td>主背景色、HUD 底色</td></tr>
+<tr><td>Zeus Purple（宙斯紫）</td><td>#4A1B6B</td><td>oklch(25% 0.12 300)</td><td>次要強調、Free Game 場景色</td></tr>
+<tr><td>Marble White（大理石白）</td><td>#F5F0E8</td><td>oklch(95% 0.01 80)</td><td>文字主色、對話框背景</td></tr>
+<tr><td>Thunder Orange（雷霆橙）</td><td>#FF8C00</td><td>oklch(68% 0.18 55)</td><td>Extra Bet ON 狀態、Near Miss 高亮</td></tr>
+</table>
+<h3>11.2 功能色</h3>
+<table>
+<tr><th>色彩名稱</th><th>HEX</th><th>OKLCH</th><th>用途</th></tr>
+<tr><td>Win Gold（獎金金）</td><td>#FFD700</td><td>oklch(88% 0.19 92)</td><td>Win 數字、閃電標記顏色</td></tr>
+<tr><td>Lightning Arc（電弧白）</td><td>#E8F4FF</td><td>oklch(96% 0.02 230)</td><td>電弧粒子效果顏色</td></tr>
+<tr><td>FG Multiplier Blue（FG 倍率藍）</td><td>#00BFFF</td><td>oklch(75% 0.12 220)</td><td>FG 倍率進度條填充色</td></tr>
+<tr><td>Error Red（錯誤紅）</td><td>#D32F2F</td><td>oklch(42% 0.18 28)</td><td>系統錯誤提示、Tails 結果文字</td></tr>
+<tr><td>Disabled Gray（禁用灰）</td><td>#757575</td><td>oklch(50% 0 0)</td><td>禁用按鈕、關閉狀態</td></tr>
+</table>
+<h3>11.3 符號專屬色</h3>
+<table>
+<tr><th>符號</th><th>主色</th><th>HEX</th></tr>
+<tr><td>Wild / Divine Lightning</td><td>帝王金</td><td>#FFD700</td></tr>
+<tr><td>Scatter</td><td>神聖藍白</td><td>#E8F4FF / #1A6EBF</td></tr>
+<tr><td>P1 Zeus</td><td>帝王金</td><td>#FFD700</td></tr>
+<tr><td>P2 Pegasus</td><td>白金紫</td><td>#D4BBFF</td></tr>
+<tr><td>P3 Athena</td><td>銀藍</td><td>#B0C4DE</td></tr>
+<tr><td>P4 Eagle</td><td>琥珀金</td><td>#DAA520</td></tr>
+<tr><td>L1 Z</td><td>黃金</td><td>#FFD700</td></tr>
+<tr><td>L2 E</td><td>橙金</td><td>#FFA500</td></tr>
+<tr><td>L3 U</td><td>銅金</td><td>#CD7F32</td></tr>
+<tr><td>L4 S</td><td>暗銅</td><td>#8B6914</td></tr>
+</table>
+<h3>11.4 無障礙色彩對比要求（WCAG AA）</h3>
+<table>
+<tr><th>前景</th><th>背景</th><th>對比比率</th><th>要求</th></tr>
+<tr><td>Marble White #F5F0E8</td><td>Olympus Blue #1B2A4A</td><td>≥ 7:1</td><td>通過 AAA</td></tr>
+<tr><td>Divine Gold #D4AF37</td><td>Olympus Blue #1B2A4A</td><td>≥ 4.5:1</td><td>通過 AA</td></tr>
+<tr><td>Win Gold #FFD700（文字）</td><td>Olympus Blue #1B2A4A</td><td>≥ 4.5:1</td><td>通過 AA</td></tr>
+<tr><td>Marble White #F5F0E8（HUD 文字）</td><td>HUD 背景 rgba(27,42,74,0.85) @ #0A0F1E 底層（混合色 ≈ #1F3154）</td><td>≈ 10.2:1（AA ✅ AAA ✅）</td><td>通過</td></tr>
+</table>
 <blockquote><p>所有 HUD 文字與按鈕標籤必須通過 WCAG 2.1 AA 標準（正常文字 ≥ 4.5:1，大字 ≥ 3:1）。</p></blockquote>
 <hr>
-<h2 id="h-12-typography字體規格">§12 Typography（字體規格）</h2>
-<h3 id="h-121-字體家族">12.1 字體家族</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>用途</th>
-<th>字體名稱</th>
-<th>樣式</th>
-<th>備註</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>WIN 數字顯示</td>
-<td>Trajan Pro / 自訂數字字體</td>
-<td>Bold</td>
-<td>羅馬帝國風格，大字號清晰易讀</td>
-</tr>
-<tr>
-<td>HUD 標籤（餘額、押注等）</td>
-<td>Open Sans</td>
-<td>Regular / SemiBold</td>
-<td>無障礙友善，多語言支援</td>
-</tr>
-<tr>
-<td>符號名稱銘文（符號底部）</td>
-<td>Cinzel</td>
-<td>Regular</td>
-<td>希臘/羅馬古典風格</td>
-</tr>
-<tr>
-<td>特效文字（BIG WIN 等）</td>
-<td>自訂希臘風格 Display 字體</td>
-<td>ExtraBold</td>
-<td>限用於 Win 展示場景</td>
-</tr>
-<tr>
-<td>對話框內文</td>
-<td>Open Sans</td>
-<td>Regular</td>
-<td>可讀性優先</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-122-字體尺寸規格19201080-基準">12.2 字體尺寸規格（1920×1080 基準）</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>元素</th>
-<th>字體大小</th>
-<th>行高</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Win 數字（Small Win）</td>
-<td>32px</td>
-<td>1.2</td>
-</tr>
-<tr>
-<td>Win 數字（Big Win+）</td>
-<td>80–200px（動態縮放）</td>
-<td>1.0</td>
-</tr>
-<tr>
-<td>HUD 主要數值（Balance / Bet）</td>
-<td>22px</td>
-<td>1.4</td>
-</tr>
-<tr>
-<td>HUD 標籤文字</td>
-<td>14px</td>
-<td>1.5</td>
-</tr>
-<tr>
-<td>按鈕標籤</td>
-<td>16px</td>
-<td>1.3</td>
-</tr>
-<tr>
-<td>符號銘文</td>
-<td>12–14px</td>
-<td>1.2</td>
-</tr>
-<tr>
-<td>FREE 字母</td>
-<td>40px</td>
-<td>1.0</td>
-</tr>
-<tr>
-<td>倍率顯示（×3 / ×77）</td>
-<td>48–72px</td>
-<td>1.0</td>
-</tr>
-<tr>
-<td>CASCADE × N 浮字</td>
-<td>36px</td>
-<td>1.0</td>
-</tr>
-<tr>
-<td>對話框標題</td>
-<td>28px</td>
-<td>1.3</td>
-</tr>
-<tr>
-<td>對話框內文</td>
-<td>18px</td>
-<td>1.6</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-123-數字格式規範">12.3 數字格式規範</h3>
-<ul>
-<li>金額顯示格式：<code>$1,234.56</code>（千位分隔符，小數點後兩位）</li>
-<li>TWD 格式：<code>TWD 1,234</code>（整數，無小數）</li>
-<li>倍率格式：<code>×77</code>（× 前綴，無空格）</li>
-<li>連線數格式：<code>57 LINES</code></li>
-<li>WIN 顯示：<code>$12.50</code>（隨引擎 totalWin 顯示，Cascade 期間滾動更新）</li>
-</ul>
-<h3 id="h-124-多語言支援考量">12.4 多語言支援考量</h3>
-<ul>
-<li>主介面文字限英文（符合 B2B 國際部署需求）</li>
-<li>字體需支援 Latin Extended 字符集（歐洲語言部署備用）</li>
-<li>預留 30% 文字寬度膨脹空間（應對翻譯後字串長度增加）</li>
-<li>數字字體與語言無關，無需多語言處理</li>
-<li>開關標籤（ON / OFF）、按鈕（SPIN / AUTO / BUY FG）保持英文不翻譯（行業通用）</li>
-</ul>
+<h2>§12 Typography（字體規格）</h2>
+<h3>12.1 字體家族</h3>
+<table>
+<tr><th>用途</th><th>字體名稱</th><th>樣式</th><th>備註</th></tr>
+<tr><td>WIN 數字顯示</td><td>Trajan Pro / 自訂數字字體</td><td>Bold</td><td>羅馬帝國風格，大字號清晰易讀</td></tr>
+<tr><td>HUD 標籤（餘額、押注等）</td><td>Open Sans</td><td>Regular / SemiBold</td><td>無障礙友善，多語言支援</td></tr>
+<tr><td>符號名稱銘文（符號底部）</td><td>Cinzel</td><td>Regular</td><td>希臘/羅馬古典風格</td></tr>
+<tr><td>特效文字（BIG WIN 等）</td><td>自訂希臘風格 Display 字體</td><td>ExtraBold</td><td>限用於 Win 展示場景</td></tr>
+<tr><td>對話框內文</td><td>Open Sans</td><td>Regular</td><td>可讀性優先</td></tr>
+</table>
+<h3>12.2 字體尺寸規格（1920×1080 基準）</h3>
+<table>
+<tr><th>元素</th><th>字體大小</th><th>行高</th></tr>
+<tr><td>Win 數字（Small Win）</td><td>32px</td><td>1.2</td></tr>
+<tr><td>Win 數字（Big Win+）</td><td>80–200px（動態縮放）</td><td>1.0</td></tr>
+<tr><td>HUD 主要數值（Balance / Bet）</td><td>22px</td><td>1.4</td></tr>
+<tr><td>HUD 標籤文字</td><td>14px</td><td>1.5</td></tr>
+<tr><td>按鈕標籤</td><td>16px</td><td>1.3</td></tr>
+<tr><td>符號銘文</td><td>12–14px</td><td>1.2</td></tr>
+<tr><td>FREE 字母</td><td>40px</td><td>1.0</td></tr>
+<tr><td>倍率顯示（×3 / ×77）</td><td>48–72px</td><td>1.0</td></tr>
+<tr><td>CASCADE × N 浮字</td><td>36px</td><td>1.0</td></tr>
+<tr><td>對話框標題</td><td>28px</td><td>1.3</td></tr>
+<tr><td>對話框內文</td><td>18px</td><td>1.6</td></tr>
+</table>
+<h3>12.3 數字格式規範</h3>
+<ul><li>金額顯示格式：<code>$1,234.56</code>（千位分隔符，小數點後兩位）</li><li>TWD 格式：<code>TWD 1,234</code>（整數，無小數）</li><li>倍率格式：<code>×77</code>（× 前綴，無空格）</li><li>連線數格式：<code>57 LINES</code></li><li>WIN 顯示：<code>$12.50</code>（隨引擎 totalWin 顯示，Cascade 期間滾動更新）</li></ul>
+<h3>12.4 多語言支援考量</h3>
+<ul><li>主介面文字限英文（符合 B2B 國際部署需求）</li><li>字體需支援 Latin Extended 字符集（歐洲語言部署備用）</li><li>預留 30% 文字寬度膨脹空間（應對翻譯後字串長度增加）</li><li>數字字體與語言無關，無需多語言處理</li><li>開關標籤（ON / OFF）、按鈕（SPIN / AUTO / BUY FG）保持英文不翻譯（行業通用）</li></ul>
 <hr>
-<h2 id="h-13-sound-design-reference音效參考">§13 Sound Design Reference（音效參考）</h2>
+<h2>§13 Sound Design Reference（音效參考）</h2>
 <blockquote><p>詳細音效設計規格見 AUDIO.md（D10b-AUDIO 步驟生成）。本章節僅定義視覺觸發事件與對應音效時間點，供音效設計師對應工作。</p></blockquote>
-<h3 id="h-131-音效觸發事件列表">13.1 音效觸發事件列表</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>事件 ID</th>
-<th>觸發時機</th>
-<th>視覺同步點</th>
-<th>音效性質描述</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>SFX_SPIN_START</td>
-<td>玩家按下 SPIN</td>
-<td>SPIN 按鈕按下瞬間</td>
-<td>滾輪啟動，機械感轉動聲</td>
-</tr>
-<tr>
-<td>SFX_REEL_STOP_1–5</td>
-<td>各滾輪依序停止</td>
-<td>各滾輪符號停止落定</td>
-<td>依序落定聲，第 5 個最重</td>
-</tr>
-<tr>
-<td>SFX_WIN_SMALL</td>
-<td>小獎中獎</td>
-<td>WIN 數字開始更新</td>
-<td>輕柔金幣聲</td>
-</tr>
-<tr>
-<td>SFX_WIN_MEDIUM</td>
-<td>中獎（5–20×）</td>
-<td>WIN 數字放大動畫啟動</td>
-<td>金幣串音</td>
-</tr>
-<tr>
-<td>SFX_WIN_BIG</td>
-<td>大獎（20–100×）</td>
-<td>BIG WIN 橫幅落下</td>
-<td>雄壯號角 + 金幣聲</td>
-</tr>
-<tr>
-<td>SFX_WIN_MEGA</td>
-<td>超大獎（100–500×）</td>
-<td>MEGA WIN 特效啟動</td>
-<td>交響樂高潮 + 閃電</td>
-</tr>
-<tr>
-<td>SFX_WIN_JACKPOT</td>
-<td>頂獎（500×+）</td>
-<td>Zeus 角色出現</td>
-<td>全特效音效，史詩交響</td>
-</tr>
-<tr>
-<td>SFX_CASCADE_EXPLODE</td>
-<td>中獎符號消除</td>
-<td>碎片飛散動畫同步</td>
-<td>符號爆炸聲（根據符號類型不同）</td>
-</tr>
-<tr>
-<td>SFX_CASCADE_DROP</td>
-<td>新符號落下</td>
-<td>符號落地彈跳瞬間</td>
-<td>輕微落地碰撞聲</td>
-</tr>
-<tr>
-<td>SFX_REEL_EXPAND</td>
-<td>滾輪行數擴展</td>
-<td>雲層消散動畫</td>
-<td>雲霧消散 + 石板展開聲</td>
-</tr>
-<tr>
-<td>SFX_FREE_LETTER</td>
-<td>FREE 字母亮燈</td>
-<td>單個字母點亮</td>
-<td>金屬鈴聲（高亢短促）</td>
-</tr>
-<tr>
-<td>SFX_LIGHTNING_MARK</td>
-<td>閃電標記生成</td>
-<td>標記出現動畫</td>
-<td>電弧短促聲</td>
-</tr>
-<tr>
-<td>SFX_THUNDER_BLESSING</td>
-<td>雷霆祝福觸發（第一擊）</td>
-<td>SC 引爆動畫開始</td>
-<td>雷霆轟鳴（最強音效）</td>
-</tr>
-<tr>
-<td>SFX_SECOND_HIT</td>
-<td>雷霆祝福第二擊</td>
-<td>符號升階動畫</td>
-<td>升階神秘光芒聲</td>
-</tr>
-<tr>
-<td>SFX_COIN_TOSS_START</td>
-<td>Coin Toss 開始</td>
-<td>硬幣飛入場景</td>
-<td>金屬硬幣拋出聲</td>
-</tr>
-<tr>
-<td>SFX_COIN_TOSS_FLIP</td>
-<td>硬幣翻轉中</td>
-<td>硬幣旋轉過程中循環</td>
-<td>硬幣旋轉風聲（循環）</td>
-</tr>
-<tr>
-<td>SFX_COIN_HEADS</td>
-<td>正面 Heads 結果</td>
-<td>硬幣正面朝上落定</td>
-<td>勝利金屬音 + 光效聲</td>
-</tr>
-<tr>
-<td>SFX_COIN_TAILS</td>
-<td>反面 Tails 結果</td>
-<td>硬幣反面朝上落定</td>
-<td>低沉收尾聲</td>
-</tr>
-<tr>
-<td>SFX_FG_ENTER</td>
-<td>進入 Free Game</td>
-<td>場景切換動畫</td>
-<td>史詩入場音樂（3s 引子）</td>
-</tr>
-<tr>
-<td>SFX_FG_MULT_UP</td>
-<td>FG 倍率升級</td>
-<td>倍率升級動畫</td>
-<td>升調音階</td>
-</tr>
-<tr>
-<td>SFX_FG_MULT_77</td>
-<td>達到 ×77 最高倍率</td>
-<td>MAX MULTIPLIER 橫幅</td>
-<td>最高點交響</td>
-</tr>
-<tr>
-<td>SFX_FG_BONUS_100X</td>
-<td>FG Bonus ×100 觸發</td>
-<td>全屏特效啟動</td>
-<td>驚喜音效 + 金幣爆發</td>
-</tr>
-<tr>
-<td>SFX_EXTRA_BET_ON</td>
-<td>Extra Bet 開啟</td>
-<td>Toggle 點亮動畫</td>
-<td>電弧啟動聲</td>
-</tr>
-<tr>
-<td>SFX_BUY_FG_CONFIRM</td>
-<td>Buy FG 確認購買</td>
-<td>對話框關閉動畫</td>
-<td>金幣重量感點擊聲</td>
-</tr>
-<tr>
-<td>SFX_NEAR_MISS</td>
-<td>Near Miss 符號排列</td>
-<td>格子邊框閃爍</td>
-<td>輕微懸念弦音（0.5s）</td>
-</tr>
-<tr>
-<td>SFX_MAX_WIN</td>
-<td>達到 30,000× 上限（Main Game）</td>
-<td>Zeus 角色演出</td>
-<td>最終大獎史詩音效（6s）</td>
-</tr>
-<tr>
-<td>SFX_MAX_WIN_LEGENDARY</td>
-<td>達到 90,000× 上限（Extra Bet + Buy FG）</td>
-<td>§9.4 LEGENDARY WIN 演出同步（Zeus + Pegasus + Athena 三角色出現）</td>
-<td>完整勝利曲（加長版，10s+）</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-132-背景音樂bgm觸發點">13.2 背景音樂（BGM）觸發點</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>BGM 狀態</th>
-<th>觸發條件</th>
-<th>風格</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>BGM_MAIN</td>
-<td>主遊戲進行中</td>
-<td>希臘神話史詩環境音樂，中等強度</td>
-</tr>
-<tr>
-<td>BGM_ANTICIPATION</td>
-<td>FREE 字母全亮（等待 Coin Toss）</td>
-<td>張力漸強，鼓聲加入</td>
-</tr>
-<tr>
-<td>BGM_COIN_TOSS</td>
-<td>Coin Toss 進行中</td>
-<td>靜止張力音樂，懸念感最強</td>
-</tr>
-<tr>
-<td>BGM_FREE_GAME</td>
-<td>Free Game 期間</td>
-<td>勝利史詩主題，比 Main Game 強度高</td>
-</tr>
-<tr>
-<td>BGM_77X</td>
-<td>達到 ×77 倍率後</td>
-<td>最高強度史詩音樂，電子元素加入</td>
-</tr>
-</tbody></table></div>
+<h3>13.1 音效觸發事件列表</h3>
+<table>
+<tr><th>事件 ID</th><th>觸發時機</th><th>視覺同步點</th><th>音效性質描述</th></tr>
+<tr><td>SFX_SPIN_START</td><td>玩家按下 SPIN</td><td>SPIN 按鈕按下瞬間</td><td>滾輪啟動，機械感轉動聲</td></tr>
+<tr><td>SFX_REEL_STOP_1–5</td><td>各滾輪依序停止</td><td>各滾輪符號停止落定</td><td>依序落定聲，第 5 個最重</td></tr>
+<tr><td>SFX_WIN_SMALL</td><td>小獎中獎</td><td>WIN 數字開始更新</td><td>輕柔金幣聲</td></tr>
+<tr><td>SFX_WIN_MEDIUM</td><td>中獎（5–20×）</td><td>WIN 數字放大動畫啟動</td><td>金幣串音</td></tr>
+<tr><td>SFX_WIN_BIG</td><td>大獎（20–100×）</td><td>BIG WIN 橫幅落下</td><td>雄壯號角 + 金幣聲</td></tr>
+<tr><td>SFX_WIN_MEGA</td><td>超大獎（100–500×）</td><td>MEGA WIN 特效啟動</td><td>交響樂高潮 + 閃電</td></tr>
+<tr><td>SFX_WIN_JACKPOT</td><td>頂獎（500×+）</td><td>Zeus 角色出現</td><td>全特效音效，史詩交響</td></tr>
+<tr><td>SFX_CASCADE_EXPLODE</td><td>中獎符號消除</td><td>碎片飛散動畫同步</td><td>符號爆炸聲（根據符號類型不同）</td></tr>
+<tr><td>SFX_CASCADE_DROP</td><td>新符號落下</td><td>符號落地彈跳瞬間</td><td>輕微落地碰撞聲</td></tr>
+<tr><td>SFX_REEL_EXPAND</td><td>滾輪行數擴展</td><td>雲層消散動畫</td><td>雲霧消散 + 石板展開聲</td></tr>
+<tr><td>SFX_FREE_LETTER</td><td>FREE 字母亮燈</td><td>單個字母點亮</td><td>金屬鈴聲（高亢短促）</td></tr>
+<tr><td>SFX_LIGHTNING_MARK</td><td>閃電標記生成</td><td>標記出現動畫</td><td>電弧短促聲</td></tr>
+<tr><td>SFX_THUNDER_BLESSING</td><td>雷霆祝福觸發（第一擊）</td><td>SC 引爆動畫開始</td><td>雷霆轟鳴（最強音效）</td></tr>
+<tr><td>SFX_SECOND_HIT</td><td>雷霆祝福第二擊</td><td>符號升階動畫</td><td>升階神秘光芒聲</td></tr>
+<tr><td>SFX_COIN_TOSS_START</td><td>Coin Toss 開始</td><td>硬幣飛入場景</td><td>金屬硬幣拋出聲</td></tr>
+<tr><td>SFX_COIN_TOSS_FLIP</td><td>硬幣翻轉中</td><td>硬幣旋轉過程中循環</td><td>硬幣旋轉風聲（循環）</td></tr>
+<tr><td>SFX_COIN_HEADS</td><td>正面 Heads 結果</td><td>硬幣正面朝上落定</td><td>勝利金屬音 + 光效聲</td></tr>
+<tr><td>SFX_COIN_TAILS</td><td>反面 Tails 結果</td><td>硬幣反面朝上落定</td><td>低沉收尾聲</td></tr>
+<tr><td>SFX_FG_ENTER</td><td>進入 Free Game</td><td>場景切換動畫</td><td>史詩入場音樂（3s 引子）</td></tr>
+<tr><td>SFX_FG_MULT_UP</td><td>FG 倍率升級</td><td>倍率升級動畫</td><td>升調音階</td></tr>
+<tr><td>SFX_FG_MULT_77</td><td>達到 ×77 最高倍率</td><td>MAX MULTIPLIER 橫幅</td><td>最高點交響</td></tr>
+<tr><td>SFX_FG_BONUS_100X</td><td>FG Bonus ×100 觸發</td><td>全屏特效啟動</td><td>驚喜音效 + 金幣爆發</td></tr>
+<tr><td>SFX_EXTRA_BET_ON</td><td>Extra Bet 開啟</td><td>Toggle 點亮動畫</td><td>電弧啟動聲</td></tr>
+<tr><td>SFX_BUY_FG_CONFIRM</td><td>Buy FG 確認購買</td><td>對話框關閉動畫</td><td>金幣重量感點擊聲</td></tr>
+<tr><td>SFX_NEAR_MISS</td><td>Near Miss 符號排列</td><td>格子邊框閃爍</td><td>輕微懸念弦音（0.5s）</td></tr>
+<tr><td>SFX_MAX_WIN</td><td>達到 30,000× 上限（Main Game）</td><td>Zeus 角色演出</td><td>最終大獎史詩音效（6s）</td></tr>
+<tr><td>SFX_MAX_WIN_LEGENDARY</td><td>達到 90,000× 上限（Extra Bet + Buy FG）</td><td>§9.4 LEGENDARY WIN 演出同步（Zeus + Pegasus + Athena 三角色出現）</td><td>完整勝利曲（加長版，10s+）</td></tr>
+</table>
+<h3>13.2 背景音樂（BGM）觸發點</h3>
+<table>
+<tr><th>BGM 狀態</th><th>觸發條件</th><th>風格</th></tr>
+<tr><td>BGM_MAIN</td><td>主遊戲進行中</td><td>希臘神話史詩環境音樂，中等強度</td></tr>
+<tr><td>BGM_ANTICIPATION</td><td>FREE 字母全亮（等待 Coin Toss）</td><td>張力漸強，鼓聲加入</td></tr>
+<tr><td>BGM_COIN_TOSS</td><td>Coin Toss 進行中</td><td>靜止張力音樂，懸念感最強</td></tr>
+<tr><td>BGM_FREE_GAME</td><td>Free Game 期間</td><td>勝利史詩主題，比 Main Game 強度高</td></tr>
+<tr><td>BGM_77X</td><td>達到 ×77 倍率後</td><td>最高強度史詩音樂，電子元素加入</td></tr>
+</table>
 <hr>
-<h2 id="h-14-design-delivery-requirements設計交付規格">§14 Design Delivery Requirements（設計交付規格）</h2>
-<h3 id="h-141-資源格式">14.1 資源格式</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>資源類型</th>
-<th>格式</th>
-<th>說明</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>靜態符號（Idle 幀）</td>
-<td>PNG-32</td>
-<td>帶 Alpha 透明通道，最大 512×512px</td>
-</tr>
-<tr>
-<td>動態符號（Win / Special）</td>
-<td>Spine 骨架動畫（.json + .atlas）</td>
-<td>使用 Spine 2D，版本 ≥ 4.1</td>
-</tr>
-<tr>
-<td>UI 元素（按鈕、框架）</td>
-<td>PNG-32 / SVG</td>
-<td>小圖示用 SVG，大圖用 PNG</td>
-</tr>
-<tr>
-<td>背景圖層</td>
-<td>PNG-32（橫屏）/ WebP（行動端）</td>
-<td>多解析度輸出：1x / 2x / 3x</td>
-</tr>
-<tr>
-<td>粒子特效資源</td>
-<td>PNG Sprite Sheet</td>
-<td>64×64px 至 128×128px 單幀</td>
-</tr>
-<tr>
-<td>字體</td>
-<td>WOFF2 + TTF</td>
-<td>子集化（Subset），僅包含遊戲所需字符</td>
-</tr>
-<tr>
-<td>音效（見 AUDIO.md）</td>
-<td>OGG + MP3</td>
-<td>雙格式確保瀏覽器兼容性</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-142-幀率規格">14.2 幀率規格</h3>
-<ul>
-<li><strong>目標幀率</strong>：60fps（所有動畫設計以 60fps 為基準）</li>
-<li><strong>行動裝置最低要求</strong>：30fps（降級模式，關閉部分粒子特效）</li>
-<li><strong>Spine 動畫</strong>：所有 Win / Special 動畫以 60fps 設計關鍵幀</li>
-<li><strong>粒子系統</strong>：Max 500 粒子（桌面），Max 200 粒子（行動裝置）</li>
-<li><strong>動畫曲線基準</strong>：Ease Out Cubic（<code>cubic-bezier(0.33, 1, 0.68, 1)</code>）為預設</li>
-</ul>
-<h3 id="h-143-資源命名規範">14.3 資源命名規範</h3>
+<h2>§14 Design Delivery Requirements（設計交付規格）</h2>
+<h3>14.1 資源格式</h3>
+<table>
+<tr><th>資源類型</th><th>格式</th><th>說明</th></tr>
+<tr><td>靜態符號（Idle 幀）</td><td>PNG-32</td><td>帶 Alpha 透明通道，最大 512×512px</td></tr>
+<tr><td>動態符號（Win / Special）</td><td>Spine 骨架動畫（.json + .atlas）</td><td>使用 Spine 2D，版本 ≥ 4.1</td></tr>
+<tr><td>UI 元素（按鈕、框架）</td><td>PNG-32 / SVG</td><td>小圖示用 SVG，大圖用 PNG</td></tr>
+<tr><td>背景圖層</td><td>PNG-32（橫屏）/ WebP（行動端）</td><td>多解析度輸出：1x / 2x / 3x</td></tr>
+<tr><td>粒子特效資源</td><td>PNG Sprite Sheet</td><td>64×64px 至 128×128px 單幀</td></tr>
+<tr><td>字體</td><td>WOFF2 + TTF</td><td>子集化（Subset），僅包含遊戲所需字符</td></tr>
+<tr><td>音效（見 AUDIO.md）</td><td>OGG + MP3</td><td>雙格式確保瀏覽器兼容性</td></tr>
+</table>
+<h3>14.2 幀率規格</h3>
+<ul><li><strong>目標幀率</strong>：60fps（所有動畫設計以 60fps 為基準）</li><li><strong>行動裝置最低要求</strong>：30fps（降級模式，關閉部分粒子特效）</li><li><strong>Spine 動畫</strong>：所有 Win / Special 動畫以 60fps 設計關鍵幀</li><li><strong>粒子系統</strong>：Max 500 粒子（桌面），Max 200 粒子（行動裝置）</li><li><strong>動畫曲線基準</strong>：Ease Out Cubic（<code>cubic-bezier(0.33, 1, 0.68, 1)</code>）為預設</li></ul>
+<h3>14.3 資源命名規範</h3>
 <p><strong>符號資源</strong></p>
-<pre><code>symbol_[代號]_[狀態].[副檔名]
+<pre><code class="">symbol_[代號]_[狀態].[副檔名]
 
 範例：
   symbol_wild_idle.png
@@ -2217,7 +638,7 @@
   symbol_p1_idle.png
   symbol_l1_win.png</code></pre>
 <p><strong>UI 元素</strong></p>
-<pre><code>ui_[元件名稱]_[狀態].[副檔名]
+<pre><code class="">ui_[元件名稱]_[狀態].[副檔名]
 
 範例：
   ui_btn_spin_normal.png
@@ -2229,7 +650,7 @@
   ui_hud_background.png
   ui_dialog_buyfg.png</code></pre>
 <p><strong>動畫特效</strong></p>
-<pre><code>fx_[效果名稱]_[序列].[副檔名]
+<pre><code class="">fx_[效果名稱]_[序列].[副檔名]
 
 範例：
   fx_cascade_explode_premium.spine
@@ -2242,65 +663,35 @@
   fx_win_megawin_banner.spine
   fx_fg_bonus_100x.spine</code></pre>
 <p><strong>背景</strong></p>
-<pre><code>bg_[場景]_[層次]_[解析度].[副檔名]
+<pre><code class="">bg_[場景]_[層次]_[解析度].[副檔名]
 
 範例：
   bg_main_sky_1920x1080.png
   bg_main_temple_1920x1080.png
   bg_freegame_sky_1920x1080.png
   bg_main_sky_750x1334.png</code></pre>
-<h3 id="h-144-設計交付-checklist">14.4 設計交付 Checklist</h3>
+<h3>14.4 設計交付 Checklist</h3>
 <p>美術資源交付前，設計師應確認：</p>
-<ul>
-<li>[ ] 所有符號 Idle 動畫在 60fps 下無卡頓</li>
-<li>[ ] Win 動畫時長不超過 §2 規格上限</li>
-<li>[ ] Special 動畫與遊戲邏輯時間點對齊（以 §5 時序為準）</li>
-<li>[ ] 所有 PNG 資源已壓縮（推薦 pngquant，品質 ≥ 85）</li>
-<li>[ ] WebP 格式已生成（行動端背景使用）</li>
-<li>[ ] Spine 骨架動畫已導出並在 Cocos Creator / PixiJS 環境驗證可用</li>
-<li>[ ] 所有色彩值符合 §11 色彩系統規格</li>
-<li>[ ] 文字元素符合 §12 字體規格</li>
-<li>[ ] 行動裝置安全區域適配已驗證（§10.3）</li>
-<li>[ ] WCAG AA 色彩對比通過（§11.4）</li>
-<li>[ ] 命名規範符合 §14.3</li>
-</ul>
+<ul><li style="list-style:none"><input type="checkbox" disabled> 所有符號 Idle 動畫在 60fps 下無卡頓</li><li style="list-style:none"><input type="checkbox" disabled> Win 動畫時長不超過 §2 規格上限</li><li style="list-style:none"><input type="checkbox" disabled> Special 動畫與遊戲邏輯時間點對齊（以 §5 時序為準）</li><li style="list-style:none"><input type="checkbox" disabled> 所有 PNG 資源已壓縮（推薦 pngquant，品質 ≥ 85）</li><li style="list-style:none"><input type="checkbox" disabled> WebP 格式已生成（行動端背景使用）</li><li style="list-style:none"><input type="checkbox" disabled> Spine 骨架動畫已導出並在 Cocos Creator / PixiJS 環境驗證可用</li><li style="list-style:none"><input type="checkbox" disabled> 所有色彩值符合 §11 色彩系統規格</li><li style="list-style:none"><input type="checkbox" disabled> 文字元素符合 §12 字體規格</li><li style="list-style:none"><input type="checkbox" disabled> 行動裝置安全區域適配已驗證（§10.3）</li><li style="list-style:none"><input type="checkbox" disabled> WCAG AA 色彩對比通過（§11.4）</li><li style="list-style:none"><input type="checkbox" disabled> 命名規範符合 §14.3</li></ul>
 <hr>
-<p><em>PDD 版本 1.0 — 基於 IDEA.md, BRD.md, PRD.md, engine_config.json, GDD_Thunder_Blessing_Slot.md 整合生成。</em> <em>設計規格以 BRD §3～§5 機制規格為準，所有視覺設計服務於遊戲機制的溝通與玩家體驗。</em></p>
-      </article>
-    </main>
+<p><em>PDD 版本 1.0 — 基於 IDEA.md, BRD.md, PRD.md, engine_config.json, GDD_Thunder_Blessing_Slot.md 整合生成。</em></p>
+<p><em>設計規格以 BRD §3～§5 機制規格為準，所有視覺設計服務於遊戲機制的溝通與玩家體驗。</em></p></main>
   </div>
-
-  <footer class="site-footer">
-    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
-    <span>PDD — Product Design</span>
-    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
-  </footer>
-
-  <script>
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const isOpen  = sidebar.classList.toggle('open');
-      overlay.classList.toggle('active', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      themeVariables: {
-        background:         '#1a2032',
-        primaryColor:       '#1e2535',
-        primaryBorderColor: '#2a3347',
-        primaryTextColor:   '#e2e8f0',
-        lineColor:          '#f6ad55',
-        secondaryColor:     '#161b27',
-        tertiaryColor:      '#0f1117',
-        edgeLabelBackground:'#1a2032',
-        clusterBkg:         '#1a2032',
-        titleColor:         '#f6ad55',
-      }
-    });
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>

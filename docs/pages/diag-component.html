@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>元件圖 — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 元件圖</p>
+    <h1 class="banner-title">元件圖</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link active" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: component</p>
+<p>uml-type: component</p>
+<p>source: EDD.md §4.5.12, §3.3; ARCH.md §3.3 C4 L3, §11 Technology Stack</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Component Diagram — Backend Architecture</h1>
+<blockquote><p>來源：EDD.md §4.5.12 Component Diagram, §4.1 Module Map; ARCH.md §3.3 C4 L3 Component Diagram, §11 Technology Stack</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">flowchart TD
+    %% External clients
+    Client(["Client\nBrowser / Native App\nCocos Creator / PixiJS"])
+    Operator(["Operator\nGame Designer\nExcel UI"])
+
+    %% External managed services
+    SupaDB[("Supabase PostgreSQL 15\ndb.zzz.supabase.co\nPort :5432 TLS\nRLS enforced\nTables: wallets wallet_transactions\nspin_logs fg_sessions players")]
+    UpstashRedis[("Upstash Redis 7\nupstash.io\nPort :6379 TLS\nKeys: session:{id} TTL=300s\nlock:{id} TTL=10s NX")]
+    SupabaseAuth["Supabase Auth\nRS256 JWT\nHTTPS :443\nPublicKey TTL=3600s\nAccess Token TTL=3600s"]
+    CDN["Cloudflare CDN\nHTTPS :443\nStatic asset cache\nDDoS mitigation"]
+    OTELCollector["OpenTelemetry Collector\nPort :4317 gRPC\nPort :4318 HTTP\nTraces + Metrics + Logs"]
+    Grafana["Grafana Dashboard\nPort :3001\nPrometheus + Tempo"]
+
+    subgraph FastifyAPI["Fastify API — Node.js 20 / Fastify 4 — Port :3000"]
+        direction TB
+
+        subgraph InterfaceLayer["Interface / Adapter Layer"]
+            GC["gameController\nPOST /v1/spin\nGET /v1/session/:sessionId\nGET /v1/config\nsrc/interface/routes/spin.route.ts"]
+            HC["healthController\nGET /health liveness\nGET /ready readiness\nsrc/interface/routes/health.route.ts"]
+            JWG["JwtAuthGuard\nRS256 token verify\nFastify preHandler hook\nsrc/interface/auth/JwtAuthGuard.ts"]
+            EM["DomainErrorMapper\nDomain errors → HTTP codes\nError envelope {success false code message}\nsrc/interface/error-mappers/DomainErrorMapper.ts"]
+            DTOS["DTOs\nSpinRequestDTO SpinResponseDTO\nFullSpinOutcomeDTO FGRoundDTO\nsrc/interface/dto/"]
+        end
+
+        subgraph ApplicationLayer["Application Layer"]
+            SU["SpinUseCase\nexecute SpinRequest → FullSpinOutcomeDTO\nsrc/application/use-cases/SpinUseCase.ts"]
+            BU["BuyFeatureUseCase\nexecute BuyFeatureRequest\nGuaranteed Heads×5\nsrc/application/use-cases/BuyFeatureUseCase.ts"]
+            GSU["GetSessionStateUseCase\nexecute sessionId → SessionStateDTO\nsrc/application/use-cases/GetSessionStateUseCase.ts"]
+            SFG["SessionFloorGuard\napplyFloor total 20x baseBet\nsrc/application/guards/SessionFloorGuard.ts"]
+            CLG["ConcurrencyLockGuard\nRedis NX lock acquire release\nsrc/application/guards/ConcurrencyLockGuard.ts"]
+        end
+
+        subgraph DomainLayer["Domain Layer — Pure TypeScript, zero external deps"]
+            SE["SlotEngine\nspin generateGrid enforceMaxWin\nsrc/domain/engine/SlotEngine.ts"]
+            CE["CascadeEngine\nrunCascade detectWinLines\neliminateSymbols expandRows\nsrc/domain/engine/CascadeEngine.ts"]
+            TBH["ThunderBlessingHandler\neval applyFirstHit applySecondHit\nsrc/domain/engine/ThunderBlessingHandler.ts"]
+            CTE["CoinTossEvaluator\nevaluate rng coinProbs stage\nsrc/domain/engine/CoinTossEvaluator.ts"]
+            FGO["FreeGameOrchestrator\nrunSequence runSingleRound\ndrawBonusMultiplier\nsrc/domain/engine/FreeGameOrchestrator.ts"]
+            NMS["NearMissSelector\nselect grid nearMissConfig\nsrc/domain/engine/NearMissSelector.ts"]
+            IWR[["IWalletRepository port\nsrc/domain/ports/IWalletRepository.ts"]]
+            ISC[["ISessionCache port\nsrc/domain/ports/ISessionCache.ts"]]
+            ISR[["ISessionRepository port\nsrc/domain/ports/ISessionRepository.ts"]]
+        end
+
+        subgraph InfraLayer["Infrastructure Layer"]
+            SWR["SupabaseWalletRepository\ngetBalance debit credit\nFOR UPDATE row lock\nsrc/infrastructure/repositories/SupabaseWalletRepository.ts"]
+            SSPG["SupabaseSessionRepository\nfindById save\nfg_sessions table\nsrc/infrastructure/repositories/SupabaseSessionRepository.ts"]
+            RSC["UpstashCacheAdapter\nRedisSessionCache\nget set del acquireLock releaseLock\nsrc/infrastructure/cache/RedisSessionCache.ts"]
+            SAA["SupabaseAuthAdapter\nverifyJWT → PlayerClaims\nsrc/infrastructure/auth/JwtAuthGuard.ts"]
+        end
+
+        subgraph ConfigModule["Config Module — generated, NEVER edit manually"]
+            GCF["GameConfig.generated.ts\nsrc/config/GameConfig.generated.ts\nSymbols paylines coinToss fgMultipliers\nfgBonusWeights nearMiss maxWin\nLoaded at startup via assertValidGameConfig"]
+            BCF["BetRangeConfig.generated.ts\nsrc/config/BetRangeConfig.generated.ts\nUSD levels TWD levels max=320\nLoaded at startup via assertValidBetRangeConfig"]
+        end
+    end
+
+    subgraph ToolchainBuild["slot-engine Toolchain — Build-time only"]
+        XLSX["Thunder_Config.xlsx\nDATA COIN_TOSS EXTRA_BET\nBUY_FEATURE NEAR_MISS BET_RANGE tabs"]
+        BCJ["build_config.js\nParse Excel → engine_config.json"]
+        SIM["excel_simulator.js\n1M Monte Carlo × 4 scenarios\n→ SIMULATION + DESIGN_VIEW tabs"]
+        VER["verify.js\n4-scenario RTP ±1% hard gate\nMust exit 0 before generator runs"]
+        ENG["engine_generator.js\n→ GameConfig.generated.ts\n→ BetRangeConfig.generated.ts"]
+    end
+
+    %% ─── Client connections ───────────────────────────────────────────────────
+    Client -->|"HTTPS :443"| CDN
+    CDN -->|"Origin pull HTTPS :443"| Client
+    Client -->|"POST /v1/spin GET /v1/session/:id [HTTPS :443]"| GC
+    Client -->|"GET /health [HTTPS :443]"| HC
+
+    %% ─── Interface Layer internal ─────────────────────────────────────────────
+    GC --> JWG
+    GC --> DTOS
+    GC --> SU
+    GC --> BU
+    GC --> GSU
+    GC --> EM
+    JWG --> SAA
+    SAA -->|"verifyJWT [HTTPS :443]"| SupabaseAuth
+
+    %% ─── Application Layer internal ───────────────────────────────────────────
+    SU --> SE
+    SU --> SFG
+    SU --> CLG
+    SU --> IWR
+    SU --> ISC
+    BU --> SU
+    GSU --> ISC
+    GSU --> ISR
+
+    %% ─── Domain Layer internal ────────────────────────────────────────────────
+    SE --> CE
+    SE --> TBH
+    SE --> CTE
+    SE --> FGO
+    SE --> NMS
+    SE --> GCF
+    GC --> BCF
+
+    %% ─── Port implementations ─────────────────────────────────────────────────
+    IWR -.->|implements| SWR
+    ISR -.->|implements| SSPG
+    ISC -.->|implements| RSC
+
+    %% ─── Infrastructure to external services ─────────────────────────────────
+    SWR -->|"SQL TLS :5432"| SupaDB
+    SSPG -->|"SQL TLS :5432"| SupaDB
+    RSC -->|"Redis Protocol TLS :6379"| UpstashRedis
+
+    %% ─── Toolchain to config ──────────────────────────────────────────────────
+    Operator --> XLSX
+    XLSX --> BCJ
+    BCJ --> SIM
+    SIM --> VER
+    VER -->|"exit 0 PASS only"| ENG
+    ENG --> GCF
+    ENG --> BCF
+
+    %% ─── Observability ────────────────────────────────────────────────────────
+    FastifyAPI -->|"OTLP gRPC :4317"| OTELCollector
+    OTELCollector --> Grafana</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

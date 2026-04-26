@@ -1,460 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>gendoc — 對齊掃描報告 — Thunder Blessing GDD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <style>
-    :root {
-      --bg-primary:     #0f1117;
-      --bg-secondary:   #161b27;
-      --bg-tertiary:    #1e2535;
-      --bg-card:        #1a2032;
-      --border:         #2a3347;
-      --text-primary:   #e2e8f0;
-      --text-secondary: #94a3b8;
-      --text-muted:     #64748b;
-      --accent:         #f6ad55;
-      --accent-dim:     #c27d30;
-      --accent-glow:    rgba(246,173,85,0.15);
-      --green:          #4ade80;
-      --blue:           #60a5fa;
-      --purple:         #a78bfa;
-      --red:            #f87171;
-      --sidebar-width:  260px;
-      --header-height:  60px;
-      --font-sans:      'Inter', system-ui, sans-serif;
-      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
-      --radius:         8px;
-      --radius-lg:      12px;
-      --duration-fast:  150ms;
-      --ease-out:       cubic-bezier(0.16,1,0.3,1);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.7;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--header-height);
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 16px;
-      z-index: 100;
-    }
-
-    .header-logo {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: var(--accent);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .header-title {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      border-left: 1px solid var(--border);
-      padding-left: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-back {
-      margin-left: auto;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      transition: all var(--duration-fast);
-      white-space: nowrap;
-    }
-
-    .header-back:hover {
-      color: var(--accent);
-      border-color: var(--accent-dim);
-      background: var(--accent-glow);
-    }
-
-    .menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-    }
-
-    .menu-toggle:hover { background: var(--bg-tertiary); }
-
-    /* Layout */
-    .layout {
-      display: flex;
-      margin-top: var(--header-height);
-      min-height: calc(100vh - var(--header-height));
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: var(--header-height);
-      left: 0; bottom: 0;
-      overflow-y: auto;
-      padding: 20px 0;
-      transition: transform var(--duration-fast) var(--ease-out);
-      z-index: 90;
-    }
-
-    .sidebar::-webkit-scrollbar { width: 4px; }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .nav-section-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      padding: 12px 20px 6px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 20px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.85rem;
-      border-left: 2px solid transparent;
-      transition: all var(--duration-fast);
-    }
-
-    .nav-link:hover {
-      color: var(--text-primary);
-      background: var(--accent-glow);
-      border-left-color: var(--accent-dim);
-    }
-
-    .nav-link.active {
-      color: var(--accent);
-      background: var(--accent-glow);
-      border-left-color: var(--accent);
-      font-weight: 500;
-    }
-
-    /* Main content */
-    .main {
-      margin-left: var(--sidebar-width);
-      flex: 1;
-      padding: 40px 48px;
-      max-width: 920px;
-    }
-
-    /* Page heading */
-    .page-title {
-      font-size: clamp(1.6rem, 2.5vw, 2rem);
-      font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.25;
-    }
-
-    .page-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .page-meta span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Markdown content */
-    .md-content h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 40px 0 16px;
-      color: var(--text-primary);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content h1:first-child { margin-top: 0; }
-
-    .md-content h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 36px 0 14px;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .md-content h2::before {
-      content: '';
-      display: block;
-      width: 3px;
-      height: 16px;
-      background: var(--accent);
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
-    .md-content h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 28px 0 10px;
-      color: var(--text-primary);
-    }
-
-    .md-content h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 20px 0 8px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.82rem;
-    }
-
-    .md-content p {
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .md-content a:hover { text-decoration: underline; }
-
-    .md-content strong { color: var(--text-primary); font-weight: 600; }
-    .md-content em     { color: var(--text-secondary); font-style: italic; }
-
-    /* Inline code */
-    .md-content code {
-      font-family: var(--font-mono);
-      font-size: 0.82em;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 5px;
-      color: var(--accent);
-    }
-
-    /* Code blocks */
-    .md-content pre {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    /* Mermaid */
-    .mermaid-wrap {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin: 16px 0;
-      overflow-x: auto;
-    }
-
-    /* Tables */
-    .table-wrap {
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .md-content table th {
-      text-align: left;
-      padding: 8px 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-muted);
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content table td {
-      padding: 9px 12px;
-      border-bottom: 1px solid rgba(42,51,71,0.5);
-      color: var(--text-secondary);
-      vertical-align: top;
-    }
-
-    .md-content table tr:last-child td { border-bottom: none; }
-    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
-
-    /* Lists */
-    .md-content ul, .md-content ol {
-      padding-left: 20px;
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content li { margin-bottom: 5px; }
-    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
-
-    /* Blockquotes */
-    .md-content blockquote {
-      border-left: 3px solid var(--accent-dim);
-      padding: 10px 16px;
-      background: rgba(246,173,85,0.06);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      margin: 16px 0;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .md-content blockquote p { margin-bottom: 0; }
-
-    /* HR */
-    .md-content hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 28px 0;
-    }
-
-    /* Footer */
-    .site-footer {
-      margin-left: var(--sidebar-width);
-      border-top: 1px solid var(--border);
-      padding: 18px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .footer-accent { color: var(--accent); font-weight: 600; }
-
-    /* Sidebar overlay */
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 89;
-    }
-
-    .sidebar-overlay.active { display: block; }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
-      .main { margin-left: 0; padding: 24px 16px; }
-      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
-      .menu-toggle { display: flex; }
-      .header-title { display: none; }
-    }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>對齊報告 — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
-
-  <header class="site-header">
-    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6"  x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
-    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
-    <span class="header-title">gendoc — 對齊掃描報告</span>
-    <a href="index.html" class="header-back">← Docs Hub</a>
-  </header>
-
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-  <div class="layout">
-    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
-      <div class="nav-section-label">Business</div>
-<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
-<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
-<div class="nav-section-label">Design</div>
-<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
-<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
-<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
-<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
-<div class="nav-section-label">Engineering</div>
-<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
-<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
-<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
-<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
-<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
-<div class="nav-section-label">Testing</div>
-<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
-<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
-<div class="nav-section-label">Operations</div>
-<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
-<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
-    </nav>
-
-    <main class="main" id="main">
-      <div class="page-meta">
-        <span>📄 Documentation</span>
-        <span>Source: <code>ALIGN_REPORT.md</code></span>
-        <span>Generated: 2026-04-26</span>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
       </div>
-      <article class="md-content">
-        <h1 id="gendoc-對齊掃描報告">gendoc — 對齊掃描報告</h1>
-<p><strong>專案：</strong> thunder-blessing-slot-gdd   <strong>日期：</strong> 2026-04-26   <strong>掃描範圍：</strong> Dimension 0–5（全維度）</p>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 對齊報告</p>
+    <h1 class="banner-title">對齊報告</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link active" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h1>gendoc — 對齊掃描報告</h1>
+<p><strong>專案：</strong> thunder-blessing-slot-gdd</p>
+<p><strong>日期：</strong> 2026-04-26</p>
+<p><strong>掃描範圍：</strong> Dimension 0–5（全維度）</p>
 <hr>
-<pre><code>╔══════════════════════════════════════════════════════════════╗
+<pre><code class="">╔══════════════════════════════════════════════════════════════╗
 ║           gendoc — 對齊掃描報告                               ║
 ║           專案：thunder-blessing-slot-gdd  日期：2026-04-26  ║
 ╠══════════════════════════════════════════════════════════════╣
@@ -469,234 +97,97 @@
 ║  總計                   5     15     22    12    54          ║
 ╚══════════════════════════════════════════════════════════════╝</code></pre>
 <hr>
-<h2 id="dimension-0-必要文件存在性">Dimension 0 — 必要文件存在性</h2>
+<h2>Dimension 0 — 必要文件存在性</h2>
 <p><strong>[HIGH] MISSING: README.md</strong></p>
-<ul>
-<li>根目錄缺少 README.md，開發者無法快速了解專案結構、啟動方式、文件導覽</li>
-<li>可自動修復：YES（需新增 README.md）</li>
-</ul>
+<ul><li>根目錄缺少 README.md，開發者無法快速了解專案結構、啟動方式、文件導覽</li><li>可自動修復：YES（需新增 README.md）</li></ul>
 <hr>
-<h2 id="dimension-1-doc-doc-對齊問題">Dimension 1 — Doc → Doc 對齊問題</h2>
-<h3 id="critical">CRITICAL</h3>
+<h2>Dimension 1 — Doc → Doc 對齊問題</h2>
+<h3>CRITICAL</h3>
 <p><strong>[CRITICAL] D1-001: features/client/coin_toss/coin_toss_panel.feature 與 PRD §5.5 / EDD §5.6 衝突</strong></p>
-<ul>
-<li>TC-E2E-COIN-005：「the bar shows six multiplier nodes: ×3, ×5, ×10, ×25, ×50, ×100」</li>
-<li>PRD §5.5 及 EDD §5.6 明確定義：FG 倍率序列為 5 個節點 ×3→×7→×17→×27→×77，最大為 ×77</li>
-<li>TC-E2E-COIN-006：「advances from ×50 to ×100」、「MAX MULTIPLIER ×100」亦錯誤</li>
-<li>衝突類型：B2-下游偏離（D12b Review 時引入的錯誤覆蓋了正確的上游設計）</li>
-<li>可自動修復：YES（修正下游 BDD 對齊 PRD/EDD）</li>
-</ul>
+<ul><li>TC-E2E-COIN-005：「the bar shows six multiplier nodes: ×3, ×5, ×10, ×25, ×50, ×100」</li><li>PRD §5.5 及 EDD §5.6 明確定義：FG 倍率序列為 5 個節點 ×3→×7→×17→×27→×77，最大為 ×77</li><li>TC-E2E-COIN-006：「advances from ×50 to ×100」、「MAX MULTIPLIER ×100」亦錯誤</li><li>衝突類型：B2-下游偏離（D12b Review 時引入的錯誤覆蓋了正確的上游設計）</li><li>可自動修復：YES（修正下游 BDD 對齊 PRD/EDD）</li></ul>
 <p><strong>[CRITICAL] D1-002: features/client/thunder_blessing/thunder_blessing_trigger.feature 機制描述根本錯誤</strong></p>
-<ul>
-<li>TB-001：「the Coin Toss overlay appears over the reel grid」—— Thunder Blessing 與 Coin Toss 是完全不同的機制</li>
-<li>PRD §5.3（US-TBSC-001）：SC 落地 → 閃電標記升級為高階符號（dual-hit 升級），無 Coin Toss</li>
-<li>PRD US-COIN-001：Coin Toss 由「滾輪達到 6 列且 Cascade 再次成功」觸發，與 SC 無關</li>
-<li>TB-002、TB-003：整個場景描述 Coin Toss HEADS/TAILS 路徑，完全屬於錯誤文件</li>
-<li>衝突類型：B2-下游偏離（D12b 生成時混淆了兩個機制）</li>
-<li>可自動修復：YES（重寫 TB-001~TB-004 正確描述 Thunder Blessing = SC + Lightning Mark 升級）</li>
-</ul>
-<h3 id="high">HIGH</h3>
+<ul><li>TB-001：「the Coin Toss overlay appears over the reel grid」—— Thunder Blessing 與 Coin Toss 是完全不同的機制</li><li>PRD §5.3（US-TBSC-001）：SC 落地 → 閃電標記升級為高階符號（dual-hit 升級），無 Coin Toss</li><li>PRD US-COIN-001：Coin Toss 由「滾輪達到 6 列且 Cascade 再次成功」觸發，與 SC 無關</li><li>TB-002、TB-003：整個場景描述 Coin Toss HEADS/TAILS 路徑，完全屬於錯誤文件</li><li>衝突類型：B2-下游偏離（D12b 生成時混淆了兩個機制）</li><li>可自動修復：YES（重寫 TB-001~TB-004 正確描述 Thunder Blessing = SC + Lightning Mark 升級）</li></ul>
+<h3>HIGH</h3>
 <p><strong>[HIGH] D1-003: features/client/session/session_resume.feature 倍率序列錯誤</strong></p>
-<ul>
-<li>TC-E2E-SESS-003：「multiplier ×10」、「nodes ×3, ×5, and ×10 all filled」、「remaining nodes (×25, ×50, ×100)」</li>
-<li>正確值應來自 [×3, ×7, ×17, ×27, ×77]；×10 不在序列中</li>
-<li>Background 中「multiplier ×5」亦不在序列中（應為 ×3 或 ×7）</li>
-<li>可自動修復：YES</li>
-</ul>
+<ul><li>TC-E2E-SESS-003：「multiplier ×10」、「nodes ×3, ×5, and ×10 all filled」、「remaining nodes (×25, ×50, ×100)」</li><li>正確值應來自 [×3, ×7, ×17, ×27, ×77]；×10 不在序列中</li><li>Background 中「multiplier ×5」亦不在序列中（應為 ×3 或 ×7）</li><li>可自動修復：YES</li></ul>
 <p><strong>[HIGH] D1-004: features/config.feature TC-INT-CURR-001c TWD 範圍錯誤</strong></p>
-<ul>
-<li>目前：「TWD bet range minimum baseBet should equal 3」、「maximum baseBet should equal 600」</li>
-<li>PRD §5.11 AC-2、EDD §1.1：TWD min=10, max=320, step=10（40 個等級）</li>
-<li>可自動修復：YES</li>
-</ul>
+<ul><li>目前：「TWD bet range minimum baseBet should equal 3」、「maximum baseBet should equal 600」</li><li>PRD §5.11 AC-2、EDD §1.1：TWD min=10, max=320, step=10（40 個等級）</li><li>可自動修復：YES</li></ul>
 <p><strong>[HIGH] D1-005: API.md SESSION_NOT_FOUND 錯誤訊息 TTL 說法錯誤</strong></p>
-<ul>
-<li>API.md 某處錯誤寫入 TTL=300s</li>
-<li>EDD §5.3 及 SCHEMA.md §4.1：Redis session TTL = 1800s（30 分鐘）</li>
-<li>可自動修復：YES（更新 API.md 中的說明）</li>
-</ul>
+<ul><li>API.md 某處錯誤寫入 TTL=300s</li><li>EDD §5.3 及 SCHEMA.md §4.1：Redis session TTL = 1800s（30 分鐘）</li><li>可自動修復：YES（更新 API.md 中的說明）</li></ul>
 <p><strong>[HIGH] D1-006: RTM §fg_sessions 節引用章節錯誤</strong></p>
-<ul>
-<li>RTM 引用 §2.4 → 應為 §2.3</li>
-<li>可自動修復：YES</li>
-</ul>
+<ul><li>RTM 引用 §2.4 → 應為 §2.3</li><li>可自動修復：YES</li></ul>
 <p><strong>[HIGH] D1-007: RTM Redis key 名稱引用錯誤</strong></p>
-<ul>
-<li>RTM 使用 player_sessions → 應為 session:{sessionId}:state（per SCHEMA.md §4.1）</li>
-<li>可自動修復：YES</li>
-</ul>
+<ul><li>RTM 使用 player_sessions → 應為 session:{sessionId}:state（per SCHEMA.md §4.1）</li><li>可自動修復：YES</li></ul>
 <p><strong>[HIGH] D1-008: features/client/coin_toss/coin_toss_panel.feature Background 觸發條件錯誤</strong></p>
-<ul>
-<li>Background：「the player triggered a spin that revealed an SC (Scatter) symbol」</li>
-<li>正確：Coin Toss 由「rows=6 + cascade win」觸發，不是 SC 落地</li>
-<li>可自動修復：YES（修正 Background 描述）</li>
-</ul>
+<ul><li>Background：「the player triggered a spin that revealed an SC (Scatter) symbol」</li><li>正確：Coin Toss 由「rows=6 + cascade win」觸發，不是 SC 落地</li><li>可自動修復：YES（修正 Background 描述）</li></ul>
 <p><strong>[HIGH] D1-009: EDD §4.6 Scenario 3 標籤描述不準確</strong></p>
-<ul>
-<li>目前：Scenario 3 描述可能被誤解為「Buy FG」與「Extra Bet Off」組合</li>
-<li>正確標籤：「Free Game (Buy FG Off)」以區分其他 Scenario</li>
-<li>可自動修復：YES</li>
-</ul>
-<h3 id="medium">MEDIUM</h3>
+<ul><li>目前：Scenario 3 描述可能被誤解為「Buy FG」與「Extra Bet Off」組合</li><li>正確標籤：「Free Game (Buy FG Off)」以區分其他 Scenario</li><li>可自動修復：YES</li></ul>
+<h3>MEDIUM</h3>
 <p><strong>[MEDIUM] D1-010: FRONTEND.md 缺少 UpgradedSymbolId 型別定義</strong></p>
-<ul>
-<li>EDD §4.6 / SCHEMA.md 中有 upgraded_symbol 欄位，FRONTEND.md 的 TypeScript 介面未定義對應型別</li>
-<li>可自動修復：YES（補充型別定義）</li>
-</ul>
+<ul><li>EDD §4.6 / SCHEMA.md 中有 upgraded_symbol 欄位，FRONTEND.md 的 TypeScript 介面未定義對應型別</li><li>可自動修復：YES（補充型別定義）</li></ul>
 <p><strong>[MEDIUM] D1-011: EDD §5.2 未明確限制 upgraded_symbol 只允許 P1|P2|P3|P4</strong></p>
-<ul>
-<li>PRD 規格限制符號升級結果，EDD 技術設計應明確列出此業務規則</li>
-<li>可自動修復：YES</li>
-</ul>
+<ul><li>PRD 規格限制符號升級結果，EDD 技術設計應明確列出此業務規則</li><li>可自動修復：YES</li></ul>
 <p><strong>[MEDIUM] D1-012: runbook.md Session TTL 雙值問題</strong></p>
-<ul>
-<li>runbook.md 目前同時列出 300s（API.md 舊值）和 1800s（EDD/SCHEMA 正確值）</li>
-<li>應統一為 1800s，並在 runbook 中說明 API.md 文件待更新</li>
-<li>可自動修復：YES</li>
-</ul>
+<ul><li>runbook.md 目前同時列出 300s（API.md 舊值）和 1800s（EDD/SCHEMA 正確值）</li><li>應統一為 1800s，並在 runbook 中說明 API.md 文件待更新</li><li>可自動修復：YES</li></ul>
 <p><strong>[MEDIUM] D1-013 至 D1-020: 其他 Doc→Doc 次要 MEDIUM/LOW 問題</strong></p>
-<ul>
-<li>ARCH.md 未明確說明 WebSocket 推送協議版本（LOW）</li>
-<li>VDD.md 部分動畫時序與 PDD.md 數值有小差異（LOW）</li>
-<li>test-plan.md 部分測試類型與 BDD Scenario 標籤未完全對應（MEDIUM）</li>
-<li>API.md 部分 error code 未在 EDD §3.5 中明確列舉（MEDIUM）</li>
-<li>RTM coverage 百分比計算公式需確認四捨五入規則（LOW）</li>
-<li>SCHEMA.md §4.3 rate_limit key 命名在 runbook 已修正但 API.md 文件未同步（MEDIUM）</li>
-<li>AUDIO.md 部分音效觸發條件與 EDD §4.6 Domain Events 映射不完整（MEDIUM）</li>
-<li>ANIM.md 部分動畫序列描述與 FRONTEND.md 組件設計不完全對應（MEDIUM）</li>
-</ul>
+<ul><li>ARCH.md 未明確說明 WebSocket 推送協議版本（LOW）</li><li>VDD.md 部分動畫時序與 PDD.md 數值有小差異（LOW）</li><li>test-plan.md 部分測試類型與 BDD Scenario 標籤未完全對應（MEDIUM）</li><li>API.md 部分 error code 未在 EDD §3.5 中明確列舉（MEDIUM）</li><li>RTM coverage 百分比計算公式需確認四捨五入規則（LOW）</li><li>SCHEMA.md §4.3 rate_limit key 命名在 runbook 已修正但 API.md 文件未同步（MEDIUM）</li><li>AUDIO.md 部分音效觸發條件與 EDD §4.6 Domain Events 映射不完整（MEDIUM）</li><li>ANIM.md 部分動畫序列描述與 FRONTEND.md 組件設計不完全對應（MEDIUM）</li></ul>
 <hr>
-<h2 id="dimension-2-doc-code-對齊問題">Dimension 2 — Doc → Code 對齊問題</h2>
+<h2>Dimension 2 — Doc → Code 對齊問題</h2>
 <p><strong>無 finding（src/ 尚未建立，屬於 pre-implementation 專案）</strong></p>
 <hr>
-<h2 id="dimension-3-code-test-對齊問題">Dimension 3 — Code → Test 對齊問題</h2>
+<h2>Dimension 3 — Code → Test 對齊問題</h2>
 <p><strong>無 finding（src/ 和 tests/ 尚未建立，屬於 pre-implementation 專案）</strong></p>
 <hr>
-<h2 id="dimension-4-doc-test-對齊問題">Dimension 4 — Doc → Test 對齊問題</h2>
-<h3 id="critical">CRITICAL</h3>
+<h2>Dimension 4 — Doc → Test 對齊問題</h2>
+<h3>CRITICAL</h3>
 <p><strong>[CRITICAL] D4-001: TC-E2E-COIN-005 / TC-E2E-COIN-006 倍率節點數量錯誤（BDD 與 PRD 衝突）</strong></p>
-<ul>
-<li>coin_toss_panel.feature TC-E2E-COIN-005：六節點序列（×3/5/10/25/50/100）</li>
-<li>PRD AC-COIN-005：五節點序列（×3/7/17/27/77），最大 ×77</li>
-<li>影響：E2E 測試驗證錯誤值，通過的測試實際上是驗證錯誤行為</li>
-<li>可自動修復：YES</li>
-</ul>
+<ul><li>coin_toss_panel.feature TC-E2E-COIN-005：六節點序列（×3/5/10/25/50/100）</li><li>PRD AC-COIN-005：五節點序列（×3/7/17/27/77），最大 ×77</li><li>影響：E2E 測試驗證錯誤值，通過的測試實際上是驗證錯誤行為</li><li>可自動修復：YES</li></ul>
 <p><strong>[CRITICAL] D4-002: thunder_blessing_trigger.feature TB-001~TB-004 機制錯誤（驗收錯誤行為）</strong></p>
-<ul>
-<li>TB-001~TB-004 描述「Thunder Blessing → Coin Toss 出現」的錯誤觸發鏈</li>
-<li>正確：Thunder Blessing = SC + Lightning Marks → 升級為高階符號，完全無 Coin Toss</li>
-<li>若測試按此 feature file 實作，會驗收一個不存在的系統行為</li>
-<li>可自動修復：YES（重寫 TB-001~TB-004）</li>
-</ul>
+<ul><li>TB-001~TB-004 描述「Thunder Blessing → Coin Toss 出現」的錯誤觸發鏈</li><li>正確：Thunder Blessing = SC + Lightning Marks → 升級為高階符號，完全無 Coin Toss</li><li>若測試按此 feature file 實作，會驗收一個不存在的系統行為</li><li>可自動修復：YES（重寫 TB-001~TB-004）</li></ul>
 <p><strong>[CRITICAL] D4-003: session_resume.feature TC-E2E-SESS-003 使用無效倍率值</strong></p>
-<ul>
-<li>「multiplier ×10」不存在於 FG 倍率序列，亦無對應的 progress bar 節點</li>
-<li>測試驗收的 UI 狀態（×3/5/10 filled, ×25/50/100 dimmed）是不可能出現的系統狀態</li>
-<li>可自動修復：YES</li>
-</ul>
-<h3 id="high">HIGH</h3>
+<ul><li>「multiplier ×10」不存在於 FG 倍率序列，亦無對應的 progress bar 節點</li><li>測試驗收的 UI 狀態（×3/5/10 filled, ×25/50/100 dimmed）是不可能出現的系統狀態</li><li>可自動修復：YES</li></ul>
+<h3>HIGH</h3>
 <p><strong>[HIGH] D4-004: features/config.feature TC-INT-CURR-001c 斷言錯誤 TWD 數值</strong></p>
-<ul>
-<li>測試斷言 TWD min=3、max=600，與 EDD/PRD 定義的 min=10、max=320 衝突</li>
-<li>若按此 feature file 驗收，API 回傳正確的 10/320 反而會造成測試失敗</li>
-<li>可自動修復：YES</li>
-</ul>
+<ul><li>測試斷言 TWD min=3、max=600，與 EDD/PRD 定義的 min=10、max=320 衝突</li><li>若按此 feature file 驗收，API 回傳正確的 10/320 反而會造成測試失敗</li><li>可自動修復：YES</li></ul>
 <p><strong>[HIGH] D4-005 至D4-010: 其他 HIGH 問題</strong></p>
-<ul>
-<li>session.feature TC-INT-API-012b: totalFGWin 欄位 boundary check 缺少負值保護（HIGH）</li>
-<li>spin.feature 缺少 rows=6 觸發 Coin Toss 的完整 E2E 場景（HIGH）</li>
-<li>buy-feature.feature 缺少 BuyFeature 後直接進入 FG 不經 Coin Toss 的場景（HIGH）</li>
-<li>probability-engine.feature 部分 AC 未完整覆蓋 FG 倍率序列五節點（HIGH）</li>
-<li>security.feature TC-SEC-BET-003 totalWin 驗證場景，server 端 total_win 欄位名稱已確認為 spins.total_win（HIGH）</li>
-<li>extra-bet.feature 缺少 ExtraBet + SC 同時觸發 Thunder Blessing 的完整場景（HIGH）</li>
-</ul>
-<h3 id="medium">MEDIUM</h3>
+<ul><li>session.feature TC-INT-API-012b: totalFGWin 欄位 boundary check 缺少負值保護（HIGH）</li><li>spin.feature 缺少 rows=6 觸發 Coin Toss 的完整 E2E 場景（HIGH）</li><li>buy-feature.feature 缺少 BuyFeature 後直接進入 FG 不經 Coin Toss 的場景（HIGH）</li><li>probability-engine.feature 部分 AC 未完整覆蓋 FG 倍率序列五節點（HIGH）</li><li>security.feature TC-SEC-BET-003 totalWin 驗證場景，server 端 total_win 欄位名稱已確認為 spins.total_win（HIGH）</li><li>extra-bet.feature 缺少 ExtraBet + SC 同時觸發 Thunder Blessing 的完整場景（HIGH）</li></ul>
+<h3>MEDIUM</h3>
 <p><strong>[MEDIUM] D4-011: RTM 引用 Scenario ID 部分指向已修改場景</strong></p>
-<ul>
-<li>RTM 中部分 TC-ID 與當前 feature file 中的 @tag 不完全對應</li>
-<li>影響 RTM 追溯完整性，但不影響功能正確性</li>
-<li>可自動修復：YES（更新 RTM TC-ID 引用）</li>
-</ul>
+<ul><li>RTM 中部分 TC-ID 與當前 feature file 中的 @tag 不完全對應</li><li>影響 RTM 追溯完整性，但不影響功能正確性</li><li>可自動修復：YES（更新 RTM TC-ID 引用）</li></ul>
 <p><strong>[MEDIUM] D4-012 至D4-019: 其他 MEDIUM/LOW 問題</strong></p>
-<ul>
-<li>BDD client feature files 中部分場景缺少 @contract tag（MEDIUM）</li>
-<li>BDD server feature files 缺少 @regression tag 標記（MEDIUM）</li>
-<li>部分 Background 條件過於簡化（MEDIUM）</li>
-<li>少數 Scenario 步驟措辭與 FRONTEND.md 術語不一致（LOW）</li>
-<li>cascade.feature 部分場景未覆蓋 6-row cascade 觸發條件（MEDIUM）</li>
-<li>free_game.feature 缺少 FG session 中 reconnect 後 multiplier 正確顯示的 server 端驗證（MEDIUM）</li>
-</ul>
+<ul><li>BDD client feature files 中部分場景缺少 @contract tag（MEDIUM）</li><li>BDD server feature files 缺少 @regression tag 標記（MEDIUM）</li><li>部分 Background 條件過於簡化（MEDIUM）</li><li>少數 Scenario 步驟措辭與 FRONTEND.md 術語不一致（LOW）</li><li>cascade.feature 部分場景未覆蓋 6-row cascade 觸發條件（MEDIUM）</li><li>free_game.feature 缺少 FG session 中 reconnect 後 multiplier 正確顯示的 server 端驗證（MEDIUM）</li></ul>
 <hr>
-<h2 id="dimension-5-umlrtm-品質">Dimension 5 — UML/RTM 品質</h2>
+<h2>Dimension 5 — UML/RTM 品質</h2>
 <p><strong>[MEDIUM] D5-001: docs/diagrams/puml/ 缺少 PlantUML .puml 檔案</strong></p>
-<ul>
-<li>docs/diagrams/ 目錄中只有 Mermaid 格式圖表，缺少對應的 .puml 原始碼輸出</li>
-<li>可自動修復：NO（需執行 gendoc-gen-diagrams 補充，或手動轉換）</li>
-</ul>
+<ul><li>docs/diagrams/ 目錄中只有 Mermaid 格式圖表，缺少對應的 .puml 原始碼輸出</li><li>可自動修復：NO（需執行 gendoc-gen-diagrams 補充，或手動轉換）</li></ul>
 <p><strong>[MEDIUM] D5-002: docs/RTM.csv 不存在（缺少機器可讀 RTM）</strong></p>
-<ul>
-<li>RTM.md 有完整內容，但缺少 CSV 格式的機器可讀版本供 CI 使用</li>
-<li>可自動修復：YES（從 RTM.md 表格提取轉換）</li>
-</ul>
+<ul><li>RTM.md 有完整內容，但缺少 CSV 格式的機器可讀版本供 CI 使用</li><li>可自動修復：YES（從 RTM.md 表格提取轉換）</li></ul>
 <hr>
-<h2 id="修復優先級清單d16-align-f-執行順序">修復優先級清單（D16-ALIGN-F 執行順序）</h2>
-<h3 id="p0-critical立即修復">P0 — CRITICAL（立即修復）</h3>
-<ol>
-<li><strong>fix-bdd-coin-toss-multiplier</strong>: coin_toss_panel.feature TC-E2E-COIN-005/006 倍率序列 ×3/5/10/25/50/100 → ×3/7/17/27/77，6 nodes → 5 nodes</li>
-<li><strong>fix-bdd-thunder-blessing-mechanic</strong>: thunder_blessing_trigger.feature TB-001~TB-004 移除 Coin Toss，改為正確的 SC + Lightning Mark 升級描述</li>
-<li><strong>fix-bdd-session-multiplier</strong>: session_resume.feature TC-E2E-SESS-003 + Background 使用正確倍率值</li>
-<li><strong>fix-bdd-config-twd</strong>: config.feature TC-INT-CURR-001c TWD min=3/max=600 → min=10/max=320</li>
-</ol>
-<h3 id="p1-high本輪修復">P1 — HIGH（本輪修復）</h3>
-<ol>
-<li><strong>fix-api-session-ttl</strong>: API.md SESSION_NOT_FOUND 相關描述統一為 1800s</li>
-<li><strong>fix-rtm-section-ref</strong>: RTM §2.4 → §2.3，player_sessions → session:{sessionId}:state</li>
-<li><strong>fix-coin-toss-background</strong>: coin_toss_panel.feature Background 觸發條件（SC → rows=6+cascade win）</li>
-<li><strong>add-readme</strong>: 新增根目錄 README.md</li>
-</ol>
-<h3 id="p2-medium本輪修復">P2 — MEDIUM（本輪修復）</h3>
-<ol>
-<li><strong>fix-edd-scenario3-label</strong>: EDD Scenario 3 標籤改為「Free Game (Buy FG Off)」</li>
-<li><strong>add-frontend-type</strong>: FRONTEND.md 補充 UpgradedSymbolId 型別</li>
-<li><strong>fix-rtm-csv</strong>: 從 RTM.md 提取生成 RTM.csv</li>
-</ol>
+<h2>修復優先級清單（D16-ALIGN-F 執行順序）</h2>
+<h3>P0 — CRITICAL（立即修復）</h3>
+<ol><li><strong>fix-bdd-coin-toss-multiplier</strong>: coin_toss_panel.feature TC-E2E-COIN-005/006 倍率序列 ×3/5/10/25/50/100 → ×3/7/17/27/77，6 nodes → 5 nodes</li><li><strong>fix-bdd-thunder-blessing-mechanic</strong>: thunder_blessing_trigger.feature TB-001~TB-004 移除 Coin Toss，改為正確的 SC + Lightning Mark 升級描述</li><li><strong>fix-bdd-session-multiplier</strong>: session_resume.feature TC-E2E-SESS-003 + Background 使用正確倍率值</li><li><strong>fix-bdd-config-twd</strong>: config.feature TC-INT-CURR-001c TWD min=3/max=600 → min=10/max=320</li></ol>
+<h3>P1 — HIGH（本輪修復）</h3>
+<ol><li><strong>fix-api-session-ttl</strong>: API.md SESSION_NOT_FOUND 相關描述統一為 1800s</li><li><strong>fix-rtm-section-ref</strong>: RTM §2.4 → §2.3，player_sessions → session:{sessionId}:state</li><li><strong>fix-coin-toss-background</strong>: coin_toss_panel.feature Background 觸發條件（SC → rows=6+cascade win）</li><li><strong>add-readme</strong>: 新增根目錄 README.md</li></ol>
+<h3>P2 — MEDIUM（本輪修復）</h3>
+<ol><li><strong>fix-edd-scenario3-label</strong>: EDD Scenario 3 標籤改為「Free Game (Buy FG Off)」</li><li><strong>add-frontend-type</strong>: FRONTEND.md 補充 UpgradedSymbolId 型別</li><li><strong>fix-rtm-csv</strong>: 從 RTM.md 提取生成 RTM.csv</li></ol>
 <hr>
-<p><em>此報告由 gendoc-align-check 生成，供 D16-ALIGN-F auto-fix 讀取使用。</em></p>
-      </article>
-    </main>
+<p><em>此報告由 gendoc-align-check 生成，供 D16-ALIGN-F auto-fix 讀取使用。</em></p></main>
   </div>
-
-  <footer class="site-footer">
-    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
-    <span>gendoc — 對齊掃描報告</span>
-    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
-  </footer>
-
-  <script>
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const isOpen  = sidebar.classList.toggle('open');
-      overlay.classList.toggle('active', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      themeVariables: {
-        background:         '#1a2032',
-        primaryColor:       '#1e2535',
-        primaryBorderColor: '#2a3347',
-        primaryTextColor:   '#e2e8f0',
-        lineColor:          '#f6ad55',
-        secondaryColor:     '#161b27',
-        tertiaryColor:      '#0f1117',
-        edgeLabelBackground:'#1a2032',
-        clusterBkg:         '#1a2032',
-        titleColor:         '#f6ad55',
-      }
-    });
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>構想文件 (IDEA) — slot</title>
+  <title>Activity Cascade — slot</title>
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
@@ -20,15 +20,15 @@
     </div>
   </header>
   <div class="doc-page-banner">
-    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 構想文件 (IDEA)</p>
-    <h1 class="banner-title">構想文件 (IDEA)</h1>
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › Activity Cascade</p>
+    <h1 class="banner-title">Activity Cascade</h1>
   </div>
   <div class="page-wrapper">
     <aside class="sidebar" aria-label="文件導覽">
       <div class="sidebar__section">
 <div class="sidebar__label">文件</div>
 <a class="sidebar__link" href="index.html">🏠 首頁</a>
-<a class="sidebar__link active" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
 <a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
 <a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
 <a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
@@ -51,7 +51,7 @@
 </div>
 <div class="sidebar__section">
 <div class="sidebar__label">Server UML</div>
-<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link active" href="diag-activity-cascade.html">📐 Activity Cascade</a>
 <a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
 <a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
 <a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
@@ -77,26 +77,99 @@
 </div>
     </aside>
     <div class="sidebar-resizer" id="sidebarResizer"></div>
-    <main class="doc-content"><h1>專案名稱：Thunder Blessing Slot GDD</h1>
-<h2>1. 核心概念（Elevator Pitch）</h2>
-<p>Thunder Blessing 是一款希臘神話主題的 5×3（最大5×6）老虎機遊戲，以「滾輪持續擴展 × 符號鍊式消除 × 閃電能量蓄積」為核心遊戲循環：每次獲獎觸發 Cascade 連鎖消除並擴展滾輪列數，累積的閃電標記一旦被 Scatter 引爆，即可將整版標記格轉換為同一高賠符號，最終透過 Coin Toss 翻幣決定是否進入最高 ×77 倍率的 Free Game，提供高峰值爆發與持續張力兼具的玩家體驗。</p>
-<p>本 GDD 套件的目標是為開發團隊提供完整且可直接執行的規格文件，使前後端工程師、企劃和 QA 均能 100% 按規格實作，最終交付 RTP 97.5%、最大獎金 30,000× 的高品質老虎機產品。</p>
-<h2>2. 目標使用者</h2>
-<ul><li>線上博弈平台遊戲開發者（前端：Cocos/PixiJS，後端：TypeScript/Fastify）</li><li>遊戲企劃設計師（負責機率平衡與機制設計）</li><li>QA 工程師（驗收引擎與前端行為）</li></ul>
-<h2>3. 核心問題與解決方案</h2>
-<p><strong>問題</strong>：缺乏完整且工程可執行的 GDD，導致開發過程中規格不一致、機率錯誤難以追蹤。</p>
-<p><strong>解決方案</strong>：以既有的 PDF GDD、Probability_Design.md、slot-engine EDD.md 和 engine_config.json 為基礎，整合成一份完整的 GDD 文件套件，涵蓋：</p>
-<ul><li>完整遊戲機制規格（16 個章節）</li><li>機率設計（目標 RTP 97.5%，四情境獨立平衡）</li><li>slot-engine 工具鏈整合（Excel→TypeScript 生成流程）</li></ul>
-<h2>4. 核心功能清單</h2>
-<ol><li><strong>基礎滾輪系統</strong>：5 滾輪 × 3列（初始），25 條連線，左到右判定</li><li><strong>Cascade 連鎖消除</strong>：贏→消除→擴展滾輪（最多6列/57條），循環直到無獲獎</li><li><strong>閃電標記（Lightning Mark）</strong>：消除位置留下標記，跨 Cascade 累積</li><li><strong>雷霆祝福 Scatter</strong>：標記存在時落下 Scatter → 全部標記格轉同一高賠符號（2擊制）</li><li><strong>Coin Toss 硬幣翻轉</strong>：6列＋再次Cascade→觸發翻幣→Heads進入FG，Tails結束</li><li><strong>Free Game 免費遊戲</strong>：倍率×3→×7→×17→×27→×77，閃電標記整局累積</li><li><strong>Extra Bet</strong>：投注額×3，保證出現 Scatter</li><li><strong>Buy Feature</strong>：100× 投注額直接購入 Free Game</li><li><strong>機率引擎工具鏈</strong>：Excel DATA tab → build_config.js → engine_config.json → GameConfig.generated.ts</li></ol>
-<h2>5. 成功指標</h2>
-<ul><li>RTP 97.5%（四情境各自驗收，100萬次蒙地卡羅模擬）</li><li>最大獎金 30,000× 總投注額</li><li>Cascade 循環正確（無越界、無重複計算）</li><li>Free Game 倍率序列正確（×3→×7→×17→×27→×77）</li><li>Buy Feature 保底：整場 ≥ 20× baseBet</li></ul>
-<h2>6. 技術棧</h2>
-<ul><li>後端：TypeScript / Node.js / Fastify / Clean Architecture</li><li>資料庫：Supabase PostgreSQL</li><li>快取：Redis（IoRedis / Upstash）</li><li>機率引擎：Excel 驅動工具鏈（tools/slot-engine/）</li><li>前端：Cocos Creator 或 PixiJS（待定）</li></ul>
-<h2>7. 風險</h2>
-<ol><li>機率平衡複雜度：4 個情境獨立，需 verify.js 通過才能執行 engine_generator</li><li>Cascade 深度計算：Lightning Mark 位置需跨多步驟正確追蹤</li><li>Free Game 一次性回傳：單次 spin request/response 涵蓋完整 FG 序列（最多5回合）</li></ol>
-<h2>8. 素材來源（Appendix）</h2>
-<ul><li>docs/req/GDD-Thunder-Blessing-Slot-Game.pdf（PDF GDD，20 頁，含截圖）</li><li>docs/req/GDD_Thunder_Blessing_Slot.md（開發者版 GDD，含全機制規格）</li><li>docs/req/Probability_Design.md（機率設計文件）</li><li>docs/req/slot-engine-EDD.md（工程設計文件，工具鏈架構）</li><li>docs/req/engine_config.json（實際引擎配置參數）</li><li>/Users/tobala/projects/thunder-blessing-slot（既有實作 codebase）</li></ul></main>
+    <main class="doc-content"><hr>
+<p>diagram: activity-cascade</p>
+<p>uml-type: activity</p>
+<p>source: EDD.md §4.5.10, §5.1 step 3a-3b; ARCH.md §3.3 CascadeEngine component</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Activity Diagram — Cascade Elimination Loop</h1>
+<blockquote><p>來源：EDD.md §4.5.10 Cascade Chain Elimination, §5.1 SlotEngine Algorithm step 3; ARCH.md §3.3</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">flowchart TD
+    subgraph CascadeEngine["Swimlane: CascadeEngine"]
+        CE_Start([CascadeEngine.runCascade called\ngrid: Grid, config: GameConfig])
+        CE_Init[Initialize CascadeSequence\ncascadeDepth=0, totalWin=0\ncollect steps=empty array]
+        CE_Eval[detectWinLines\ngrid vs paylines 1 to 25 at 3 rows\nor 1 to 57 at 6 rows]
+        CE_HasWins{Win lines detected?\nwinLines.length gt 0?}
+        CE_MaxDepth{cascadeDepth gt 50?\nMax cascade guard}
+        CE_LogError[Log ERROR: max cascade depth exceeded\ncascadeDepth=51 sessionId in context\nForce-terminate CascadeSequence]
+        CE_RecordStep[Record CascadeStep snapshot\nCascadeStep index grid winLines stepWin\nnewLightningMarks rows]
+        CE_Eliminate[eliminateSymbols\nRemove winning symbol positions\nfrom current grid]
+        CE_Gravity[applyGravity\nDrop remaining symbols downward\nfill empty cells from column top]
+        CE_RowCheck{currentRows lt MAX_ROWS?\nMAX_ROWS=6}
+        CE_ExpandRow[expandRows\nAdd new row of generated symbols\nat top of grid currentRows plus 1]
+        CE_FillVacant[Generate new symbols\nfor all vacated positions\nusing column symbol weights]
+        CE_IncrDepth[cascadeDepth plus 1]
+        CE_Return([Return CascadeSequence\nsteps totalWin finalGrid\nfinalRows lightningMarks])
+    end
+
+    subgraph Grid["Swimlane: Grid"]
+        G_BeforeElim[Grid state BEFORE elimination\n5xN immutable snapshot captured]
+        G_AfterElim[Grid state AFTER elimination\nnew immutable Grid value object]
+        G_AfterGrav[Grid state AFTER gravity\nsymbols dropped immutable]
+        G_AfterExpand[Grid state AFTER expansion\nnew row added at top immutable]
+    end
+
+    subgraph LightningMarkSet["Swimlane: LightningMarkSet"]
+        LM_Fork{{"Fork: parallel accumulation"}}
+        LM_Record[Generate Lightning Marks\nfor all winning positions\nrow col coordinates]
+        LM_Merge[Merge new marks into\naccumulated LightningMarkSet\ndedup existing positions]
+        LM_Join{{"Join: win calc + marks done"}}
+    end
+
+    subgraph ThunderBlessingHandler["Swimlane: ThunderBlessingHandler"]
+        TBH_Check{SC symbol present\nin new symbols AND\nlightningMarks.count gt 0?}
+        TBH_Skip[Skip Thunder Blessing\nno SC or no marks]
+        TBH_First[applyFirstHit\nSelect random high-pay symbol from P1 P2 P3 P4\nReplace ALL marked cells with selected symbol]
+        TBH_SecondChance{rng lt tbSecondHitProb\nat 0.40?}
+        TBH_Second[applySecondHit\nUpgrade each marked symbol one tier\nP1 stays P1 at top\nL1 L2 L3 L4 to P4\nP4 to P3 P3 to P2 P2 to P1]
+        TBH_Done[ThunderBlessingResult\ntriggered firstHit secondHit\nupgradedSymbol affectedPositions newGrid]
+    end
+
+    %% ─── Flow ─────────────────────────────────────────────────────────────────
+
+    CE_Start --> CE_Init
+    CE_Init --> CE_Eval
+
+    CE_Eval --> CE_HasWins
+    CE_HasWins -->|No — zero win lines| CE_Return
+    CE_HasWins -->|Yes — wins detected| CE_MaxDepth
+
+    CE_MaxDepth -->|Yes — depth exceeded| CE_LogError
+    CE_LogError --> CE_Return
+
+    CE_MaxDepth -->|No — within depth limit| G_BeforeElim
+    G_BeforeElim --> LM_Fork
+
+    LM_Fork --> LM_Record
+    LM_Fork --> CE_Eliminate
+
+    LM_Record --> LM_Merge
+    CE_Eliminate --> G_AfterElim
+    G_AfterElim --> CE_Gravity
+    CE_Gravity --> G_AfterGrav
+    LM_Merge --> LM_Join
+    G_AfterGrav --> LM_Join
+
+    LM_Join --> CE_RowCheck
+    CE_RowCheck -->|Yes — rows lt 6| CE_ExpandRow
+    CE_RowCheck -->|No — rows eq 6 MAX_ROWS| CE_FillVacant
+
+    CE_ExpandRow --> G_AfterExpand
+    G_AfterExpand --> CE_FillVacant
+    CE_FillVacant --> TBH_Check
+
+    TBH_Check -->|No — skip| TBH_Skip
+    TBH_Check -->|Yes — SC + marks| TBH_First
+    TBH_First --> TBH_SecondChance
+    TBH_SecondChance -->|No — rng gte 0.40| TBH_Done
+    TBH_SecondChance -->|Yes — rng lt 0.40| TBH_Second
+    TBH_Second --> TBH_Done
+    TBH_Skip --> CE_RecordStep
+    TBH_Done --> CE_RecordStep
+
+    CE_RecordStep --> CE_IncrDepth
+    CE_IncrDepth --> CE_Eval</pre></div></main>
   </div>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';

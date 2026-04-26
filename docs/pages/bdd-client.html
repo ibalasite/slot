@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client BDD — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › Client BDD Scenarios</p>
+    <h1 class="banner-title">Client BDD Scenarios</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link active" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h2>buy_feature/buy_feature_panel.feature</h2>
+<pre><code class="language-gherkin">@client @buy_feature @panel
+Feature: Buy Feature Panel — UI Behavior
+  As a player who wants to purchase a Free Game entry directly
+  I want the Buy Feature button and confirmation dialog to behave correctly
+  So that I can confirm the cost, complete the purchase, and enter Free Game immediately
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated and the game is in IDLE state
+    And the player&#x27;s balance is sufficient to cover the Buy Feature cost
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — successful purchase
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-BUY-001
+  Scenario: BUY FREE GAME button is visible and shows a purple-gold style in IDLE state
+    Given the game is in IDLE state
+    When the player views the main game HUD in IDLE state
+    Then the &quot;BUY FREE GAME&quot; button is visible in the bottom-right area of the HUD
+    And the button displays a purple-gold color with a small coin icon
+    And hovering over the button produces a subtle gold-edge glow and slight scale-up (~1.05×)
+
+  @TC-E2E-BUY-002
+  Scenario: Clicking BUY FREE GAME opens the confirmation dialog
+    Given the current bet is &quot;$0.25&quot;
+    When the player clicks the &quot;BUY FREE GAME&quot; button
+    Then a confirmation dialog appears in the center of the screen
+    And the dialog has a stone-carved frame with a deep blue background and gold border
+    And the dialog title reads &quot;BUY FREE GAME&quot; in Greek-style large text
+    And the dialog body shows the cost: &quot;Cost: 100 × BET = $25.00&quot;
+    And CONFIRM and CANCEL buttons are both visible and accessible
+
+  @TC-E2E-BUY-003
+  Scenario: Clicking CONFIRM deducts balance and launches Free Game immediately
+    Given the confirmation dialog is open showing cost &quot;$25.00&quot;
+    When the player confirms the Buy Feature purchase
+    Then the dialog closes with a click sound and a brief visual concave-press effect on CONFIRM
+    And the BALANCE decreases by 100× the base bet amount
+    And the Free Game scene entry animation plays
+    And the Free Game HUD appears with 10 spins remaining
+
+  @TC-E2E-BUY-004
+  Scenario: Clicking CANCEL closes the dialog with no balance change
+    Given the confirmation dialog is open
+    When the player clicks the CANCEL button
+    Then the dialog closes with a fade-out animation
+    And the player&#x27;s BALANCE remains unchanged
+    And the game returns to IDLE state with the SPIN button enabled
+
+  # ---------------------------------------------------------------------------
+  # Extra Bet interaction with Buy Feature cost
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-BUY-005
+  Scenario: With Extra Bet ON the confirmation dialog shows the 3× higher cost
+    Given the Extra Bet toggle is set to ON
+    And the base bet is &quot;$0.25&quot;
+    When the player clicks the &quot;BUY FREE GAME&quot; button
+    Then the confirmation dialog shows: &quot;Cost: 100 × Total BET = $75.00&quot;
+    And an &quot;×3 EXTRA BET&quot; orange badge is displayed next to the cost line
+    And the CONFIRM button reflects the higher cost
+
+  # ---------------------------------------------------------------------------
+  # Disabled states
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-BUY-006
+  Scenario: BUY FREE GAME button is disabled and greyed-out during Free Game
+    Given the player has entered Free Game mode
+    When the player is in Free Game mode and views the HUD
+    Then the &quot;BUY FREE GAME&quot; button is hidden from the HUD
+    And no click interaction is possible on the button area
+
+  @TC-E2E-BUY-007
+  Scenario: BUY FREE GAME button is disabled when balance is insufficient
+    Given the player&#x27;s balance is &quot;$5.00&quot;
+    And the Buy Feature cost at current bet would be &quot;$25.00&quot;
+    When the game evaluates the button state
+    Then the &quot;BUY FREE GAME&quot; button is displayed in a greyed-out, half-transparent disabled state
+    And clicking the button produces no dialog or action
+</code></pre>
+<h2>cascade/cascade_animation.feature</h2>
+<pre><code class="language-gherkin">@client @cascade @animation
+Feature: Cascade Elimination — UI Animation Behavior
+  As a player watching a cascade chain play out
+  I want each elimination step to be visually distinct and sequential
+  So that I can follow the cascade progress and feel the momentum building
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated and the game is in IDLE state
+    And the reel grid currently shows a 5×3 layout
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — cascade step sequence
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-CASC-001
+  Scenario: Winning symbols explode and disappear before new symbols fall
+    Given a spin result contains a winning combination on the 5×3 grid
+    When the reel has fully stopped
+    Then the winning symbols play their Win animation (glow, ~0.6 s)
+    And the winning symbols then explode into metallic particles that fly outward
+    And the vacant grid cells are clearly empty (transparent) after elimination
+    And new symbols fall downward from above the reel into the empty cells
+    And each new symbol plays a landing bounce animation (Ease Out Bounce)
+    And the WIN field updates to show the cascade step&#x27;s win contribution
+
+  @TC-E2E-CASC-002
+  Scenario: &quot;CASCADE × N&quot; floating label appears for each cascade step
+    Given a cascade chain has at least two successive winning steps
+    When the second cascade step&#x27;s winning symbols are eliminated
+    Then a gold &quot;CASCADE × 2&quot; floating label appears above the reel grid center
+    And the label scales from 0.5× to 1.2× then settles at 1.0× size
+    And the label fades out after approximately 0.5 seconds
+    And for each subsequent step the number increments (CASCADE × 3, etc.)
+
+  @TC-E2E-CASC-003
+  Scenario: Multiple consecutive cascade rounds play sequentially without interruption
+    Given a spin result produces a winning combination on the 5×3 grid
+    When the first cascade step eliminates winning symbols and new symbols fall in
+    And the new symbols form another winning combination
+    And the second cascade step eliminates those symbols and new symbols fall in
+    And the new symbols form a third winning combination
+    Then three successive cascade elimination rounds have played out in sequence
+    And the &quot;CASCADE × 3&quot; floating label appears above the reel grid center
+    And the WIN field shows the cumulative total win from all three cascade steps
+    And a cascade win sound plays for each elimination step
+
+  @TC-E2E-CASC-004
+  Scenario: New symbols fall from above into vacated cells after cascade elimination
+    Given a cascade step has eliminated winning symbols leaving empty cells in the grid
+    When the elimination animation completes
+    Then new symbols enter from above the visible reel area
+    And each new symbol falls downward into its vacated cell
+    And each new symbol plays a landing bounce animation (Ease Out Bounce, ~0.3 s)
+    And the symbols come to rest in the correct grid positions
+    And the reel grid is fully populated with no empty cells after all symbols land
+
+  @TC-E2E-CASC-005
+  Scenario: Lightning Marks appear on eliminated winning positions after cascade
+    Given a cascade step eliminates winning symbols at specific grid positions
+    When the symbol explosion animation completes
+    Then a golden lightning-bolt mark appears at each eliminated position (0.4 s scale-in animation)
+    And each mark is overlaid on the newly fallen symbol at that cell (60% opacity)
+    And the Lightning Mark counter in the top-right corner of the reel frame increments
+
+  @TC-E2E-CASC-006
+  Scenario: Lightning Mark counter shows electric arc effects at 3+ marks
+    Given the reel has accumulated 2 Lightning Marks (gold steady counter)
+    When a cascade step adds a third Lightning Mark
+    Then the counter number updates to &quot;3&quot; with an electric arc flickering effect
+    And the counter color shifts to orange-gold
+    When the total mark count reaches 5 or more
+    Then the counter background glows and pulses white-gold rhythmically
+
+  # ---------------------------------------------------------------------------
+  # Edge / Error Flows
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-CASC-007
+  Scenario: Non-winning result after a cascade — animation sequence ends cleanly
+    Given a cascade chain resolves with a step that produces no winning combination
+    When the newly fallen symbols are in place and no paylines are active
+    Then no WIN animation plays for that step
+    And the WIN field shows the cumulative total from previous steps (not reset mid-cascade)
+    And if 5 or more Lightning Marks have accumulated at round end, the Free Game entry sequence begins
+    And otherwise the reel remains static and the SPIN button re-enables
+
+  @TC-E2E-CASC-008
+  Scenario: Animation queue does not allow a new spin during cascade playback
+    Given a cascade chain animation sequence is actively playing
+    When the player attempts to click the SPIN button
+    Then the SPIN button remains visually disabled, unresponsive, and no reel movement occurs
+    And the cascade animation completes without interruption
+</code></pre>
+<h2>coin_toss/coin_toss_panel.feature</h2>
+<pre><code class="language-gherkin">@client @coin_toss @animation
+Feature: Coin Toss Panel — UI Behavior
+  As a player who has triggered Coin Toss by an SC (Scatter) symbol landing
+  I want to see the full Coin Toss mini-game overlay
+  So that I can see my multiplier applied to Lightning Marks and understand the Coin Toss outcome
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated and the game is in Free Game state
+    And the reels have expanded to 6 rows and a cascade win occurred
+    And the game triggered the Coin Toss overlay
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — Coin Toss Heads (multiplier applied to Lightning Marks)
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-COIN-001
+  Scenario: Coin Toss overlay appears with spotlight and coin fly-in animation
+    Given the Coin Toss overlay is active and the coin is centred in the spotlight
+    When the COIN_TOSS state activates
+    Then the reel grid and background dim with a dark overlay (opacity ~0.7, ~0.4 s transition)
+    And a spotlight light cone appears from the top of the screen pointing downward
+    And a large golden coin flies in from above into the spotlight center (~0.5 s)
+    And the coin&#x27;s face (Zeus Heads side) is visible at rest before spinning
+    And background music transitions to the tense &quot;BGM_COIN_TOSS&quot; track
+
+  @TC-E2E-COIN-002
+  Scenario: Coin spins in 3D and gradually decelerates before showing result
+    Given the Coin Toss overlay is active and the coin is in frame
+    When the coin flip animation begins
+    Then the coin rotates rapidly on its Y-axis simulating a real toss (720°/s initial speed)
+    And the coin&#x27;s edge and both sides are visible alternately during the spin
+    And the coin gradually decelerates over 2.5–3.5 seconds
+    And the coin settles to a stop showing either the Heads (Zeus) or Tails (thunderbolt) face
+
+  @TC-E2E-COIN-003
+  Scenario: Heads result — &quot;ZEUS SMILES!&quot; text and gold burst effect
+    Given the coin flip has resolved to Heads
+    When the coin face locks onto the Zeus (Heads) side
+    Then a gold burst particle effect erupts from the coin
+    And the text &quot;ZEUS SMILES!&quot; appears in large gold letters above the coin
+    And a victory sound effect plays
+    And the multiplier progress bar at the bottom advances to the next multiplier node (×3 initially)
+    And the progress bar node lights up with a scale-in flash animation (~0.3 s)
+    And the multiplier value is applied to all active Lightning Marks on the grid
+    And the Coin Toss overlay fades out and the game returns to the main reel view
+
+  @TC-E2E-COIN-004
+  Scenario: Tails result — &quot;NOT THIS TIME&quot; text and coin darkens
+    Given the coin flip has resolved to Tails
+    When the coin face locks onto the Tails (thunderbolt) side
+    Then the coin dims with a blue-grey color shift
+    And the text &quot;NOT THIS TIME&quot; appears in silver letters
+    And a low-resonance sound effect plays
+    And no multiplier progress bar advancement occurs
+    And each Lightning Mark position shows a conversion animation where the mark transforms into an upgraded symbol
+    And the Coin Toss overlay fades out
+    And the game returns to normal payline evaluation with the newly converted symbols in position
+    And after payline evaluation completes the game transitions back to IDLE state
+
+  # ---------------------------------------------------------------------------
+  # FG Multiplier progress bar behavior
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-COIN-005
+  Scenario: Multiplier progress bar shows node sequence and color gradient
+    Given the Coin Toss overlay is active
+    When the player views the multiplier progress bar
+    Then the multiplier progress bar is visible at the bottom of the overlay
+    And the bar shows five multiplier nodes: ×3, ×7, ×17, ×27, ×77 from left to right
+    And the current (highest achieved) node is filled with gold
+    And un-reached nodes are displayed in a dimmed state
+    And the connecting segments use a color gradient from green (×3) through yellow, orange, and red (×77)
+
+  @TC-E2E-COIN-006
+  Scenario: Reaching ×77 multiplier shows MAX MULTIPLIER banner
+    Given the player has previously earned ×27 in this FG sequence
+    And the current Coin Toss resolves to Heads
+    When the multiplier advances from ×27 to ×77
+    Then all five progress nodes simultaneously pulse gold
+    And the progress bar background shows a rainbow shimmer effect (~0.5 s)
+    And a &quot;MAX MULTIPLIER ×77&quot; banner slides in and remains visible for ~2.0 s before dissolving
+    And the ×77 node displays a red lightning arc particle effect
+
+  # ---------------------------------------------------------------------------
+  # Error / Edge Flows
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-COIN-007
+  Scenario: Player cannot interact with game controls during Coin Toss
+    Given the Coin Toss overlay is active and the coin is spinning
+    When the player attempts to click the SPIN button, bet buttons, or Extra Bet toggle
+    Then all game control buttons are unresponsive (hidden behind the overlay)
+    And the Coin Toss sequence completes without interruption
+</code></pre>
+<h2>error/error_handling.feature</h2>
+<pre><code class="language-gherkin">@client @error @disconnection
+Feature: Error and Disconnection Handling — UI Behavior
+  As a player experiencing a network error or server-side problem
+  I want clear and recoverable error states in the game UI
+  So that I am never left confused or stuck in an unresponsive game
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated and the game is in IDLE state
+
+  # ---------------------------------------------------------------------------
+  # Network error during spin
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-ERR-001
+  Scenario: Spin request shows loading indicator while waiting for response
+    Given the player clicks the SPIN button
+    When the loading indicator has been visible for 500 ms with no reel result displayed
+    Then a loading indicator (spinner) appears over the reel grid
+    And the SPIN button remains disabled
+
+  @TC-E2E-ERR-001b
+  Scenario: Spin request times out — friendly error dialog appears and player can retry
+    Given a loading indicator is shown over the reel grid after a spin request
+    When the loading indicator has been visible beyond the configured timeout threshold
+    Then the loading indicator disappears
+    And an error dialog appears with a stone-carved frame and gold border
+    And the dialog displays a human-readable message such as &quot;Connection lost. Please try again.&quot;
+    And a &quot;RETRY&quot; or &quot;OK&quot; button is visible in the dialog
+    And the SPIN button re-enables after the dialog is dismissed
+
+  @TC-E2E-ERR-002
+  Scenario: Retry after network error does not double-deduct balance
+    Given an error dialog appeared after a spin timeout
+    When the player dismisses the dialog and attempts another spin
+    Then the BALANCE field reflects only one deduction (not two)
+    And the second spin animation begins normally with no error dialog shown
+
+  @TC-E2E-ERR-003
+  Scenario: Server returns an error during spin — game shows error message and recovers
+    Given the player clicks the SPIN button
+    When an error state is detected and no spin result is rendered
+    Then the reel animation stops or does not start
+    And an error dialog appears with the relevant error description
+    And the BALANCE field does not change (no deduction is visible to the player)
+    And the SPIN button re-enables once the dialog is dismissed
+
+  # ---------------------------------------------------------------------------
+  # Disconnection during active animation
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-ERR-004
+  Scenario: Connection drops mid-cascade — animation pauses and reconnect prompt shows
+    Given a cascade animation sequence is actively playing
+    When the network connection drops
+    Then the current animation frame freezes (no further reel movement)
+    And a &quot;Connection Lost&quot; overlay or banner appears
+    And the SPIN button and all controls remain disabled
+
+  @TC-E2E-ERR-004b
+  Scenario: Connection restores mid-cascade — game attempts to reload round result
+    Given a &quot;Connection Lost&quot; overlay is shown after the connection dropped mid-cascade
+    When the connection is restored
+    Then a reconnection overlay appears and a loading indicator is shown while the game attempts to reload the last round result
+    And either the remaining animation plays out or an error dialog is shown if state cannot be recovered
+
+  # ---------------------------------------------------------------------------
+  # Concurrent spin rejection
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-ERR-005
+  Scenario: Server rejects a duplicate spin attempt (concurrent lock)
+    Given a spin is already in progress (SPIN button is disabled)
+    When the player triggers a second spin attempt while a spin is already in progress
+    Then an error dialog appears informing the player that the action could not be completed
+    And an error dialog does not interrupt the currently playing animation
+    And the BALANCE field does not show a double-deduction after the duplicate spin attempt
+
+  # ---------------------------------------------------------------------------
+  # Generic / unknown errors
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-ERR-006
+  Scenario: Unrecognised server error code shows a generic error dialog
+    Given the player clicks the SPIN button
+    When an unexpected error state appears on screen
+    Then a generic error dialog is displayed (stone-carved frame style, consistent with game UI)
+    And the dialog shows only a human-readable message without any technical error codes or stack traces
+    And the dialog has a dismissal button that returns the player to IDLE state
+
+  @TC-E2E-ERR-007
+  Scenario: BGM continues at reduced volume during error state
+    Given the BGM_MAIN track is playing
+    When an error dialog appears
+    Then the BGM_MAIN track continues playing at a slightly reduced volume (−3 dB)
+    And the BGM does not stop or cut to silence
+    When the error dialog is dismissed
+    Then the BGM volume returns to its normal level
+</code></pre>
+<h2>extra_bet/extra_bet_toggle.feature</h2>
+<pre><code class="language-gherkin">@client @extra_bet @toggle
+Feature: Extra Bet Toggle — UI Behavior
+  As a player who wants to activate the Extra Bet feature
+  I want the toggle switch to clearly indicate its state and update relevant costs
+  So that I know when Extra Bet is active and what it costs
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated and the game is in IDLE state
+    And the Extra Bet toggle is in the OFF state (grey, left position)
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — toggling Extra Bet ON
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-EXBT-001
+  Scenario: Toggling Extra Bet ON changes toggle appearance and updates BET display
+    Given the current base bet is &quot;$0.25&quot;
+    And the BET field shows &quot;$0.25&quot;
+    When the player clicks the EXTRA BET toggle switch
+    Then the toggle slider animates to the right position over ~0.2 s
+    And the toggle background transitions from grey to gold over ~0.3 s
+    And electric arc particles appear around the gold toggle
+    And the &quot;EXTRA BET&quot; label text turns gold and glows
+    And the BET field immediately updates to &quot;$0.75&quot; (3× base bet) in orange text
+    And an electric-arc activation sound effect plays
+
+  @TC-E2E-EXBT-002
+  Scenario: Toggling Extra Bet OFF restores original BET display
+    Given the Extra Bet toggle is currently ON (gold, slider right)
+    And the BET field shows &quot;$0.75&quot;
+    When the player clicks the EXTRA BET toggle again
+    Then the toggle slider animates back to the left over ~0.2 s
+    And the toggle background returns to grey
+    And the BET field reverts to &quot;$0.25&quot; in white text
+    And no special sound effect plays (or a neutral click plays)
+
+  @TC-E2E-EXBT-003
+  Scenario: Extra Bet ×3 cost indicator is visible when toggle is ON
+    Given the player has toggled Extra Bet to ON
+    When viewing the BET display area
+    Then an &quot;×3&quot; cost indicator badge appears adjacent to or within the BET field
+    And the combined bet amount displayed is 3× the selected base bet level
+    And the SPIN button remains enabled
+
+  # ---------------------------------------------------------------------------
+  # Buy Feature cost reflects Extra Bet state
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-EXBT-004
+  Scenario: Buy Feature confirmation dialog cost updates when Extra Bet is ON
+    Given the Extra Bet toggle is ON
+    And the base bet is &quot;$0.25&quot;
+    When the player opens the BUY FREE GAME confirmation dialog
+    Then the dialog shows &quot;Cost: 100 × Total BET = $75.00&quot;
+    And an &quot;×3 EXTRA BET&quot; orange label is displayed in the dialog
+    And no &quot;100 × BET&quot; (normal cost) text is shown
+
+  # ---------------------------------------------------------------------------
+  # Toggle disabled during spin / FG
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-EXBT-005
+  Scenario: Extra Bet toggle is disabled while a spin is in flight
+    Given the player has pressed the SPIN button and a spin is in progress
+    When the player clicks the EXTRA BET toggle
+    Then the toggle does not change state
+    And no visual transition plays on the toggle
+    And the BET field does not change
+    And the toggle re-enables only after the spin and all animations have completed
+
+  @TC-E2E-EXBT-006
+  Scenario: Extra Bet toggle is disabled during Free Game mode
+    Given the player is in Free Game mode
+    When the player is in Free Game mode and views the Extra Bet toggle area
+    Then the EXTRA BET toggle is visually disabled (greyed out, non-interactive)
+    And the toggle preserves whichever state it was in when FG was entered
+    And clicking the toggle produces no visual or audio change
+</code></pre>
+<h2>free_game/free_game_mode.feature</h2>
+<pre><code class="language-gherkin">@client @free_game @animation
+Feature: Free Game Mode — UI Behavior
+  As a player who has entered Free Game mode
+  I want to see the FG scene, multiplier display, and spin counter
+  So that I can track my progress and enjoy the distinct Free Game visual experience
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated
+    And 5 or more Lightning Marks accumulated at round end triggering Free Game entry
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — FG entry and scene
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-FG-009
+  Scenario: Free Game entry triggers reel expansion to 5×6 layout
+    Given the Free Game was just triggered by 5 accumulated Lightning Marks
+    When the Free Game entry animation completes
+    Then the reel grid visually displays 6 rows of symbols across 5 columns
+    And the expanded row count indicator confirms 6 active rows
+    And the Free Game HUD shows &quot;10 free spins remaining&quot;
+
+  @TC-E2E-FG-001
+  Scenario: Free Game entry — scene cross-dissolve and fanfare animation
+    Given 5 or more Lightning Marks have accumulated and the Free Game entry sequence has been triggered
+    When the Free Game entry animation plays after 5+ Lightning Marks accumulated
+    Then the screen cross-dissolves from the main game (dusk temple) to the FG scene (night sky temple) over ~0.8 s
+    And starfield particles drift slowly across the FG background
+    And the temple columns in the FG scene glow brighter with gold light
+    And a &quot;FREE GAME&quot; gold banner drops from the top of the screen
+    And the current multiplier &quot;×3&quot; appears in large gold text at center screen then shrinks to its HUD position
+    And the background music transitions to &quot;BGM_FREE_GAME&quot;
+
+  @TC-E2E-FG-002
+  Scenario: FG HUD shows SPIN COUNT and MULTIPLIER; BUY FG button is hidden
+    Given the player has entered Free Game mode
+    When the Free Game scene has loaded and the HUD is visible
+    Then the top-left area of the HUD shows a &quot;FREE GAME&quot; label
+    And the current multiplier (e.g., &quot;×3&quot;) is displayed in the upper-left reel area
+    And the SPIN COUNT area shows &quot;0 / 10&quot; before the first FG spin has been taken
+    And the BUY FREE GAME button is hidden from the HUD
+    And the SPIN button is not visible or is replaced by the auto-spin mechanism for FG
+    And the BET adjustment controls are locked (greyed out)
+
+  @TC-E2E-FG-003
+  Scenario: FG spin counter increments with each completed FG round
+    Given the player is in Free Game mode and on round 1
+    When the first FG spin and Cascade sequence complete
+    Then the SPIN COUNT display shows &quot;Spin #1&quot; in gold text
+    When the second FG round completes
+    Then the SPIN COUNT display updates to &quot;Spin #2&quot; with a number-flip animation (~0.3 s)
+
+  @TC-E2E-FG-004
+  Scenario: Multiplier upgrades visually when Coin Toss Heads advances the stage
+    Given the current FG multiplier is ×3
+    When a Coin Toss within Free Game resolves to Heads
+    Then the old multiplier number (×3) explodes outward from its position
+    And the new multiplier number (×5) flies in from center screen large then shrinks to the HUD position
+    And the multiplier progress bar node for ×5 lights up with a flash animation
+    And the multiplier label in the HUD updates to &quot;×5&quot; in gold text
+
+  @TC-E2E-FG-005
+  Scenario: Lightning Marks from the main game entry persist and accumulate across FG rounds
+    Given the player entered Free Game with 3 Lightning Marks on the grid from the main game
+    When the first FG spin completes with a cascade that produces 2 new marks
+    Then the reel grid shows 5 Lightning Marks total (3 inherited + 2 new)
+    And the Lightning Mark counter shows &quot;⚡ × 5&quot; with a pulsing white-gold effect
+
+  @TC-E2E-FG-006
+  Scenario: FG Bonus ×100 triggers full-screen explosion effect
+    Given the spin outcome data includes a fgBonus value of &quot;×100&quot;
+    When the FG Bonus reveal animation fires
+    Then a full-screen gold particle explosion fills the screen (3,000+ particles, ~3.0 s)
+    And the text &quot;×100 BONUS!&quot; erupts from center screen scaling from 0 to 3× then settling at ~60% screen height
+    And the background flashes white briefly (~0.2 s)
+    And thunder and coin-rain audio plays simultaneously
+    And after ~3.5 s the bonus animation resolves and the FG round continues
+
+  # ---------------------------------------------------------------------------
+  # FG Termination
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-FG-007
+  Scenario: Free Game ends when all 10 free spins are consumed
+    Given the player is in Free Game mode with 1 free spin remaining
+    When the last free spin completes and no more FG spins remain
+    Then the FG ending animation plays
+    And the reel contracts back to 5×3 layout
+    And the main game HUD returns
+    And the total FG WIN amount is shown in a summary overlay before exiting
+    And the scene cross-dissolves back to the main game (dusk temple)
+    And the background music transitions back to &quot;BGM_MAIN&quot;
+    And the game returns to IDLE state with the SPIN button re-enabled
+
+  # ---------------------------------------------------------------------------
+  # Error / Edge Flows
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-FG-008
+  Scenario: Near Miss visual appears in FG — brief edge flash without text
+    Given the player is in Free Game mode and a spin result qualifies as Near Miss
+    When the reel columns stop
+    Then the near-miss cell borders flash orange briefly (~0.4 s with vibration effect)
+    And no text label such as &quot;ALMOST!&quot; appears
+    And the near-miss effect fades and the round continues normally
+</code></pre>
+<h2>main/main_bet.feature</h2>
+<pre><code class="language-gherkin">@client @main @bet
+Feature: Bet Level Selection — UI Behavior
+  As a player on the main game screen
+  I want to adjust my bet level using the −BET+ controls
+  So that I can control how much I wager per spin
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated and the game is in IDLE state
+    And the BET field shows the current total bet amount in gold text
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — adjusting bet level
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-BET-001
+  Scenario: Increasing bet level with the + button updates the BET display
+    Given the current total bet shown in the BET field is &quot;$0.25&quot;
+    When the player clicks the &quot;+&quot; bet adjustment button
+    Then the BET field immediately updates to the next available bet level (e.g., &quot;$0.50&quot;)
+    And the SPIN button remains enabled
+    And the balance display does not change until a spin is triggered
+
+  @TC-E2E-BET-002
+  Scenario: Decreasing bet level with the − button updates the BET display
+    Given the current total bet shown in the BET field is &quot;$1.00&quot;
+    When the player clicks the &quot;−&quot; bet adjustment button
+    Then the BET field updates to the previous bet level (e.g., &quot;$0.50&quot;)
+    And the SPIN button remains enabled
+
+  @TC-E2E-BET-003
+  Scenario: Bet controls are disabled during an active spin
+    Given the player has pressed the SPIN button and a spin is in flight
+    When the animation sequence is playing
+    Then the &quot;+&quot; and &quot;−&quot; bet adjustment buttons are visually disabled
+    And clicking either bet button produces no change to the BET display
+    And both bet buttons re-enable once the spin and all animations complete
+
+  @TC-E2E-BET-004
+  Scenario: Minimum bet level — the − button becomes visually disabled
+    Given the BET field shows the minimum allowed bet level
+    When the player attempts to click the &quot;−&quot; bet button
+    Then the &quot;−&quot; button appears greyed-out and does not respond to clicks
+    And the BET field does not change
+
+  @TC-E2E-BET-005
+  Scenario: Maximum bet level — the + button becomes visually disabled
+    Given the BET field shows the maximum allowed bet level
+    When the player attempts to click the &quot;+&quot; bet button
+    Then the &quot;+&quot; button appears greyed-out and does not respond to clicks
+    And the BET field does not change
+
+  # ---------------------------------------------------------------------------
+  # Extra Bet interaction with bet display
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-BET-006
+  Scenario: Extra Bet ON triples the displayed BET amount in orange text
+    Given the current base bet is &quot;$0.25&quot;
+    When the player toggles the EXTRA BET switch to ON
+    Then the BET field updates to &quot;$0.75&quot; (3× the base bet)
+    And the BET amount is displayed in orange text to signal the multiplied cost
+    And the EXTRA BET toggle shows a gold glowing &quot;ON&quot; state with electric arc particles
+    And the SPIN button remains enabled
+
+  # ---------------------------------------------------------------------------
+  # FG period — bet controls locked
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-BET-007
+  Scenario: Bet adjustment controls are locked during Free Game mode
+    Given the player has entered Free Game mode
+    When the player attempts to click the &quot;+&quot; or &quot;−&quot; bet buttons
+    Then both buttons are visually disabled and unresponsive
+    And the BET field shows the bet that was active when the Free Game was triggered
+    And a lock indicator or tooltip communicates that bet changes are not allowed during FG
+</code></pre>
+<h2>main/main_spin.feature</h2>
+<pre><code class="language-gherkin">@client @main @spin
+Feature: Main Game Spin — UI Behavior
+  As a player on the Thunder Blessing main game screen
+  I want the spin button and game UI to behave correctly during a spin cycle
+  So that I receive clear visual feedback for every action and outcome
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated and the game is in IDLE state
+    And the player&#x27;s balance is displayed as &quot;$1,000.00&quot; in the BALANCE field
+    And the reel grid shows a 5×3 layout
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — standard spin cycle
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-SPIN-001
+  Scenario: Spin button disables while spin is in flight
+    Given the player has a bet of &quot;$0.25&quot; selected
+    When the player clicks the SPIN button
+    Then the SPIN button becomes visually disabled (greyed-out, not clickable)
+    And the reel symbols begin scrolling upward on all five columns
+    And the reel spin sound effect plays when the reels begin scrolling
+    And the AUTO SPIN button becomes visually disabled
+    And the BUY FREE GAME button becomes visually disabled
+
+  @TC-E2E-SPIN-002
+  Scenario: Reel stops column by column and balance updates after a non-winning spin
+    Given the player clicks the SPIN button
+    When each reel column stops in left-to-right sequence
+    Then column 1 symbols lock into place first
+    And column 2 symbols lock into place second
+    And columns 3, 4, and 5 follow in succession with a slight delay between each
+    And after all five columns stop the WIN field displays &quot;$0.00&quot;
+    And the BALANCE field decrements by the bet amount to reflect the deduction
+    And the SPIN button re-enables and returns to its normal gold appearance
+    And the game state returns to IDLE
+
+  @TC-E2E-SPIN-003
+  Scenario: Small win — WIN counter updates and winning symbols highlight
+    Given the spin outcome contains a winning payline
+    When all five reel columns have stopped
+    Then the winning symbols play their Win animation (glow and pulse, ~1.0 s)
+    And the WIN field rolls up from &quot;$0.00&quot; to the winning amount
+    And a gold highlight line traces the winning payline path across the grid
+    And non-winning symbols dim to reduced opacity
+    And after the win presentation the SPIN button re-enables
+
+  @TC-E2E-SPIN-004
+  Scenario: Big Win overlay displays for wins ≥ 20× bet
+    Given the current bet is &quot;$0.25&quot;
+    And the spin outcome produces a total win of &quot;$5.00&quot; or more (≥ 20× bet)
+    When the win evaluation completes
+    Then a full-screen &quot;BIG WIN&quot; banner slides down over the game grid
+    And a gold coin-rain particle effect fills the screen
+    And the WIN counter animates from zero up to the final win value
+    And the player can tap anywhere to skip the presentation
+    And after dismissal the SPIN button re-enables and normal IDLE state resumes
+
+  @TC-E2E-SPIN-005
+  Scenario: Spin button remains disabled until the full animation sequence drains
+    Given a winning spin with a cascade chain of 3 steps has resolved
+    When the cascade animations are still playing
+    Then the SPIN button remains visually disabled throughout all cascade steps
+    And the SPIN button only re-enables after the final cascade step WIN counter update completes
+
+  # ---------------------------------------------------------------------------
+  # Error / Edge Flows
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-SPIN-006
+  Scenario: Insufficient balance — spin button stays disabled when balance is zero
+    Given the player&#x27;s balance is &quot;$0.00&quot;
+    When the game loads or balance updates to zero
+    Then the SPIN button is displayed in a disabled (greyed-out) state
+    And clicking the SPIN button produces no action or animation
+    And a subtle insufficient-funds indicator appears near the BALANCE field
+
+  @TC-E2E-SPIN-007
+  Scenario: Network timeout during spin shows loading indicator
+    Given the player clicks the SPIN button
+    When 500 ms elapse with no spin result displayed on the reel grid
+    Then a loading indicator appears overlaid on the reel grid
+    And the SPIN button remains disabled
+
+  @TC-E2E-SPIN-008
+  Scenario: Unauthenticated player cannot spin
+    Given the player&#x27;s session token has expired before a spin attempt
+    When the player clicks the SPIN button
+    Then the game displays a &quot;Session Expired&quot; dialog with a stone-carved frame and gold border
+    And the SPIN button remains disabled
+    And the dialog prompts the player to log in again
+
+  @TC-E2E-SPIN-009
+  Scenario: Network timeout threshold exceeded — error dialog appears and player can retry
+    Given a loading indicator is shown overlaid on the reel grid after a spin request
+    When the configured timeout threshold elapses with no spin result shown
+    Then an error dialog appears with a human-readable message
+    And the SPIN button re-enables so the player can retry
+    And the player&#x27;s balance is not double-debited
+</code></pre>
+<h2>session/session_resume.feature</h2>
+<pre><code class="language-gherkin">@client @session @reconnect
+Feature: Session Resume — FG Reconnection UI Behavior
+  As a player who was disconnected during Free Game
+  I want the game to restore my FG session when I reconnect
+  So that I do not lose my FG progress and can continue from where I left off
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player had previously been in an active Free Game session with multiplier ×7
+    And the player&#x27;s browser was closed or the connection dropped during Free Game
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — successful session restore
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-SESS-001
+  Scenario: Reconnecting mid-FG shows &quot;Restoring Session...&quot; loading indicator
+    Given the player reopens the game while a Free Game session is stored on the server
+    When the game client initialises and detects an active FG session
+    Then the Free Game background (night sky temple) is displayed immediately
+    And a rotating loading spinner appears in the center of the screen
+    And the text &quot;Restoring Session...&quot; is visible in white (Open Sans, 18px) below the spinner
+    And the SPIN button and all HUD controls are inaccessible during restore
+
+  @TC-E2E-SESS-002
+  Scenario: Successful restore — FG state is visually rebuilt from server data
+    Given the &quot;Restoring Session...&quot; indicator is shown
+    And a valid Free Game session is detected with multiplier ×7 and 2 accumulated Lightning Marks
+    When the session restore completes successfully
+    Then the loading spinner disappears
+    And the FG multiplier display animates to ×7 using an Ease Out Cubic update (0.5 s)
+    And the two Lightning Marks are redrawn on the grid at their correct positions
+    And the Lightning Mark counter shows &quot;⚡ × 2&quot;
+    And the SPIN COUNT label shows the most recently completed round number
+    And the FG round resumes normally with auto-spin triggering the next FG spin
+
+  @TC-E2E-SESS-003
+  Scenario: Restored FG session continues with correct multiplier in HUD
+    Given the FG session has been successfully restored with multiplier ×17
+    When the player continues the Free Game
+    Then the multiplier HUD label shows &quot;×17&quot; in gold-orange text with arc glow
+    And the multiplier progress bar shows nodes ×3, ×7, and ×17 all filled in gold
+    And the remaining nodes (×27, ×77) remain dimmed
+
+  # ---------------------------------------------------------------------------
+  # Error / Expired Session Flow
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-SESS-004
+  Scenario: Expired session — game displays Session Expired dialog and returns to main game
+    Given the player reopens the game after their JWT token has expired
+    When the restore attempt fails and the session cannot be recovered
+    Then the &quot;Restoring Session...&quot; indicator disappears
+    And a &quot;Session Expired&quot; dialog appears with a stone-carved frame and gold border
+    And the dialog text explains that the session could not be recovered
+    And an &quot;OK&quot; or confirm button is visible in the dialog
+    When the player clicks the confirm button
+    Then the dialog closes
+    And the scene transitions to the main game (dusk temple background)
+    And the game is in IDLE state with the SPIN button enabled
+    And no Lightning Marks appear on the grid (clean state)
+
+  @TC-E2E-SESS-005
+  Scenario: Reconnect loading screen does not block audio on first user interaction
+    Given the player reopens the game and the &quot;Restoring Session...&quot; screen is shown
+    When the player taps anywhere on the screen (first user gesture)
+    Then the browser audio context is unlocked and audio playback becomes active
+    And background music begins playing (BGM_FREE_GAME for active FG session)
+    And the loading/restore sequence continues without interruption
+
+  # ---------------------------------------------------------------------------
+  # Auth Guard
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-SESS-006
+  Scenario: No active session found — player is routed to main game without FG state
+    Given the player opens the game with a valid JWT but no active FG session in the backend
+    When the game client initialises and finds no active Free Game session
+    Then no FG restore flow activates
+    And the main game scene (dusk temple) loads directly
+    And the game is in IDLE state
+    And the SPIN button is enabled
+    And the Lightning Mark counter is not visible (no marks present)
+</code></pre>
+<h2>thunder_blessing/thunder_blessing_trigger.feature</h2>
+<pre><code class="language-gherkin">@client @thunder_blessing @animation
+Feature: Thunder Blessing Scatter Trigger — UI Behavior
+  As a player watching a Thunder Blessing event
+  I want to see the full visual sequence of Scatter landing, arc connection, and symbol upgrade
+  So that I understand what just happened and feel the magnitude of the event
+
+  Background:
+    Given the game client is fully loaded in a browser
+    And the player is authenticated and the game is in IDLE state
+    And the reel contains at least one Lightning Mark before the spin
+
+  # ---------------------------------------------------------------------------
+  # Happy Path — full Thunder Blessing sequence
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-TB-001
+  Scenario: SC symbol lands and activates the Thunder Blessing visual sequence
+    Given the spin result includes an SC (Scatter) symbol landing on the grid
+    And the grid has one or more Lightning Marks present
+    When the SC symbol settles into its reel position
+    Then the SC symbol displays its &quot;Idle&quot; electric arc rotation animation
+    And after approximately 0.2 s all Lightning Marks on the grid begin flashing simultaneously
+    And blue-white electric arc lines visually connect the SC symbol to each marked cell
+    And each arc line animates from the SC outward to the Lightning Mark cell (~0.3 s per arc)
+
+  @TC-E2E-TB-002
+  Scenario: Thunder Blessing dual-hit — each Lightning Mark cell upgrades to a premium symbol
+    Given the SC symbol has landed and arc lines connect to all Lightning Mark cells
+    When the arc animation reaches each Lightning Mark cell
+    Then each marked cell displays a burst flash effect (white → gold, ~0.2 s)
+    And each Lightning Mark is replaced by an upgraded premium symbol (P1, P2, P3, or P4)
+    And the upgrade animation plays sequentially from left-to-right, top-to-bottom
+    And the SC symbol dims slightly after all arc connections complete
+
+  @TC-E2E-TB-003
+  Scenario: Thunder Blessing completes and payline evaluation resumes
+    Given all Lightning Marks have been upgraded by the Thunder Blessing dual-hit
+    When all symbol upgrade animations finish
+    Then the reel grid displays the upgraded premium symbols in their settled positions
+    And any winning paylines that include the upgraded symbols are highlighted with gold lines
+    And the WIN counter increments to reflect the total cumulative win including upgraded symbols
+    And the game proceeds to the next cascade evaluation step
+
+  @TC-E2E-TB-004
+  Scenario: Multiple Lightning Marks upgraded in a single Thunder Blessing event
+    Given the grid has three Lightning Marks at different row and column positions
+    And an SC symbol lands anywhere on the grid
+    When the Thunder Blessing sequence fires
+    Then three separate arc lines emanate from the SC symbol simultaneously
+    And all three Lightning Mark cells upgrade to premium symbols in sequence
+    And the WIN counter updates once after all three upgrades complete
+    And the Thunder Blessing sequence does not repeat a second time
+
+  # ---------------------------------------------------------------------------
+  # Edge Cases
+  # ---------------------------------------------------------------------------
+
+  @TC-E2E-TB-005
+  Scenario: SC lands but no Lightning Marks are present — no Thunder Blessing fires
+    Given the reel has zero Lightning Marks before the spin
+    And the spin result contains an SC symbol
+    When all reel columns stop
+    Then the SC symbol displays its idle electric arc animation
+    And no Thunder Blessing activation sequence plays
+    And no arc lines connect the SC symbol to any cells
+    And the game proceeds with normal payline evaluation
+
+  @TC-E2E-TB-006
+  Scenario: Multiple SC symbols on the grid — Thunder Blessing still fires once
+    Given the spin result places SC symbols at two different reel positions
+    And the grid has Lightning Marks present
+    When the Thunder Blessing sequence fires
+    Then the visual sequence plays from the first SC symbol as the focal point
+    And all Lightning Marks are addressed in a single unified arc burst
+    And the Thunder Blessing sequence does not repeat a second time independently
+</code></pre></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

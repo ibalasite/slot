@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Toolchain — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › Activity Toolchain</p>
+    <h1 class="banner-title">Activity Toolchain</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link active" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: activity-toolchain</p>
+<p>uml-type: activity</p>
+<p>source: EDD.md §4.5.11, §1.1, §5.4; ARCH.md §3.2 Toolchain Container; PRD.md §4.1</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Activity Diagram — Excel Toolchain Build Activity</h1>
+<blockquote><p>來源：EDD.md §4.5.11 Activity Diagram Toolchain Execution, §1.1 Key Constraints, §5.4 Toolchain Integration; ARCH.md §3.2 Container Diagram Toolchain</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">flowchart TD
+    subgraph GameDesigner["Swimlane: Game Designer"]
+        GD_Start([Game Designer edits Thunder_Config.xlsx])
+        GD_EditData[Edit DATA tab\nAdjust symbol weights payouts\ncoinToss probabilities fgBonusWeights]
+        GD_EditCoinToss[Edit COIN_TOSS tab\ncoinProbs: 0.80 0.68 0.56 0.48 0.40]
+        GD_EditBetRange[Edit BET_RANGE tab\nUSD levels TWD levels max=320]
+        GD_EditNearMiss[Edit NEAR_MISS tab\nnearMissProb targetSymbol]
+        GD_SaveExcel[Save Thunder_Config.xlsx\ncommit to repository]
+        GD_ReviewOutput[Review DESIGN_VIEW tab\nRTP distribution charts\nVerify green indicators]
+        GD_Done([Design complete — deploy config])
+    end
+
+    subgraph CISystem["Swimlane: CI System — GitHub Actions"]
+        CI_Trigger([CI triggered on push to config branch])
+        CI_Checkout[Checkout repository\nInstall Node.js 20 dependencies]
+        CI_RunBuild[Run: node build_config.js]
+        CI_CheckJSON{engine_config.json\ngenerated OK?}
+        CI_RunSim[Run: node excel_simulator.js\n1M Monte Carlo simulations\nper scenario]
+        CI_SimStatus{Simulation\ncompleted OK?}
+        CI_RunVerify[Run: node verify.js\nValidate 4 RTP scenarios]
+        CI_VerifyPass{verify.js\nall 4 scenarios PASS?}
+        CI_AbortCI[ABORT CI pipeline\nUpload error report as artifact\nNotify game designer\nDO NOT run engine_generator.js]
+        CI_RunGen[Run: node engine_generator.js]
+        CI_ChecksumGuard[CI SHA-256 checksum guard\nVerify GameConfig.generated.ts\nnot manually modified]
+        CI_ChecksumOK{Checksum\nmatches expected?}
+        CI_DeployConfig[Deploy GameConfig.generated.ts\nand BetRangeConfig.generated.ts\nto Kubernetes config volume]
+        CI_Success([CI pipeline GREEN])
+        CI_Fail([CI pipeline FAILED — alert team])
+    end
+
+    subgraph Toolchain["Swimlane: slot-engine Toolchain"]
+        TC_ParseExcel[build_config.js\nParse Excel DATA COIN_TOSS BET_RANGE NEAR_MISS tabs\nusing xlsx or exceljs library]
+        TC_EmitJSON[Emit engine_config.json\nwith all probability parameters]
+        TC_RunMonteCarlo[excel_simulator.js\nRun 1M spins per scenario:\nMain Game EB BuyFG EB+BuyFG]
+        TC_WriteSimTabs[Write SIMULATION tab\nand DESIGN_VIEW tab\nback to Thunder_Config.xlsx]
+        TC_Verify_Scenario1{Scenario 1: Main Game\nRTP within 97.5 plus-minus 1%?}
+        TC_Verify_Scenario2{Scenario 2: Extra Bet\nRTP within 97.5 plus-minus 1%?}
+        TC_Verify_Scenario3{Scenario 3: Buy FG\nRTP within 97.5 plus-minus 1%?}
+        TC_Verify_Scenario4{Scenario 4: EB+BuyFG\nRTP within 97.5 plus-minus 1%?}
+        TC_FailReport[Generate error report\nscenario name actual RTP expected RTP deviation\nexit code 1]
+        TC_PassSignal[All 4 scenarios PASS\nexit code 0]
+        TC_GenerateTS[engine_generator.js\nGenerate GameConfig.generated.ts\nGenerate BetRangeConfig.generated.ts\nNEVER touch manually]
+    end
+
+    subgraph GameConfig["Swimlane: GameConfig"]
+        GC_Store[GameConfig.generated.ts\nread-only at runtime\nloaded at server startup\nassertValidGameConfig called]
+        GC_Serve[Injected into SlotEngine\nvia DI container\nall probability params active]
+        GC_Done([Config live in production])
+    end
+
+    %% ─── Flow ─────────────────────────────────────────────────────────────────
+
+    GD_Start --> GD_EditData
+    GD_EditData --> GD_EditCoinToss
+    GD_EditCoinToss --> GD_EditBetRange
+    GD_EditBetRange --> GD_EditNearMiss
+    GD_EditNearMiss --> GD_SaveExcel
+
+    GD_SaveExcel --> CI_Trigger
+
+    CI_Trigger --> CI_Checkout
+    CI_Checkout --> CI_RunBuild
+    CI_RunBuild --> TC_ParseExcel
+
+    TC_ParseExcel --> TC_EmitJSON
+    TC_EmitJSON --> CI_CheckJSON
+    CI_CheckJSON -->|No — parse error| CI_AbortCI
+    CI_CheckJSON -->|Yes — engine_config.json OK| CI_RunSim
+
+    CI_RunSim --> TC_RunMonteCarlo
+    TC_RunMonteCarlo --> TC_WriteSimTabs
+    TC_WriteSimTabs --> CI_SimStatus
+    CI_SimStatus -->|No — simulation error| CI_AbortCI
+    CI_SimStatus -->|Yes — 4M spins complete| CI_RunVerify
+
+    CI_RunVerify --> TC_Verify_Scenario1
+    TC_Verify_Scenario1 -->|No — Main RTP out of range| TC_FailReport
+    TC_Verify_Scenario1 -->|Yes — Main RTP within 97.5 plus-minus 1%| TC_Verify_Scenario2
+    TC_Verify_Scenario2 -->|No — EB RTP out of range| TC_FailReport
+    TC_Verify_Scenario2 -->|Yes — EB RTP within range| TC_Verify_Scenario3
+    TC_Verify_Scenario3 -->|No — BuyFG RTP out of range| TC_FailReport
+    TC_Verify_Scenario3 -->|Yes — BuyFG RTP within range| TC_Verify_Scenario4
+    TC_Verify_Scenario4 -->|No — EB+BuyFG RTP out of range| TC_FailReport
+    TC_Verify_Scenario4 -->|Yes — all 4 scenarios green| TC_PassSignal
+
+    TC_FailReport --> CI_AbortCI
+    CI_AbortCI --> CI_Fail
+
+    TC_PassSignal --> CI_VerifyPass
+    CI_VerifyPass -->|PASS — proceed to generation| CI_RunGen
+    CI_VerifyPass -->|FAIL — guard catches it| CI_AbortCI
+
+    CI_RunGen --> TC_GenerateTS
+    TC_GenerateTS --> CI_ChecksumGuard
+    CI_ChecksumGuard --> CI_ChecksumOK
+    CI_ChecksumOK -->|No — manual edits detected| CI_AbortCI
+    CI_ChecksumOK -->|Yes — generated file is clean| CI_DeployConfig
+
+    CI_DeployConfig --> GC_Store
+    GC_Store --> GC_Serve
+    GC_Serve --> CI_Success
+    CI_Success --> GD_ReviewOutput
+    GD_ReviewOutput --> GD_Done
+    GC_Serve --> GC_Done</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

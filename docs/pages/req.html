@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>構想文件 (IDEA) — slot</title>
+  <title>原始素材 (req/) — slot</title>
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
@@ -20,15 +20,15 @@
     </div>
   </header>
   <div class="doc-page-banner">
-    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 構想文件 (IDEA)</p>
-    <h1 class="banner-title">構想文件 (IDEA)</h1>
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 原始素材 (req/)</p>
+    <h1 class="banner-title">原始素材 (req/)</h1>
   </div>
   <div class="page-wrapper">
     <aside class="sidebar" aria-label="文件導覽">
       <div class="sidebar__section">
 <div class="sidebar__label">文件</div>
 <a class="sidebar__link" href="index.html">🏠 首頁</a>
-<a class="sidebar__link active" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
 <a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
 <a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
 <a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
@@ -73,30 +73,11 @@
 </div>
 <div class="sidebar__section">
 <div class="sidebar__label">原始素材</div>
-<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+<a class="sidebar__link active" href="req.html">📎 req/ 素材清單</a>
 </div>
     </aside>
     <div class="sidebar-resizer" id="sidebarResizer"></div>
-    <main class="doc-content"><h1>專案名稱：Thunder Blessing Slot GDD</h1>
-<h2>1. 核心概念（Elevator Pitch）</h2>
-<p>Thunder Blessing 是一款希臘神話主題的 5×3（最大5×6）老虎機遊戲，以「滾輪持續擴展 × 符號鍊式消除 × 閃電能量蓄積」為核心遊戲循環：每次獲獎觸發 Cascade 連鎖消除並擴展滾輪列數，累積的閃電標記一旦被 Scatter 引爆，即可將整版標記格轉換為同一高賠符號，最終透過 Coin Toss 翻幣決定是否進入最高 ×77 倍率的 Free Game，提供高峰值爆發與持續張力兼具的玩家體驗。</p>
-<p>本 GDD 套件的目標是為開發團隊提供完整且可直接執行的規格文件，使前後端工程師、企劃和 QA 均能 100% 按規格實作，最終交付 RTP 97.5%、最大獎金 30,000× 的高品質老虎機產品。</p>
-<h2>2. 目標使用者</h2>
-<ul><li>線上博弈平台遊戲開發者（前端：Cocos/PixiJS，後端：TypeScript/Fastify）</li><li>遊戲企劃設計師（負責機率平衡與機制設計）</li><li>QA 工程師（驗收引擎與前端行為）</li></ul>
-<h2>3. 核心問題與解決方案</h2>
-<p><strong>問題</strong>：缺乏完整且工程可執行的 GDD，導致開發過程中規格不一致、機率錯誤難以追蹤。</p>
-<p><strong>解決方案</strong>：以既有的 PDF GDD、Probability_Design.md、slot-engine EDD.md 和 engine_config.json 為基礎，整合成一份完整的 GDD 文件套件，涵蓋：</p>
-<ul><li>完整遊戲機制規格（16 個章節）</li><li>機率設計（目標 RTP 97.5%，四情境獨立平衡）</li><li>slot-engine 工具鏈整合（Excel→TypeScript 生成流程）</li></ul>
-<h2>4. 核心功能清單</h2>
-<ol><li><strong>基礎滾輪系統</strong>：5 滾輪 × 3列（初始），25 條連線，左到右判定</li><li><strong>Cascade 連鎖消除</strong>：贏→消除→擴展滾輪（最多6列/57條），循環直到無獲獎</li><li><strong>閃電標記（Lightning Mark）</strong>：消除位置留下標記，跨 Cascade 累積</li><li><strong>雷霆祝福 Scatter</strong>：標記存在時落下 Scatter → 全部標記格轉同一高賠符號（2擊制）</li><li><strong>Coin Toss 硬幣翻轉</strong>：6列＋再次Cascade→觸發翻幣→Heads進入FG，Tails結束</li><li><strong>Free Game 免費遊戲</strong>：倍率×3→×7→×17→×27→×77，閃電標記整局累積</li><li><strong>Extra Bet</strong>：投注額×3，保證出現 Scatter</li><li><strong>Buy Feature</strong>：100× 投注額直接購入 Free Game</li><li><strong>機率引擎工具鏈</strong>：Excel DATA tab → build_config.js → engine_config.json → GameConfig.generated.ts</li></ol>
-<h2>5. 成功指標</h2>
-<ul><li>RTP 97.5%（四情境各自驗收，100萬次蒙地卡羅模擬）</li><li>最大獎金 30,000× 總投注額</li><li>Cascade 循環正確（無越界、無重複計算）</li><li>Free Game 倍率序列正確（×3→×7→×17→×27→×77）</li><li>Buy Feature 保底：整場 ≥ 20× baseBet</li></ul>
-<h2>6. 技術棧</h2>
-<ul><li>後端：TypeScript / Node.js / Fastify / Clean Architecture</li><li>資料庫：Supabase PostgreSQL</li><li>快取：Redis（IoRedis / Upstash）</li><li>機率引擎：Excel 驅動工具鏈（tools/slot-engine/）</li><li>前端：Cocos Creator 或 PixiJS（待定）</li></ul>
-<h2>7. 風險</h2>
-<ol><li>機率平衡複雜度：4 個情境獨立，需 verify.js 通過才能執行 engine_generator</li><li>Cascade 深度計算：Lightning Mark 位置需跨多步驟正確追蹤</li><li>Free Game 一次性回傳：單次 spin request/response 涵蓋完整 FG 序列（最多5回合）</li></ol>
-<h2>8. 素材來源（Appendix）</h2>
-<ul><li>docs/req/GDD-Thunder-Blessing-Slot-Game.pdf（PDF GDD，20 頁，含截圖）</li><li>docs/req/GDD_Thunder_Blessing_Slot.md（開發者版 GDD，含全機制規格）</li><li>docs/req/Probability_Design.md（機率設計文件）</li><li>docs/req/slot-engine-EDD.md（工程設計文件，工具鏈架構）</li><li>docs/req/engine_config.json（實際引擎配置參數）</li><li>/Users/tobala/projects/thunder-blessing-slot（既有實作 codebase）</li></ul></main>
+    <main class="doc-content"><h1>📎 原始素材 (req/)</h1><section style="margin-top:2rem;padding:1.5rem;background:#fff;border:1px solid var(--border);border-radius:8px;"><h2 style="margin-top:0">📎 附件與素材 (req/)</h2><ul style="list-style:none;padding:0;margin:0"><li style="padding:0.5rem 0;border-bottom:1px solid var(--border)">📄 <a href="../../docs/req/GDD-Thunder-Blessing-Slot-Game.pdf" download="GDD-Thunder-Blessing-Slot-Game.pdf" target="_blank" style="color:var(--accent)">GDD-Thunder-Blessing-Slot-Game.pdf</a> <span style="color:var(--text-muted);font-size:0.8125rem">(20811 KB)</span></li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border)">📎 <a href="../../docs/req/GDD_Thunder_Blessing_Slot.md" download="GDD_Thunder_Blessing_Slot.md" target="_blank" style="color:var(--accent)">GDD_Thunder_Blessing_Slot.md</a> <span style="color:var(--text-muted);font-size:0.8125rem">(32 KB)</span></li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border)">📎 <a href="../../docs/req/Probability_Design.md" download="Probability_Design.md" target="_blank" style="color:var(--accent)">Probability_Design.md</a> <span style="color:var(--text-muted);font-size:0.8125rem">(13 KB)</span></li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border)">📎 <a href="../../docs/req/codebase-README.md" download="codebase-README.md" target="_blank" style="color:var(--accent)">codebase-README.md</a> <span style="color:var(--text-muted);font-size:0.8125rem">(18 KB)</span></li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border)">📎 <a href="../../docs/req/codebase-tree.txt" download="codebase-tree.txt" target="_blank" style="color:var(--accent)">codebase-tree.txt</a> <span style="color:var(--text-muted);font-size:0.8125rem">(114 KB)</span></li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border)">📎 <a href="../../docs/req/engine_config.json" download="engine_config.json" target="_blank" style="color:var(--accent)">engine_config.json</a> <span style="color:var(--text-muted);font-size:0.8125rem">(2 KB)</span></li><li style="padding:0.5rem 0;border-bottom:1px solid var(--border)">📎 <a href="../../docs/req/slot-engine-EDD.md" download="slot-engine-EDD.md" target="_blank" style="color:var(--accent)">slot-engine-EDD.md</a> <span style="color:var(--text-muted);font-size:0.8125rem">(16 KB)</span></li></ul></section></main>
   </div>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';

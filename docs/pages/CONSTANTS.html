@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>遊戲常數 (CONSTANTS) — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 遊戲常數 (CONSTANTS)</p>
+    <h1 class="banner-title">遊戲常數 (CONSTANTS)</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link active" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h1>CONSTANTS — Thunder Blessing Slot Game</h1>
+<p>&lt;!-- Canonical Single Source of Truth for all game constants --&gt;</p>
+<p>&lt;!-- Generated: D03.5-CONSTANTS (custom step) | Date: 2026-04-26 --&gt;</p>
+<p>&lt;!-- Upstream: PRD §5.5, EDD §1.1/§5.x, SCHEMA.md, API.md --&gt;</p>
+<hr>
+<h2>Document Control</h2>
+<table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td><strong>DOC-ID</strong></td><td>CONSTANTS-THUNDERBLESSING-20260426</td></tr>
+<tr><td><strong>Status</strong></td><td>AUTHORITATIVE</td></tr>
+<tr><td><strong>Version</strong></td><td>v1.0</td></tr>
+<tr><td><strong>Date</strong></td><td>2026-04-26</td></tr>
+<tr><td><strong>Upstream</strong></td><td>EDD §1.1, §5.6, §5.7, §5.8; SCHEMA.md §4.1; API.md; PRD §5</td></tr>
+<tr><td><strong>Consuming Documents</strong></td><td>All docs/* — cite this file for any constant value</td></tr>
+</table>
+<blockquote><p><strong>RULE</strong>: If a constant in any downstream document conflicts with this file, this file wins.</p></blockquote>
+<blockquote><p>Update the downstream document, not this one. Changes to constants require PRD/EDD sign-off.</p></blockquote>
+<hr>
+<h2>§1 Grid &amp; Reel Structure</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>REELS</code></td><td>5</td><td>EDD §1.1</td></tr>
+<tr><td><code>ROWS_NORMAL</code></td><td>3</td><td>EDD §1.1 (base state)</td></tr>
+<tr><td><code>ROWS_EXPANDED</code></td><td>6</td><td>EDD §5.1 (after full Cascade expansion)</td></tr>
+<tr><td><code>PAYLINES</code></td><td>57</td><td>EDD §14 (Payline Definition Document)</td></tr>
+<tr><td><code>SC_VISIBLE_ROWS</code></td><td>3</td><td>EDD §5.1 (SC only appears in visible 3 rows)</td></tr>
+</table>
+<pre><code class="">Grid layout:
+  Normal:   5 reels × 3 rows  →  15 cells
+  Expanded: 5 reels × 6 rows  →  30 cells</code></pre>
+<hr>
+<h2>§2 Symbol IDs</h2>
+<table>
+<tr><th>Symbol</th><th>ID</th><th>Category</th><th>Description</th></tr>
+<tr><td>Scatter (Thunder Blessing)</td><td><code>SC</code></td><td>Special</td><td>Triggers Thunder Blessing mechanic when Lightning Marks present</td></tr>
+<tr><td>Premium 1</td><td><code>P1</code></td><td>High</td><td>Highest premium symbol (upgraded by Thunder Blessing)</td></tr>
+<tr><td>Premium 2</td><td><code>P2</code></td><td>High</td><td>2nd premium (upgraded by Thunder Blessing)</td></tr>
+<tr><td>Premium 3</td><td><code>P3</code></td><td>High</td><td>3rd premium (upgraded by Thunder Blessing)</td></tr>
+<tr><td>Premium 4</td><td><code>P4</code></td><td>High</td><td>4th premium (upgraded by Thunder Blessing)</td></tr>
+<tr><td>Low 1–4</td><td><code>L1</code>–<code>L4</code></td><td>Low</td><td>Standard low-value symbols</td></tr>
+<tr><td>Blank</td><td><code>BL</code></td><td>Special</td><td>Eliminated during Cascade but not a win</td></tr>
+</table>
+<blockquote><p>Lightning Marks can upgrade any Low symbol to a Premium symbol (P1–P4 assigned per EDD §5.1).</p></blockquote>
+<hr>
+<h2>§3 Thunder Blessing Mechanic</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>TB_TRIGGER_CONDITION</code></td><td><code>SC symbol present AND lightningMarks.count &gt; 0</code></td><td>EDD §5.1</td></tr>
+<tr><td><code>TB_FIRST_HIT</code></td><td>SC arcs to each Lightning Mark; mark symbol upgraded</td><td>EDD §5.1</td></tr>
+<tr><td><code>TB_SECOND_HIT_PROB</code></td><td>Config-defined RNG threshold (<code>tbSecondHit</code> in GameConfig)</td><td>EDD §5.1</td></tr>
+<tr><td><code>TB_UPGRADE_TARGET</code></td><td>P1–P4 premium symbols (dual-hit upgrade)</td><td>EDD §5.1</td></tr>
+</table>
+<blockquote><p><strong>Important</strong>: Thunder Blessing does NOT trigger Coin Toss. These are two independent mechanics.</p></blockquote>
+<hr>
+<h2>§4 Coin Toss Mechanic</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>COIN_TOSS_TRIGGER</code></td><td><code>rows = 6</code> AND cascade win occurred in that step</td><td>EDD §5.1</td></tr>
+<tr><td><code>COIN_TOSS_HEADS</code></td><td>FG entry (advance multiplier stage)</td><td>EDD §5.1</td></tr>
+<tr><td><code>COIN_TOSS_TAILS</code></td><td>No FG; game ends normally</td><td>EDD §5.1</td></tr>
+</table>
+<h3>Coin Toss Probabilities (coinProbs array)</h3>
+<table>
+<tr><th>Stage Index</th><th>FG Multiplier This Stage Unlocks</th><th>Heads Probability</th></tr>
+<tr><td>0</td><td>×3 (entry)</td><td>0.80</td></tr>
+<tr><td>1</td><td>×7</td><td>0.68</td></tr>
+<tr><td>2</td><td>×17</td><td>0.56</td></tr>
+<tr><td>3</td><td>×27</td><td>0.48</td></tr>
+<tr><td>4</td><td>×77 (max)</td><td>0.40</td></tr>
+</table>
+<pre><code class="">coinProbs = [0.80, 0.68, 0.56, 0.48, 0.40]</code></pre>
+<blockquote><p>Source: EDD §4.5.2 class diagram comments; EDD §2.1 COIN_TOSS tab description.</p></blockquote>
+<hr>
+<h2>§5 Free Game (FG) Multiplier Sequence</h2>
+<table>
+<tr><th>Heads Count</th><th>FG Multiplier</th><th>coinProbs Stage</th></tr>
+<tr><td>1st Heads</td><td><strong>×3</strong></td><td>0</td></tr>
+<tr><td>2nd Heads</td><td><strong>×7</strong></td><td>1</td></tr>
+<tr><td>3rd Heads</td><td><strong>×17</strong></td><td>2</td></tr>
+<tr><td>4th Heads</td><td><strong>×27</strong></td><td>3</td></tr>
+<tr><td>5th Heads</td><td><strong>×77</strong></td><td>4 (MAX)</td></tr>
+</table>
+<pre><code class="">FG_MULTIPLIER_SEQUENCE = [3, 7, 17, 27, 77]
+FG_MAX_NODES = 5
+FG_MAX_MULTIPLIER = 77</code></pre>
+<blockquote><p><strong>CRITICAL</strong>: The sequence is <code>[3, 7, 17, 27, 77]</code>. Any other sequence (e.g., ×5, ×10, ×25, ×50, ×100) is WRONG.</p></blockquote>
+<blockquote><p>All BDD scenarios, UI displays, and code must use this exact sequence.</p></blockquote>
+<hr>
+<h2>§6 FG Bonus Multiplier</h2>
+<p>Drawn <strong>once</strong> at FG sequence start (before round 1). All FG rounds share the same <code>bonusMultiplier</code>.</p>
+<table>
+<tr><th>Bonus Multiplier</th><th>Weight</th></tr>
+<tr><td>×1</td><td>High (config-defined)</td></tr>
+<tr><td>×5</td><td>Medium</td></tr>
+<tr><td>×20</td><td>Low</td></tr>
+<tr><td>×100</td><td>Very Low</td></tr>
+</table>
+<pre><code class="">FG_BONUS_OPTIONS = [1, 5, 20, 100]</code></pre>
+<p>Total effective FG win = <code>fgRoundWin × fgMultiplier × bonusMultiplier</code></p>
+<hr>
+<h2>§7 Extra Bet</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>EXTRA_BET_MULTIPLIER</code></td><td>3</td><td>EDD §1.1 (×3 baseBet cost)</td></tr>
+<tr><td><code>EXTRA_BET_GUARANTEE</code></td><td>SC symbol guaranteed in visible 3 rows of current spin</td><td>EDD §5.1</td></tr>
+</table>
+<pre><code class="">extraBetCost = baseBet × 3</code></pre>
+<blockquote><p>BetRange objects in <code>bet-config.json</code> precompute <code>extraBetCost = baseBet × EXTRA_BET_MULTIPLIER</code>.</p></blockquote>
+<hr>
+<h2>§8 Buy Feature</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>BUY_FEATURE_MULTIPLIER</code></td><td>100</td><td>EDD §1.1 (100× baseBet cost)</td></tr>
+<tr><td><code>BUY_FEATURE_ROUNDS</code></td><td>5 (guaranteed Heads × 5)</td><td>EDD §5.7</td></tr>
+<tr><td><code>BUY_FEATURE_COIN_TOSS</code></td><td>Skipped — player gets all 5 Heads directly</td><td>EDD §5.7</td></tr>
+<tr><td><code>BUY_FEATURE_FLOOR</code></td><td><code>max(totalFGWin, 20 × baseBet)</code></td><td>EDD §5.7</td></tr>
+<tr><td><code>BUY_FEATURE_FLOOR_MULTIPLIER</code></td><td>20</td><td>EDD §5.7</td></tr>
+<tr><td><code>BUY_FEATURE_FLOOR_SCOPE</code></td><td>Applied once at end of entire FG sequence (not per-spin)</td><td>EDD §5.7</td></tr>
+</table>
+<pre><code class="">buyFeatureCost = baseBet × 100
+sessionFloor  = baseBet × 20</code></pre>
+<blockquote><p>BetRange objects precompute <code>buyFeatureCost = baseBet × BUY_FEATURE_MULTIPLIER</code>.</p></blockquote>
+<hr>
+<h2>§9 Bet Ranges</h2>
+<h3>USD</h3>
+<table>
+<tr><th>Constant</th><th>Value</th></tr>
+<tr><td><code>USD_MIN_BET_LEVEL</code></td><td>1</td></tr>
+<tr><td><code>USD_MAX_BET_LEVEL</code></td><td>40</td></tr>
+<tr><td><code>USD_STEP_BASE_BET</code></td><td>0.25</td></tr>
+<tr><td><code>USD_MIN_BASE_BET</code></td><td>0.25</td></tr>
+<tr><td><code>USD_MAX_BASE_BET</code></td><td>10.00</td></tr>
+</table>
+<pre><code class="">USD_LEVELS = 40
+USD baseBet series: $0.25, $0.50, $0.75, ..., $9.75, $10.00</code></pre>
+<h3>TWD</h3>
+<table>
+<tr><th>Constant</th><th>Value</th></tr>
+<tr><td><code>TWD_MIN_BET_LEVEL</code></td><td>1</td></tr>
+<tr><td><code>TWD_MAX_BET_LEVEL</code></td><td>32</td></tr>
+<tr><td><code>TWD_STEP_BASE_BET</code></td><td>10</td></tr>
+<tr><td><code>TWD_MIN_BASE_BET</code></td><td>10</td></tr>
+<tr><td><code>TWD_MAX_BASE_BET</code></td><td>320</td></tr>
+</table>
+<pre><code class="">TWD_LEVELS = 32
+TWD baseBet series: 10, 20, 30, ..., 310, 320 TWD</code></pre>
+<blockquote><p><strong>CRITICAL</strong>: TWD max is 320 (32 levels × 10 step), NOT 400.</p></blockquote>
+<blockquote><p>Canonical source: <code>contracts/seed/bet-config.json</code>.</p></blockquote>
+<hr>
+<h2>§10 RTP &amp; Max Win</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>RTP_TARGET</code></td><td>97.5%</td><td>EDD §5.8</td></tr>
+<tr><td><code>RTP_TOLERANCE</code></td><td>±1%</td><td>EDD §14.4</td></tr>
+<tr><td><code>MAX_WIN_MAIN</code></td><td>30,000× baseBet</td><td>EDD §5.8</td></tr>
+<tr><td><code>MAX_WIN_EXTRA_BET</code></td><td>30,000× baseBet</td><td>EDD §5.8</td></tr>
+<tr><td><code>MAX_WIN_BUY_FG</code></td><td>90,000× baseBet</td><td>EDD §5.8</td></tr>
+<tr><td><code>MAX_WIN_EB_BUYFG</code></td><td>90,000× baseBet</td><td>EDD §5.8</td></tr>
+</table>
+<p>Four independent RTP scenarios:</p>
+<table>
+<tr><th>Scenario</th><th>Extra Bet</th><th>Buy Feature</th><th>Max Win Cap</th></tr>
+<tr><td>Main Game</td><td>false</td><td>false</td><td>30,000×</td></tr>
+<tr><td>Extra Bet (EB)</td><td>true</td><td>false</td><td>30,000×</td></tr>
+<tr><td>Buy Feature (BuyFG)</td><td>false</td><td>true</td><td>90,000×</td></tr>
+<tr><td>EB + BuyFG</td><td>true</td><td>true</td><td>90,000×</td></tr>
+</table>
+<hr>
+<h2>§11 Session &amp; Infrastructure</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>SESSION_TTL_SECONDS</code></td><td>1800</td><td>EDD §5.5; SCHEMA.md §4.1</td></tr>
+<tr><td><code>SESSION_REDIS_KEY</code></td><td><code>session:{sessionId}:state</code></td><td>SCHEMA.md §4.1</td></tr>
+<tr><td><code>SESSION_TTL_RENEWAL</code></td><td>Renewed (EXPIRE reset) on each FG round</td><td>EDD §5.5</td></tr>
+<tr><td><code>RATE_LIMIT_PER_PLAYER</code></td><td>5 req/s</td><td>EDD §1.1</td></tr>
+<tr><td><code>RATE_LIMIT_RESPONSE</code></td><td>HTTP 429</td><td>EDD §1.1</td></tr>
+</table>
+<pre><code class="">SESSION_TTL    = 1800  // 30 minutes
+RATE_LIMIT     = 5     // requests per second per player</code></pre>
+<blockquote><p><strong>CRITICAL</strong>: Session TTL is <strong>1800s</strong> (30 min), NOT 300s.</p></blockquote>
+<hr>
+<h2>§12 API Endpoints</h2>
+<table>
+<tr><th>Constant</th><th>Value</th></tr>
+<tr><td><code>SPIN_ENDPOINT</code></td><td><code>POST /v1/spin</code></td></tr>
+<tr><td><code>SESSION_ENDPOINT</code></td><td><code>GET /v1/session/:sessionId</code></td></tr>
+<tr><td><code>CONFIG_ENDPOINT</code></td><td><code>GET /v1/config</code></td></tr>
+<tr><td><code>AUTH_SCHEME</code></td><td>RS256 JWT Bearer token</td></tr>
+<tr><td><code>BASE_URL_LOCAL</code></td><td><code>http://localhost:3000</code></td></tr>
+</table>
+<hr>
+<h2>§13 Performance SLOs</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>SPIN_P99_LATENCY</code></td><td>≤ 500ms</td><td>EDD §1.3 (US-SPIN-001)</td></tr>
+<tr><td><code>MONTE_CARLO_ROUNDS</code></td><td>1,000,000</td><td>EDD §14.4</td></tr>
+<tr><td><code>RTP_VERIFICATION_SCENARIOS</code></td><td>4</td><td>EDD §14.4</td></tr>
+</table>
+<hr>
+<h2>§14 Toolchain</h2>
+<table>
+<tr><th>Constant</th><th>Value</th><th>Source</th></tr>
+<tr><td><code>CONFIG_SOURCE</code></td><td><code>Thunder_Config.xlsx</code></td><td>EDD §14.1</td></tr>
+<tr><td><code>GENERATED_CONFIG</code></td><td><code>GameConfig.generated.ts</code></td><td>EDD §14.1</td></tr>
+<tr><td><code>GENERATED_BET_RANGE</code></td><td><code>BetRangeConfig.generated.ts</code></td><td>EDD §14.1</td></tr>
+<tr><td><code>VERIFY_SCRIPT</code></td><td><code>verify.js</code> (must PASS before codegen)</td><td>EDD §14.4</td></tr>
+<tr><td><code>MANUAL_EDIT_FORBIDDEN</code></td><td><code>GameConfig.generated.ts</code> must never be hand-edited</td><td>EDD §1.2</td></tr>
+</table>
+<hr>
+<h2>§15 Quick Reference Card</h2>
+<pre><code class="">┌─────────────────────────────────────────────────────┐
+│  THUNDER BLESSING — KEY CONSTANTS                   │
+├─────────────────────────────────────────────────────┤
+│  Grid:       5 reels × 3 rows (→ 6 rows expanded)  │
+│  Paylines:   57                                     │
+├─────────────────────────────────────────────────────┤
+│  FG Sequence: ×3 → ×7 → ×17 → ×27 → ×77 (5 nodes) │
+│  FG Bonus:    ×1 | ×5 | ×20 | ×100                 │
+├─────────────────────────────────────────────────────┤
+│  Coin Toss probs: [0.80, 0.68, 0.56, 0.48, 0.40]   │
+│  Trigger:     rows=6 AND cascade win                │
+├─────────────────────────────────────────────────────┤
+│  Extra Bet:   3× baseBet, SC guaranteed             │
+│  Buy Feature: 100× baseBet, 5× Heads, floor 20×    │
+├─────────────────────────────────────────────────────┤
+│  USD: 40 levels, $0.25–$10.00 (step $0.25)         │
+│  TWD: 32 levels, 10–320 TWD   (step 10)            │
+├─────────────────────────────────────────────────────┤
+│  RTP Target: 97.5% ±1%                              │
+│  Max Win:    30,000× (main) / 90,000× (BuyFG)      │
+├─────────────────────────────────────────────────────┤
+│  Session TTL:  1800s  (Redis key: session:{id}:state)│
+│  Rate Limit:   5 req/s per player → HTTP 429        │
+└─────────────────────────────────────────────────────┘</code></pre></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

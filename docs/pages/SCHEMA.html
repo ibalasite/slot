@@ -1,636 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SCHEMA — Database Schema — Thunder Blessing GDD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <style>
-    :root {
-      --bg-primary:     #0f1117;
-      --bg-secondary:   #161b27;
-      --bg-tertiary:    #1e2535;
-      --bg-card:        #1a2032;
-      --border:         #2a3347;
-      --text-primary:   #e2e8f0;
-      --text-secondary: #94a3b8;
-      --text-muted:     #64748b;
-      --accent:         #f6ad55;
-      --accent-dim:     #c27d30;
-      --accent-glow:    rgba(246,173,85,0.15);
-      --green:          #4ade80;
-      --blue:           #60a5fa;
-      --purple:         #a78bfa;
-      --red:            #f87171;
-      --sidebar-width:  260px;
-      --header-height:  60px;
-      --font-sans:      'Inter', system-ui, sans-serif;
-      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
-      --radius:         8px;
-      --radius-lg:      12px;
-      --duration-fast:  150ms;
-      --ease-out:       cubic-bezier(0.16,1,0.3,1);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.7;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--header-height);
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 16px;
-      z-index: 100;
-    }
-
-    .header-logo {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: var(--accent);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .header-title {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      border-left: 1px solid var(--border);
-      padding-left: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-back {
-      margin-left: auto;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      transition: all var(--duration-fast);
-      white-space: nowrap;
-    }
-
-    .header-back:hover {
-      color: var(--accent);
-      border-color: var(--accent-dim);
-      background: var(--accent-glow);
-    }
-
-    .menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-    }
-
-    .menu-toggle:hover { background: var(--bg-tertiary); }
-
-    /* Layout */
-    .layout {
-      display: flex;
-      margin-top: var(--header-height);
-      min-height: calc(100vh - var(--header-height));
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: var(--header-height);
-      left: 0; bottom: 0;
-      overflow-y: auto;
-      padding: 20px 0;
-      transition: transform var(--duration-fast) var(--ease-out);
-      z-index: 90;
-    }
-
-    .sidebar::-webkit-scrollbar { width: 4px; }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .nav-section-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      padding: 12px 20px 6px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 20px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.85rem;
-      border-left: 2px solid transparent;
-      transition: all var(--duration-fast);
-    }
-
-    .nav-link:hover {
-      color: var(--text-primary);
-      background: var(--accent-glow);
-      border-left-color: var(--accent-dim);
-    }
-
-    .nav-link.active {
-      color: var(--accent);
-      background: var(--accent-glow);
-      border-left-color: var(--accent);
-      font-weight: 500;
-    }
-
-    /* Main content */
-    .main {
-      margin-left: var(--sidebar-width);
-      flex: 1;
-      padding: 40px 48px;
-      max-width: 920px;
-    }
-
-    /* Page heading */
-    .page-title {
-      font-size: clamp(1.6rem, 2.5vw, 2rem);
-      font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.25;
-    }
-
-    .page-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .page-meta span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Markdown content */
-    .md-content h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 40px 0 16px;
-      color: var(--text-primary);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content h1:first-child { margin-top: 0; }
-
-    .md-content h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 36px 0 14px;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .md-content h2::before {
-      content: '';
-      display: block;
-      width: 3px;
-      height: 16px;
-      background: var(--accent);
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
-    .md-content h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 28px 0 10px;
-      color: var(--text-primary);
-    }
-
-    .md-content h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 20px 0 8px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.82rem;
-    }
-
-    .md-content p {
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .md-content a:hover { text-decoration: underline; }
-
-    .md-content strong { color: var(--text-primary); font-weight: 600; }
-    .md-content em     { color: var(--text-secondary); font-style: italic; }
-
-    /* Inline code */
-    .md-content code {
-      font-family: var(--font-mono);
-      font-size: 0.82em;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 5px;
-      color: var(--accent);
-    }
-
-    /* Code blocks */
-    .md-content pre {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    /* Mermaid */
-    .mermaid-wrap {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin: 16px 0;
-      overflow-x: auto;
-    }
-
-    /* Tables */
-    .table-wrap {
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .md-content table th {
-      text-align: left;
-      padding: 8px 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-muted);
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content table td {
-      padding: 9px 12px;
-      border-bottom: 1px solid rgba(42,51,71,0.5);
-      color: var(--text-secondary);
-      vertical-align: top;
-    }
-
-    .md-content table tr:last-child td { border-bottom: none; }
-    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
-
-    /* Lists */
-    .md-content ul, .md-content ol {
-      padding-left: 20px;
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content li { margin-bottom: 5px; }
-    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
-
-    /* Blockquotes */
-    .md-content blockquote {
-      border-left: 3px solid var(--accent-dim);
-      padding: 10px 16px;
-      background: rgba(246,173,85,0.06);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      margin: 16px 0;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .md-content blockquote p { margin-bottom: 0; }
-
-    /* HR */
-    .md-content hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 28px 0;
-    }
-
-    /* Footer */
-    .site-footer {
-      margin-left: var(--sidebar-width);
-      border-top: 1px solid var(--border);
-      padding: 18px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .footer-accent { color: var(--accent); font-weight: 600; }
-
-    /* Sidebar overlay */
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 89;
-    }
-
-    .sidebar-overlay.active { display: block; }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
-      .main { margin-left: 0; padding: 24px 16px; }
-      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
-      .menu-toggle { display: flex; }
-      .header-title { display: none; }
-    }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schema 文件 — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
-
-  <header class="site-header">
-    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6"  x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
-    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
-    <span class="header-title">SCHEMA — Database Schema</span>
-    <a href="index.html" class="header-back">← Docs Hub</a>
-  </header>
-
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-  <div class="layout">
-    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
-      <div class="nav-section-label">Business</div>
-<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
-<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
-<div class="nav-section-label">Design</div>
-<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
-<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
-<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
-<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
-<div class="nav-section-label">Engineering</div>
-<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
-<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
-<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
-<a href="SCHEMA.html" class="nav-link active"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
-<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
-<div class="nav-section-label">Testing</div>
-<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
-<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
-<div class="nav-section-label">Operations</div>
-<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
-<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
-    </nav>
-
-    <main class="main" id="main">
-      <div class="page-meta">
-        <span>🗄️ Engineering</span>
-        <span>Source: <code>SCHEMA.md</code></span>
-        <span>Generated: 2026-04-26</span>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
       </div>
-      <article class="md-content">
-        <h1 id="schema-database-schema-design-document">SCHEMA — Database Schema Design Document</h1>
-<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › Schema 文件</p>
+    <h1 class="banner-title">Schema 文件</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link active" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h1>SCHEMA — Database Schema Design Document</h1>
+<h1>Thunder Blessing Slot Game</h1>
 <hr>
-<h2 id="h-0-document-control">§0 Document Control</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Field</th>
-<th>Content</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>DOC-ID</strong></td>
-<td>SCHEMA-THUNDERBLESSING-20260426</td>
-</tr>
-<tr>
-<td><strong>Product</strong></td>
-<td>Thunder Blessing Slot Game</td>
-</tr>
-<tr>
-<td><strong>Version</strong></td>
-<td>v1.0</td>
-</tr>
-<tr>
-<td><strong>Status</strong></td>
-<td>DRAFT</td>
-</tr>
-<tr>
-<td><strong>Author</strong></td>
-<td>AI Generated (gendoc D09-SCHEMA)</td>
-</tr>
-<tr>
-<td><strong>Date</strong></td>
-<td>2026-04-26</td>
-</tr>
-<tr>
-<td><strong>Upstream EDD</strong></td>
-<td><a href="EDD.md">EDD.md</a> §4 domain model, §5 data structures, §7 database design</td>
-</tr>
-<tr>
-<td><strong>Upstream ARCH</strong></td>
-<td><a href="ARCH.md">ARCH.md</a> §3 tech stack, §4 components, §5 data flow</td>
-</tr>
-<tr>
-<td><strong>Upstream API</strong></td>
-<td><a href="API.md">API.md</a> §4 data types, §3.3 config endpoint</td>
-</tr>
-<tr>
-<td><strong>Upstream PRD</strong></td>
-<td><a href="PRD.md">PRD.md</a> §5 game mechanics, §4 business rules</td>
-</tr>
-<tr>
-<td><strong>Upstream BRD</strong></td>
-<td><a href="BRD.md">BRD.md</a> §5 non-functional requirements</td>
-</tr>
-<tr>
-<td><strong>Reviewers</strong></td>
-<td>Engineering Lead, QA Lead, Security Lead, DBA</td>
-</tr>
-<tr>
-<td><strong>Approver</strong></td>
-<td>CTO</td>
-</tr>
-</tbody></table></div>
-<h3 id="change-log">Change Log</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Version</th>
-<th>Date</th>
-<th>Author</th>
-<th>Summary</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>v1.0</td>
-<td>2026-04-26</td>
-<td>AI Generated (gendoc D09-SCHEMA)</td>
-<td>Initial generation</td>
-</tr>
-</tbody></table></div>
+<h2>§0 Document Control</h2>
+<table>
+<tr><th>Field</th><th>Content</th></tr>
+<tr><td><strong>DOC-ID</strong></td><td>SCHEMA-THUNDERBLESSING-20260426</td></tr>
+<tr><td><strong>Product</strong></td><td>Thunder Blessing Slot Game</td></tr>
+<tr><td><strong>Version</strong></td><td>v1.0</td></tr>
+<tr><td><strong>Status</strong></td><td>DRAFT</td></tr>
+<tr><td><strong>Author</strong></td><td>AI Generated (gendoc D09-SCHEMA)</td></tr>
+<tr><td><strong>Date</strong></td><td>2026-04-26</td></tr>
+<tr><td><strong>Upstream EDD</strong></td><td><a href="EDD.md" target="_blank" rel="noopener">EDD.md</a> §4 domain model, §5 data structures, §7 database design</td></tr>
+<tr><td><strong>Upstream ARCH</strong></td><td><a href="ARCH.md" target="_blank" rel="noopener">ARCH.md</a> §3 tech stack, §4 components, §5 data flow</td></tr>
+<tr><td><strong>Upstream API</strong></td><td><a href="API.md" target="_blank" rel="noopener">API.md</a> §4 data types, §3.3 config endpoint</td></tr>
+<tr><td><strong>Upstream PRD</strong></td><td><a href="PRD.md" target="_blank" rel="noopener">PRD.md</a> §5 game mechanics, §4 business rules</td></tr>
+<tr><td><strong>Upstream BRD</strong></td><td><a href="BRD.md" target="_blank" rel="noopener">BRD.md</a> §5 non-functional requirements</td></tr>
+<tr><td><strong>Reviewers</strong></td><td>Engineering Lead, QA Lead, Security Lead, DBA</td></tr>
+<tr><td><strong>Approver</strong></td><td>CTO</td></tr>
+</table>
+<h3>Change Log</h3>
+<table>
+<tr><th>Version</th><th>Date</th><th>Author</th><th>Summary</th></tr>
+<tr><td>v1.0</td><td>2026-04-26</td><td>AI Generated (gendoc D09-SCHEMA)</td><td>Initial generation</td></tr>
+</table>
 <hr>
-<h2 id="h-1-overview">§1 Overview</h2>
-<h3 id="h-11-database-stack">1.1 Database Stack</h3>
+<h2>§1 Overview</h2>
+<h3>1.1 Database Stack</h3>
 <p>Thunder Blessing uses a two-tier persistence strategy designed for financial accuracy, session resilience, and regulatory auditability:</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Tier</th>
-<th>Technology</th>
-<th>Purpose</th>
-<th>Hosting</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Primary DB</strong></td>
-<td>Supabase PostgreSQL 15</td>
-<td>Player accounts, wallet ledger, spin audit log, FG session persistence, game config versions</td>
-<td>Supabase Pro (managed)</td>
-</tr>
-<tr>
-<td><strong>Cache / Session</strong></td>
-<td>Redis 7 (Upstash Standard)</td>
-<td>In-flight FG session state, concurrency locks, rate-limit counters, config cache, balance cache</td>
-<td>Upstash Standard</td>
-</tr>
-<tr>
-<td><strong>Read Replica</strong></td>
-<td>Supabase PostgreSQL (optional, Phase 2)</td>
-<td>Analytics queries, spin history reads, wallet transaction history</td>
-<td>Supabase Pro (replica)</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-12-design-principles">1.2 Design Principles</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>#</th>
-<th>Principle</th>
-<th>Application</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>1</td>
-<td><strong>Financial Immutability</strong></td>
-<td><code>wallet_transactions</code> is append-only; no UPDATE or DELETE is permitted by any role</td>
-</tr>
-<tr>
-<td>2</td>
-<td><strong>UUID Primary Keys</strong></td>
-<td>All tables use <code>gen_random_uuid()</code> UUIDs to avoid sequential ID enumeration</td>
-</tr>
-<tr>
-<td>3</td>
-<td><strong>Monetary Precision</strong></td>
-<td>All amounts use <code>DECIMAL(18,2)</code> to match accounting precision requirements</td>
-</tr>
-<tr>
-<td>4</td>
-<td><strong>RLS Everywhere</strong></td>
-<td>Every table has Supabase Row Level Security enabled; players see only their own rows</td>
-</tr>
-<tr>
-<td>5</td>
-<td><strong>Idempotency Keys</strong></td>
-<td><code>wallet_transactions.idempotency_key</code> prevents duplicate credits on retry</td>
-</tr>
-<tr>
-<td>6</td>
-<td><strong>Explicit Timestamps</strong></td>
-<td>All tables carry <code>created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()</code></td>
-</tr>
-<tr>
-<td>7</td>
-<td><strong>Non-Negative Balance</strong></td>
-<td><code>CHECK (balance &gt;= 0)</code> constraint on <code>players.balance</code> enforced at DB level</td>
-</tr>
-<tr>
-<td>8</td>
-<td><strong>Cascade-Safe FKs</strong></td>
-<td>Foreign keys use <code>ON DELETE RESTRICT</code> to prevent orphaned financial records</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-13-notes-on-conventions">1.3 Notes on Conventions</h3>
-<ul>
-<li><strong>Column naming:</strong> Column names use PostgreSQL snake_case convention; JSON serialization uses camelCase per API.md §4 Data Types.</li>
-<li><strong>Balance architecture:</strong> <code>players.balance</code> stores the live balance directly (denormalized from a separate wallet table) for simpler read performance. <code>wallet_transactions</code> is the append-only audit log keyed by <code>player_id</code> — it is the source of truth for audit and reconciliation. There is no separate <code>wallets</code> table.</li>
-<li><strong>Connection Pooling:</strong> PgBouncer in transaction mode, pool_size=20 per service instance, max_client_conn=100. Supabase&#x27;s built-in connection pooler (Supavisor) is used in production.</li>
-</ul>
-<h3 id="h-14-postgresql-version-and-extensions">1.4 PostgreSQL Version and Extensions</h3>
+<table>
+<tr><th>Tier</th><th>Technology</th><th>Purpose</th><th>Hosting</th></tr>
+<tr><td><strong>Primary DB</strong></td><td>Supabase PostgreSQL 15</td><td>Player accounts, wallet ledger, spin audit log, FG session persistence, game config versions</td><td>Supabase Pro (managed)</td></tr>
+<tr><td><strong>Cache / Session</strong></td><td>Redis 7 (Upstash Standard)</td><td>In-flight FG session state, concurrency locks, rate-limit counters, config cache, balance cache</td><td>Upstash Standard</td></tr>
+<tr><td><strong>Read Replica</strong></td><td>Supabase PostgreSQL (optional, Phase 2)</td><td>Analytics queries, spin history reads, wallet transaction history</td><td>Supabase Pro (replica)</td></tr>
+</table>
+<h3>1.2 Design Principles</h3>
+<table>
+<tr><th>#</th><th>Principle</th><th>Application</th></tr>
+<tr><td>1</td><td><strong>Financial Immutability</strong></td><td><code>wallet_transactions</code> is append-only; no UPDATE or DELETE is permitted by any role</td></tr>
+<tr><td>2</td><td><strong>UUID Primary Keys</strong></td><td>All tables use <code>gen_random_uuid()</code> UUIDs to avoid sequential ID enumeration</td></tr>
+<tr><td>3</td><td><strong>Monetary Precision</strong></td><td>All amounts use <code>DECIMAL(18,2)</code> to match accounting precision requirements</td></tr>
+<tr><td>4</td><td><strong>RLS Everywhere</strong></td><td>Every table has Supabase Row Level Security enabled; players see only their own rows</td></tr>
+<tr><td>5</td><td><strong>Idempotency Keys</strong></td><td><code>wallet_transactions.idempotency_key</code> prevents duplicate credits on retry</td></tr>
+<tr><td>6</td><td><strong>Explicit Timestamps</strong></td><td>All tables carry <code>created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()</code></td></tr>
+<tr><td>7</td><td><strong>Non-Negative Balance</strong></td><td><code>CHECK (balance &gt;= 0)</code> constraint on <code>players.balance</code> enforced at DB level</td></tr>
+<tr><td>8</td><td><strong>Cascade-Safe FKs</strong></td><td>Foreign keys use <code>ON DELETE RESTRICT</code> to prevent orphaned financial records</td></tr>
+</table>
+<h3>1.3 Notes on Conventions</h3>
+<ul><li><strong>Column naming:</strong> Column names use PostgreSQL snake_case convention; JSON serialization uses camelCase per API.md §4 Data Types.</li><li><strong>Balance architecture:</strong> <code>players.balance</code> stores the live balance directly (denormalized from a separate wallet table) for simpler read performance. <code>wallet_transactions</code> is the append-only audit log keyed by <code>player_id</code> — it is the source of truth for audit and reconciliation. There is no separate <code>wallets</code> table.</li><li><strong>Connection Pooling:</strong> PgBouncer in transaction mode, pool_size=20 per service instance, max_client_conn=100. Supabase&#x27;s built-in connection pooler (Supavisor) is used in production.</li></ul>
+<h3>1.4 PostgreSQL Version and Extensions</h3>
 <pre><code class="language-sql">-- PostgreSQL 15+ required
 -- Extensions activated on Supabase project:
 CREATE EXTENSION IF NOT EXISTS &quot;pgcrypto&quot;;         -- gen_random_uuid()
 CREATE EXTENSION IF NOT EXISTS &quot;pg_stat_statements&quot;; -- query analysis</code></pre>
 <hr>
-<h2 id="h-2-postgresql-tables">§2 PostgreSQL Tables</h2>
-<h3 id="h-21-players">2.1 <code>players</code></h3>
+<h2>§2 PostgreSQL Tables</h2>
+<h3>2.1 <code>players</code></h3>
 <p><strong>Description:</strong> Master player account table. Each row represents a registered player whose identity is managed by Supabase Auth. The <code>id</code> column maps 1:1 to the JWT <code>sub</code> claim. Balance is stored here directly (denormalized from a separate wallet table) for simpler queries; the <code>wallet_transactions</code> ledger is the source of truth for audit.</p>
 <p><strong>Access Patterns:</strong></p>
-<ul>
-<li>Read balance before spin (by <code>id</code>)</li>
-<li>Update balance atomically on debit/credit (by <code>id</code> with <code>FOR UPDATE</code>)</li>
-<li>Create on first successful Supabase Auth registration</li>
-</ul>
+<ul><li>Read balance before spin (by <code>id</code>)</li><li>Update balance atomically on debit/credit (by <code>id</code> with <code>FOR UPDATE</code>)</li><li>Create on first successful Supabase Auth registration</li></ul>
 <pre><code class="language-sql">CREATE TABLE players (
     id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     email           TEXT         NOT NULL UNIQUE,
@@ -672,15 +178,10 @@ CREATE POLICY &quot;players_no_direct_update&quot;
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();</code></pre>
 <blockquote><p><strong>Note:</strong> <code>update_updated_at_column()</code> is defined in §2.3 before the fg_sessions triggers. In migration order, define this shared function before any table trigger that invokes it.</p></blockquote>
 <hr>
-<h3 id="h-22-spins">2.2 <code>spins</code></h3>
+<h3>2.2 <code>spins</code></h3>
 <p><strong>Description:</strong> Immutable audit log of every spin. One row is inserted per POST <code>/v1/spin</code> call, after the engine resolves <code>totalWin</code>. This table is the regulatory compliance record. The <code>rng_seed</code> enables replay/verification. The <code>outcome_json</code> JSONB column stores the full <code>FullSpinOutcome</code> for forensic investigation without requiring JOIN to reconstruct game state.</p>
 <p><strong>Access Patterns:</strong></p>
-<ul>
-<li>INSERT once per spin (after engine resolves)</li>
-<li>SELECT by <code>player_id</code> + <code>created_at</code> range for audit/history</li>
-<li>SELECT by <code>session_id</code> to correlate FG session rows</li>
-<li>Regulatory export: full table scan with date range on <code>created_at</code> (use partition pruning)</li>
-</ul>
+<ul><li>INSERT once per spin (after engine resolves)</li><li>SELECT by <code>player_id</code> + <code>created_at</code> range for audit/history</li><li>SELECT by <code>session_id</code> to correlate FG session rows</li><li>Regulatory export: full table scan with date range on <code>created_at</code> (use partition pruning)</li></ul>
 <pre><code class="language-sql">CREATE TABLE spins (
     id                        UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
     player_id                 UUID          NOT NULL
@@ -849,15 +350,10 @@ CREATE TRIGGER spins_no_delete
 
 REVOKE UPDATE, DELETE ON spins FROM service_role;</code></pre>
 <hr>
-<h3 id="h-23-fg_sessions">2.3 <code>fg_sessions</code></h3>
+<h3>2.3 <code>fg_sessions</code></h3>
 <p><strong>Description:</strong> Persistent Free Game session state for reconnect recovery. When a player disconnects mid-FG sequence, the backend can restore state from this table (Redis is the primary live store; this table is the durable fallback). One row exists per active or recently completed FG session. Rows transition through <code>PENDING → ACTIVE → COMPLETE | EXPIRED</code>.</p>
 <p><strong>Access Patterns:</strong></p>
-<ul>
-<li>INSERT when FG is triggered (after first Coin Toss Heads)</li>
-<li>UPDATE on each FG round completion (fg_round counter, total_fg_win, lightning_marks)</li>
-<li>SELECT by <code>spin_id</code> or <code>player_id</code> on GET <code>/v1/session/:sessionId</code></li>
-<li>Cleanup job queries rows by <code>expires_at &lt; NOW()</code> AND <code>status != &#x27;COMPLETE&#x27;</code></li>
-</ul>
+<ul><li>INSERT when FG is triggered (after first Coin Toss Heads)</li><li>UPDATE on each FG round completion (fg_round counter, total_fg_win, lightning_marks)</li><li>SELECT by <code>spin_id</code> or <code>player_id</code> on GET <code>/v1/session/:sessionId</code></li><li>Cleanup job queries rows by <code>expires_at &lt; NOW()</code> AND <code>status != &#x27;COMPLETE&#x27;</code></li></ul>
 <pre><code class="language-sql">CREATE TYPE fg_session_status AS ENUM (&#x27;PENDING&#x27;, &#x27;ACTIVE&#x27;, &#x27;COMPLETE&#x27;, &#x27;EXPIRED&#x27;);
 
 CREATE TABLE fg_sessions (
@@ -995,16 +491,11 @@ CREATE POLICY &quot;fg_sessions_no_player_delete&quot;
     ON fg_sessions FOR DELETE
     USING (FALSE);</code></pre>
 <hr>
-<h3 id="h-24-wallet_transactions">2.4 <code>wallet_transactions</code></h3>
+<h3>2.4 <code>wallet_transactions</code></h3>
 <p><strong>Design Rationale:</strong> Balance is denormalized into <code>players.balance</code> for read performance — every spin debit/credit updates <code>players.balance</code> atomically inside the same PostgreSQL transaction. <code>wallet_transactions</code> is the append-only audit log keyed by <code>player_id</code> (no separate <code>wallets</code> table; <code>wallet_id</code> FK does not exist). <code>wallet_transactions</code> is the source of truth for reconciliation and audit.</p>
 <p><strong>Description:</strong> Immutable, append-only financial ledger. Every balance change — spin debit, win credit, or compensating credit on ENGINE_TIMEOUT — produces exactly one row. This table is never updated or deleted. The <code>idempotency_key</code> column prevents duplicate credits when the spin endpoint is retried. <code>balance_before</code> and <code>balance_after</code> allow point-in-time balance reconstruction without scanning <code>players</code>.</p>
 <p><strong>Access Patterns:</strong></p>
-<ul>
-<li>INSERT on every debit/credit (inside the same DB transaction as <code>players</code> balance UPDATE)</li>
-<li>SELECT by <code>player_id</code> + <code>created_at</code> for audit/history</li>
-<li>SELECT by <code>idempotency_key</code> before INSERT to detect duplicates</li>
-<li>SELECT by <code>spin_id</code> to reconstruct per-spin accounting</li>
-</ul>
+<ul><li>INSERT on every debit/credit (inside the same DB transaction as <code>players</code> balance UPDATE)</li><li>SELECT by <code>player_id</code> + <code>created_at</code> for audit/history</li><li>SELECT by <code>idempotency_key</code> before INSERT to detect duplicates</li><li>SELECT by <code>spin_id</code> to reconstruct per-spin accounting</li></ul>
 <pre><code class="language-sql">-- Valid transaction type values:
 --   DEBIT                  — spin cost deducted from player balance
 --   CREDIT                 — totalWin credited after spin resolves
@@ -1047,7 +538,7 @@ COMMENT ON COLUMN wallet_transactions.idempotency_key IS &#x27;Format: {tx_type}
 COMMENT ON COLUMN wallet_transactions.balance_before IS &#x27;Player balance immediately before this transaction. Enables point-in-time balance reconstruction.&#x27;;
 COMMENT ON COLUMN wallet_transactions.notes IS &#x27;Optional human-readable annotation for compensating transactions or manual adjustments.&#x27;;</code></pre>
 <p><strong>Idempotency Key Convention:</strong></p>
-<pre><code>DEBIT:                    &quot;DEBIT:{spinId}&quot;
+<pre><code class="">DEBIT:                    &quot;DEBIT:{spinId}&quot;
 CREDIT:                   &quot;CREDIT:{spinId}&quot;
 COMPENSATE:               &quot;COMPENSATE:{spinId}:{isoTimestamp}&quot;
 CREDIT_COMPENSATION:      &quot;CREDIT_COMPENSATION:{spinId}:{isoTimestamp}&quot;
@@ -1116,14 +607,10 @@ CREATE TRIGGER wallet_tx_no_delete
     BEFORE DELETE ON wallet_transactions
     FOR EACH ROW EXECUTE FUNCTION prevent_wallet_tx_mutation();</code></pre>
 <hr>
-<h3 id="h-25-game_config_versions">2.5 <code>game_config_versions</code></h3>
+<h3>2.5 <code>game_config_versions</code></h3>
 <p><strong>Description:</strong> Versioned snapshots of game configuration. Each time a new <code>GameConfig.generated.ts</code> is deployed (via the Excel → toolchain → CI pipeline), the resulting config JSON is also stored here for auditability. This enables regulatory auditors to answer &quot;what config was active during spin X?&quot; by joining <code>spins.engine_version</code> to <code>game_config_versions.version</code>.</p>
 <p><strong>Access Patterns:</strong></p>
-<ul>
-<li>INSERT on each config deploy (CI pipeline step)</li>
-<li>SELECT WHERE <code>is_active = TRUE</code> LIMIT 1 (cached in Redis, refreshed every 60s)</li>
-<li>SELECT by <code>version</code> to reconstruct historical config</li>
-</ul>
+<ul><li>INSERT on each config deploy (CI pipeline step)</li><li>SELECT WHERE <code>is_active = TRUE</code> LIMIT 1 (cached in Redis, refreshed every 60s)</li><li>SELECT by <code>version</code> to reconstruct historical config</li></ul>
 <pre><code class="language-sql">CREATE TABLE game_config_versions (
     id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
     version         TEXT          NOT NULL UNIQUE,
@@ -1176,8 +663,8 @@ CREATE POLICY &quot;game_config_update_service_only&quot;
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();</code></pre>
 <blockquote><p><strong>Note:</strong> <code>config_data</code> JSONB (here <code>config</code>) is validated at application layer against ConfigSchema (see EDD §5.5) before INSERT. Consider adding a CHECK constraint with a custom PL/pgSQL validator in future iterations.</p></blockquote>
 <hr>
-<h2 id="h-3-er-diagram">§3 ER Diagram</h2>
-<div class="mermaid-wrap"><div class="mermaid">erDiagram
+<h2>§3 ER Diagram</h2>
+<div class="diagram-container"><pre class="mermaid">erDiagram
     players {
         UUID id PK
         TEXT email UK
@@ -1266,156 +753,53 @@ CREATE POLICY &quot;game_config_update_service_only&quot;
         TIMESTAMPTZ updated_at
     }
 
-    players ||--o{ spins : &quot;performs&quot;
-    players ||--o{ fg_sessions : &quot;plays&quot;
-    players ||--o{ wallet_transactions : &quot;has&quot;
-    spins ||--o| fg_sessions : &quot;triggers&quot;
-    spins ||--o{ wallet_transactions : &quot;generates&quot;</div></div>
+    players ||--o{ spins : "performs"
+    players ||--o{ fg_sessions : "plays"
+    players ||--o{ wallet_transactions : "has"
+    spins ||--o| fg_sessions : "triggers"
+    spins ||--o{ wallet_transactions : "generates"</pre></div>
 <hr>
-<h2 id="h-4-redis-schema">§4 Redis Schema</h2>
+<h2>§4 Redis Schema</h2>
 <p>Redis (Upstash Standard) serves as the high-speed session store and rate-limiting backend. All keys use consistent naming conventions. TTLs are enforced with <code>EX</code> on SET and <code>EXPIRE</code> on renewal.</p>
-<h3 id="h-41-sessionsessionidstate">4.1 <code>session:{sessionId}:state</code></h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Property</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Key Pattern</strong></td>
-<td><code>session:{sessionId}:state</code></td>
-</tr>
-<tr>
-<td><strong>Data Type</strong></td>
-<td>Hash (Redis HSET/HGET)</td>
-</tr>
-<tr>
-<td><strong>TTL</strong></td>
-<td>1800 seconds (30 minutes — covers full FG sequence including client reconnect scenarios)</td>
-</tr>
-<tr>
-<td><strong>Purpose</strong></td>
-<td>Primary live store for in-flight FG session state. Allows sub-millisecond reads on GET <code>/v1/session/:sessionId</code>. The PostgreSQL <code>fg_sessions</code> table is the durable fallback. TTL is refreshed on each FG round completion via EXPIRE command.</td>
-</tr>
-</tbody></table></div>
+<h3>4.1 <code>session:{sessionId}:state</code></h3>
+<table>
+<tr><th>Property</th><th>Value</th></tr>
+<tr><td><strong>Key Pattern</strong></td><td><code>session:{sessionId}:state</code></td></tr>
+<tr><td><strong>Data Type</strong></td><td>Hash (Redis HSET/HGET)</td></tr>
+<tr><td><strong>TTL</strong></td><td>1800 seconds (30 minutes — covers full FG sequence including client reconnect scenarios)</td></tr>
+<tr><td><strong>Purpose</strong></td><td>Primary live store for in-flight FG session state. Allows sub-millisecond reads on GET <code>/v1/session/:sessionId</code>. The PostgreSQL <code>fg_sessions</code> table is the durable fallback. TTL is refreshed on each FG round completion via EXPIRE command.</td></tr>
+</table>
 <p><strong>Hash Fields:</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Field</th>
-<th>Type</th>
-<th>Example</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>playerId</code></td>
-<td>string (UUID)</td>
-<td><code>&quot;a3f7c2d1-...&quot;</code></td>
-<td>Owner verification</td>
-</tr>
-<tr>
-<td><code>status</code></td>
-<td>string</td>
-<td><code>&quot;FG_ACTIVE&quot;</code></td>
-<td><code>SPINNING</code> (spin in progress), <code>FG_ACTIVE</code> (FG sequence in progress), <code>COMPLETE</code> (terminal, awaiting cleanup)</td>
-</tr>
-<tr>
-<td><code>baseBet</code></td>
-<td>string (number)</td>
-<td><code>&quot;1.00&quot;</code></td>
-<td>Base bet amount as string</td>
-</tr>
-<tr>
-<td><code>extraBet</code></td>
-<td>string (boolean)</td>
-<td><code>&quot;false&quot;</code></td>
-<td>Serialized boolean</td>
-</tr>
-<tr>
-<td><code>buyFeature</code></td>
-<td>string (boolean)</td>
-<td><code>&quot;false&quot;</code></td>
-<td>Serialized boolean</td>
-</tr>
-<tr>
-<td><code>fgRound</code></td>
-<td>string (integer)</td>
-<td><code>&quot;2&quot;</code></td>
-<td>1-indexed: 0=FG not yet entered; N=Nth round upcoming (N-1 completed)</td>
-</tr>
-<tr>
-<td><code>fgMultiplier</code></td>
-<td>string (integer)</td>
-<td><code>&quot;17&quot;</code></td>
-<td>Current FG multiplier</td>
-</tr>
-<tr>
-<td><code>fgBonusMultiplier</code></td>
-<td>string (integer)</td>
-<td><code>&quot;5&quot;</code></td>
-<td>FG bonus multiplier (drawn once at FG start)</td>
-</tr>
-<tr>
-<td><code>totalFGWin</code></td>
-<td>string (number)</td>
-<td><code>&quot;4200.00&quot;</code></td>
-<td>Running FG win total</td>
-</tr>
-<tr>
-<td><code>lightningMarks</code></td>
-<td>string (JSON)</td>
-<td><code>&quot;[{\&quot;row\&quot;:1,\&quot;col\&quot;:2}]&quot;</code></td>
-<td>Position[] JSON</td>
-</tr>
-<tr>
-<td><code>floorValue</code></td>
-<td>string (number)</td>
-<td><code>&quot;20.00&quot;</code></td>
-<td>Buy Feature floor (0 if not BuyFeature)</td>
-</tr>
-<tr>
-<td><code>lockToken</code></td>
-<td>string (UUID)</td>
-<td><code>&quot;lock-uuid-...&quot;</code></td>
-<td>Optimistic concurrency lock token</td>
-</tr>
-<tr>
-<td><code>lockedAt</code></td>
-<td>string (integer)</td>
-<td><code>&quot;1745713200000&quot;</code></td>
-<td>Unix ms timestamp of lock acquisition</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Field</th><th>Type</th><th>Example</th><th>Notes</th></tr>
+<tr><td><code>playerId</code></td><td>string (UUID)</td><td><code>&quot;a3f7c2d1-...&quot;</code></td><td>Owner verification</td></tr>
+<tr><td><code>status</code></td><td>string</td><td><code>&quot;FG_ACTIVE&quot;</code></td><td><code>SPINNING</code> (spin in progress), <code>FG_ACTIVE</code> (FG sequence in progress), <code>COMPLETE</code> (terminal, awaiting cleanup)</td></tr>
+<tr><td><code>baseBet</code></td><td>string (number)</td><td><code>&quot;1.00&quot;</code></td><td>Base bet amount as string</td></tr>
+<tr><td><code>extraBet</code></td><td>string (boolean)</td><td><code>&quot;false&quot;</code></td><td>Serialized boolean</td></tr>
+<tr><td><code>buyFeature</code></td><td>string (boolean)</td><td><code>&quot;false&quot;</code></td><td>Serialized boolean</td></tr>
+<tr><td><code>fgRound</code></td><td>string (integer)</td><td><code>&quot;2&quot;</code></td><td>1-indexed: 0=FG not yet entered; N=Nth round upcoming (N-1 completed)</td></tr>
+<tr><td><code>fgMultiplier</code></td><td>string (integer)</td><td><code>&quot;17&quot;</code></td><td>Current FG multiplier</td></tr>
+<tr><td><code>fgBonusMultiplier</code></td><td>string (integer)</td><td><code>&quot;5&quot;</code></td><td>FG bonus multiplier (drawn once at FG start)</td></tr>
+<tr><td><code>totalFGWin</code></td><td>string (number)</td><td><code>&quot;4200.00&quot;</code></td><td>Running FG win total</td></tr>
+<tr><td><code>lightningMarks</code></td><td>string (JSON)</td><td><code>&quot;[{\&quot;row\&quot;:1,\&quot;col\&quot;:2}]&quot;</code></td><td>Position[] JSON</td></tr>
+<tr><td><code>floorValue</code></td><td>string (number)</td><td><code>&quot;20.00&quot;</code></td><td>Buy Feature floor (0 if not BuyFeature)</td></tr>
+<tr><td><code>lockToken</code></td><td>string (UUID)</td><td><code>&quot;lock-uuid-...&quot;</code></td><td>Optimistic concurrency lock token</td></tr>
+<tr><td><code>lockedAt</code></td><td>string (integer)</td><td><code>&quot;1745713200000&quot;</code></td><td>Unix ms timestamp of lock acquisition</td></tr>
+</table>
 <p><strong>Example:</strong></p>
-<pre><code>HSET session:sess-abc123:state playerId &quot;a3f7c2d1&quot; status &quot;FG_ACTIVE&quot; fgRound &quot;2&quot; fgMultiplier &quot;17&quot; totalFGWin &quot;4200.00&quot;
+<pre><code class="">HSET session:sess-abc123:state playerId &quot;a3f7c2d1&quot; status &quot;FG_ACTIVE&quot; fgRound &quot;2&quot; fgMultiplier &quot;17&quot; totalFGWin &quot;4200.00&quot;
 EXPIRE session:sess-abc123:state 1800</code></pre>
 <hr>
-<h3 id="h-42-sessionsessionidlock">4.2 <code>session:{sessionId}:lock</code></h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Property</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Key Pattern</strong></td>
-<td><code>session:{sessionId}:lock</code></td>
-</tr>
-<tr>
-<td><strong>Data Type</strong></td>
-<td>String (SET NX EX)</td>
-</tr>
-<tr>
-<td><strong>TTL</strong></td>
-<td>10 seconds (hard maximum; auto-releases if spin stalls)</td>
-</tr>
-<tr>
-<td><strong>Purpose</strong></td>
-<td>Concurrency guard — prevents two simultaneous spin requests for the same session. Only one spin may hold this lock at a time. Failure to acquire returns HTTP 409 <code>SPIN_IN_PROGRESS</code>.</td>
-</tr>
-</tbody></table></div>
+<h3>4.2 <code>session:{sessionId}:lock</code></h3>
+<table>
+<tr><th>Property</th><th>Value</th></tr>
+<tr><td><strong>Key Pattern</strong></td><td><code>session:{sessionId}:lock</code></td></tr>
+<tr><td><strong>Data Type</strong></td><td>String (SET NX EX)</td></tr>
+<tr><td><strong>TTL</strong></td><td>10 seconds (hard maximum; auto-releases if spin stalls)</td></tr>
+<tr><td><strong>Purpose</strong></td><td>Concurrency guard — prevents two simultaneous spin requests for the same session. Only one spin may hold this lock at a time. Failure to acquire returns HTTP 409 <code>SPIN_IN_PROGRESS</code>.</td></tr>
+</table>
 <p><strong>Operations:</strong></p>
-<pre><code># Acquire (NX = only set if key does not exist)
+<pre><code class=""># Acquire (NX = only set if key does not exist)
 SET session:sess-abc123:lock {lockToken-uuid} NX EX 10
 # Returns &quot;OK&quot; if acquired, nil if already held
 
@@ -1423,62 +807,30 @@ SET session:sess-abc123:lock {lockToken-uuid} NX EX 10
 DEL session:sess-abc123:lock</code></pre>
 <p><strong>Example Value:</strong> <code>&quot;f47ac10b-58cc-4372-a567-0e02b2c3d479&quot;</code></p>
 <hr>
-<h3 id="h-43-playerplayeridratelimit">4.3 <code>player:{playerId}:ratelimit</code></h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Property</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Key Pattern</strong></td>
-<td><code>player:{playerId}:ratelimit</code></td>
-</tr>
-<tr>
-<td><strong>Data Type</strong></td>
-<td>String (counter via INCR) or Sorted Set (sliding window)</td>
-</tr>
-<tr>
-<td><strong>TTL</strong></td>
-<td>1 second (sliding window, managed by <code>@fastify/rate-limit</code>)</td>
-</tr>
-<tr>
-<td><strong>Purpose</strong></td>
-<td>Sliding window rate limit: 5 requests/second per player (keyed by JWT <code>sub</code>). Exceeding returns HTTP 429 <code>RATE_LIMITED</code>.</td>
-</tr>
-</tbody></table></div>
+<h3>4.3 <code>player:{playerId}:ratelimit</code></h3>
+<table>
+<tr><th>Property</th><th>Value</th></tr>
+<tr><td><strong>Key Pattern</strong></td><td><code>player:{playerId}:ratelimit</code></td></tr>
+<tr><td><strong>Data Type</strong></td><td>String (counter via INCR) or Sorted Set (sliding window)</td></tr>
+<tr><td><strong>TTL</strong></td><td>1 second (sliding window, managed by <code>@fastify/rate-limit</code>)</td></tr>
+<tr><td><strong>Purpose</strong></td><td>Sliding window rate limit: 5 requests/second per player (keyed by JWT <code>sub</code>). Exceeding returns HTTP 429 <code>RATE_LIMITED</code>.</td></tr>
+</table>
 <p><strong>Implementation (sliding window with sorted set):</strong></p>
-<pre><code># On each request:
+<pre><code class=""># On each request:
 ZADD player:a3f7c2d1:ratelimit {currentMs} {currentMs}
 ZREMRANGEBYSCORE player:a3f7c2d1:ratelimit 0 {currentMs - 1000}
 ZCARD player:a3f7c2d1:ratelimit  # if &gt; 5, return 429
 EXPIRE player:a3f7c2d1:ratelimit 2  # 2s buffer</code></pre>
 <p><strong>Example Value (sorted set members):</strong> <code>{ 1745713200000, 1745713200200, 1745713200400 }</code></p>
 <hr>
-<h3 id="h-44-configactive">4.4 <code>config:active</code></h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Property</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Key Pattern</strong></td>
-<td><code>config:active</code></td>
-</tr>
-<tr>
-<td><strong>Data Type</strong></td>
-<td>String (JSON serialized)</td>
-</tr>
-<tr>
-<td><strong>TTL</strong></td>
-<td>60 seconds</td>
-</tr>
-<tr>
-<td><strong>Purpose</strong></td>
-<td>Cached active game config. Avoids hitting PostgreSQL on every spin for config lookup. Invalidated and refreshed when a new config version is activated via CI pipeline.</td>
-</tr>
-</tbody></table></div>
+<h3>4.4 <code>config:active</code></h3>
+<table>
+<tr><th>Property</th><th>Value</th></tr>
+<tr><td><strong>Key Pattern</strong></td><td><code>config:active</code></td></tr>
+<tr><td><strong>Data Type</strong></td><td>String (JSON serialized)</td></tr>
+<tr><td><strong>TTL</strong></td><td>60 seconds</td></tr>
+<tr><td><strong>Purpose</strong></td><td>Cached active game config. Avoids hitting PostgreSQL on every spin for config lookup. Invalidated and refreshed when a new config version is activated via CI pipeline.</td></tr>
+</table>
 <p><strong>Example Value:</strong></p>
 <pre><code class="language-json">{
   &quot;version&quot;: &quot;1.0.0&quot;,
@@ -1492,118 +844,42 @@ EXPIRE player:a3f7c2d1:ratelimit 2  # 2s buffer</code></pre>
 }</code></pre>
 <p><strong>Invalidation:</strong> <code>DEL config:active</code> on new config deploy; next request triggers cache miss and re-populates from <code>game_config_versions WHERE is_active = TRUE</code>.</p>
 <hr>
-<h3 id="h-45-playerplayeridbalance">4.5 <code>player:{playerId}:balance</code></h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Property</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Key Pattern</strong></td>
-<td><code>player:{playerId}:balance</code></td>
-</tr>
-<tr>
-<td><strong>Data Type</strong></td>
-<td>String (decimal as string)</td>
-</tr>
-<tr>
-<td><strong>TTL</strong></td>
-<td>30 seconds</td>
-</tr>
-<tr>
-<td><strong>Purpose</strong></td>
-<td>Short-lived balance cache for read-before-debit checks. <strong>Note:</strong> The actual debit/credit always goes directly to PostgreSQL with <code>FOR UPDATE</code> locking. This cache is used only for pre-validation display and insufficient-funds fast-path. It is invalidated immediately after every debit or credit.</td>
-</tr>
-</tbody></table></div>
+<h3>4.5 <code>player:{playerId}:balance</code></h3>
+<table>
+<tr><th>Property</th><th>Value</th></tr>
+<tr><td><strong>Key Pattern</strong></td><td><code>player:{playerId}:balance</code></td></tr>
+<tr><td><strong>Data Type</strong></td><td>String (decimal as string)</td></tr>
+<tr><td><strong>TTL</strong></td><td>30 seconds</td></tr>
+<tr><td><strong>Purpose</strong></td><td>Short-lived balance cache for read-before-debit checks. <strong>Note:</strong> The actual debit/credit always goes directly to PostgreSQL with <code>FOR UPDATE</code> locking. This cache is used only for pre-validation display and insufficient-funds fast-path. It is invalidated immediately after every debit or credit.</td></tr>
+</table>
 <blockquote><p><strong>Warning:</strong> Never use this cached value as the authoritative balance for wallet accounting. The canonical balance is always <code>players.balance</code> read with <code>SELECT ... FOR UPDATE</code> inside a transaction.</p></blockquote>
 <p><strong>Example Value:</strong> <code>&quot;249.75&quot;</code></p>
 <p><strong>Invalidation:</strong> <code>DEL player:{playerId}:balance</code> immediately after any debit or credit completes.</p>
 <hr>
-<h3 id="h-46-redis-postgresql-status-mapping">4.6 Redis ↔ PostgreSQL Status Mapping</h3>
+<h3>4.6 Redis ↔ PostgreSQL Status Mapping</h3>
 <p>The following mapping describes how the presence/absence of a Redis session key relates to <code>fg_sessions.status</code> in PostgreSQL:</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Redis Key State</th>
-<th>fg_sessions.status</th>
-<th>Meaning</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Key exists, <code>status=SPINNING</code></td>
-<td><code>ACTIVE</code></td>
-<td>Spin currently in progress for this session</td>
-</tr>
-<tr>
-<td>Key exists, <code>status=FG_ACTIVE</code></td>
-<td><code>ACTIVE</code></td>
-<td>FG sequence actively in progress</td>
-</tr>
-<tr>
-<td>Key exists, <code>status=COMPLETE</code></td>
-<td><code>COMPLETE</code></td>
-<td>FG finished; Redis key pending cleanup/expiry</td>
-</tr>
-<tr>
-<td>Key absent</td>
-<td><code>COMPLETE</code></td>
-<td>Normal completion — FG finished, Redis key expired/deleted</td>
-</tr>
-<tr>
-<td>Key absent</td>
-<td><code>PENDING</code></td>
-<td>Session not yet started, or expired without cleanup</td>
-</tr>
-<tr>
-<td>Key absent</td>
-<td><code>EXPIRED</code></td>
-<td>Cleanup job detected stale session (no Redis key, timeout elapsed)</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Redis Key State</th><th>fg_sessions.status</th><th>Meaning</th></tr>
+<tr><td>Key exists, <code>status=SPINNING</code></td><td><code>ACTIVE</code></td><td>Spin currently in progress for this session</td></tr>
+<tr><td>Key exists, <code>status=FG_ACTIVE</code></td><td><code>ACTIVE</code></td><td>FG sequence actively in progress</td></tr>
+<tr><td>Key exists, <code>status=COMPLETE</code></td><td><code>COMPLETE</code></td><td>FG finished; Redis key pending cleanup/expiry</td></tr>
+<tr><td>Key absent</td><td><code>COMPLETE</code></td><td>Normal completion — FG finished, Redis key expired/deleted</td></tr>
+<tr><td>Key absent</td><td><code>PENDING</code></td><td>Session not yet started, or expired without cleanup</td></tr>
+<tr><td>Key absent</td><td><code>EXPIRED</code></td><td>Cleanup job detected stale session (no Redis key, timeout elapsed)</td></tr>
+</table>
 <p><strong>Cleanup Job Logic:</strong> Sets <code>fg_sessions.status=&#x27;EXPIRED&#x27;</code> for rows with status <code>PENDING</code> or <code>ACTIVE</code> older than 30 minutes with no corresponding Redis key present.</p>
-<h3 id="h-47-redis-key-summary">4.7 Redis Key Summary</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Key Pattern</th>
-<th>Type</th>
-<th>TTL</th>
-<th>Usage Frequency</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>session:{id}:state</code></td>
-<td>Hash</td>
-<td>1800s</td>
-<td>Per FG round</td>
-</tr>
-<tr>
-<td><code>session:{id}:lock</code></td>
-<td>String</td>
-<td>10s</td>
-<td>Per spin</td>
-</tr>
-<tr>
-<td><code>player:{id}:ratelimit</code></td>
-<td>Sorted Set</td>
-<td>1s (sliding)</td>
-<td>Per request</td>
-</tr>
-<tr>
-<td><code>config:active</code></td>
-<td>String</td>
-<td>60s</td>
-<td>Per spin (cache hit)</td>
-</tr>
-<tr>
-<td><code>player:{id}:balance</code></td>
-<td>String</td>
-<td>30s</td>
-<td>Pre-validation reads</td>
-</tr>
-</tbody></table></div>
+<h3>4.7 Redis Key Summary</h3>
+<table>
+<tr><th>Key Pattern</th><th>Type</th><th>TTL</th><th>Usage Frequency</th></tr>
+<tr><td><code>session:{id}:state</code></td><td>Hash</td><td>1800s</td><td>Per FG round</td></tr>
+<tr><td><code>session:{id}:lock</code></td><td>String</td><td>10s</td><td>Per spin</td></tr>
+<tr><td><code>player:{id}:ratelimit</code></td><td>Sorted Set</td><td>1s (sliding)</td><td>Per request</td></tr>
+<tr><td><code>config:active</code></td><td>String</td><td>60s</td><td>Per spin (cache hit)</td></tr>
+<tr><td><code>player:{id}:balance</code></td><td>String</td><td>30s</td><td>Pre-validation reads</td></tr>
+</table>
 <hr>
-<h2 id="h-5-indexes-and-query-patterns">§5 Indexes and Query Patterns</h2>
-<h3 id="h-51-spin-history-by-player-audit">5.1 Spin History by Player (Audit)</h3>
+<h2>§5 Indexes and Query Patterns</h2>
+<h3>5.1 Spin History by Player (Audit)</h3>
 <p><strong>Query:</strong> Retrieve paginated spin history for a player for regulatory audit or player history UI.</p>
 <pre><code class="language-sql">SELECT id, session_id, base_bet, total_bet, total_win, fg_triggered,
        fg_multiplier, buy_feature_active, session_floor_applied, created_at
@@ -1613,9 +889,11 @@ WHERE player_id = $1
   AND created_at &lt;  $3  -- date range end
 ORDER BY created_at DESC
 LIMIT 50 OFFSET $4;</code></pre>
-<p><strong>Supporting Index:</strong> <code>idx_spins_player_id_created_at ON spins (player_id, created_at DESC)</code> <strong>Partition Pruning:</strong> PostgreSQL automatically prunes monthly partitions using the <code>created_at</code> range predicates. <strong>Expected Performance:</strong> P99 &lt; 10ms with index scan on a single partition.</p>
+<p><strong>Supporting Index:</strong> <code>idx_spins_player_id_created_at ON spins (player_id, created_at DESC)</code></p>
+<p><strong>Partition Pruning:</strong> PostgreSQL automatically prunes monthly partitions using the <code>created_at</code> range predicates.</p>
+<p><strong>Expected Performance:</strong> P99 &lt; 10ms with index scan on a single partition.</p>
 <hr>
-<h3 id="h-52-active-fg-session-lookup-by-player-reconnect">5.2 Active FG Session Lookup by Player (Reconnect)</h3>
+<h3>5.2 Active FG Session Lookup by Player (Reconnect)</h3>
 <p><strong>Query:</strong> Find the active FG session for a player on reconnect (GET <code>/v1/session/:sessionId</code>). Redis is checked first; this query is the fallback.</p>
 <pre><code class="language-sql">SELECT id, spin_id, fg_multiplier, bonus_multiplier, fg_round,
        completed_rounds, lightning_marks, floor_value, total_fg_win,
@@ -1626,9 +904,10 @@ WHERE player_id = $1
   AND expires_at &gt; NOW()
 ORDER BY created_at DESC
 LIMIT 1;</code></pre>
-<p><strong>Supporting Index:</strong> <code>idx_fg_sessions_player_status ON fg_sessions (player_id, status) WHERE status IN (&#x27;PENDING&#x27;, &#x27;ACTIVE&#x27;)</code> <strong>Expected Performance:</strong> P99 &lt; 5ms (small result set, partial index).</p>
+<p><strong>Supporting Index:</strong> <code>idx_fg_sessions_player_status ON fg_sessions (player_id, status) WHERE status IN (&#x27;PENDING&#x27;, &#x27;ACTIVE&#x27;)</code></p>
+<p><strong>Expected Performance:</strong> P99 &lt; 5ms (small result set, partial index).</p>
 <hr>
-<h3 id="h-53-wallet-transaction-history-by-player">5.3 Wallet Transaction History by Player</h3>
+<h3>5.3 Wallet Transaction History by Player</h3>
 <p><strong>Query:</strong> Retrieve transaction history for audit reconciliation or player account statement.</p>
 <pre><code class="language-sql">SELECT id, spin_id, tx_type, amount, balance_before, balance_after,
        currency, idempotency_key, created_at
@@ -1636,53 +915,52 @@ FROM wallet_transactions
 WHERE player_id = $1
 ORDER BY created_at DESC
 LIMIT 100 OFFSET $2;</code></pre>
-<p><strong>Supporting Index:</strong> <code>idx_wallet_tx_player_created ON wallet_transactions (player_id, created_at DESC)</code> <strong>Expected Performance:</strong> P99 &lt; 15ms for first page.</p>
+<p><strong>Supporting Index:</strong> <code>idx_wallet_tx_player_created ON wallet_transactions (player_id, created_at DESC)</code></p>
+<p><strong>Expected Performance:</strong> P99 &lt; 15ms for first page.</p>
 <hr>
-<h3 id="h-54-idempotency-check-before-credit-insert">5.4 Idempotency Check Before Credit INSERT</h3>
+<h3>5.4 Idempotency Check Before Credit INSERT</h3>
 <p><strong>Query:</strong> Before inserting a CREDIT or COMPENSATE transaction, check if <code>idempotency_key</code> already exists to prevent double-credit.</p>
 <pre><code class="language-sql">SELECT id FROM wallet_transactions
 WHERE idempotency_key = $1
 LIMIT 1;</code></pre>
-<p><strong>Supporting Index:</strong> Unique index on <code>wallet_transactions.idempotency_key</code> (created automatically by <code>UNIQUE</code> constraint). <strong>Expected Performance:</strong> O(log n) B-tree lookup, &lt; 1ms.</p>
+<p><strong>Supporting Index:</strong> Unique index on <code>wallet_transactions.idempotency_key</code> (created automatically by <code>UNIQUE</code> constraint).</p>
+<p><strong>Expected Performance:</strong> O(log n) B-tree lookup, &lt; 1ms.</p>
 <hr>
-<h3 id="h-55-rate-limit-check-redis">5.5 Rate Limit Check (Redis)</h3>
+<h3>5.5 Rate Limit Check (Redis)</h3>
 <p>Rate limiting does not use PostgreSQL. The <code>player:{playerId}:ratelimit</code> sorted set in Redis is checked and updated atomically using a Lua script via <code>@fastify/rate-limit</code>. See §4.3 for key details.</p>
 <hr>
-<h3 id="h-56-active-config-fetch">5.6 Active Config Fetch</h3>
+<h3>5.6 Active Config Fetch</h3>
 <pre><code class="language-sql">-- Cache miss fallback (Redis config:active expired)
 SELECT version, config, rtp_target
 FROM game_config_versions
 WHERE is_active = TRUE
 LIMIT 1;</code></pre>
-<p><strong>Supporting Index:</strong> <code>idx_game_config_versions_active</code> (partial unique index where <code>is_active = TRUE</code>) <strong>Expected Performance:</strong> Single-row lookup, &lt; 2ms.</p>
+<p><strong>Supporting Index:</strong> <code>idx_game_config_versions_active</code> (partial unique index where <code>is_active = TRUE</code>)</p>
+<p><strong>Expected Performance:</strong> Single-row lookup, &lt; 2ms.</p>
 <hr>
-<h2 id="h-6-data-integrity-rules">§6 Data Integrity Rules</h2>
-<h3 id="h-61-wallet-balance-non-negativity">6.1 Wallet Balance Non-Negativity</h3>
+<h2>§6 Data Integrity Rules</h2>
+<h3>6.1 Wallet Balance Non-Negativity</h3>
 <p><strong>Enforcement:</strong> <code>CHECK (balance &gt;= 0)</code> on <code>players.balance</code>. PostgreSQL will reject any <code>UPDATE</code> that would result in a negative balance.</p>
 <p><strong>Application-Level Guard:</strong> <code>SpinUseCase</code> calls <code>getBalance()</code> then checks <code>balance &gt;= cost</code> before calling <code>debit()</code>. The DB constraint is the final backstop.</p>
 <pre><code class="language-sql">-- This will raise: ERROR: new row for relation &quot;players&quot; violates check constraint &quot;players_balance_check&quot;
 UPDATE players SET balance = balance - 1000.00 WHERE id = $1 AND balance &lt; 1000.00;</code></pre>
-<h3 id="h-62-wallet-transactions-append-only">6.2 Wallet Transactions Append-Only</h3>
+<h3>6.2 Wallet Transactions Append-Only</h3>
 <p><strong>Enforcement:</strong> Three-layer defense:</p>
-<ol>
-<li><strong>Trigger:</strong> <code>prevent_wallet_tx_mutation()</code> raises exception on UPDATE or DELETE.</li>
-<li><strong>RLS:</strong> No UPDATE or DELETE policies defined for any role on <code>wallet_transactions</code>.</li>
-<li><strong>Privilege:</strong> Application service account is granted only <code>SELECT, INSERT</code> on <code>wallet_transactions</code>:</li>
-</ol>
+<ol><li><strong>Trigger:</strong> <code>prevent_wallet_tx_mutation()</code> raises exception on UPDATE or DELETE.</li><li><strong>RLS:</strong> No UPDATE or DELETE policies defined for any role on <code>wallet_transactions</code>.</li><li><strong>Privilege:</strong> Application service account is granted only <code>SELECT, INSERT</code> on <code>wallet_transactions</code>:</li></ol>
 <pre><code class="language-sql">-- Grant only SELECT and INSERT to application service account
 GRANT SELECT, INSERT ON wallet_transactions TO service_role;
 -- UPDATE and DELETE not granted; trigger provides final backstop</code></pre>
-<h3 id="h-63-fg-session-status-transitions">6.3 FG Session Status Transitions</h3>
+<h3>6.3 FG Session Status Transitions</h3>
 <p>Valid transitions (enforced by <code>enforce_fg_session_status_transition</code> trigger):</p>
-<pre><code>PENDING → ACTIVE      (FG sequence begins, first round starts)
+<pre><code class="">PENDING → ACTIVE      (FG sequence begins, first round starts)
 PENDING → EXPIRED     (cleanup job — session never activated, TTL exceeded)
 ACTIVE  → COMPLETE    (FG sequence finishes, all rounds done)
 ACTIVE  → EXPIRED     (cleanup job marks stale sessions)
 COMPLETE → (blocked)  (terminal state)
 EXPIRED  → (blocked)  (terminal state)</code></pre>
-<h3 id="h-64-idempotency-unique-wallet_transactionsidempotency_key">6.4 Idempotency: Unique <code>wallet_transactions.idempotency_key</code></h3>
+<h3>6.4 Idempotency: Unique <code>wallet_transactions.idempotency_key</code></h3>
 <p>The <code>UNIQUE</code> constraint on <code>idempotency_key</code> prevents duplicate credit entries. Before inserting any transaction, the application layer checks for existence using the pattern <code>{tx_type}:{spinId}</code>. If the key already exists, the INSERT is skipped and the existing transaction is returned. This handles network retries safely.</p>
-<h3 id="h-65-single-active-game-config">6.5 Single Active Game Config</h3>
+<h3>6.5 Single Active Game Config</h3>
 <p>The partial unique index <code>idx_game_config_versions_active WHERE is_active = TRUE</code> ensures at most one row has <code>is_active = TRUE</code>. The CI pipeline uses the following atomic swap pattern:</p>
 <pre><code class="language-sql">BEGIN;
 UPDATE game_config_versions SET is_active = FALSE, updated_at = NOW()
@@ -1690,7 +968,7 @@ UPDATE game_config_versions SET is_active = FALSE, updated_at = NOW()
 UPDATE game_config_versions SET is_active = TRUE, activated_at = NOW(), updated_at = NOW()
     WHERE version = $1;
 COMMIT;</code></pre>
-<h3 id="h-67-partition-management">6.7 Partition Management</h3>
+<h3>6.7 Partition Management</h3>
 <p>Monthly partitions for the <code>spins</code> table must be pre-created before the first spin of each new month arrives. The <code>spins_default</code> partition (see §2.2) acts as a safety net when a partition is missing, but rows landing there indicate a management failure and must be investigated.</p>
 <p><strong>Pre-creation schedule:</strong> Run on the 25th of each month to create the following month&#x27;s partition.</p>
 <pre><code class="language-sql">-- Example: run on 2026-05-25 to create the June 2026 partition
@@ -1704,13 +982,9 @@ WHERE relname = &#x27;spins_default&#x27;
   AND n_tup_ins &gt; 0;
 -- Should always return zero rows in correct operation</code></pre>
 <p><strong>Remediation:</strong> When rows are found in <code>spins_default</code>:</p>
-<ol>
-<li>Create the missing monthly partition immediately.</li>
-<li>Move rows from <code>spins_default</code> into the correct partition using <code>INSERT ... SELECT</code> + <code>DELETE</code> within a transaction.</li>
-<li>Investigate and fix the partition pre-creation job.</li>
-</ol>
+<ol><li>Create the missing monthly partition immediately.</li><li>Move rows from <code>spins_default</code> into the correct partition using <code>INSERT ... SELECT</code> + <code>DELETE</code> within a transaction.</li><li>Investigate and fix the partition pre-creation job.</li></ol>
 <hr>
-<h3 id="h-66-buy-feature-session-floor-invariant">6.6 Buy Feature Session Floor Invariant</h3>
+<h3>6.6 Buy Feature Session Floor Invariant</h3>
 <p><strong>Business rule (from BRD §BR-07):</strong> For Buy Feature spins, <code>totalWin &gt;= 20 * baseBet</code>.</p>
 <p><strong>Enforcement:</strong> <code>SessionFloorGuard.applyFloor()</code> compares <code>totalFGWin</code> against <code>floorValue</code> at the end of the FG sequence and adjusts the credited amount. The <code>fg_sessions.floor_value</code> column stores this threshold. The <code>spins.session_floor_applied</code> column records whether the floor was triggered.</p>
 <p><strong>Verification query (reconciliation job):</strong></p>
@@ -1725,14 +999,11 @@ WHERE buy_feature_active = TRUE
 -- Should return zero rows in correct operation
 -- Floor is 20× baseBet for BuyFeature-only; 60× baseBet for ExtraBet+BuyFeature</code></pre>
 <hr>
-<h2 id="h-7-partitioning-and-retention">§7 Partitioning and Retention</h2>
-<h3 id="h-71-spins-table-partitioning">7.1 <code>spins</code> Table Partitioning</h3>
-<p><strong>Strategy:</strong> Range partitioning by <code>created_at</code> (monthly). <strong>Rationale:</strong> Spin volume at 100 RPS sustained = up to ~8.6M rows/day (theoretical maximum). Monthly partitions enable:</p>
-<ul>
-<li>Efficient date-range queries (partition pruning)</li>
-<li>Fast partition drop for retention enforcement</li>
-<li>Online partition maintenance without locking</li>
-</ul>
+<h2>§7 Partitioning and Retention</h2>
+<h3>7.1 <code>spins</code> Table Partitioning</h3>
+<p><strong>Strategy:</strong> Range partitioning by <code>created_at</code> (monthly).</p>
+<p><strong>Rationale:</strong> Spin volume at 100 RPS sustained = up to ~8.6M rows/day (theoretical maximum). Monthly partitions enable:</p>
+<ul><li>Efficient date-range queries (partition pruning)</li><li>Fast partition drop for retention enforcement</li><li>Online partition maintenance without locking</li></ul>
 <p><strong>Retention Policy:</strong> 13 months. After 13 months, drop the oldest partition:</p>
 <pre><code class="language-sql">-- Drop partition older than 13 months (run as monthly cron job)
 -- Example: dropping April 2025 partition in May 2026
@@ -1744,11 +1015,7 @@ CREATE TABLE spins_2026_06 PARTITION OF spins
 <p><strong>Partition Index Ordering (IMPORTANT):</strong></p>
 <p>Partition indexes are created on the parent table BEFORE creating individual partitions, ensuring all future partitions inherit indexes automatically. If adding indexes to an existing partitioned table with existing partitions, run <code>CREATE INDEX</code> on each existing partition individually.</p>
 <p>The correct migration order is:</p>
-<ol>
-<li><code>CREATE TABLE spins PARTITION BY RANGE (created_at)</code> — create parent</li>
-<li><code>CREATE INDEX ... ON spins (...)</code> — define all indexes on parent</li>
-<li><code>CREATE TABLE spins_YYYY_MM PARTITION OF spins ...</code> — create partitions (they inherit indexes)</li>
-</ol>
+<ol><li><code>CREATE TABLE spins PARTITION BY RANGE (created_at)</code> — create parent</li><li><code>CREATE INDEX ... ON spins (...)</code> — define all indexes on parent</li><li><code>CREATE TABLE spins_YYYY_MM PARTITION OF spins ...</code> — create partitions (they inherit indexes)</li></ol>
 <p><strong>Cross-Partition Session Lookup:</strong></p>
 <p>Cross-partition queries by <code>session_id</code> require scanning all partitions since the partition key is <code>created_at</code>. For production use at scale, maintain a supplementary <code>session_spin_lookup(session_id TEXT, spin_id UUID, created_at TIMESTAMPTZ)</code> table to enable O(1) partition targeting. Note: <code>session_id</code> is TEXT (format: <code>sess-{uuid}</code>) to match <code>spins.session_id</code>. This table is populated via trigger on spins INSERT.</p>
 <p><strong>Local indexes on each partition:</strong></p>
@@ -1756,11 +1023,11 @@ CREATE TABLE spins_2026_06 PARTITION OF spins
 -- PostgreSQL 15 propagates index definitions to new partitions automatically</code></pre>
 <p><strong>Partition Lifecycle:</strong></p>
 <p>Partitions older than 12 months are detached and archived to cold storage (e.g., S3 via pg_dump) using a scheduled maintenance job. Detached partitions are dropped after successful archive verification. The parent table always retains the current month + 2 future month partitions pre-created.</p>
-<h3 id="h-72-wallet_transactions-retention">7.2 <code>wallet_transactions</code> Retention</h3>
+<h3>7.2 <code>wallet_transactions</code> Retention</h3>
 <p><strong>Retention:</strong> Forever (regulatory requirement — gambling financial records must be retained indefinitely in most jurisdictions).</p>
 <p><strong>Strategy:</strong> No partitioning in Phase 1. If the table grows beyond 100M rows, apply range partitioning by <code>created_at</code> (annual) without dropping old partitions.</p>
 <p><strong>Archiving (Phase 3+):</strong> Rows older than 7 years may be moved to cold storage (e.g., Supabase Storage as Parquet files) with a summary index retained in the primary table.</p>
-<h3 id="h-73-fg_sessions-cleanup">7.3 <code>fg_sessions</code> Cleanup</h3>
+<h3>7.3 <code>fg_sessions</code> Cleanup</h3>
 <p><strong>TTL-Based Cleanup:</strong> Sessions with <code>status IN (&#x27;PENDING&#x27;, &#x27;ACTIVE&#x27;)</code> and <code>expires_at &lt; NOW()</code> are marked <code>EXPIRED</code> by a scheduled job.</p>
 <p><strong>Cleanup Job (run every 5 minutes):</strong></p>
 <pre><code class="language-sql">UPDATE fg_sessions
@@ -1772,49 +1039,18 @@ WHERE status IN (&#x27;PENDING&#x27;, &#x27;ACTIVE&#x27;)
 DELETE FROM fg_sessions
 WHERE status IN (&#x27;COMPLETE&#x27;, &#x27;EXPIRED&#x27;)
   AND updated_at &lt; NOW() - INTERVAL &#x27;90 days&#x27;;</code></pre>
-<h3 id="h-74-retention-summary">7.4 Retention Summary</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Table</th>
-<th>Partition Strategy</th>
-<th>Retention</th>
-<th>Enforcement</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>players</code></td>
-<td>None</td>
-<td>Forever</td>
-<td>N/A</td>
-</tr>
-<tr>
-<td><code>spins</code></td>
-<td>Monthly range on <code>created_at</code></td>
-<td>13 months</td>
-<td>DROP PARTITION monthly cron</td>
-</tr>
-<tr>
-<td><code>fg_sessions</code></td>
-<td>None</td>
-<td>90 days (COMPLETE/EXPIRED)</td>
-<td>DELETE monthly cron</td>
-</tr>
-<tr>
-<td><code>wallet_transactions</code></td>
-<td>None (annual in Phase 3+)</td>
-<td>Forever</td>
-<td>No deletion</td>
-</tr>
-<tr>
-<td><code>game_config_versions</code></td>
-<td>None</td>
-<td>Forever</td>
-<td>No deletion (audit trail)</td>
-</tr>
-</tbody></table></div>
+<h3>7.4 Retention Summary</h3>
+<table>
+<tr><th>Table</th><th>Partition Strategy</th><th>Retention</th><th>Enforcement</th></tr>
+<tr><td><code>players</code></td><td>None</td><td>Forever</td><td>N/A</td></tr>
+<tr><td><code>spins</code></td><td>Monthly range on <code>created_at</code></td><td>13 months</td><td>DROP PARTITION monthly cron</td></tr>
+<tr><td><code>fg_sessions</code></td><td>None</td><td>90 days (COMPLETE/EXPIRED)</td><td>DELETE monthly cron</td></tr>
+<tr><td><code>wallet_transactions</code></td><td>None (annual in Phase 3+)</td><td>Forever</td><td>No deletion</td></tr>
+<tr><td><code>game_config_versions</code></td><td>None</td><td>Forever</td><td>No deletion (audit trail)</td></tr>
+</table>
 <hr>
-<h2 id="h-8-migration-strategy">§8 Migration Strategy</h2>
-<h3 id="h-81-migration-file-convention">8.1 Migration File Convention</h3>
+<h2>§8 Migration Strategy</h2>
+<h3>8.1 Migration File Convention</h3>
 <p>All schema changes are applied via numbered, sequential migration files:</p>
 <p><strong>001_initial_schema.sql — Object Creation Order (IMPORTANT):</strong></p>
 <p>Objects inside <code>001_initial_schema.sql</code> must be defined in this order:</p>
@@ -1825,7 +1061,7 @@ WHERE status IN (&#x27;COMPLETE&#x27;, &#x27;EXPIRED&#x27;)
 -- 4. Triggers (players_updated_at, fg_sessions_updated_at, etc.)
 -- 5. RLS policies</code></pre>
 <p>The <code>update_updated_at_column()</code> function (defined in §2.3) must appear at the top of the migration file, before any <code>CREATE TABLE</code> or <code>CREATE TRIGGER</code> statement that depends on it, regardless of the section order in this document.</p>
-<pre><code>migrations/
+<pre><code class="">migrations/
 ├── 001_initial_schema.sql         -- All tables, indexes, RLS policies
 ├── 002_add_spins_partitions.sql   -- Monthly spin partitions + spins_default partition
 ├── 003_add_fg_session_trigger.sql -- Status transition trigger
@@ -1844,58 +1080,21 @@ CREATE TABLE spins_2026_05 PARTITION OF spins FOR VALUES FROM (&#x27;2026-05-01&
 CREATE TABLE spins_default PARTITION OF spins DEFAULT;</code></pre>
 <p><strong>Naming:</strong> <code>{NNN}_{description}.sql</code> — three-digit zero-padded sequence number.</p>
 <p><strong>Runner:</strong> Migrations are applied using Supabase CLI (<code>supabase db push</code>) or a custom runner that tracks applied migrations in a <code>schema_migrations</code> table.</p>
-<h3 id="h-82-additive-only-policy">8.2 Additive-Only Policy</h3>
+<h3>8.2 Additive-Only Policy</h3>
 <p>In production, schema migrations follow these rules:</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Operation</th>
-<th>Allowed in Production</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>CREATE TABLE</code></td>
-<td>Yes</td>
-<td>Safe to add new tables</td>
-</tr>
-<tr>
-<td><code>ALTER TABLE ADD COLUMN</code></td>
-<td>Yes (nullable or with DEFAULT)</td>
-<td>Safe for existing rows</td>
-</tr>
-<tr>
-<td><code>CREATE INDEX CONCURRENTLY</code></td>
-<td>Yes</td>
-<td>Avoids locking</td>
-</tr>
-<tr>
-<td><code>CREATE INDEX</code> (non-concurrent)</td>
-<td>Staging/maintenance window only</td>
-<td>Locks table briefly</td>
-</tr>
-<tr>
-<td><code>ALTER TABLE DROP COLUMN</code></td>
-<td>No</td>
-<td>Deprecate first (nullable + app ignores)</td>
-</tr>
-<tr>
-<td><code>DROP TABLE</code></td>
-<td>No</td>
-<td>Archive to cold storage instead</td>
-</tr>
-<tr>
-<td><code>ALTER COLUMN TYPE</code></td>
-<td>No</td>
-<td>Add new column, migrate data, deprecate old</td>
-</tr>
-<tr>
-<td><code>RENAME COLUMN</code></td>
-<td>No</td>
-<td>Add new column, copy data, deprecate old</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Operation</th><th>Allowed in Production</th><th>Notes</th></tr>
+<tr><td><code>CREATE TABLE</code></td><td>Yes</td><td>Safe to add new tables</td></tr>
+<tr><td><code>ALTER TABLE ADD COLUMN</code></td><td>Yes (nullable or with DEFAULT)</td><td>Safe for existing rows</td></tr>
+<tr><td><code>CREATE INDEX CONCURRENTLY</code></td><td>Yes</td><td>Avoids locking</td></tr>
+<tr><td><code>CREATE INDEX</code> (non-concurrent)</td><td>Staging/maintenance window only</td><td>Locks table briefly</td></tr>
+<tr><td><code>ALTER TABLE DROP COLUMN</code></td><td>No</td><td>Deprecate first (nullable + app ignores)</td></tr>
+<tr><td><code>DROP TABLE</code></td><td>No</td><td>Archive to cold storage instead</td></tr>
+<tr><td><code>ALTER COLUMN TYPE</code></td><td>No</td><td>Add new column, migrate data, deprecate old</td></tr>
+<tr><td><code>RENAME COLUMN</code></td><td>No</td><td>Add new column, copy data, deprecate old</td></tr>
+</table>
 <p><strong>Deprecation Period:</strong> Minimum 2 sprint cycles (4 weeks) between column deprecation and removal.</p>
-<h3 id="h-83-zero-downtime-migration-approach">8.3 Zero-Downtime Migration Approach</h3>
+<h3>8.3 Zero-Downtime Migration Approach</h3>
 <p>For columns requiring backfill or type changes, use the expand-migrate-contract pattern:</p>
 <pre><code class="language-sql">-- Phase 1 (Expand): Add new column alongside old
 ALTER TABLE spins ADD COLUMN total_win_v2 DECIMAL(18,2);
@@ -1909,15 +1108,15 @@ UPDATE spins SET total_win_v2 = total_win WHERE total_win_v2 IS NULL
 <p><strong>Index Creation:</strong> Always use <code>CREATE INDEX CONCURRENTLY</code> in production to avoid table locks:</p>
 <pre><code class="language-sql">-- Safe: builds index without locking reads or writes
 CREATE INDEX CONCURRENTLY idx_spins_new_column ON spins (new_column);</code></pre>
-<h3 id="h-84-rollback-strategy">8.4 Rollback Strategy</h3>
+<h3>8.4 Rollback Strategy</h3>
 <p>Each migration file must have a corresponding rollback in comments or a separate <code>{NNN}_rollback.sql</code> file:</p>
 <pre><code class="language-sql">-- 006_add_anomaly_indexes.sql rollback:
 -- DROP INDEX IF EXISTS idx_spins_total_win;
 -- DROP INDEX IF EXISTS idx_spins_fg_triggered;</code></pre>
 <p>For table-level changes that cannot be rolled back safely, a new forward migration (e.g., <code>007_revert_006.sql</code>) is used instead.</p>
 <hr>
-<h2 id="h-9-atomicity-and-transaction-patterns">§9 Atomicity and Transaction Patterns</h2>
-<h3 id="h-91-spin-debitcredit-transaction">9.1 Spin Debit/Credit Transaction</h3>
+<h2>§9 Atomicity and Transaction Patterns</h2>
+<h3>9.1 Spin Debit/Credit Transaction</h3>
 <p>The debit and credit operations are executed inside a <strong>single PostgreSQL transaction</strong> to guarantee atomicity. A single <code>SELECT ... FOR UPDATE</code> at the start locks the player row for both the debit and credit operations, eliminating any risk of a stale <code>balance_before</code> on the credit step.</p>
 <p><code>wallet_transactions.spin_id</code> uses <code>DEFERRABLE INITIALLY DEFERRED</code> (see §2.4 DDL), so the FK check against <code>spins(id)</code> occurs at <code>COMMIT</code> time — after both the DEBIT <code>wallet_transactions</code> row <strong>and</strong> the <code>spins</code> row have been inserted within the same transaction.</p>
 <pre><code class="language-sql">BEGIN;
@@ -1976,30 +1175,14 @@ COMMIT;
 -- FK check on wallet_transactions.spin_id executes here.
 -- Both DEBIT and CREDIT wallet_transactions rows now reference the committed spins row.</code></pre>
 <p><strong>Key properties of this pattern:</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Property</th>
-<th>Detail</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Single lock</td>
-<td><code>SELECT ... FOR UPDATE</code> in Step 1 covers both debit and credit — no risk of stale <code>balance_before</code> on the credit INSERT</td>
-</tr>
-<tr>
-<td>Deferred FK</td>
-<td><code>wallet_transactions.spin_id</code> FK is <code>DEFERRABLE INITIALLY DEFERRED</code>; checked only at <code>COMMIT</code> after the <code>spins</code> row exists</td>
-</tr>
-<tr>
-<td>Atomicity</td>
-<td>If any step fails (engine timeout, constraint violation, etc.), the entire transaction rolls back — no partial debit without matching credit</td>
-</tr>
-<tr>
-<td>Engine timeout</td>
-<td>Engine call in Step 4 holds an open transaction. Set <code>SET LOCAL statement_timeout = &#x27;5000ms&#x27;</code> to bound lock-hold duration. If the engine times out, fall through to the COMPENSATE pattern in §9.2</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-92-engine-timeout-compensation-arch-6">9.2 Engine Timeout Compensation (ARCH §6)</h3>
+<table>
+<tr><th>Property</th><th>Detail</th></tr>
+<tr><td>Single lock</td><td><code>SELECT ... FOR UPDATE</code> in Step 1 covers both debit and credit — no risk of stale <code>balance_before</code> on the credit INSERT</td></tr>
+<tr><td>Deferred FK</td><td><code>wallet_transactions.spin_id</code> FK is <code>DEFERRABLE INITIALLY DEFERRED</code>; checked only at <code>COMMIT</code> after the <code>spins</code> row exists</td></tr>
+<tr><td>Atomicity</td><td>If any step fails (engine timeout, constraint violation, etc.), the entire transaction rolls back — no partial debit without matching credit</td></tr>
+<tr><td>Engine timeout</td><td>Engine call in Step 4 holds an open transaction. Set <code>SET LOCAL statement_timeout = &#x27;5000ms&#x27;</code> to bound lock-hold duration. If the engine times out, fall through to the COMPENSATE pattern in §9.2</td></tr>
+</table>
+<h3>9.2 Engine Timeout Compensation (ARCH §6)</h3>
 <p>When the spin engine times out after the wallet has already been debited:</p>
 <pre><code class="language-sql">BEGIN;
 
@@ -2023,37 +1206,16 @@ VALUES
 
 COMMIT;</code></pre>
 <hr>
-<h2 id="h-10-observability-and-monitoring">§10 Observability and Monitoring</h2>
-<h3 id="h-101-key-db-metrics-to-monitor">10.1 Key DB Metrics to Monitor</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Metric</th>
-<th>Alert Threshold</th>
-<th>Query</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Wallet balance discrepancies</td>
-<td>Any</td>
-<td>Reconciliation job: compare sum of wallet_transactions vs players.balance</td>
-</tr>
-<tr>
-<td>Orphaned FG sessions</td>
-<td>&gt; 10 per hour</td>
-<td><code>SELECT COUNT(*) FROM fg_sessions WHERE status=&#x27;ACTIVE&#x27; AND expires_at &lt; NOW()</code></td>
-</tr>
-<tr>
-<td>Compensating transactions</td>
-<td>&gt; 0 per hour</td>
-<td><code>SELECT COUNT(*) FROM wallet_transactions WHERE tx_type = &#x27;COMPENSATE&#x27;</code></td>
-</tr>
-<tr>
-<td>Negative balance attempts</td>
-<td>Any</td>
-<td>Caught by CHECK constraint; alert on <code>pg_stat_activity</code> errors</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-102-daily-reconciliation-job">10.2 Daily Reconciliation Job</h3>
+<h2>§10 Observability and Monitoring</h2>
+<h3>10.1 Key DB Metrics to Monitor</h3>
+<table>
+<tr><th>Metric</th><th>Alert Threshold</th><th>Query</th></tr>
+<tr><td>Wallet balance discrepancies</td><td>Any</td><td>Reconciliation job: compare sum of wallet_transactions vs players.balance</td></tr>
+<tr><td>Orphaned FG sessions</td><td>&gt; 10 per hour</td><td><code>SELECT COUNT(*) FROM fg_sessions WHERE status=&#x27;ACTIVE&#x27; AND expires_at &lt; NOW()</code></td></tr>
+<tr><td>Compensating transactions</td><td>&gt; 0 per hour</td><td><code>SELECT COUNT(*) FROM wallet_transactions WHERE tx_type = &#x27;COMPENSATE&#x27;</code></td></tr>
+<tr><td>Negative balance attempts</td><td>Any</td><td>Caught by CHECK constraint; alert on <code>pg_stat_activity</code> errors</td></tr>
+</table>
+<h3>10.2 Daily Reconciliation Job</h3>
 <pre><code class="language-sql">-- Verify wallet balance integrity: players.balance should equal sum of credits minus debits
 SELECT
     p.id,
@@ -2076,42 +1238,23 @@ HAVING ABS(
     )
 ) &gt; 0.01;  -- Alert if discrepancy &gt; $0.01</code></pre>
 <hr>
-<p><em>End of SCHEMA.md — Thunder Blessing Slot Game</em></p>
-      </article>
-    </main>
+<p><em>End of SCHEMA.md — Thunder Blessing Slot Game</em></p></main>
   </div>
-
-  <footer class="site-footer">
-    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
-    <span>SCHEMA — Database Schema</span>
-    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
-  </footer>
-
-  <script>
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const isOpen  = sidebar.classList.toggle('open');
-      overlay.classList.toggle('active', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      themeVariables: {
-        background:         '#1a2032',
-        primaryColor:       '#1e2535',
-        primaryBorderColor: '#2a3347',
-        primaryTextColor:   '#e2e8f0',
-        lineColor:          '#f6ad55',
-        secondaryColor:     '#161b27',
-        tertiaryColor:      '#0f1117',
-        edgeLabelBackground:'#1a2032',
-        clusterBkg:         '#1a2032',
-        titleColor:         '#f6ad55',
-      }
-    });
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>

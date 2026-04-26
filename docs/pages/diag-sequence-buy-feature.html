@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>循序圖：Buy Feature — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
+      </div>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 循序圖：Buy Feature</p>
+    <h1 class="banner-title">循序圖：Buy Feature</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link active" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><hr>
+<p>diagram: sequence-buy-feature</p>
+<p>uml-type: sequence</p>
+<p>source: EDD.md §4.5.6, §5.7, §6.1; ARCH.md §3.3, §5.1</p>
+<p>generated: 2026-04-26T00:00:00Z</p>
+<hr>
+<h1>Sequence Diagram — POST /v1/spin with buyFeature=true</h1>
+<blockquote><p>來源：EDD.md §4.5.6 Buy Feature Sequence, §5.7 Session Floor, §6.1 Endpoints; ARCH.md §3.3 Component Inventory</p></blockquote>
+<div class="diagram-container"><pre class="mermaid">sequenceDiagram
+    autonumber
+
+    participant Client as Client (Frontend)
+    participant Fastify as Fastify Router
+    participant JwtAuthGuard as JwtAuthGuard
+    participant BuyFeatureUseCase as BuyFeatureUseCase
+    participant SpinUseCase as SpinUseCase
+    participant LockGuard as ConcurrencyLockGuard
+    participant FloorGuard as SessionFloorGuard
+    participant Redis as UpstashCacheAdapter (Redis)
+    participant WalletRepo as SupabaseWalletRepository
+    participant SlotEngine as SlotEngine
+    participant CoinToss as CoinTossEvaluator
+    participant FGOrch as FreeGameOrchestrator
+    participant SessionRepo as SupabaseSessionRepository
+    participant SupaDB as Supabase PostgreSQL
+
+    Client->>Fastify: POST /v1/spin {Authorization: Bearer <token>, playerId: "b1c2d3e4...", betLevel: 100, buyFeature: true, extraBet: false, currency: "USD"}
+    Fastify->>JwtAuthGuard: verify(token)
+    JwtAuthGuard-->>Fastify: PlayerClaims {playerId: "b1c2d3e4...", role: "player"}
+
+    Fastify->>BuyFeatureUseCase: execute(BuyFeatureRequest {playerId: "b1c2d3e4...", betLevel: 100, currency: "USD"})
+
+    BuyFeatureUseCase->>LockGuard: acquire("sess-buyfeature-001")
+    LockGuard->>Redis: SET session:sess-buyfeature-001:lock {lockToken="lock-bf-001"} NX EX 10
+    Redis-->>LockGuard: OK
+    LockGuard-->>BuyFeatureUseCase: lockToken = "lock-bf-001"
+
+    BuyFeatureUseCase->>WalletRepo: getBalance("b1c2d3e4...", "USD")
+    WalletRepo->>SupaDB: SELECT balance FROM wallets WHERE player_id='b1c2d3e4...' FOR UPDATE
+    SupaDB-->>WalletRepo: balance = 2500.00
+    WalletRepo-->>BuyFeatureUseCase: 2500.00
+
+    Note over BuyFeatureUseCase: Buy Feature cost = 100 × baseBet = 100 × 1.00 = 100.00 USD
+    Note over BuyFeatureUseCase: Validate: 2500.00 >= 100.00 → OK
+    Note over BuyFeatureUseCase: Session floor = max(totalFGWin, 20 × baseBet) = max(?, 20.00)
+
+    BuyFeatureUseCase->>WalletRepo: debit("b1c2d3e4...", amount=100.00, "USD")
+    WalletRepo->>SupaDB: UPDATE wallets SET balance=2400.00; INSERT wallet_transactions DEBIT 100.00
+    SupaDB-->>WalletRepo: OK
+    WalletRepo-->>BuyFeatureUseCase: void
+
+    Note over BuyFeatureUseCase: Configure guaranteed Heads×5 — override coinProbs to [1.0, 1.0, 1.0, 1.0, 1.0] for this session
+
+    BuyFeatureUseCase->>Redis: SET session:sess-buyfeature-001 {status="FG_ACTIVE", floorValue=20.00, buyFeature=true, fgMultiplier=3, baseBet=1.00, guaranteedHeads=true} EX 300
+    Redis-->>BuyFeatureUseCase: OK
+
+    BuyFeatureUseCase->>SlotEngine: spin(SpinRequest {baseBet=1.00, buyFeature=true, guaranteedHeads=true})
+    SlotEngine->>SlotEngine: generateGrid(config, extraBet=false)
+
+    SlotEngine->>CoinToss: evaluate(rng=ANY, config.coinToss, stage=0) with guaranteed Heads override
+    Note over CoinToss: buyFeature=true → coinProb[stage] forced to 1.0 (guaranteed Heads×5)
+    CoinToss-->>SlotEngine: HEADS → fgMultiplier=3 (1st Heads)
+
+    SlotEngine->>FGOrch: runSequence(fgSession{multiplier=3, floorValue=20.00, guaranteedHeads=true}, config)
+
+    %% 5 guaranteed rounds
+    loop 5 FG Rounds (all guaranteed Heads until 5th, then Tails)
+        FGOrch->>SlotEngine: spin FGRound[n] (baseBet=1.00, fgMultiplier=currentMultiplier)
+        SlotEngine-->>FGOrch: CascadeSequence {totalWin: roundWin}
+        FGOrch->>CoinToss: evaluate(rng=ANY, config.coinToss, stage=n) — guaranteed Heads until round 4
+        alt n < 4 — still guaranteed Heads
+            CoinToss-->>FGOrch: HEADS → advance multiplier (3→7→17→27→77)
+        else n = 4 — 5th coin toss, guaranteed Tails to end sequence
+            CoinToss-->>FGOrch: TAILS → FG sequence ends
+        end
+        FGOrch->>Redis: HSET session:... fgRound=(n+1) fgMultiplier=(next) totalFGWin=(accumulated); EXPIRE 300
+    end
+
+    Note over FGOrch: FG Results: Round0=2.40(×3), Round1=5.60(×7), Round2=8.50(×17), Round3=4.20(×27), Round4=11.00(×77)
+    Note over FGOrch: Sum before bonus = 2.40+5.60+8.50+4.20+11.00 = 31.70
+    FGOrch->>FGOrch: drawBonusMultiplier(fgBonusWeights) → rng=0.63 → FGBonusMultiplier.X1
+    Note over FGOrch: totalFGWin = 31.70 × bonusMultiplier(1) = 31.70
+
+    FGOrch-->>SlotEngine: FreeGameSession {totalFGWin=31.70, bonusMultiplier=1, rounds:[5 FGRound], isComplete=true}
+    SlotEngine-->>BuyFeatureUseCase: SpinEntity {totalWin=31.70, fgTriggered=true, fgMultiplier=77, fgBonusMultiplier=1}
+
+    %% Session Floor Check
+    BuyFeatureUseCase->>FloorGuard: applyFloor(totalFGWin=31.70, baseBet=1.00)
+    FloorGuard->>FloorGuard: computeFloorValue(1.00) → 20.00; isFloorActive: 31.70 >= 20.00 → floor NOT triggered
+    FloorGuard-->>BuyFeatureUseCase: adjustedWin = 31.70 (floor not applied since 31.70 >= 20.00)
+    Note over BuyFeatureUseCase: sessionFloorApplied = false (totalFGWin 31.70 >= floor 20.00)
+
+    Note over BuyFeatureUseCase: Example where floor IS triggered — if totalFGWin were 12.50 < 20.00, then adjustedWin = 20.00 and sessionFloorApplied = true
+
+    BuyFeatureUseCase->>WalletRepo: credit("b1c2d3e4...", amount=31.70, "USD")
+    WalletRepo->>SupaDB: UPDATE wallets SET balance=2431.70; INSERT wallet_transactions CREDIT 31.70
+    SupaDB-->>WalletRepo: OK
+
+    BuyFeatureUseCase->>FloorGuard: isFloorActive(session) → check if floor was applied
+    FloorGuard-->>BuyFeatureUseCase: false
+
+    BuyFeatureUseCase->>SessionRepo: save(spinLog with buyFeature outcome)
+    SessionRepo->>SupaDB: INSERT spin_logs {outcome_jsonb: {buyFeature:true, fgRounds:[5], totalWin:31.70, sessionFloorApplied:false}}
+    SupaDB-->>SessionRepo: OK
+
+    BuyFeatureUseCase->>Redis: DEL session:sess-buyfeature-001
+    Redis-->>BuyFeatureUseCase: OK
+
+    BuyFeatureUseCase->>LockGuard: release("sess-buyfeature-001", "lock-bf-001")
+    LockGuard->>Redis: DEL session:sess-buyfeature-001:lock
+    Redis-->>LockGuard: OK
+
+    BuyFeatureUseCase-->>Fastify: FullSpinOutcomeDTO {totalWin=31.70, fgTriggered=true, fgMultiplier=77, fgRounds:[FGRoundDTO×5], fgBonusMultiplier=1, sessionFloorApplied=false, buyFeature=true}
+
+    Fastify-->>Client: 200 OK {success:true, data: FullSpinOutcomeDTO, requestId:"req-bf-001"}</pre></div></main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

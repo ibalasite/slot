@@ -1,2589 +1,637 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUDIO — Audio Design — Thunder Blessing GDD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <style>
-    :root {
-      --bg-primary:     #0f1117;
-      --bg-secondary:   #161b27;
-      --bg-tertiary:    #1e2535;
-      --bg-card:        #1a2032;
-      --border:         #2a3347;
-      --text-primary:   #e2e8f0;
-      --text-secondary: #94a3b8;
-      --text-muted:     #64748b;
-      --accent:         #f6ad55;
-      --accent-dim:     #c27d30;
-      --accent-glow:    rgba(246,173,85,0.15);
-      --green:          #4ade80;
-      --blue:           #60a5fa;
-      --purple:         #a78bfa;
-      --red:            #f87171;
-      --sidebar-width:  260px;
-      --header-height:  60px;
-      --font-sans:      'Inter', system-ui, sans-serif;
-      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
-      --radius:         8px;
-      --radius-lg:      12px;
-      --duration-fast:  150ms;
-      --ease-out:       cubic-bezier(0.16,1,0.3,1);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.7;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header */
-    .site-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--header-height);
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 16px;
-      z-index: 100;
-    }
-
-    .header-logo {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: var(--accent);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .header-title {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      border-left: 1px solid var(--border);
-      padding-left: 16px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-back {
-      margin-left: auto;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      transition: all var(--duration-fast);
-      white-space: nowrap;
-    }
-
-    .header-back:hover {
-      color: var(--accent);
-      border-color: var(--accent-dim);
-      background: var(--accent-glow);
-    }
-
-    .menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-    }
-
-    .menu-toggle:hover { background: var(--bg-tertiary); }
-
-    /* Layout */
-    .layout {
-      display: flex;
-      margin-top: var(--header-height);
-      min-height: calc(100vh - var(--header-height));
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: var(--header-height);
-      left: 0; bottom: 0;
-      overflow-y: auto;
-      padding: 20px 0;
-      transition: transform var(--duration-fast) var(--ease-out);
-      z-index: 90;
-    }
-
-    .sidebar::-webkit-scrollbar { width: 4px; }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .nav-section-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      padding: 12px 20px 6px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 20px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.85rem;
-      border-left: 2px solid transparent;
-      transition: all var(--duration-fast);
-    }
-
-    .nav-link:hover {
-      color: var(--text-primary);
-      background: var(--accent-glow);
-      border-left-color: var(--accent-dim);
-    }
-
-    .nav-link.active {
-      color: var(--accent);
-      background: var(--accent-glow);
-      border-left-color: var(--accent);
-      font-weight: 500;
-    }
-
-    /* Main content */
-    .main {
-      margin-left: var(--sidebar-width);
-      flex: 1;
-      padding: 40px 48px;
-      max-width: 920px;
-    }
-
-    /* Page heading */
-    .page-title {
-      font-size: clamp(1.6rem, 2.5vw, 2rem);
-      font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.25;
-    }
-
-    .page-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .page-meta span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Markdown content */
-    .md-content h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 40px 0 16px;
-      color: var(--text-primary);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content h1:first-child { margin-top: 0; }
-
-    .md-content h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 36px 0 14px;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .md-content h2::before {
-      content: '';
-      display: block;
-      width: 3px;
-      height: 16px;
-      background: var(--accent);
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
-    .md-content h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 28px 0 10px;
-      color: var(--text-primary);
-    }
-
-    .md-content h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 20px 0 8px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.82rem;
-    }
-
-    .md-content p {
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    .md-content a:hover { text-decoration: underline; }
-
-    .md-content strong { color: var(--text-primary); font-weight: 600; }
-    .md-content em     { color: var(--text-secondary); font-style: italic; }
-
-    /* Inline code */
-    .md-content code {
-      font-family: var(--font-mono);
-      font-size: 0.82em;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1px 5px;
-      color: var(--accent);
-    }
-
-    /* Code blocks */
-    .md-content pre {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content pre code {
-      background: none;
-      border: none;
-      padding: 0;
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    /* Mermaid */
-    .mermaid-wrap {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin: 16px 0;
-      overflow-x: auto;
-    }
-
-    /* Tables */
-    .table-wrap {
-      overflow-x: auto;
-      margin: 16px 0;
-    }
-
-    .md-content table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .md-content table th {
-      text-align: left;
-      padding: 8px 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-muted);
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md-content table td {
-      padding: 9px 12px;
-      border-bottom: 1px solid rgba(42,51,71,0.5);
-      color: var(--text-secondary);
-      vertical-align: top;
-    }
-
-    .md-content table tr:last-child td { border-bottom: none; }
-    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
-
-    /* Lists */
-    .md-content ul, .md-content ol {
-      padding-left: 20px;
-      margin-bottom: 14px;
-      color: var(--text-secondary);
-    }
-
-    .md-content li { margin-bottom: 5px; }
-    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
-
-    /* Blockquotes */
-    .md-content blockquote {
-      border-left: 3px solid var(--accent-dim);
-      padding: 10px 16px;
-      background: rgba(246,173,85,0.06);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      margin: 16px 0;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    .md-content blockquote p { margin-bottom: 0; }
-
-    /* HR */
-    .md-content hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 28px 0;
-    }
-
-    /* Footer */
-    .site-footer {
-      margin-left: var(--sidebar-width);
-      border-top: 1px solid var(--border);
-      padding: 18px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .footer-accent { color: var(--accent); font-weight: 600; }
-
-    /* Sidebar overlay */
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 89;
-    }
-
-    .sidebar-overlay.active { display: block; }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
-      .main { margin-left: 0; padding: 24px 16px; }
-      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
-      .menu-toggle { display: flex; }
-      .header-title { display: none; }
-    }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>音效設計文件 — slot</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
-
-  <header class="site-header">
-    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6"  x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
-    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
-    <span class="header-title">AUDIO — Audio Design</span>
-    <a href="index.html" class="header-back">← Docs Hub</a>
-  </header>
-
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-  <div class="layout">
-    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
-      <div class="nav-section-label">Business</div>
-<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
-<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
-<div class="nav-section-label">Design</div>
-<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
-<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
-<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
-<a href="AUDIO.html" class="nav-link active"><span>🔊</span><span>AUDIO — Audio Design</span></a>
-<div class="nav-section-label">Engineering</div>
-<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
-<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
-<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
-<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
-<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
-<div class="nav-section-label">Testing</div>
-<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
-<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
-<div class="nav-section-label">Operations</div>
-<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
-<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
-    </nav>
-
-    <main class="main" id="main">
-      <div class="page-meta">
-        <span>🔊 Design</span>
-        <span>Source: <code>AUDIO.md</code></span>
-        <span>Generated: 2026-04-26</span>
+  <header class="top-nav">
+    <a href="index.html" class="nav-brand">slot</a>
+    <div class="nav-controls">
+      <div class="search-wrap">
+        <input class="search-input" type="search" placeholder="搜尋文件...">
+        <div class="search-results"></div>
       </div>
-      <article class="md-content">
-        <h1 id="audiomd-audio-design-document">AUDIO.md — Audio Design Document</h1>
-<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+      
+      <button class="sidebar-toggle" id="sidebarToggle" title="收合/展開側欄">☰</button>
+    </div>
+  </header>
+  <div class="doc-page-banner">
+    <p class="banner-breadcrumb"><a href="index.html">slot</a> › 音效設計文件</p>
+    <h1 class="banner-title">音效設計文件</h1>
+  </div>
+  <div class="page-wrapper">
+    <aside class="sidebar" aria-label="文件導覽">
+      <div class="sidebar__section">
+<div class="sidebar__label">文件</div>
+<a class="sidebar__link" href="index.html">🏠 首頁</a>
+<a class="sidebar__link" href="idea.html">💡 構想文件 (IDEA)</a>
+<a class="sidebar__link" href="brd.html">📋 商業需求文件 (BRD)</a>
+<a class="sidebar__link" href="prd.html">📝 產品需求文件 (PRD)</a>
+<a class="sidebar__link" href="pdd.html">🎨 產品設計文件 (PDD)</a>
+<a class="sidebar__link" href="vdd.html">🖼️ 視覺設計文件 (VDD)</a>
+<a class="sidebar__link" href="constants.html">🔢 遊戲常數 (CONSTANTS)</a>
+<a class="sidebar__link" href="edd.html">🏗️ 工程設計文件 (EDD)</a>
+<a class="sidebar__link" href="arch.html">🧩 架構設計</a>
+<a class="sidebar__link" href="api.html">🔌 API 文件</a>
+<a class="sidebar__link" href="schema.html">🗄️ Schema 文件</a>
+<a class="sidebar__link" href="frontend.html">🖥️ 前端設計文件</a>
+<a class="sidebar__link active" href="audio.html">🔊 音效設計文件</a>
+<a class="sidebar__link" href="anim.html">🎬 動畫特效文件</a>
+<a class="sidebar__link" href="test-plan.html">✅ 測試計畫 (Test Plan)</a>
+<a class="sidebar__link" href="runbook.html">📖 Runbook</a>
+<a class="sidebar__link" href="local_deploy.html">🚀 本地部署指南</a>
+<a class="sidebar__link" href="rtm.html">🗂️ 需求追蹤矩陣 (RTM)</a>
+<a class="sidebar__link" href="align_report.html">🔍 對齊報告</a>
+<a class="sidebar__link" href="bdd-server.html">🧪 Server BDD</a>
+<a class="sidebar__link" href="bdd-client.html">🧪 Client BDD</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">Server UML</div>
+<a class="sidebar__link" href="diag-activity-cascade.html">📐 Activity Cascade</a>
+<a class="sidebar__link" href="diag-activity-spin.html">📊 活動圖：Spin 主流程</a>
+<a class="sidebar__link" href="diag-activity-toolchain.html">📐 Activity Toolchain</a>
+<a class="sidebar__link" href="diag-class-application.html">⚙️ 類別圖：應用層</a>
+<a class="sidebar__link" href="diag-class-domain.html">🗂️ 類別圖：領域模型</a>
+<a class="sidebar__link" href="diag-class-infra-presentation.html">🗄️ 類別圖：基礎+展示</a>
+<a class="sidebar__link" href="diag-communication.html">🤝 協作圖</a>
+<a class="sidebar__link" href="diag-component.html">🧩 元件圖</a>
+<a class="sidebar__link" href="diag-deployment.html">☁️ 部署圖</a>
+<a class="sidebar__link" href="diag-object-snapshot.html">📸 物件圖：快照</a>
+<a class="sidebar__link" href="diag-sequence-buy-feature.html">💰 循序圖：Buy Feature</a>
+<a class="sidebar__link" href="diag-sequence-reconnect.html">📐 Sequence Reconnect</a>
+<a class="sidebar__link" href="diag-sequence-spin-error.html">📐 Sequence Spin Error</a>
+<a class="sidebar__link" href="diag-sequence-spin-fg.html">📐 Sequence Spin Fg</a>
+<a class="sidebar__link" href="diag-sequence-spin-happy.html">📐 Sequence Spin Happy</a>
+<a class="sidebar__link" href="diag-state-machine-coingame.html">📐 State Machine Coingame</a>
+<a class="sidebar__link" href="diag-state-machine-fgsession.html">📐 State Machine Fgsession</a>
+<a class="sidebar__link" href="diag-state-machine-spin.html">📐 State Machine Spin</a>
+<a class="sidebar__link" href="diag-use-case.html">👤 用例圖 (Use Case)</a>
+</div>
+<div class="sidebar__section">
+<div class="sidebar__label">原始素材</div>
+<a class="sidebar__link" href="req.html">📎 req/ 素材清單</a>
+</div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer"></div>
+    <main class="doc-content"><h1>AUDIO.md — Audio Design Document</h1>
+<h1>Thunder Blessing Slot Game</h1>
 <hr>
-<h2 id="h-0-document-control">§0 Document Control</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Field</th>
-<th>Content</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>DOC-ID</strong></td>
-<td>AUDIO-THUNDERBLESSING-20260426</td>
-</tr>
-<tr>
-<td><strong>Product</strong></td>
-<td>Thunder Blessing Slot Game</td>
-</tr>
-<tr>
-<td><strong>Version</strong></td>
-<td>v1.0</td>
-</tr>
-<tr>
-<td><strong>Status</strong></td>
-<td>DRAFT</td>
-</tr>
-<tr>
-<td><strong>Author</strong></td>
-<td>AI Generated (gendoc D10b-AUDIO)</td>
-</tr>
-<tr>
-<td><strong>Date</strong></td>
-<td>2026-04-26</td>
-</tr>
-<tr>
-<td><strong>Upstream Documents</strong></td>
-<td>FRONTEND.md v1.0, EDD.md v1.3, PRD.md v0.1, VDD.md v1.0</td>
-</tr>
-<tr>
-<td><strong>Reviewers</strong></td>
-<td>Audio Lead, Frontend Engineer Lead, QA Lead</td>
-</tr>
-<tr>
-<td><strong>Approver</strong></td>
-<td>Art Director, Engineering Lead</td>
-</tr>
-</tbody></table></div>
-<h3 id="change-log">Change Log</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Version</th>
-<th>Date</th>
-<th>Author</th>
-<th>Summary</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>v1.0</td>
-<td>2026-04-26</td>
-<td>AI Generated</td>
-<td>Initial generation covering all 7 sections</td>
-</tr>
-</tbody></table></div>
+<h2>§0 Document Control</h2>
+<table>
+<tr><th>Field</th><th>Content</th></tr>
+<tr><td><strong>DOC-ID</strong></td><td>AUDIO-THUNDERBLESSING-20260426</td></tr>
+<tr><td><strong>Product</strong></td><td>Thunder Blessing Slot Game</td></tr>
+<tr><td><strong>Version</strong></td><td>v1.0</td></tr>
+<tr><td><strong>Status</strong></td><td>DRAFT</td></tr>
+<tr><td><strong>Author</strong></td><td>AI Generated (gendoc D10b-AUDIO)</td></tr>
+<tr><td><strong>Date</strong></td><td>2026-04-26</td></tr>
+<tr><td><strong>Upstream Documents</strong></td><td>FRONTEND.md v1.0, EDD.md v1.3, PRD.md v0.1, VDD.md v1.0</td></tr>
+<tr><td><strong>Reviewers</strong></td><td>Audio Lead, Frontend Engineer Lead, QA Lead</td></tr>
+<tr><td><strong>Approver</strong></td><td>Art Director, Engineering Lead</td></tr>
+</table>
+<h3>Change Log</h3>
+<table>
+<tr><th>Version</th><th>Date</th><th>Author</th><th>Summary</th></tr>
+<tr><td>v1.0</td><td>2026-04-26</td><td>AI Generated</td><td>Initial generation covering all 7 sections</td></tr>
+</table>
 <hr>
-<h2 id="h-1-audio-design-overview">§1 Audio Design Overview</h2>
-<h3 id="h-11-thematic-direction">1.1 Thematic Direction</h3>
+<h2>§1 Audio Design Overview</h2>
+<h3>1.1 Thematic Direction</h3>
 <p>Thunder Blessing is set in the world of Greek mythology — the domain of Zeus, divine lightning, and eternal triumph. The audio design reinforces three emotional registers:</p>
-<ol>
-<li><strong>Divine Power</strong> — Zeus presides over the game world. BGM carries orchestral gravitas with choir elements, evoking the grandeur of Mount Olympus. Thunder and lightning SFX use naturalistic yet stylized crack-and-rumble layers rather than synthetic presets.</li>
-</ol>
-<ol>
-<li><strong>Electric Tension</strong> — Lightning Marks and Cascade chains drive sustained excitement. SFX for mark accumulation escalate in pitch and harmonic density as the count rises, reinforcing the visual counter&#x27;s color threshold transitions (1–2 marks → 3–4 marks → 5+ marks, per VDD §5.1 / FRONTEND.md §3.3).</li>
-</ol>
-<ol>
-<li><strong>Epic Triumph</strong> — Free Game and Thunder Blessing climaxes demand full orchestral and electronic fusion. The ×77 multiplier and Max Win states push into wall-of-sound territory — layered choir, distorted electric strings, and coin/thunder sound signatures.</li>
-</ol>
-<h3 id="h-12-audio-categories">1.2 Audio Categories</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Category</th>
-<th>Prefix</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Background Music</td>
-<td><code>BGM_</code></td>
-<td>Looping adaptive tracks; state-based transitions</td>
-</tr>
-<tr>
-<td>Sound Effects</td>
-<td><code>SFX_</code></td>
-<td>Non-looping event-driven sounds; all game interactions</td>
-</tr>
-<tr>
-<td>UI Sounds</td>
-<td><code>SFX_UI_</code></td>
-<td>Sub-category for low-intensity interface feedback</td>
-</tr>
-<tr>
-<td>Voice / Announcer</td>
-<td><code>VO_</code></td>
-<td>Optional announcer callouts for major events (Big Win, FG entry). Deferred to v1.1 unless budget allows.</td>
-</tr>
-</tbody></table></div>
+<ol><li><strong>Divine Power</strong> — Zeus presides over the game world. BGM carries orchestral gravitas with choir elements, evoking the grandeur of Mount Olympus. Thunder and lightning SFX use naturalistic yet stylized crack-and-rumble layers rather than synthetic presets.</li></ol>
+<ol><li><strong>Electric Tension</strong> — Lightning Marks and Cascade chains drive sustained excitement. SFX for mark accumulation escalate in pitch and harmonic density as the count rises, reinforcing the visual counter&#x27;s color threshold transitions (1–2 marks → 3–4 marks → 5+ marks, per VDD §5.1 / FRONTEND.md §3.3).</li></ol>
+<ol><li><strong>Epic Triumph</strong> — Free Game and Thunder Blessing climaxes demand full orchestral and electronic fusion. The ×77 multiplier and Max Win states push into wall-of-sound territory — layered choir, distorted electric strings, and coin/thunder sound signatures.</li></ol>
+<h3>1.2 Audio Categories</h3>
+<table>
+<tr><th>Category</th><th>Prefix</th><th>Description</th></tr>
+<tr><td>Background Music</td><td><code>BGM_</code></td><td>Looping adaptive tracks; state-based transitions</td></tr>
+<tr><td>Sound Effects</td><td><code>SFX_</code></td><td>Non-looping event-driven sounds; all game interactions</td></tr>
+<tr><td>UI Sounds</td><td><code>SFX_UI_</code></td><td>Sub-category for low-intensity interface feedback</td></tr>
+<tr><td>Voice / Announcer</td><td><code>VO_</code></td><td>Optional announcer callouts for major events (Big Win, FG entry). Deferred to v1.1 unless budget allows.</td></tr>
+</table>
 <blockquote><p><strong>Voice/Announcer status</strong>: VO lines are architecturally supported via the <code>SFX</code> category path but are out of scope for v1.0 MVP. Placeholder IDs (<code>VO_BIG_WIN</code>, <code>VO_FG_ENTER</code>, etc.) are reserved in the naming convention.</p></blockquote>
-<h3 id="h-13-technical-constraints">1.3 Technical Constraints</h3>
+<h3>1.3 Technical Constraints</h3>
 <p>All audio runs through the <strong>Web Audio API</strong> as implemented in <code>AudioManager</code> (FRONTEND.md §7.1):</p>
-<ul>
-<li><code>AudioContext</code> is created on first user gesture (mobile unlock requirement — §7.4).</li>
-<li>Per-category <code>GainNode</code> routing: <code>BGM → gainNodes.BGM → destination</code>; <code>SFX → gainNodes.SFX → destination</code>.</li>
-<li>BGM crossfade uses <code>linearRampToValueAtTime</code> over a configurable duration window.</li>
-<li>All audio files must be <strong>preloaded</strong> via <code>AudioManager.preload(soundId, url)</code> before playback. Files are loaded as <code>ArrayBuffer</code> → <code>decodeAudioData</code> → <code>AudioBuffer</code>.</li>
-<li>Playback is non-blocking: <code>AudioManager.play()</code> is synchronous; crossfades are async via <code>crossfadeBGM()</code>.</li>
-<li>Mobile constraint: on iOS Safari 14+ and Chrome for Android 90+, <code>AudioContext</code> creation is gated behind a user gesture (see §6.2 for the unlock pattern).</li>
-</ul>
-<h3 id="h-14-adaptive-audio-strategy">1.4 Adaptive Audio Strategy</h3>
+<ul><li><code>AudioContext</code> is created on first user gesture (mobile unlock requirement — §7.4).</li><li>Per-category <code>GainNode</code> routing: <code>BGM → gainNodes.BGM → destination</code>; <code>SFX → gainNodes.SFX → destination</code>.</li><li>BGM crossfade uses <code>linearRampToValueAtTime</code> over a configurable duration window.</li><li>All audio files must be <strong>preloaded</strong> via <code>AudioManager.preload(soundId, url)</code> before playback. Files are loaded as <code>ArrayBuffer</code> → <code>decodeAudioData</code> → <code>AudioBuffer</code>.</li><li>Playback is non-blocking: <code>AudioManager.play()</code> is synchronous; crossfades are async via <code>crossfadeBGM()</code>.</li><li>Mobile constraint: on iOS Safari 14+ and Chrome for Android 90+, <code>AudioContext</code> creation is gated behind a user gesture (see §6.2 for the unlock pattern).</li></ul>
+<h3>1.4 Adaptive Audio Strategy</h3>
 <p>The audio layer mirrors the game state machine defined in FRONTEND.md §4.2. Each major state transition triggers a BGM transition (crossfade or hard-cut) and activates or deactivates specific SFX layers:</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Game State</th>
-<th>BGM Track</th>
-<th>SFX Layer Active</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>IDLE</code></td>
-<td><code>BGM_MAIN</code></td>
-<td>UI sounds only</td>
-</tr>
-<tr>
-<td><code>SPINNING</code></td>
-<td><code>BGM_MAIN</code> (continues)</td>
-<td>Spin start, reel stop SFX</td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>BGM_MAIN</code> (continues; or <code>BGM_ANTICIPATION</code> when all 4 FREE letters lit)</td>
-<td>Cascade, lightning mark, expansion SFX</td>
-</tr>
-<tr>
-<td><code>THUNDER_BLESSING</code></td>
-<td><code>BGM_MAIN</code> (no change)</td>
-<td>Thunder Blessing SFX foreground</td>
-</tr>
-<tr>
-<td><code>COIN_TOSS</code></td>
-<td><code>BGM_COIN_TOSS</code></td>
-<td>Coin toss SFX</td>
-</tr>
-<tr>
-<td><code>FREE_GAME</code></td>
-<td><code>BGM_FREE_GAME</code> (or <code>BGM_77X</code> at ×77)</td>
-<td>All SFX layers</td>
-</tr>
-<tr>
-<td><code>RESULT_DISPLAY</code></td>
-<td><code>BGM_MAIN</code> (non-FG) or <code>BGM_FREE_GAME</code> / <code>BGM_77X</code> (post-FG, until <code>RESULT_DISMISSED</code>)</td>
-<td>Win tier SFX</td>
-</tr>
-<tr>
-<td><code>NETWORK_ERROR</code></td>
-<td><code>BGM_MAIN</code> (continues at -3dB)</td>
-<td>Error UI sound only</td>
-</tr>
-<tr>
-<td><code>SESSION_RECONNECT</code></td>
-<td>Continue current BGM (restored to correct track on reconnect)</td>
-<td><code>SFX_SESSION_RESTORE</code> or <code>SFX_SESSION_EXPIRE</code></td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Game State</th><th>BGM Track</th><th>SFX Layer Active</th></tr>
+<tr><td><code>IDLE</code></td><td><code>BGM_MAIN</code></td><td>UI sounds only</td></tr>
+<tr><td><code>SPINNING</code></td><td><code>BGM_MAIN</code> (continues)</td><td>Spin start, reel stop SFX</td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td><code>BGM_MAIN</code> (continues; or <code>BGM_ANTICIPATION</code> when all 4 FREE letters lit)</td><td>Cascade, lightning mark, expansion SFX</td></tr>
+<tr><td><code>THUNDER_BLESSING</code></td><td><code>BGM_MAIN</code> (no change)</td><td>Thunder Blessing SFX foreground</td></tr>
+<tr><td><code>COIN_TOSS</code></td><td><code>BGM_COIN_TOSS</code></td><td>Coin toss SFX</td></tr>
+<tr><td><code>FREE_GAME</code></td><td><code>BGM_FREE_GAME</code> (or <code>BGM_77X</code> at ×77)</td><td>All SFX layers</td></tr>
+<tr><td><code>RESULT_DISPLAY</code></td><td><code>BGM_MAIN</code> (non-FG) or <code>BGM_FREE_GAME</code> / <code>BGM_77X</code> (post-FG, until <code>RESULT_DISMISSED</code>)</td><td>Win tier SFX</td></tr>
+<tr><td><code>NETWORK_ERROR</code></td><td><code>BGM_MAIN</code> (continues at -3dB)</td><td>Error UI sound only</td></tr>
+<tr><td><code>SESSION_RECONNECT</code></td><td>Continue current BGM (restored to correct track on reconnect)</td><td><code>SFX_SESSION_RESTORE</code> or <code>SFX_SESSION_EXPIRE</code></td></tr>
+</table>
 <p><strong>Ducking rule:</strong> During Big Win / Mega Win / Jackpot events, BGM gain is reduced by −6 dB (linear gain factor 0.5); during Max Win events (30,000× or 90,000×), it is reduced by −12 dB (linear gain factor 0.25). BGM gain is restored after the event resolves. This is implemented by temporarily adjusting <code>gainNodes.BGM.gain.value</code> rather than modifying the stored <code>config.volume.bgm</code>. See §4.3 for per-event ducking values. The <code>THUNDER_BLESSING</code> state does <strong>not</strong> duck the BGM — per FRONTEND.md §7.3, no BGM change occurs during the Thunder Blessing sequence.</p>
 <hr>
-<h2 id="h-2-bgm-design">§2 BGM Design</h2>
-<h3 id="h-21-bgm-track-specifications">2.1 BGM Track Specifications</h3>
+<h2>§2 BGM Design</h2>
+<h3>2.1 BGM Track Specifications</h3>
 <p>All BGM tracks loop seamlessly. Loop points are specified in seconds from the start of the decoded audio buffer. The audio artist must ensure the sample at <code>loopEnd</code> matches the amplitude envelope of the sample at <code>loopStart</code> within ±1 dBFS to prevent audible clicks.</p>
 <hr>
-<h4 id="bgm_main-main-game-ambient">BGM_MAIN — Main Game Ambient</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Sound ID</strong></td>
-<td><code>BGM_MAIN</code></td>
-</tr>
-<tr>
-<td><strong>File path</strong></td>
-<td><code>audio/bgm_main.ogg</code> (primary) / <code>audio/bgm_main.mp3</code> (fallback)</td>
-</tr>
-<tr>
-<td><strong>Loop start</strong></td>
-<td>4.00s</td>
-</tr>
-<tr>
-<td><strong>Loop end</strong></td>
-<td>128.00s</td>
-</tr>
-<tr>
-<td><strong>Total file length</strong></td>
-<td>132.00s (4s intro + 124s loop body)</td>
-</tr>
-<tr>
-<td><strong>BPM</strong></td>
-<td>88</td>
-</tr>
-<tr>
-<td><strong>Key</strong></td>
-<td>D minor</td>
-</tr>
-<tr>
-<td><strong>Mood</strong></td>
-<td>Solemn grandeur, anticipation. Low-register string ostinato, sparse choir pads, occasional distant thunder roll. Feels like standing at the base of Mount Olympus — awe with undercurrent tension.</td>
-</tr>
-<tr>
-<td><strong>Trigger condition</strong></td>
-<td>Plays on <code>GameScene</code> entry; resumes when <code>FREE_GAME</code> exits.</td>
-</tr>
-<tr>
-<td><strong>Transition in</strong></td>
-<td>Immediate start on first game load. Crossfade 800ms when returning from FG.</td>
-</tr>
-<tr>
-<td><strong>Transition out</strong></td>
-<td>Crossfade 800ms before <code>BGM_COIN_TOSS</code> or <code>BGM_FREE_GAME</code> starts.</td>
-</tr>
-<tr>
-<td><strong>Priority</strong></td>
-<td>Base layer; all other BGM tracks override this.</td>
-</tr>
-<tr>
-<td><strong>Preload priority</strong></td>
-<td>CRITICAL — loaded first in <code>MobileAudioUnlock.preloadAudioAssets()</code>.</td>
-</tr>
-<tr>
-<td><strong>Volume (normalized)</strong></td>
-<td>1.00 (BGM category gain at full; matches <code>AudioManager</code> default <code>config.volume.bgm = 1.0</code>)</td>
-</tr>
-</tbody></table></div>
+<h4>BGM_MAIN — Main Game Ambient</h4>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td><strong>Sound ID</strong></td><td><code>BGM_MAIN</code></td></tr>
+<tr><td><strong>File path</strong></td><td><code>audio/bgm_main.ogg</code> (primary) / <code>audio/bgm_main.mp3</code> (fallback)</td></tr>
+<tr><td><strong>Loop start</strong></td><td>4.00s</td></tr>
+<tr><td><strong>Loop end</strong></td><td>128.00s</td></tr>
+<tr><td><strong>Total file length</strong></td><td>132.00s (4s intro + 124s loop body)</td></tr>
+<tr><td><strong>BPM</strong></td><td>88</td></tr>
+<tr><td><strong>Key</strong></td><td>D minor</td></tr>
+<tr><td><strong>Mood</strong></td><td>Solemn grandeur, anticipation. Low-register string ostinato, sparse choir pads, occasional distant thunder roll. Feels like standing at the base of Mount Olympus — awe with undercurrent tension.</td></tr>
+<tr><td><strong>Trigger condition</strong></td><td>Plays on <code>GameScene</code> entry; resumes when <code>FREE_GAME</code> exits.</td></tr>
+<tr><td><strong>Transition in</strong></td><td>Immediate start on first game load. Crossfade 800ms when returning from FG.</td></tr>
+<tr><td><strong>Transition out</strong></td><td>Crossfade 800ms before <code>BGM_COIN_TOSS</code> or <code>BGM_FREE_GAME</code> starts.</td></tr>
+<tr><td><strong>Priority</strong></td><td>Base layer; all other BGM tracks override this.</td></tr>
+<tr><td><strong>Preload priority</strong></td><td>CRITICAL — loaded first in <code>MobileAudioUnlock.preloadAudioAssets()</code>.</td></tr>
+<tr><td><strong>Volume (normalized)</strong></td><td>1.00 (BGM category gain at full; matches <code>AudioManager</code> default <code>config.volume.bgm = 1.0</code>)</td></tr>
+</table>
 <p><strong>Instrumentation notes:</strong></p>
-<ul>
-<li>Strings: low cello/bass ostinato at quarter-note pace.</li>
-<li>Choir: long sustained vowel pads (AAAH), very low in mix.</li>
-<li>Percussion: occasional low timpani accents on beats 1 and 3.</li>
-<li>Ambient: rain-of-thunder texture at −24 dBFS, constant but inaudible below mix.</li>
-</ul>
+<ul><li>Strings: low cello/bass ostinato at quarter-note pace.</li><li>Choir: long sustained vowel pads (AAAH), very low in mix.</li><li>Percussion: occasional low timpani accents on beats 1 and 3.</li><li>Ambient: rain-of-thunder texture at −24 dBFS, constant but inaudible below mix.</li></ul>
 <hr>
-<h4 id="bgm_anticipation-all-free-letters-lit">BGM_ANTICIPATION — All FREE Letters Lit</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Sound ID</strong></td>
-<td><code>BGM_ANTICIPATION</code></td>
-</tr>
-<tr>
-<td><strong>File path</strong></td>
-<td><code>audio/bgm_anticipation.ogg</code> / <code>audio/bgm_anticipation.mp3</code></td>
-</tr>
-<tr>
-<td><strong>Loop start</strong></td>
-<td>2.00s</td>
-</tr>
-<tr>
-<td><strong>Loop end</strong></td>
-<td>64.00s</td>
-</tr>
-<tr>
-<td><strong>Total file length</strong></td>
-<td>66.00s</td>
-</tr>
-<tr>
-<td><strong>BPM</strong></td>
-<td>96</td>
-</tr>
-<tr>
-<td><strong>Key</strong></td>
-<td>D minor</td>
-</tr>
-<tr>
-<td><strong>Mood</strong></td>
-<td>Rising dread and excitement. Percussion enters forcefully — snare rolls, taiko hits. Choir intensifies. Strings ascend. Signals imminent Thunder Blessing or Coin Toss.</td>
-</tr>
-<tr>
-<td><strong>Trigger condition</strong></td>
-<td>All 4 FREE letters are lit (cascade count ≥ 4; <code>HUDComponent.setFreeLetterProgress(4)</code>).</td>
-</tr>
-<tr>
-<td><strong>Transition in</strong></td>
-<td>Crossfade 300ms from <code>BGM_MAIN</code>.</td>
-</tr>
-<tr>
-<td><strong>Transition out</strong></td>
-<td>Crossfade 800ms when <code>COIN_TOSS</code> starts. Returns to <code>BGM_MAIN</code> if cascade ends without FG.</td>
-</tr>
-<tr>
-<td><strong>Priority</strong></td>
-<td>Overrides <code>BGM_MAIN</code>. Overridden by <code>BGM_COIN_TOSS</code> and <code>BGM_FREE_GAME</code>.</td>
-</tr>
-<tr>
-<td><strong>Volume (normalized)</strong></td>
-<td>0.85</td>
-</tr>
-</tbody></table></div>
+<h4>BGM_ANTICIPATION — All FREE Letters Lit</h4>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td><strong>Sound ID</strong></td><td><code>BGM_ANTICIPATION</code></td></tr>
+<tr><td><strong>File path</strong></td><td><code>audio/bgm_anticipation.ogg</code> / <code>audio/bgm_anticipation.mp3</code></td></tr>
+<tr><td><strong>Loop start</strong></td><td>2.00s</td></tr>
+<tr><td><strong>Loop end</strong></td><td>64.00s</td></tr>
+<tr><td><strong>Total file length</strong></td><td>66.00s</td></tr>
+<tr><td><strong>BPM</strong></td><td>96</td></tr>
+<tr><td><strong>Key</strong></td><td>D minor</td></tr>
+<tr><td><strong>Mood</strong></td><td>Rising dread and excitement. Percussion enters forcefully — snare rolls, taiko hits. Choir intensifies. Strings ascend. Signals imminent Thunder Blessing or Coin Toss.</td></tr>
+<tr><td><strong>Trigger condition</strong></td><td>All 4 FREE letters are lit (cascade count ≥ 4; <code>HUDComponent.setFreeLetterProgress(4)</code>).</td></tr>
+<tr><td><strong>Transition in</strong></td><td>Crossfade 300ms from <code>BGM_MAIN</code>.</td></tr>
+<tr><td><strong>Transition out</strong></td><td>Crossfade 800ms when <code>COIN_TOSS</code> starts. Returns to <code>BGM_MAIN</code> if cascade ends without FG.</td></tr>
+<tr><td><strong>Priority</strong></td><td>Overrides <code>BGM_MAIN</code>. Overridden by <code>BGM_COIN_TOSS</code> and <code>BGM_FREE_GAME</code>.</td></tr>
+<tr><td><strong>Volume (normalized)</strong></td><td>0.85</td></tr>
+</table>
 <hr>
-<h4 id="bgm_coin_toss-coin-toss-suspense">BGM_COIN_TOSS — Coin Toss Suspense</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Sound ID</strong></td>
-<td><code>BGM_COIN_TOSS</code></td>
-</tr>
-<tr>
-<td><strong>File path</strong></td>
-<td><code>audio/bgm_coin_toss.ogg</code> / <code>audio/bgm_coin_toss.mp3</code></td>
-</tr>
-<tr>
-<td><strong>Loop start</strong></td>
-<td>1.00s</td>
-</tr>
-<tr>
-<td><strong>Loop end</strong></td>
-<td>32.00s</td>
-</tr>
-<tr>
-<td><strong>Total file length</strong></td>
-<td>34.00s</td>
-</tr>
-<tr>
-<td><strong>BPM</strong></td>
-<td>72</td>
-</tr>
-<tr>
-<td><strong>Key</strong></td>
-<td>D minor (sparse)</td>
-</tr>
-<tr>
-<td><strong>Mood</strong></td>
-<td>Tension and held breath. Minimal instrumentation — solo pizzicato strings, heartbeat-like low bass pulse every 2 beats, silence between. Does not resolve harmonically. Designed to sustain unresolved tension for the 3.0–3.5s coin flip duration.</td>
-</tr>
-<tr>
-<td><strong>Trigger condition</strong></td>
-<td><code>COIN_TOSS</code> state entry — <code>CoinTossComponent</code> overlay opens.</td>
-</tr>
-<tr>
-<td><strong>Transition in</strong></td>
-<td>Crossfade 800ms from <code>BGM_MAIN</code> or <code>BGM_ANTICIPATION</code>.</td>
-</tr>
-<tr>
-<td><strong>Transition out</strong></td>
-<td>Crossfade via <code>crossfadeBGM(&#x27;BGM_FREE_GAME&#x27;, 800)</code> (800ms) on HEADS (FG entry). Crossfade 500ms back to <code>BGM_MAIN</code> on TAILS.</td>
-</tr>
-<tr>
-<td><strong>Priority</strong></td>
-<td>Overrides <code>BGM_MAIN</code> and <code>BGM_ANTICIPATION</code>.</td>
-</tr>
-<tr>
-<td><strong>Volume (normalized)</strong></td>
-<td>0.70</td>
-</tr>
-</tbody></table></div>
+<h4>BGM_COIN_TOSS — Coin Toss Suspense</h4>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td><strong>Sound ID</strong></td><td><code>BGM_COIN_TOSS</code></td></tr>
+<tr><td><strong>File path</strong></td><td><code>audio/bgm_coin_toss.ogg</code> / <code>audio/bgm_coin_toss.mp3</code></td></tr>
+<tr><td><strong>Loop start</strong></td><td>1.00s</td></tr>
+<tr><td><strong>Loop end</strong></td><td>32.00s</td></tr>
+<tr><td><strong>Total file length</strong></td><td>34.00s</td></tr>
+<tr><td><strong>BPM</strong></td><td>72</td></tr>
+<tr><td><strong>Key</strong></td><td>D minor (sparse)</td></tr>
+<tr><td><strong>Mood</strong></td><td>Tension and held breath. Minimal instrumentation — solo pizzicato strings, heartbeat-like low bass pulse every 2 beats, silence between. Does not resolve harmonically. Designed to sustain unresolved tension for the 3.0–3.5s coin flip duration.</td></tr>
+<tr><td><strong>Trigger condition</strong></td><td><code>COIN_TOSS</code> state entry — <code>CoinTossComponent</code> overlay opens.</td></tr>
+<tr><td><strong>Transition in</strong></td><td>Crossfade 800ms from <code>BGM_MAIN</code> or <code>BGM_ANTICIPATION</code>.</td></tr>
+<tr><td><strong>Transition out</strong></td><td>Crossfade via <code>crossfadeBGM(&#x27;BGM_FREE_GAME&#x27;, 800)</code> (800ms) on HEADS (FG entry). Crossfade 500ms back to <code>BGM_MAIN</code> on TAILS.</td></tr>
+<tr><td><strong>Priority</strong></td><td>Overrides <code>BGM_MAIN</code> and <code>BGM_ANTICIPATION</code>.</td></tr>
+<tr><td><strong>Volume (normalized)</strong></td><td>0.70</td></tr>
+</table>
 <hr>
-<h4 id="bgm_free_game-free-game-epic-theme">BGM_FREE_GAME — Free Game Epic Theme</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Sound ID</strong></td>
-<td><code>BGM_FREE_GAME</code></td>
-</tr>
-<tr>
-<td><strong>File path</strong></td>
-<td><code>audio/bgm_free_game.ogg</code> / <code>audio/bgm_free_game.mp3</code></td>
-</tr>
-<tr>
-<td><strong>Loop start</strong></td>
-<td>8.00s</td>
-</tr>
-<tr>
-<td><strong>Loop end</strong></td>
-<td>192.00s</td>
-</tr>
-<tr>
-<td><strong>Total file length</strong></td>
-<td>200.00s</td>
-</tr>
-<tr>
-<td><strong>BPM</strong></td>
-<td>120</td>
-</tr>
-<tr>
-<td><strong>Key</strong></td>
-<td>D minor (modulates to D major on ×77 transition)</td>
-</tr>
-<tr>
-<td><strong>Mood</strong></td>
-<td>Triumphant, epic, divine. Full orchestral forces: brass fanfares, full choir (VICTORY), electric guitar/synth hybrid strings, driving percussion. Feels like riding Zeus&#x27;s lightning bolt. Significantly more intense than <code>BGM_MAIN</code>.</td>
-</tr>
-<tr>
-<td><strong>Trigger condition</strong></td>
-<td><code>FREE_GAME</code> state entry — <code>FreeGameComponent.enterFreeGame()</code> called.</td>
-</tr>
-<tr>
-<td><strong>Transition in</strong></td>
-<td>Crossfade 800ms from <code>BGM_COIN_TOSS</code> (HEADS result).</td>
-</tr>
-<tr>
-<td><strong>Transition out</strong></td>
-<td>Crossfade 800ms back to <code>BGM_MAIN</code> on <code>RESULT_DISMISSED</code> event (BGM stays as FG music through <code>RESULT_DISPLAY</code> — see §4.2 and §5.7). Crossfade 800ms to <code>BGM_77X</code> when ×77 multiplier is reached.</td>
-</tr>
-<tr>
-<td><strong>Priority</strong></td>
-<td>Overrides all except <code>BGM_77X</code>.</td>
-</tr>
-<tr>
-<td><strong>Volume (normalized)</strong></td>
-<td>1.00</td>
-</tr>
-</tbody></table></div>
+<h4>BGM_FREE_GAME — Free Game Epic Theme</h4>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td><strong>Sound ID</strong></td><td><code>BGM_FREE_GAME</code></td></tr>
+<tr><td><strong>File path</strong></td><td><code>audio/bgm_free_game.ogg</code> / <code>audio/bgm_free_game.mp3</code></td></tr>
+<tr><td><strong>Loop start</strong></td><td>8.00s</td></tr>
+<tr><td><strong>Loop end</strong></td><td>192.00s</td></tr>
+<tr><td><strong>Total file length</strong></td><td>200.00s</td></tr>
+<tr><td><strong>BPM</strong></td><td>120</td></tr>
+<tr><td><strong>Key</strong></td><td>D minor (modulates to D major on ×77 transition)</td></tr>
+<tr><td><strong>Mood</strong></td><td>Triumphant, epic, divine. Full orchestral forces: brass fanfares, full choir (VICTORY), electric guitar/synth hybrid strings, driving percussion. Feels like riding Zeus&#x27;s lightning bolt. Significantly more intense than <code>BGM_MAIN</code>.</td></tr>
+<tr><td><strong>Trigger condition</strong></td><td><code>FREE_GAME</code> state entry — <code>FreeGameComponent.enterFreeGame()</code> called.</td></tr>
+<tr><td><strong>Transition in</strong></td><td>Crossfade 800ms from <code>BGM_COIN_TOSS</code> (HEADS result).</td></tr>
+<tr><td><strong>Transition out</strong></td><td>Crossfade 800ms back to <code>BGM_MAIN</code> on <code>RESULT_DISMISSED</code> event (BGM stays as FG music through <code>RESULT_DISPLAY</code> — see §4.2 and §5.7). Crossfade 800ms to <code>BGM_77X</code> when ×77 multiplier is reached.</td></tr>
+<tr><td><strong>Priority</strong></td><td>Overrides all except <code>BGM_77X</code>.</td></tr>
+<tr><td><strong>Volume (normalized)</strong></td><td>1.00</td></tr>
+</table>
 <p><strong>Production note:</strong> <code>BGM_FREE_GAME</code> must feel qualitatively distinct from <code>BGM_MAIN</code> — not just louder. The BPM jump from 88→120 and harmonic brightness shift are deliberate. The 8-second intro (before loop start) contains a build-up fanfare that is played only once on FG entry.</p>
 <hr>
-<h4 id="bgm_77x-maximum-multiplier-reached">BGM_77X — Maximum Multiplier Reached</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Sound ID</strong></td>
-<td><code>BGM_77X</code></td>
-</tr>
-<tr>
-<td><strong>File path</strong></td>
-<td><code>audio/bgm_77x.ogg</code> / <code>audio/bgm_77x.mp3</code></td>
-</tr>
-<tr>
-<td><strong>Loop start</strong></td>
-<td>4.00s</td>
-</tr>
-<tr>
-<td><strong>Loop end</strong></td>
-<td>96.00s</td>
-</tr>
-<tr>
-<td><strong>Total file length</strong></td>
-<td>100.00s</td>
-</tr>
-<tr>
-<td><strong>BPM</strong></td>
-<td>132</td>
-</tr>
-<tr>
-<td><strong>Key</strong></td>
-<td>D major (bright, triumphant)</td>
-</tr>
-<tr>
-<td><strong>Mood</strong></td>
-<td>Maximum intensity. Electronic percussion layers over orchestra. Distorted choir shouts. Lightning SFX woven into the music bed itself. Reserved exclusively for the ×77 multiplier climax — the rarest, highest-stakes state.</td>
-</tr>
-<tr>
-<td><strong>Trigger condition</strong></td>
-<td>FG multiplier advances to ×77 (<code>fgMultiplier = 77</code>).</td>
-</tr>
-<tr>
-<td><strong>Transition in</strong></td>
-<td>Crossfade 800ms from <code>BGM_FREE_GAME</code>.</td>
-</tr>
-<tr>
-<td><strong>Transition out</strong></td>
-<td>Crossfade 800ms back to <code>BGM_MAIN</code> when FG exits (×77 round ends).</td>
-</tr>
-<tr>
-<td><strong>Priority</strong></td>
-<td>Highest — overrides all other BGM.</td>
-</tr>
-<tr>
-<td><strong>Volume (normalized)</strong></td>
-<td>1.00</td>
-</tr>
-</tbody></table></div>
+<h4>BGM_77X — Maximum Multiplier Reached</h4>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td><strong>Sound ID</strong></td><td><code>BGM_77X</code></td></tr>
+<tr><td><strong>File path</strong></td><td><code>audio/bgm_77x.ogg</code> / <code>audio/bgm_77x.mp3</code></td></tr>
+<tr><td><strong>Loop start</strong></td><td>4.00s</td></tr>
+<tr><td><strong>Loop end</strong></td><td>96.00s</td></tr>
+<tr><td><strong>Total file length</strong></td><td>100.00s</td></tr>
+<tr><td><strong>BPM</strong></td><td>132</td></tr>
+<tr><td><strong>Key</strong></td><td>D major (bright, triumphant)</td></tr>
+<tr><td><strong>Mood</strong></td><td>Maximum intensity. Electronic percussion layers over orchestra. Distorted choir shouts. Lightning SFX woven into the music bed itself. Reserved exclusively for the ×77 multiplier climax — the rarest, highest-stakes state.</td></tr>
+<tr><td><strong>Trigger condition</strong></td><td>FG multiplier advances to ×77 (<code>fgMultiplier = 77</code>).</td></tr>
+<tr><td><strong>Transition in</strong></td><td>Crossfade 800ms from <code>BGM_FREE_GAME</code>.</td></tr>
+<tr><td><strong>Transition out</strong></td><td>Crossfade 800ms back to <code>BGM_MAIN</code> when FG exits (×77 round ends).</td></tr>
+<tr><td><strong>Priority</strong></td><td>Highest — overrides all other BGM.</td></tr>
+<tr><td><strong>Volume (normalized)</strong></td><td>1.00</td></tr>
+</table>
 <hr>
-<h3 id="h-22-bgm-priority-table">2.2 BGM Priority Table</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Priority</th>
-<th>Track</th>
-<th>Overrides</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>1 (highest)</td>
-<td><code>BGM_77X</code></td>
-<td>All</td>
-</tr>
-<tr>
-<td>2</td>
-<td><code>BGM_FREE_GAME</code></td>
-<td><code>BGM_MAIN</code>, <code>BGM_ANTICIPATION</code>, <code>BGM_COIN_TOSS</code></td>
-</tr>
-<tr>
-<td>3</td>
-<td><code>BGM_COIN_TOSS</code></td>
-<td><code>BGM_MAIN</code>, <code>BGM_ANTICIPATION</code></td>
-</tr>
-<tr>
-<td>4</td>
-<td><code>BGM_ANTICIPATION</code></td>
-<td><code>BGM_MAIN</code></td>
-</tr>
-<tr>
-<td>5 (base)</td>
-<td><code>BGM_MAIN</code></td>
-<td>—</td>
-</tr>
-</tbody></table></div>
+<h3>2.2 BGM Priority Table</h3>
+<table>
+<tr><th>Priority</th><th>Track</th><th>Overrides</th></tr>
+<tr><td>1 (highest)</td><td><code>BGM_77X</code></td><td>All</td></tr>
+<tr><td>2</td><td><code>BGM_FREE_GAME</code></td><td><code>BGM_MAIN</code>, <code>BGM_ANTICIPATION</code>, <code>BGM_COIN_TOSS</code></td></tr>
+<tr><td>3</td><td><code>BGM_COIN_TOSS</code></td><td><code>BGM_MAIN</code>, <code>BGM_ANTICIPATION</code></td></tr>
+<tr><td>4</td><td><code>BGM_ANTICIPATION</code></td><td><code>BGM_MAIN</code></td></tr>
+<tr><td>5 (base)</td><td><code>BGM_MAIN</code></td><td>—</td></tr>
+</table>
 <hr>
-<h2 id="h-3-sfx-catalog">§3 SFX Catalog</h2>
+<h2>§3 SFX Catalog</h2>
 <p>All SFX are one-shot (non-looping) unless explicitly marked <code>[LOOP]</code>. Durations are the target rendered audio length in milliseconds. All SFX route through <code>gainNodes.SFX</code>.</p>
-<h3 id="h-31-tier-2-preload-sfx-confirmed-in-frontendmd-7-preload-list">3.1 Tier 2 Preload SFX (Confirmed in FRONTEND.md §7 preload list)</h3>
+<h3>3.1 Tier 2 Preload SFX (Confirmed in FRONTEND.md §7 preload list)</h3>
 <p>The following Sound IDs appear in FRONTEND.md §7&#x27;s preload list (<code>MobileAudioUnlock.preloadAudioAssets</code> + <code>loadRemainingAudio</code>). These are a subset of all FRONTEND.md §7.2 confirmed IDs — see §3.3 for the full confirmed-ID inventory.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_CASCADE</code></td>
-<td><code>audio/sfx_cascade.ogg</code></td>
-<td>500</td>
-<td>Symbol elimination animation start</td>
-<td>Generic cascade; used as base layer under <code>SFX_CASCADE_EXPLODE</code></td>
-</tr>
-<tr>
-<td><code>SFX_WIN</code></td>
-<td><code>audio/sfx_win.ogg</code></td>
-<td>800</td>
-<td>WIN counter start (any win &gt; 0)</td>
-<td>Generic win chime; layered under tier-specific SFX</td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING</code></td>
-<td><code>audio/sfx_lightning.ogg</code></td>
-<td>600</td>
-<td>Lightning Mark scale-in midpoint</td>
-<td>Per-mark; pitch-shifts +2 semitones per additional mark (max +8 st at 5+ marks)</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TOSS</code></td>
-<td><code>audio/sfx_coin_toss.ogg</code></td>
-<td>3250</td>
-<td>Coin fly-in animation start</td>
-<td>[LOOP] during spin phase; non-looping version for full sequence</td>
-</tr>
-<tr>
-<td><code>SFX_SCATTER</code></td>
-<td><code>audio/sfx_scatter.ogg</code></td>
-<td>1000</td>
-<td>Scatter symbol win animation start</td>
-<td>Plays when SC lands (win animation begins)</td>
-</tr>
-</tbody></table></div>
-<h3 id="h-32-extended-sfx-catalog">3.2 Extended SFX Catalog</h3>
-<h4 id="reel-mechanics">Reel Mechanics</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_SPIN_START</code></td>
-<td><code>audio/sfx_spin_start.ogg</code></td>
-<td>350</td>
-<td>SPIN button pressed</td>
-<td>Mechanical lever/whoosh; immediate on press</td>
-</tr>
-<tr>
-<td><code>SFX_REEL_STOP_1</code></td>
-<td><code>audio/sfx_reel_stop_1.ogg</code></td>
-<td>200</td>
-<td>Reel column 1 stops</td>
-<td>Thud + brief electronic click</td>
-</tr>
-<tr>
-<td><code>SFX_REEL_STOP_2</code></td>
-<td><code>audio/sfx_reel_stop_2.ogg</code></td>
-<td>200</td>
-<td>Reel column 2 stops</td>
-<td>+120ms delay from col 1 stop event</td>
-</tr>
-<tr>
-<td><code>SFX_REEL_STOP_3</code></td>
-<td><code>audio/sfx_reel_stop_3.ogg</code></td>
-<td>200</td>
-<td>Reel column 3 stops</td>
-<td>+240ms delay from col 1 stop event</td>
-</tr>
-<tr>
-<td><code>SFX_REEL_STOP_4</code></td>
-<td><code>audio/sfx_reel_stop_4.ogg</code></td>
-<td>200</td>
-<td>Reel column 4 stops</td>
-<td>+360ms delay from col 1 stop event</td>
-</tr>
-<tr>
-<td><code>SFX_REEL_STOP_5</code></td>
-<td><code>audio/sfx_reel_stop_5.ogg</code></td>
-<td>200</td>
-<td>Reel column 5 stops</td>
-<td>+480ms delay from col 1 stop event; slightly heavier than 1–4</td>
-</tr>
-<tr>
-<td><code>SFX_REEL_EXPAND</code></td>
-<td><code>audio/sfx_reel_expand.ogg</code></td>
-<td>400</td>
-<td>Row count increases; cloud dissipation starts</td>
-<td>Rumble-whoosh rising; plays once per expansion event</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_CASCADE</code></td><td><code>audio/sfx_cascade.ogg</code></td><td>500</td><td>Symbol elimination animation start</td><td>Generic cascade; used as base layer under <code>SFX_CASCADE_EXPLODE</code></td></tr>
+<tr><td><code>SFX_WIN</code></td><td><code>audio/sfx_win.ogg</code></td><td>800</td><td>WIN counter start (any win &gt; 0)</td><td>Generic win chime; layered under tier-specific SFX</td></tr>
+<tr><td><code>SFX_LIGHTNING</code></td><td><code>audio/sfx_lightning.ogg</code></td><td>600</td><td>Lightning Mark scale-in midpoint</td><td>Per-mark; pitch-shifts +2 semitones per additional mark (max +8 st at 5+ marks)</td></tr>
+<tr><td><code>SFX_COIN_TOSS</code></td><td><code>audio/sfx_coin_toss.ogg</code></td><td>3250</td><td>Coin fly-in animation start</td><td>[LOOP] during spin phase; non-looping version for full sequence</td></tr>
+<tr><td><code>SFX_SCATTER</code></td><td><code>audio/sfx_scatter.ogg</code></td><td>1000</td><td>Scatter symbol win animation start</td><td>Plays when SC lands (win animation begins)</td></tr>
+</table>
+<h3>3.2 Extended SFX Catalog</h3>
+<h4>Reel Mechanics</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_SPIN_START</code></td><td><code>audio/sfx_spin_start.ogg</code></td><td>350</td><td>SPIN button pressed</td><td>Mechanical lever/whoosh; immediate on press</td></tr>
+<tr><td><code>SFX_REEL_STOP_1</code></td><td><code>audio/sfx_reel_stop_1.ogg</code></td><td>200</td><td>Reel column 1 stops</td><td>Thud + brief electronic click</td></tr>
+<tr><td><code>SFX_REEL_STOP_2</code></td><td><code>audio/sfx_reel_stop_2.ogg</code></td><td>200</td><td>Reel column 2 stops</td><td>+120ms delay from col 1 stop event</td></tr>
+<tr><td><code>SFX_REEL_STOP_3</code></td><td><code>audio/sfx_reel_stop_3.ogg</code></td><td>200</td><td>Reel column 3 stops</td><td>+240ms delay from col 1 stop event</td></tr>
+<tr><td><code>SFX_REEL_STOP_4</code></td><td><code>audio/sfx_reel_stop_4.ogg</code></td><td>200</td><td>Reel column 4 stops</td><td>+360ms delay from col 1 stop event</td></tr>
+<tr><td><code>SFX_REEL_STOP_5</code></td><td><code>audio/sfx_reel_stop_5.ogg</code></td><td>200</td><td>Reel column 5 stops</td><td>+480ms delay from col 1 stop event; slightly heavier than 1–4</td></tr>
+<tr><td><code>SFX_REEL_EXPAND</code></td><td><code>audio/sfx_reel_expand.ogg</code></td><td>400</td><td>Row count increases; cloud dissipation starts</td><td>Rumble-whoosh rising; plays once per expansion event</td></tr>
+</table>
 <blockquote><p><strong>Stagger rule:</strong> Reel stop sounds 1–5 are triggered 120ms apart. The AudioManager fires <code>SFX_REEL_STOP_N</code> 120 × (N−1) ms after the first reel stop event. This matches FRONTEND.md §7.2 timing.</p></blockquote>
 <hr>
-<h4 id="cascade-mechanics">Cascade Mechanics</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_CASCADE_EXPLODE</code></td>
-<td><code>audio/sfx_cascade_explode.ogg</code></td>
-<td>400</td>
-<td>Symbol elimination animation start</td>
-<td>Short electric crack; pitch randomized ±1 semitone per call</td>
-</tr>
-<tr>
-<td><code>SFX_CASCADE_DROP</code></td>
-<td><code>audio/sfx_cascade_drop.ogg</code></td>
-<td>150</td>
-<td>Symbol landing bounce (420ms after drop start)</td>
-<td>Soft thud + brief resonance; played per symbol with stagger matching VDD §4.2 delay (col×20ms + row×30ms)</td>
-</tr>
-<tr>
-<td><code>SFX_FREE_LETTER</code></td>
-<td><code>audio/sfx_free_letter.ogg</code></td>
-<td>300</td>
-<td>Single FREE letter lights up (letter glow peak)</td>
-<td>Ascending chime; pitch rises per letter: F=base, R=+2st, E3=+4st, E4=+7st</td>
-</tr>
-</tbody></table></div>
+<h4>Cascade Mechanics</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_CASCADE_EXPLODE</code></td><td><code>audio/sfx_cascade_explode.ogg</code></td><td>400</td><td>Symbol elimination animation start</td><td>Short electric crack; pitch randomized ±1 semitone per call</td></tr>
+<tr><td><code>SFX_CASCADE_DROP</code></td><td><code>audio/sfx_cascade_drop.ogg</code></td><td>150</td><td>Symbol landing bounce (420ms after drop start)</td><td>Soft thud + brief resonance; played per symbol with stagger matching VDD §4.2 delay (col×20ms + row×30ms)</td></tr>
+<tr><td><code>SFX_FREE_LETTER</code></td><td><code>audio/sfx_free_letter.ogg</code></td><td>300</td><td>Single FREE letter lights up (letter glow peak)</td><td>Ascending chime; pitch rises per letter: F=base, R=+2st, E3=+4st, E4=+7st</td></tr>
+</table>
 <hr>
-<h4 id="lightning-marks">Lightning Marks</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_LIGHTNING_MARK</code></td>
-<td><code>audio/sfx_lightning_mark.ogg</code></td>
-<td>600</td>
-<td>Mark appears (scale-in midpoint at ~200ms)</td>
-<td>Alias for <code>SFX_LIGHTNING</code> core confirmed ID. Pitch-shifts +2 semitones per cumulative mark count (1 mark = base pitch; 5+ marks = +8 semitones). Implemented via AudioContext <code>detune</code> property.</td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING_PERSIST</code></td>
-<td><code>audio/sfx_lightning_persist.ogg</code></td>
-<td>1200</td>
-<td>[LOOP] Active marks idle state</td>
-<td>Very low-level electric hum/crackle loop; level scales with mark count: 1–2 marks = −18 dBFS, 3–4 = −12 dBFS, 5+ = −6 dBFS</td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING_ACTIVATE</code></td>
-<td><code>audio/sfx_lightning_activate.ogg</code></td>
-<td>800</td>
-<td>Scatter lands; all marks begin pulsing</td>
-<td>Arc activation sweep; plays once when SC triggers mark pulse (t=0.2s in TB sequence)</td>
-</tr>
-</tbody></table></div>
+<h4>Lightning Marks</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_LIGHTNING_MARK</code></td><td><code>audio/sfx_lightning_mark.ogg</code></td><td>600</td><td>Mark appears (scale-in midpoint at ~200ms)</td><td>Alias for <code>SFX_LIGHTNING</code> core confirmed ID. Pitch-shifts +2 semitones per cumulative mark count (1 mark = base pitch; 5+ marks = +8 semitones). Implemented via AudioContext <code>detune</code> property.</td></tr>
+<tr><td><code>SFX_LIGHTNING_PERSIST</code></td><td><code>audio/sfx_lightning_persist.ogg</code></td><td>1200</td><td>[LOOP] Active marks idle state</td><td>Very low-level electric hum/crackle loop; level scales with mark count: 1–2 marks = −18 dBFS, 3–4 = −12 dBFS, 5+ = −6 dBFS</td></tr>
+<tr><td><code>SFX_LIGHTNING_ACTIVATE</code></td><td><code>audio/sfx_lightning_activate.ogg</code></td><td>800</td><td>Scatter lands; all marks begin pulsing</td><td>Arc activation sweep; plays once when SC triggers mark pulse (t=0.2s in TB sequence)</td></tr>
+</table>
 <hr>
-<h4 id="thunder-blessing">Thunder Blessing</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_THUNDER_BLESSING</code></td>
-<td><code>audio/sfx_thunder_blessing.ogg</code></td>
-<td>2200</td>
-<td>t=0.8s in Thunder Blessing sequence (all marks explode)</td>
-<td>Confirmed in FRONTEND.md §7.2. Layered: massive thunder crack + choir hit + metallic impact. Peak at 0ms, sustains 800ms, tail 1400ms.</td>
-</tr>
-<tr>
-<td><code>SFX_TB_FIRST_HIT</code></td>
-<td><code>audio/sfx_tb_first_hit.ogg</code></td>
-<td>1800</td>
-<td>t=0.8s (marks explode)</td>
-<td>Full TB first-hit signature. Background white flash sync.</td>
-</tr>
-<tr>
-<td><code>SFX_TB_SYMBOL_UPGRADE</code></td>
-<td><code>audio/sfx_tb_symbol_upgrade.ogg</code></td>
-<td>600</td>
-<td>t=1.5s (target symbol assembles)</td>
-<td>Ascending shimmer + chime; plays once per position simultaneously</td>
-</tr>
-<tr>
-<td><code>SFX_SECOND_HIT</code></td>
-<td><code>audio/sfx_second_hit.ogg</code></td>
-<td>1500</td>
-<td>t=2.3s in TB sequence (second pulse)</td>
-<td>Confirmed in FRONTEND.md §7.2. Second white flash sync. Shorter, sharper than first hit — more electric, less thunder.</td>
-</tr>
-<tr>
-<td><code>SFX_TB_SETTLE</code></td>
-<td><code>audio/sfx_tb_settle.ogg</code></td>
-<td>400</td>
-<td>t=3.0s (all animations settle)</td>
-<td>Gold resonance chime; signals cascade resume</td>
-</tr>
-</tbody></table></div>
+<h4>Thunder Blessing</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_THUNDER_BLESSING</code></td><td><code>audio/sfx_thunder_blessing.ogg</code></td><td>2200</td><td>t=0.8s in Thunder Blessing sequence (all marks explode)</td><td>Confirmed in FRONTEND.md §7.2. Layered: massive thunder crack + choir hit + metallic impact. Peak at 0ms, sustains 800ms, tail 1400ms.</td></tr>
+<tr><td><code>SFX_TB_FIRST_HIT</code></td><td><code>audio/sfx_tb_first_hit.ogg</code></td><td>1800</td><td>t=0.8s (marks explode)</td><td>Full TB first-hit signature. Background white flash sync.</td></tr>
+<tr><td><code>SFX_TB_SYMBOL_UPGRADE</code></td><td><code>audio/sfx_tb_symbol_upgrade.ogg</code></td><td>600</td><td>t=1.5s (target symbol assembles)</td><td>Ascending shimmer + chime; plays once per position simultaneously</td></tr>
+<tr><td><code>SFX_SECOND_HIT</code></td><td><code>audio/sfx_second_hit.ogg</code></td><td>1500</td><td>t=2.3s in TB sequence (second pulse)</td><td>Confirmed in FRONTEND.md §7.2. Second white flash sync. Shorter, sharper than first hit — more electric, less thunder.</td></tr>
+<tr><td><code>SFX_TB_SETTLE</code></td><td><code>audio/sfx_tb_settle.ogg</code></td><td>400</td><td>t=3.0s (all animations settle)</td><td>Gold resonance chime; signals cascade resume</td></tr>
+</table>
 <hr>
-<h4 id="coin-toss">Coin Toss</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_COIN_TOSS_START</code></td>
-<td><code>audio/sfx_coin_toss_start.ogg</code></td>
-<td>500</td>
-<td>Coin fly-in animation start</td>
-<td>Woosh as coin enters frame from top</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TOSS_FLIP</code></td>
-<td><code>audio/sfx_coin_toss_flip.ogg</code></td>
-<td>400</td>
-<td>[LOOP] During spin phase (500ms–2000ms of flip)</td>
-<td>Metal spinning sound; loop starts at 500ms (after fly-in completes) and sustains until deceleration at ~2000ms</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_HEADS</code></td>
-<td><code>audio/sfx_coin_heads.ogg</code></td>
-<td>800</td>
-<td>Coin face settles at HEADS</td>
-<td>Gold coin land + triumphant short brass stab</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TAILS</code></td>
-<td><code>audio/sfx_coin_tails.ogg</code></td>
-<td>600</td>
-<td>Coin face settles at TAILS</td>
-<td>Duller metal land + minor-chord resolution</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_MULT_PROGRESS</code></td>
-<td><code>audio/sfx_coin_mult_progress.ogg</code></td>
-<td>500</td>
-<td>Progress bar animates to next node (HEADS)</td>
-<td>Rising electronic ping; pitch rises per stage (×3=base, ×7=+3st, ×17=+6st, ×27=+9st, ×77=+12st)</td>
-</tr>
-</tbody></table></div>
+<h4>Coin Toss</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_COIN_TOSS_START</code></td><td><code>audio/sfx_coin_toss_start.ogg</code></td><td>500</td><td>Coin fly-in animation start</td><td>Woosh as coin enters frame from top</td></tr>
+<tr><td><code>SFX_COIN_TOSS_FLIP</code></td><td><code>audio/sfx_coin_toss_flip.ogg</code></td><td>400</td><td>[LOOP] During spin phase (500ms–2000ms of flip)</td><td>Metal spinning sound; loop starts at 500ms (after fly-in completes) and sustains until deceleration at ~2000ms</td></tr>
+<tr><td><code>SFX_COIN_HEADS</code></td><td><code>audio/sfx_coin_heads.ogg</code></td><td>800</td><td>Coin face settles at HEADS</td><td>Gold coin land + triumphant short brass stab</td></tr>
+<tr><td><code>SFX_COIN_TAILS</code></td><td><code>audio/sfx_coin_tails.ogg</code></td><td>600</td><td>Coin face settles at TAILS</td><td>Duller metal land + minor-chord resolution</td></tr>
+<tr><td><code>SFX_COIN_MULT_PROGRESS</code></td><td><code>audio/sfx_coin_mult_progress.ogg</code></td><td>500</td><td>Progress bar animates to next node (HEADS)</td><td>Rising electronic ping; pitch rises per stage (×3=base, ×7=+3st, ×17=+6st, ×27=+9st, ×77=+12st)</td></tr>
+</table>
 <hr>
-<h4 id="free-game">Free Game</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_FG_ENTER</code></td>
-<td><code>audio/sfx_fg_enter.ogg</code></td>
-<td>2500</td>
-<td>FG scene cross-dissolve start</td>
-<td>Full fanfare: choir + brass + thunder roll. Plays over BGM crossfade.</td>
-</tr>
-<tr>
-<td><code>SFX_FG_BONUS_REVEAL</code></td>
-<td><code>audio/sfx_fg_bonus_reveal.ogg</code></td>
-<td>1500</td>
-<td>Bonus multiplier banner appears (×1)</td>
-<td>Standard reveal stinger; no fanfare</td>
-</tr>
-<tr>
-<td><code>SFX_FG_BONUS_5X</code></td>
-<td><code>audio/sfx_fg_bonus_5x.ogg</code></td>
-<td>2000</td>
-<td><code>fgBonusMultiplier = 5</code></td>
-<td>Moderate gold particle burst sync; ascending arpeggio</td>
-</tr>
-<tr>
-<td><code>SFX_FG_BONUS_20X</code></td>
-<td><code>audio/sfx_fg_bonus_20x.ogg</code></td>
-<td>2500</td>
-<td><code>fgBonusMultiplier = 20</code></td>
-<td>Large burst + banner; choir enters</td>
-</tr>
-<tr>
-<td><code>SFX_FG_BONUS_100X</code></td>
-<td><code>audio/sfx_fg_bonus_100x.ogg</code></td>
-<td>4000</td>
-<td><code>fgBonusMultiplier = 100</code></td>
-<td>Full-screen gold explosion. Maximum particle event. Confirmed in FRONTEND.md §7.2 as <code>SFX_FG_BONUS_100X</code>.</td>
-</tr>
-<tr>
-<td><code>SFX_FG_MULT_UP</code></td>
-<td><code>audio/sfx_fg_mult_up.ogg</code></td>
-<td>1200</td>
-<td>FG multiplier upgrades (HEADS confirmed)</td>
-<td>Old number explodes → new number scales in. Rising interval. Confirmed in FRONTEND.md §7.2.</td>
-</tr>
-<tr>
-<td><code>SFX_FG_MULT_77</code></td>
-<td><code>audio/sfx_fg_mult_77.ogg</code></td>
-<td>3000</td>
-<td>×77 multiplier reached</td>
-<td>Maximum intensity stinger. BGM transitions to <code>BGM_77X</code>. Confirmed in FRONTEND.md §7.2.</td>
-</tr>
-<tr>
-<td><code>SFX_FG_ROUND_START</code></td>
-<td><code>audio/sfx_fg_round_start.ogg</code></td>
-<td>400</td>
-<td>Each FG round begins (reel spin start within FG)</td>
-<td>Lighter whoosh than main game spin; distinguishes FG context</td>
-</tr>
-<tr>
-<td><code>SFX_FG_COMPLETE</code></td>
-<td><code>audio/sfx_fg_complete.ogg</code></td>
-<td>3500</td>
-<td>FG summary panel appears</td>
-<td>Grand resolution: choir cadence + thunder toll. Win roll-up to <code>outcome.totalWin</code> begins simultaneously.</td>
-</tr>
-</tbody></table></div>
+<h4>Free Game</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_FG_ENTER</code></td><td><code>audio/sfx_fg_enter.ogg</code></td><td>2500</td><td>FG scene cross-dissolve start</td><td>Full fanfare: choir + brass + thunder roll. Plays over BGM crossfade.</td></tr>
+<tr><td><code>SFX_FG_BONUS_REVEAL</code></td><td><code>audio/sfx_fg_bonus_reveal.ogg</code></td><td>1500</td><td>Bonus multiplier banner appears (×1)</td><td>Standard reveal stinger; no fanfare</td></tr>
+<tr><td><code>SFX_FG_BONUS_5X</code></td><td><code>audio/sfx_fg_bonus_5x.ogg</code></td><td>2000</td><td><code>fgBonusMultiplier = 5</code></td><td>Moderate gold particle burst sync; ascending arpeggio</td></tr>
+<tr><td><code>SFX_FG_BONUS_20X</code></td><td><code>audio/sfx_fg_bonus_20x.ogg</code></td><td>2500</td><td><code>fgBonusMultiplier = 20</code></td><td>Large burst + banner; choir enters</td></tr>
+<tr><td><code>SFX_FG_BONUS_100X</code></td><td><code>audio/sfx_fg_bonus_100x.ogg</code></td><td>4000</td><td><code>fgBonusMultiplier = 100</code></td><td>Full-screen gold explosion. Maximum particle event. Confirmed in FRONTEND.md §7.2 as <code>SFX_FG_BONUS_100X</code>.</td></tr>
+<tr><td><code>SFX_FG_MULT_UP</code></td><td><code>audio/sfx_fg_mult_up.ogg</code></td><td>1200</td><td>FG multiplier upgrades (HEADS confirmed)</td><td>Old number explodes → new number scales in. Rising interval. Confirmed in FRONTEND.md §7.2.</td></tr>
+<tr><td><code>SFX_FG_MULT_77</code></td><td><code>audio/sfx_fg_mult_77.ogg</code></td><td>3000</td><td>×77 multiplier reached</td><td>Maximum intensity stinger. BGM transitions to <code>BGM_77X</code>. Confirmed in FRONTEND.md §7.2.</td></tr>
+<tr><td><code>SFX_FG_ROUND_START</code></td><td><code>audio/sfx_fg_round_start.ogg</code></td><td>400</td><td>Each FG round begins (reel spin start within FG)</td><td>Lighter whoosh than main game spin; distinguishes FG context</td></tr>
+<tr><td><code>SFX_FG_COMPLETE</code></td><td><code>audio/sfx_fg_complete.ogg</code></td><td>3500</td><td>FG summary panel appears</td><td>Grand resolution: choir cadence + thunder toll. Win roll-up to <code>outcome.totalWin</code> begins simultaneously.</td></tr>
+</table>
 <hr>
-<h4 id="win-tiers">Win Tiers</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_WIN_SMALL</code></td>
-<td><code>audio/sfx_win_small.ogg</code></td>
-<td>600</td>
-<td>Small win (0 &lt; win &lt; 5× baseBet); WIN counter starts</td>
-<td>Light chime; coin clink. Confirmed in FRONTEND.md §7.2 as <code>SFX_WIN_SMALL</code>.</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_MEDIUM</code></td>
-<td><code>audio/sfx_win_medium.ogg</code></td>
-<td>900</td>
-<td>Medium win (5× ≤ win &lt; 20× baseBet)</td>
-<td>Brighter chime cluster; brief string swell</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_BIG</code></td>
-<td><code>audio/sfx_win_big.ogg</code></td>
-<td>2000</td>
-<td>Big Win (20× ≤ win &lt; 100×); &quot;BIG WIN&quot; banner drops</td>
-<td>Brass hit + choir exclaim + coin shower begins. Confirmed in FRONTEND.md §7.2.</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_MEGA</code></td>
-<td><code>audio/sfx_win_mega.ogg</code></td>
-<td>3000</td>
-<td>Mega Win (100× ≤ win &lt; 500× baseBet); &quot;MEGA WIN&quot; effect</td>
-<td>Extended brass fanfare; choir builds; lightning crack underneath</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_JACKPOT</code></td>
-<td><code>audio/sfx_win_jackpot.ogg</code></td>
-<td>4000</td>
-<td>Jackpot (500× ≤ win &lt; 30,000×); Zeus character animation</td>
-<td>Full orchestral + choir peak; Zeus thunder signature. Confirmed in FRONTEND.md §7.2.</td>
-</tr>
-<tr>
-<td><code>SFX_MAX_WIN</code></td>
-<td><code>audio/sfx_max_win.ogg</code></td>
-<td>6000</td>
-<td>30,000× cap reached (Main Game)</td>
-<td>Wall-of-sound climax. Golden coin rain. Choir sustain. Confirmed in FRONTEND.md §7.2.</td>
-</tr>
-<tr>
-<td><code>SFX_MAX_WIN_LEGENDARY</code></td>
-<td><code>audio/sfx_max_win_legendary.ogg</code></td>
-<td>10000</td>
-<td>90,000× cap reached (Extra Bet + Buy Feature)</td>
-<td>Extended legendary win signature; separate mastering from <code>SFX_MAX_WIN</code>. Confirmed in FRONTEND.md §7.2.</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_ROLLUP_TICK</code></td>
-<td><code>audio/sfx_win_rollup_tick.ogg</code></td>
-<td>80</td>
-<td>Each tick of WIN counter animation (throttled)</td>
-<td>Light coin click; fired at most every 80ms during roll-up to prevent audio spam</td>
-</tr>
-</tbody></table></div>
+<h4>Win Tiers</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_WIN_SMALL</code></td><td><code>audio/sfx_win_small.ogg</code></td><td>600</td><td>Small win (0 &lt; win &lt; 5× baseBet); WIN counter starts</td><td>Light chime; coin clink. Confirmed in FRONTEND.md §7.2 as <code>SFX_WIN_SMALL</code>.</td></tr>
+<tr><td><code>SFX_WIN_MEDIUM</code></td><td><code>audio/sfx_win_medium.ogg</code></td><td>900</td><td>Medium win (5× ≤ win &lt; 20× baseBet)</td><td>Brighter chime cluster; brief string swell</td></tr>
+<tr><td><code>SFX_WIN_BIG</code></td><td><code>audio/sfx_win_big.ogg</code></td><td>2000</td><td>Big Win (20× ≤ win &lt; 100×); &quot;BIG WIN&quot; banner drops</td><td>Brass hit + choir exclaim + coin shower begins. Confirmed in FRONTEND.md §7.2.</td></tr>
+<tr><td><code>SFX_WIN_MEGA</code></td><td><code>audio/sfx_win_mega.ogg</code></td><td>3000</td><td>Mega Win (100× ≤ win &lt; 500× baseBet); &quot;MEGA WIN&quot; effect</td><td>Extended brass fanfare; choir builds; lightning crack underneath</td></tr>
+<tr><td><code>SFX_WIN_JACKPOT</code></td><td><code>audio/sfx_win_jackpot.ogg</code></td><td>4000</td><td>Jackpot (500× ≤ win &lt; 30,000×); Zeus character animation</td><td>Full orchestral + choir peak; Zeus thunder signature. Confirmed in FRONTEND.md §7.2.</td></tr>
+<tr><td><code>SFX_MAX_WIN</code></td><td><code>audio/sfx_max_win.ogg</code></td><td>6000</td><td>30,000× cap reached (Main Game)</td><td>Wall-of-sound climax. Golden coin rain. Choir sustain. Confirmed in FRONTEND.md §7.2.</td></tr>
+<tr><td><code>SFX_MAX_WIN_LEGENDARY</code></td><td><code>audio/sfx_max_win_legendary.ogg</code></td><td>10000</td><td>90,000× cap reached (Extra Bet + Buy Feature)</td><td>Extended legendary win signature; separate mastering from <code>SFX_MAX_WIN</code>. Confirmed in FRONTEND.md §7.2.</td></tr>
+<tr><td><code>SFX_WIN_ROLLUP_TICK</code></td><td><code>audio/sfx_win_rollup_tick.ogg</code></td><td>80</td><td>Each tick of WIN counter animation (throttled)</td><td>Light coin click; fired at most every 80ms during roll-up to prevent audio spam</td></tr>
+</table>
 <blockquote><p><strong>Win tier selection logic:</strong> The game state machine selects exactly one win tier SFX based on <code>totalWin / baseBet</code>. Win tier SFX are mutually exclusive. <code>SFX_WIN</code> (confirmed core ID) is a generic alias pointing to <code>SFX_WIN_SMALL</code> for backward compatibility.</p></blockquote>
 <hr>
-<h4 id="scatter">Scatter</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_SCATTER</code></td>
-<td><code>audio/sfx_scatter.ogg</code></td>
-<td>1000</td>
-<td>Scatter symbol win animation start</td>
-<td>Confirmed core ID. Electric crackle + rising tone as SC lands.</td>
-</tr>
-<tr>
-<td><code>SFX_SCATTER_WIN</code></td>
-<td><code>audio/sfx_scatter_win.ogg</code></td>
-<td>1800</td>
-<td>SC participates in winning line (1.8s Scatter win animation)</td>
-<td>Sustained electric hum; Scatter-specific win budget per VDD §3.3.</td>
-</tr>
-</tbody></table></div>
+<h4>Scatter</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_SCATTER</code></td><td><code>audio/sfx_scatter.ogg</code></td><td>1000</td><td>Scatter symbol win animation start</td><td>Confirmed core ID. Electric crackle + rising tone as SC lands.</td></tr>
+<tr><td><code>SFX_SCATTER_WIN</code></td><td><code>audio/sfx_scatter_win.ogg</code></td><td>1800</td><td>SC participates in winning line (1.8s Scatter win animation)</td><td>Sustained electric hum; Scatter-specific win budget per VDD §3.3.</td></tr>
+</table>
 <hr>
-<h4 id="extra-bet-buy-feature">Extra Bet &amp; Buy Feature</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_EXTRA_BET_ON</code></td>
-<td><code>audio/sfx_extra_bet_on.ogg</code></td>
-<td>300</td>
-<td>Extra Bet toggle ON</td>
-<td>Electric activation snap; brief gold chime tail. Confirmed in FRONTEND.md §7.2.</td>
-</tr>
-<tr>
-<td><code>SFX_EXTRA_BET_OFF</code></td>
-<td><code>audio/sfx_extra_bet_off.ogg</code></td>
-<td>250</td>
-<td>Extra Bet toggle OFF</td>
-<td>Power-down click; lower pitch than ON</td>
-</tr>
-<tr>
-<td><code>SFX_BUY_FG_CONFIRM</code></td>
-<td><code>audio/sfx_buy_fg_confirm.ogg</code></td>
-<td>600</td>
-<td>Buy Feature confirmed; dialog closes</td>
-<td>Rich coin placement sound + brief divine chord. Confirmed in FRONTEND.md §7.2.</td>
-</tr>
-<tr>
-<td><code>SFX_BUY_FG_OPEN</code></td>
-<td><code>audio/sfx_buy_fg_open.ogg</code></td>
-<td>200</td>
-<td>Buy Feature dialog opens</td>
-<td>Light shimmer</td>
-</tr>
-</tbody></table></div>
+<h4>Extra Bet &amp; Buy Feature</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_EXTRA_BET_ON</code></td><td><code>audio/sfx_extra_bet_on.ogg</code></td><td>300</td><td>Extra Bet toggle ON</td><td>Electric activation snap; brief gold chime tail. Confirmed in FRONTEND.md §7.2.</td></tr>
+<tr><td><code>SFX_EXTRA_BET_OFF</code></td><td><code>audio/sfx_extra_bet_off.ogg</code></td><td>250</td><td>Extra Bet toggle OFF</td><td>Power-down click; lower pitch than ON</td></tr>
+<tr><td><code>SFX_BUY_FG_CONFIRM</code></td><td><code>audio/sfx_buy_fg_confirm.ogg</code></td><td>600</td><td>Buy Feature confirmed; dialog closes</td><td>Rich coin placement sound + brief divine chord. Confirmed in FRONTEND.md §7.2.</td></tr>
+<tr><td><code>SFX_BUY_FG_OPEN</code></td><td><code>audio/sfx_buy_fg_open.ogg</code></td><td>200</td><td>Buy Feature dialog opens</td><td>Light shimmer</td></tr>
+</table>
 <hr>
-<h4 id="near-miss">Near Miss</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_NEAR_MISS</code></td>
-<td><code>audio/sfx_near_miss.ogg</code></td>
-<td>800</td>
-<td><code>nearMissApplied = true</code>; grid stop moment</td>
-<td>Electric crackle near symbol positions; tension-but-no-resolve. Confirmed in FRONTEND.md §7.2. Lightning arc sound that does not complete — intentional unresolved quality.</td>
-</tr>
-</tbody></table></div>
+<h4>Near Miss</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_NEAR_MISS</code></td><td><code>audio/sfx_near_miss.ogg</code></td><td>800</td><td><code>nearMissApplied = true</code>; grid stop moment</td><td>Electric crackle near symbol positions; tension-but-no-resolve. Confirmed in FRONTEND.md §7.2. Lightning arc sound that does not complete — intentional unresolved quality.</td></tr>
+</table>
 <hr>
-<h4 id="session-system">Session &amp; System</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_SESSION_RESTORE</code></td>
-<td><code>audio/sfx_session_restore.ogg</code></td>
-<td>1000</td>
-<td><code>SESSION_RECONNECT</code> → <code>SESSION_RESTORED_FG</code> or <code>SESSION_RESTORED_IDLE</code></td>
-<td>Reconnection chime; reassuring tone. Plays after session data is confirmed valid.</td>
-</tr>
-<tr>
-<td><code>SFX_SESSION_EXPIRE</code></td>
-<td><code>audio/sfx_session_expire.ogg</code></td>
-<td>600</td>
-<td><code>SESSION_EXPIRED</code> dialog shown</td>
-<td>Descending minor tone; signals session loss</td>
-</tr>
-<tr>
-<td><code>SFX_ERROR</code></td>
-<td><code>audio/sfx_error.ogg</code></td>
-<td>400</td>
-<td><code>NETWORK_ERROR</code> state entry</td>
-<td>Low-key negative indicator; not alarming</td>
-</tr>
-</tbody></table></div>
+<h4>Session &amp; System</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_SESSION_RESTORE</code></td><td><code>audio/sfx_session_restore.ogg</code></td><td>1000</td><td><code>SESSION_RECONNECT</code> → <code>SESSION_RESTORED_FG</code> or <code>SESSION_RESTORED_IDLE</code></td><td>Reconnection chime; reassuring tone. Plays after session data is confirmed valid.</td></tr>
+<tr><td><code>SFX_SESSION_EXPIRE</code></td><td><code>audio/sfx_session_expire.ogg</code></td><td>600</td><td><code>SESSION_EXPIRED</code> dialog shown</td><td>Descending minor tone; signals session loss</td></tr>
+<tr><td><code>SFX_ERROR</code></td><td><code>audio/sfx_error.ogg</code></td><td>400</td><td><code>NETWORK_ERROR</code> state entry</td><td>Low-key negative indicator; not alarming</td></tr>
+</table>
 <hr>
-<h4 id="ui-sounds">UI Sounds</h4>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>File</th>
-<th>Duration (ms)</th>
-<th>Trigger</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>SFX_UI_BUTTON_PRESS</code></td>
-<td><code>audio/sfx_ui_button_press.ogg</code></td>
-<td>80</td>
-<td>Any button press (SPIN, BET+/−, INFO, SETTINGS)</td>
-<td>Crisp snap; VDD <code>--duration-snap</code> 80ms alignment</td>
-</tr>
-<tr>
-<td><code>SFX_UI_BET_UP</code></td>
-<td><code>audio/sfx_ui_bet_up.ogg</code></td>
-<td>120</td>
-<td>BET+ pressed</td>
-<td>Ascending short click</td>
-</tr>
-<tr>
-<td><code>SFX_UI_BET_DOWN</code></td>
-<td><code>audio/sfx_ui_bet_down.ogg</code></td>
-<td>120</td>
-<td>BET− pressed</td>
-<td>Descending short click</td>
-</tr>
-<tr>
-<td><code>SFX_UI_SOUND_TOGGLE</code></td>
-<td><code>audio/sfx_ui_sound_toggle.ogg</code></td>
-<td>150</td>
-<td>SOUND button toggled</td>
-<td>Muted mechanical click (plays at full gain even if BGM/SFX being muted, as last action before mute applies)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_INFO_OPEN</code></td>
-<td><code>audio/sfx_ui_info_open.ogg</code></td>
-<td>200</td>
-<td>INFO panel opens</td>
-<td>Parchment-scroll unfold texture</td>
-</tr>
-<tr>
-<td><code>SFX_UI_INFO_CLOSE</code></td>
-<td><code>audio/sfx_ui_info_close.ogg</code></td>
-<td>150</td>
-<td>INFO panel closes</td>
-<td>Reverse of open</td>
-</tr>
-<tr>
-<td><code>SFX_UI_DIALOG_OPEN</code></td>
-<td><code>audio/sfx_ui_dialog_open.ogg</code></td>
-<td>200</td>
-<td>Any modal dialog appears</td>
-<td>Soft pop</td>
-</tr>
-<tr>
-<td><code>SFX_UI_DIALOG_CLOSE</code></td>
-<td><code>audio/sfx_ui_dialog_close.ogg</code></td>
-<td>150</td>
-<td>Any modal dialog dismisses</td>
-<td>Soft pop out</td>
-</tr>
-</tbody></table></div>
+<h4>UI Sounds</h4>
+<table>
+<tr><th>Sound ID</th><th>File</th><th>Duration (ms)</th><th>Trigger</th><th>Notes</th></tr>
+<tr><td><code>SFX_UI_BUTTON_PRESS</code></td><td><code>audio/sfx_ui_button_press.ogg</code></td><td>80</td><td>Any button press (SPIN, BET+/−, INFO, SETTINGS)</td><td>Crisp snap; VDD <code>--duration-snap</code> 80ms alignment</td></tr>
+<tr><td><code>SFX_UI_BET_UP</code></td><td><code>audio/sfx_ui_bet_up.ogg</code></td><td>120</td><td>BET+ pressed</td><td>Ascending short click</td></tr>
+<tr><td><code>SFX_UI_BET_DOWN</code></td><td><code>audio/sfx_ui_bet_down.ogg</code></td><td>120</td><td>BET− pressed</td><td>Descending short click</td></tr>
+<tr><td><code>SFX_UI_SOUND_TOGGLE</code></td><td><code>audio/sfx_ui_sound_toggle.ogg</code></td><td>150</td><td>SOUND button toggled</td><td>Muted mechanical click (plays at full gain even if BGM/SFX being muted, as last action before mute applies)</td></tr>
+<tr><td><code>SFX_UI_INFO_OPEN</code></td><td><code>audio/sfx_ui_info_open.ogg</code></td><td>200</td><td>INFO panel opens</td><td>Parchment-scroll unfold texture</td></tr>
+<tr><td><code>SFX_UI_INFO_CLOSE</code></td><td><code>audio/sfx_ui_info_close.ogg</code></td><td>150</td><td>INFO panel closes</td><td>Reverse of open</td></tr>
+<tr><td><code>SFX_UI_DIALOG_OPEN</code></td><td><code>audio/sfx_ui_dialog_open.ogg</code></td><td>200</td><td>Any modal dialog appears</td><td>Soft pop</td></tr>
+<tr><td><code>SFX_UI_DIALOG_CLOSE</code></td><td><code>audio/sfx_ui_dialog_close.ogg</code></td><td>150</td><td>Any modal dialog dismisses</td><td>Soft pop out</td></tr>
+</table>
 <hr>
-<h3 id="h-33-sound-id-master-index">3.3 Sound ID Master Index</h3>
+<h3>3.3 Sound ID Master Index</h3>
 <p>All Sound IDs used in the game, in alphabetical order:</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th>Category</th>
-<th>Confirmed in FRONTEND.md §7</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>BGM_77X</code></td>
-<td>BGM</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>BGM_ANTICIPATION</code></td>
-<td>BGM</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>BGM_COIN_TOSS</code></td>
-<td>BGM</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>BGM_FREE_GAME</code></td>
-<td>BGM</td>
-<td>Yes (§7 preload list)</td>
-</tr>
-<tr>
-<td><code>BGM_MAIN</code></td>
-<td>BGM</td>
-<td>Yes (§7 preload list)</td>
-</tr>
-<tr>
-<td><code>SFX_BUY_FG_CONFIRM</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_BUY_FG_OPEN</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_CASCADE</code></td>
-<td>SFX</td>
-<td>Yes (§7 preload list)</td>
-</tr>
-<tr>
-<td><code>SFX_CASCADE_DROP</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_CASCADE_EXPLODE</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_HEADS</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_MULT_PROGRESS</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TAILS</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TOSS</code></td>
-<td>SFX</td>
-<td>Yes (§7 preload list)</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TOSS_FLIP</code></td>
-<td>SFX</td>
-<td>Yes (§7.2 as <code>SFX_COIN_TOSS_FLIP</code>)</td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TOSS_START</code></td>
-<td>SFX</td>
-<td>Yes (§7.2 as <code>SFX_COIN_TOSS_START</code>)</td>
-</tr>
-<tr>
-<td><code>SFX_ERROR</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_EXTRA_BET_OFF</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_EXTRA_BET_ON</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_BONUS_100X</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_BONUS_20X</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_BONUS_5X</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_BONUS_REVEAL</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_COMPLETE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_ENTER</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_MULT_77</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_MULT_UP</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_FG_ROUND_START</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_FREE_LETTER</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING</code></td>
-<td>SFX</td>
-<td>Yes (§7 preload list)</td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING_ACTIVATE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING_MARK</code></td>
-<td>SFX</td>
-<td>Yes (§7.2 as <code>SFX_LIGHTNING_MARK</code>)</td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING_PERSIST</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_MAX_WIN</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_MAX_WIN_LEGENDARY</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_NEAR_MISS</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_REEL_EXPAND</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_REEL_STOP_1</code>–<code>SFX_REEL_STOP_5</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_SCATTER</code></td>
-<td>SFX</td>
-<td>Yes (§7 preload list)</td>
-</tr>
-<tr>
-<td><code>SFX_SCATTER_WIN</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_SECOND_HIT</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_SESSION_EXPIRE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_SESSION_RESTORE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_SPIN_START</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_TB_FIRST_HIT</code></td>
-<td>SFX</td>
-<td>No (extension of <code>SFX_THUNDER_BLESSING</code>)</td>
-</tr>
-<tr>
-<td><code>SFX_TB_SETTLE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_TB_SYMBOL_UPGRADE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_THUNDER_BLESSING</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_BET_DOWN</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_BET_UP</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_BUTTON_PRESS</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_DIALOG_CLOSE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_DIALOG_OPEN</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_INFO_CLOSE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_INFO_OPEN</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_UI_SOUND_TOGGLE</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_WIN</code></td>
-<td>SFX</td>
-<td>Yes (§7 preload list)</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_BIG</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_JACKPOT</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_MEDIUM</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_MEGA</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_ROLLUP_TICK</code></td>
-<td>SFX</td>
-<td>No (extension)</td>
-</tr>
-<tr>
-<td><code>SFX_WIN_SMALL</code></td>
-<td>SFX</td>
-<td>Yes (§7.2)</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Sound ID</th><th>Category</th><th>Confirmed in FRONTEND.md §7</th></tr>
+<tr><td><code>BGM_77X</code></td><td>BGM</td><td>No (extension)</td></tr>
+<tr><td><code>BGM_ANTICIPATION</code></td><td>BGM</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>BGM_COIN_TOSS</code></td><td>BGM</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>BGM_FREE_GAME</code></td><td>BGM</td><td>Yes (§7 preload list)</td></tr>
+<tr><td><code>BGM_MAIN</code></td><td>BGM</td><td>Yes (§7 preload list)</td></tr>
+<tr><td><code>SFX_BUY_FG_CONFIRM</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_BUY_FG_OPEN</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_CASCADE</code></td><td>SFX</td><td>Yes (§7 preload list)</td></tr>
+<tr><td><code>SFX_CASCADE_DROP</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_CASCADE_EXPLODE</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_COIN_HEADS</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_COIN_MULT_PROGRESS</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_COIN_TAILS</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_COIN_TOSS</code></td><td>SFX</td><td>Yes (§7 preload list)</td></tr>
+<tr><td><code>SFX_COIN_TOSS_FLIP</code></td><td>SFX</td><td>Yes (§7.2 as <code>SFX_COIN_TOSS_FLIP</code>)</td></tr>
+<tr><td><code>SFX_COIN_TOSS_START</code></td><td>SFX</td><td>Yes (§7.2 as <code>SFX_COIN_TOSS_START</code>)</td></tr>
+<tr><td><code>SFX_ERROR</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_EXTRA_BET_OFF</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_EXTRA_BET_ON</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_FG_BONUS_100X</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_FG_BONUS_20X</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_FG_BONUS_5X</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_FG_BONUS_REVEAL</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_FG_COMPLETE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_FG_ENTER</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_FG_MULT_77</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_FG_MULT_UP</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_FG_ROUND_START</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_FREE_LETTER</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_LIGHTNING</code></td><td>SFX</td><td>Yes (§7 preload list)</td></tr>
+<tr><td><code>SFX_LIGHTNING_ACTIVATE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_LIGHTNING_MARK</code></td><td>SFX</td><td>Yes (§7.2 as <code>SFX_LIGHTNING_MARK</code>)</td></tr>
+<tr><td><code>SFX_LIGHTNING_PERSIST</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_MAX_WIN</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_MAX_WIN_LEGENDARY</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_NEAR_MISS</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_REEL_EXPAND</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_REEL_STOP_1</code>–<code>SFX_REEL_STOP_5</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_SCATTER</code></td><td>SFX</td><td>Yes (§7 preload list)</td></tr>
+<tr><td><code>SFX_SCATTER_WIN</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_SECOND_HIT</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_SESSION_EXPIRE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_SESSION_RESTORE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_SPIN_START</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_TB_FIRST_HIT</code></td><td>SFX</td><td>No (extension of <code>SFX_THUNDER_BLESSING</code>)</td></tr>
+<tr><td><code>SFX_TB_SETTLE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_TB_SYMBOL_UPGRADE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_THUNDER_BLESSING</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_UI_BET_DOWN</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_UI_BET_UP</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_UI_BUTTON_PRESS</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_UI_DIALOG_CLOSE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_UI_DIALOG_OPEN</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_UI_INFO_CLOSE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_UI_INFO_OPEN</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_UI_SOUND_TOGGLE</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_WIN</code></td><td>SFX</td><td>Yes (§7 preload list)</td></tr>
+<tr><td><code>SFX_WIN_BIG</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_WIN_JACKPOT</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_WIN_MEDIUM</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_WIN_MEGA</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+<tr><td><code>SFX_WIN_ROLLUP_TICK</code></td><td>SFX</td><td>No (extension)</td></tr>
+<tr><td><code>SFX_WIN_SMALL</code></td><td>SFX</td><td>Yes (§7.2)</td></tr>
+</table>
 <hr>
-<h2 id="h-4-adaptive-audio-state-machine">§4 Adaptive Audio State Machine</h2>
-<h3 id="h-41-audio-state-definitions">4.1 Audio State Definitions</h3>
+<h2>§4 Adaptive Audio State Machine</h2>
+<h3>4.1 Audio State Definitions</h3>
 <p>The audio state machine is a parallel subsystem of the game state machine (FRONTEND.md §4.2). It does not own game logic — it subscribes to game state transitions and applies the appropriate audio actions.</p>
-<pre><code>AudioState = {
+<pre><code class="">AudioState = {
   bgmTrack: SoundId | null,       // currently playing BGM
   bgmGainFactor: number,          // temporary duck factor (1.0 = normal)
   sfxLayersActive: Set&lt;string&gt;,   // named SFX layers active in this state
   pendingCrossfade: Promise | null
 }</code></pre>
-<h3 id="h-42-full-state-transition-table">4.2 Full State Transition Table</h3>
+<h3>4.2 Full State Transition Table</h3>
 <blockquote><p><strong>Delegation note:</strong> Rows marked <code>[AQ]</code> in the SFX column indicate audio events that are dispatched by <code>AnimationQueue.play()</code> (§5), not by the state-machine observer directly. The state-machine observer is responsible for BGM crossfades <strong>and BGM ducking</strong> (gain changes in the BGM Duration column) — it must <strong>not</strong> also fire <code>[AQ]</code>-tagged SFX directly (that would cause double-fire). Conversely, AQ steps in §5 that mention BGM ducks (e.g., §5.5, §5.8) are documenting the expected BGM behavior for implementer reference only — the actual gain change is triggered by the state observer, not by AQ. Rows without <code>[AQ]</code> are fired directly by the state-machine observer.</p></blockquote>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>From State</th>
-<th>To State</th>
-<th>Trigger</th>
-<th>BGM Action</th>
-<th>BGM Duration</th>
-<th>SFX Fired</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>IDLE</code></td>
-<td><code>SPINNING</code></td>
-<td><code>SPIN_PRESSED</code></td>
-<td>Continue <code>BGM_MAIN</code></td>
-<td>—</td>
-<td><code>SFX_SPIN_START</code> (immediate)</td>
-</tr>
-<tr>
-<td><code>SPINNING</code></td>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>SPIN_RESPONSE_OK</code></td>
-<td>Continue <code>BGM_MAIN</code></td>
-<td>—</td>
-<td><code>SFX_REEL_STOP_1</code>–<code>5</code> (staggered 120ms)</td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>NEXT_CASCADE_STEP</code></td>
-<td>Continue current BGM</td>
-<td>—</td>
-<td>Per-step SFX (see §5) <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>THUNDER_BLESSING</code></td>
-<td><code>TB_TRIGGERED</code></td>
-<td>Continue current BGM (no change)</td>
-<td>—</td>
-<td><code>SFX_LIGHTNING_ACTIVATE</code> <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>COIN_TOSS</code></td>
-<td><code>CASCADE_COMPLETE_COIN_TOSS</code></td>
-<td>Crossfade to <code>BGM_COIN_TOSS</code> (BGM only; SFX via AQ)</td>
-<td>800ms</td>
-<td><code>SFX_COIN_TOSS_START</code> <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>RESULT_DISPLAY</code></td>
-<td><code>CASCADE_COMPLETE_WIN</code></td>
-<td>Continue <code>BGM_MAIN</code>; duck only if win tier ≥ Big Win (≥ 20× baseBet) — see §4.3</td>
-<td>— (see §4.3 for per-tier duck ramp durations)</td>
-<td>Win tier SFX (see §3.2) <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>RESULT_DISPLAY</code></td>
-<td><code>CASCADE_COMPLETE_NO_WIN</code></td>
-<td>Continue <code>BGM_MAIN</code></td>
-<td>—</td>
-<td>None</td>
-</tr>
-<tr>
-<td><code>THUNDER_BLESSING</code></td>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>TB_SEQUENCE_COMPLETE</code></td>
-<td>Continue current BGM (no gain change needed)</td>
-<td>—</td>
-<td><code>SFX_TB_SETTLE</code> <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>COIN_TOSS</code></td>
-<td><code>FREE_GAME</code></td>
-<td><code>COIN_TOSS_HEADS_FG</code></td>
-<td>Crossfade from <code>BGM_COIN_TOSS</code> to <code>BGM_FREE_GAME</code> via <code>crossfadeBGM()</code> (BGM only; SFX via AQ)</td>
-<td>800ms</td>
-<td><code>SFX_FG_ENTER</code> <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>COIN_TOSS</code></td>
-<td><code>RESULT_DISPLAY</code></td>
-<td><code>COIN_TOSS_TAILS</code></td>
-<td>Crossfade to <code>BGM_MAIN</code></td>
-<td>500ms</td>
-<td><code>SFX_COIN_TAILS</code> <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>FREE_GAME</code></td>
-<td><code>FREE_GAME</code></td>
-<td><code>FG_ROUND_START</code></td>
-<td>Continue <code>BGM_FREE_GAME</code> (or <code>BGM_77X</code>)</td>
-<td>—</td>
-<td><code>SFX_FG_ROUND_START</code> <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>FREE_GAME</code></td>
-<td><code>FREE_GAME</code></td>
-<td><code>FG_ROUND_COMPLETE_HEADS</code> + mult=77</td>
-<td>Crossfade to <code>BGM_77X</code></td>
-<td>800ms</td>
-<td><code>SFX_FG_MULT_77</code> <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>FREE_GAME</code></td>
-<td><code>FREE_GAME</code></td>
-<td><code>FG_ROUND_COMPLETE_HEADS</code> + mult≠77</td>
-<td>Continue current BGM</td>
-<td>—</td>
-<td><code>SFX_FG_MULT_UP</code> + <code>SFX_COIN_MULT_PROGRESS</code> <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>FREE_GAME</code></td>
-<td><code>RESULT_DISPLAY</code></td>
-<td><code>FG_ROUND_COMPLETE_TAILS</code></td>
-<td>Continue until FG_COMPLETE fires</td>
-<td>—</td>
-<td><code>SFX_FG_COMPLETE</code> <code>[AQ]</code>, then win tier SFX <code>[AQ]</code></td>
-</tr>
-<tr>
-<td><code>RESULT_DISPLAY</code></td>
-<td><code>IDLE</code></td>
-<td><code>RESULT_DISMISSED</code></td>
-<td>Crossfade to <code>BGM_MAIN</code> (if not already playing)</td>
-<td>800ms</td>
-<td>None</td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>CASCADE_RESOLVING</code></td>
-<td>All FREE letters lit (cascade count ≥ 4; <code>HUDComponent.setFreeLetterProgress(4)</code>)</td>
-<td>Crossfade to <code>BGM_ANTICIPATION</code></td>
-<td>300ms</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td><code>CASCADE_RESOLVING</code></td>
-<td>FREE letters reset (cascade ends without FG)</td>
-<td>Crossfade to <code>BGM_MAIN</code></td>
-<td>800ms</td>
-<td>—</td>
-</tr>
-<tr>
-<td>Any</td>
-<td><code>NETWORK_ERROR</code></td>
-<td><code>NETWORK_OFFLINE</code> or API error</td>
-<td>Continue current BGM, reduce −3dB</td>
-<td>300ms</td>
-<td><code>SFX_ERROR</code></td>
-</tr>
-<tr>
-<td><code>NETWORK_ERROR</code></td>
-<td><code>IDLE</code></td>
-<td><code>RETRY_CLICKED</code></td>
-<td>Restore BGM gain; crossfade to <code>BGM_MAIN</code> if needed</td>
-<td>500ms</td>
-<td>None</td>
-</tr>
-<tr>
-<td><code>SESSION_RECONNECT</code></td>
-<td><code>FREE_GAME</code></td>
-<td><code>SESSION_RESTORED_FG</code></td>
-<td>Crossfade to <code>BGM_FREE_GAME</code></td>
-<td>800ms</td>
-<td><code>SFX_SESSION_RESTORE</code></td>
-</tr>
-<tr>
-<td><code>SESSION_RECONNECT</code></td>
-<td><code>IDLE</code></td>
-<td><code>SESSION_RESTORED_IDLE</code></td>
-<td><code>BGM_MAIN</code> (ensure playing)</td>
-<td>—</td>
-<td><code>SFX_SESSION_RESTORE</code></td>
-</tr>
-<tr>
-<td><code>SESSION_RECONNECT</code></td>
-<td><code>IDLE</code></td>
-<td><code>SESSION_EXPIRED</code></td>
-<td><code>BGM_MAIN</code></td>
-<td>—</td>
-<td><code>SFX_SESSION_EXPIRE</code></td>
-</tr>
-</tbody></table></div>
-<h3 id="h-43-ducking-rules">4.3 Ducking Rules</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Event</th>
-<th>BGM Gain Change</th>
-<th>Duration In</th>
-<th>Hold</th>
-<th>Duration Out</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Big Win SFX playing (20× ≤ win &lt; 100×)</td>
-<td>−6 dB (factor 0.5)</td>
-<td>200ms linear</td>
-<td>2000ms</td>
-<td>400ms linear</td>
-<td>Hold matches <code>SFX_WIN_BIG</code> duration (see §3.2)</td>
-</tr>
-<tr>
-<td>Mega Win SFX playing (100× ≤ win &lt; 500×)</td>
-<td>−6 dB (factor 0.5)</td>
-<td>200ms linear</td>
-<td>3000ms</td>
-<td>400ms linear</td>
-<td>Hold matches <code>SFX_WIN_MEGA</code> duration (see §3.2)</td>
-</tr>
-<tr>
-<td>Jackpot SFX playing (500× ≤ win &lt; 30,000×)</td>
-<td>−6 dB (factor 0.5)</td>
-<td>200ms linear</td>
-<td>4000ms</td>
-<td>400ms linear</td>
-<td>Hold matches <code>SFX_WIN_JACKPOT</code> duration (see §3.2)</td>
-</tr>
-<tr>
-<td>Max Win (30,000×) event</td>
-<td>−12 dB (factor 0.25)</td>
-<td>300ms linear</td>
-<td>6000ms</td>
-<td>800ms linear</td>
-<td>Extended duck for max win (Main Game)</td>
-</tr>
-<tr>
-<td>Max Win (90,000×) event</td>
-<td>−12 dB (factor 0.25)</td>
-<td>300ms linear</td>
-<td>10,000ms</td>
-<td>800ms linear</td>
-<td>Extra Bet / Buy Feature max win; same duck depth as 30,000× with longer hold matching <code>SFX_MAX_WIN_LEGENDARY</code> duration</td>
-</tr>
-<tr>
-<td><code>NETWORK_ERROR</code> state</td>
-<td>−3 dB (factor 0.71)</td>
-<td>300ms linear</td>
-<td>Until error cleared</td>
-<td>500ms linear</td>
-<td>Subtle — game still feels alive</td>
-</tr>
-<tr>
-<td>FG Bonus ×100 reveal</td>
-<td>−9 dB (factor 0.35)</td>
-<td>300ms linear</td>
-<td>4000ms</td>
-<td>600ms linear</td>
-<td>Foreground spectacle takes priority</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>From State</th><th>To State</th><th>Trigger</th><th>BGM Action</th><th>BGM Duration</th><th>SFX Fired</th></tr>
+<tr><td><code>IDLE</code></td><td><code>SPINNING</code></td><td><code>SPIN_PRESSED</code></td><td>Continue <code>BGM_MAIN</code></td><td>—</td><td><code>SFX_SPIN_START</code> (immediate)</td></tr>
+<tr><td><code>SPINNING</code></td><td><code>CASCADE_RESOLVING</code></td><td><code>SPIN_RESPONSE_OK</code></td><td>Continue <code>BGM_MAIN</code></td><td>—</td><td><code>SFX_REEL_STOP_1</code>–<code>5</code> (staggered 120ms)</td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td><code>CASCADE_RESOLVING</code></td><td><code>NEXT_CASCADE_STEP</code></td><td>Continue current BGM</td><td>—</td><td>Per-step SFX (see §5) <code>[AQ]</code></td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td><code>THUNDER_BLESSING</code></td><td><code>TB_TRIGGERED</code></td><td>Continue current BGM (no change)</td><td>—</td><td><code>SFX_LIGHTNING_ACTIVATE</code> <code>[AQ]</code></td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td><code>COIN_TOSS</code></td><td><code>CASCADE_COMPLETE_COIN_TOSS</code></td><td>Crossfade to <code>BGM_COIN_TOSS</code> (BGM only; SFX via AQ)</td><td>800ms</td><td><code>SFX_COIN_TOSS_START</code> <code>[AQ]</code></td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td><code>RESULT_DISPLAY</code></td><td><code>CASCADE_COMPLETE_WIN</code></td><td>Continue <code>BGM_MAIN</code>; duck only if win tier ≥ Big Win (≥ 20× baseBet) — see §4.3</td><td>— (see §4.3 for per-tier duck ramp durations)</td><td>Win tier SFX (see §3.2) <code>[AQ]</code></td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td><code>RESULT_DISPLAY</code></td><td><code>CASCADE_COMPLETE_NO_WIN</code></td><td>Continue <code>BGM_MAIN</code></td><td>—</td><td>None</td></tr>
+<tr><td><code>THUNDER_BLESSING</code></td><td><code>CASCADE_RESOLVING</code></td><td><code>TB_SEQUENCE_COMPLETE</code></td><td>Continue current BGM (no gain change needed)</td><td>—</td><td><code>SFX_TB_SETTLE</code> <code>[AQ]</code></td></tr>
+<tr><td><code>COIN_TOSS</code></td><td><code>FREE_GAME</code></td><td><code>COIN_TOSS_HEADS_FG</code></td><td>Crossfade from <code>BGM_COIN_TOSS</code> to <code>BGM_FREE_GAME</code> via <code>crossfadeBGM()</code> (BGM only; SFX via AQ)</td><td>800ms</td><td><code>SFX_FG_ENTER</code> <code>[AQ]</code></td></tr>
+<tr><td><code>COIN_TOSS</code></td><td><code>RESULT_DISPLAY</code></td><td><code>COIN_TOSS_TAILS</code></td><td>Crossfade to <code>BGM_MAIN</code></td><td>500ms</td><td><code>SFX_COIN_TAILS</code> <code>[AQ]</code></td></tr>
+<tr><td><code>FREE_GAME</code></td><td><code>FREE_GAME</code></td><td><code>FG_ROUND_START</code></td><td>Continue <code>BGM_FREE_GAME</code> (or <code>BGM_77X</code>)</td><td>—</td><td><code>SFX_FG_ROUND_START</code> <code>[AQ]</code></td></tr>
+<tr><td><code>FREE_GAME</code></td><td><code>FREE_GAME</code></td><td><code>FG_ROUND_COMPLETE_HEADS</code> + mult=77</td><td>Crossfade to <code>BGM_77X</code></td><td>800ms</td><td><code>SFX_FG_MULT_77</code> <code>[AQ]</code></td></tr>
+<tr><td><code>FREE_GAME</code></td><td><code>FREE_GAME</code></td><td><code>FG_ROUND_COMPLETE_HEADS</code> + mult≠77</td><td>Continue current BGM</td><td>—</td><td><code>SFX_FG_MULT_UP</code> + <code>SFX_COIN_MULT_PROGRESS</code> <code>[AQ]</code></td></tr>
+<tr><td><code>FREE_GAME</code></td><td><code>RESULT_DISPLAY</code></td><td><code>FG_ROUND_COMPLETE_TAILS</code></td><td>Continue until FG_COMPLETE fires</td><td>—</td><td><code>SFX_FG_COMPLETE</code> <code>[AQ]</code>, then win tier SFX <code>[AQ]</code></td></tr>
+<tr><td><code>RESULT_DISPLAY</code></td><td><code>IDLE</code></td><td><code>RESULT_DISMISSED</code></td><td>Crossfade to <code>BGM_MAIN</code> (if not already playing)</td><td>800ms</td><td>None</td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td><code>CASCADE_RESOLVING</code></td><td>All FREE letters lit (cascade count ≥ 4; <code>HUDComponent.setFreeLetterProgress(4)</code>)</td><td>Crossfade to <code>BGM_ANTICIPATION</code></td><td>300ms</td><td>—</td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td><code>CASCADE_RESOLVING</code></td><td>FREE letters reset (cascade ends without FG)</td><td>Crossfade to <code>BGM_MAIN</code></td><td>800ms</td><td>—</td></tr>
+<tr><td>Any</td><td><code>NETWORK_ERROR</code></td><td><code>NETWORK_OFFLINE</code> or API error</td><td>Continue current BGM, reduce −3dB</td><td>300ms</td><td><code>SFX_ERROR</code></td></tr>
+<tr><td><code>NETWORK_ERROR</code></td><td><code>IDLE</code></td><td><code>RETRY_CLICKED</code></td><td>Restore BGM gain; crossfade to <code>BGM_MAIN</code> if needed</td><td>500ms</td><td>None</td></tr>
+<tr><td><code>SESSION_RECONNECT</code></td><td><code>FREE_GAME</code></td><td><code>SESSION_RESTORED_FG</code></td><td>Crossfade to <code>BGM_FREE_GAME</code></td><td>800ms</td><td><code>SFX_SESSION_RESTORE</code></td></tr>
+<tr><td><code>SESSION_RECONNECT</code></td><td><code>IDLE</code></td><td><code>SESSION_RESTORED_IDLE</code></td><td><code>BGM_MAIN</code> (ensure playing)</td><td>—</td><td><code>SFX_SESSION_RESTORE</code></td></tr>
+<tr><td><code>SESSION_RECONNECT</code></td><td><code>IDLE</code></td><td><code>SESSION_EXPIRED</code></td><td><code>BGM_MAIN</code></td><td>—</td><td><code>SFX_SESSION_EXPIRE</code></td></tr>
+</table>
+<h3>4.3 Ducking Rules</h3>
+<table>
+<tr><th>Event</th><th>BGM Gain Change</th><th>Duration In</th><th>Hold</th><th>Duration Out</th><th>Notes</th></tr>
+<tr><td>Big Win SFX playing (20× ≤ win &lt; 100×)</td><td>−6 dB (factor 0.5)</td><td>200ms linear</td><td>2000ms</td><td>400ms linear</td><td>Hold matches <code>SFX_WIN_BIG</code> duration (see §3.2)</td></tr>
+<tr><td>Mega Win SFX playing (100× ≤ win &lt; 500×)</td><td>−6 dB (factor 0.5)</td><td>200ms linear</td><td>3000ms</td><td>400ms linear</td><td>Hold matches <code>SFX_WIN_MEGA</code> duration (see §3.2)</td></tr>
+<tr><td>Jackpot SFX playing (500× ≤ win &lt; 30,000×)</td><td>−6 dB (factor 0.5)</td><td>200ms linear</td><td>4000ms</td><td>400ms linear</td><td>Hold matches <code>SFX_WIN_JACKPOT</code> duration (see §3.2)</td></tr>
+<tr><td>Max Win (30,000×) event</td><td>−12 dB (factor 0.25)</td><td>300ms linear</td><td>6000ms</td><td>800ms linear</td><td>Extended duck for max win (Main Game)</td></tr>
+<tr><td>Max Win (90,000×) event</td><td>−12 dB (factor 0.25)</td><td>300ms linear</td><td>10,000ms</td><td>800ms linear</td><td>Extra Bet / Buy Feature max win; same duck depth as 30,000× with longer hold matching <code>SFX_MAX_WIN_LEGENDARY</code> duration</td></tr>
+<tr><td><code>NETWORK_ERROR</code> state</td><td>−3 dB (factor 0.71)</td><td>300ms linear</td><td>Until error cleared</td><td>500ms linear</td><td>Subtle — game still feels alive</td></tr>
+<tr><td>FG Bonus ×100 reveal</td><td>−9 dB (factor 0.35)</td><td>300ms linear</td><td>4000ms</td><td>600ms linear</td><td>Foreground spectacle takes priority</td></tr>
+</table>
 <p><strong>Ducking implementation:</strong> Ducking is applied by temporarily setting <code>gainNodes.BGM.gain.value</code> via <code>linearRampToValueAtTime</code>. The stored <code>config.volume.bgm</code> is never modified. Restoration sets <code>gainNodes.BGM.gain.value</code> back to <code>this.muted ? 0 : this.config.volume.bgm</code> over the restore duration.</p>
-<h3 id="h-44-sfx-layers-per-state">4.4 SFX Layers Per State</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Game State</th>
-<th>Active SFX Layers</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>IDLE</code></td>
-<td>UI layer only (<code>SFX_UI_*</code>); <code>SFX_LIGHTNING_PERSIST</code> (if marks active)</td>
-</tr>
-<tr>
-<td><code>SPINNING</code></td>
-<td>Reel layer (<code>SFX_SPIN_START</code>, <code>SFX_REEL_STOP_*</code>)</td>
-</tr>
-<tr>
-<td><code>CASCADE_RESOLVING</code></td>
-<td>Cascade layer (<code>SFX_CASCADE_EXPLODE</code>, <code>SFX_CASCADE_DROP</code>, <code>SFX_REEL_EXPAND</code>, <code>SFX_FREE_LETTER</code>, <code>SFX_LIGHTNING_MARK</code>, <code>SFX_LIGHTNING_PERSIST</code>), win layer (<code>SFX_WIN_*</code>, <code>SFX_SCATTER</code>)</td>
-</tr>
-<tr>
-<td><code>THUNDER_BLESSING</code></td>
-<td>Thunder Blessing layer (<code>SFX_THUNDER_BLESSING</code>, <code>SFX_TB_FIRST_HIT</code>, <code>SFX_TB_SYMBOL_UPGRADE</code>, <code>SFX_SECOND_HIT</code>, <code>SFX_TB_SETTLE</code>, <code>SFX_LIGHTNING_ACTIVATE</code>)</td>
-</tr>
-<tr>
-<td><code>COIN_TOSS</code></td>
-<td>Coin toss layer (<code>SFX_COIN_TOSS_START</code>, <code>SFX_COIN_TOSS_FLIP</code> [loop], <code>SFX_COIN_HEADS</code> or <code>SFX_COIN_TAILS</code>, <code>SFX_COIN_MULT_PROGRESS</code>)</td>
-</tr>
-<tr>
-<td><code>FREE_GAME</code></td>
-<td>All layers (same as CASCADE_RESOLVING + FG layer: <code>SFX_FG_ENTER</code>, <code>SFX_FG_BONUS_*</code>, <code>SFX_FG_MULT_UP</code>, <code>SFX_FG_MULT_77</code>, <code>SFX_FG_ROUND_START</code>, <code>SFX_FG_COMPLETE</code>)</td>
-</tr>
-<tr>
-<td><code>RESULT_DISPLAY</code></td>
-<td>Win tier layer + FG complete layer</td>
-</tr>
-<tr>
-<td><code>NETWORK_ERROR</code></td>
-<td>UI error layer (<code>SFX_ERROR</code>, <code>SFX_UI_DIALOG_*</code>) only</td>
-</tr>
-</tbody></table></div>
+<h3>4.4 SFX Layers Per State</h3>
+<table>
+<tr><th>Game State</th><th>Active SFX Layers</th></tr>
+<tr><td><code>IDLE</code></td><td>UI layer only (<code>SFX_UI_*</code>); <code>SFX_LIGHTNING_PERSIST</code> (if marks active)</td></tr>
+<tr><td><code>SPINNING</code></td><td>Reel layer (<code>SFX_SPIN_START</code>, <code>SFX_REEL_STOP_*</code>)</td></tr>
+<tr><td><code>CASCADE_RESOLVING</code></td><td>Cascade layer (<code>SFX_CASCADE_EXPLODE</code>, <code>SFX_CASCADE_DROP</code>, <code>SFX_REEL_EXPAND</code>, <code>SFX_FREE_LETTER</code>, <code>SFX_LIGHTNING_MARK</code>, <code>SFX_LIGHTNING_PERSIST</code>), win layer (<code>SFX_WIN_*</code>, <code>SFX_SCATTER</code>)</td></tr>
+<tr><td><code>THUNDER_BLESSING</code></td><td>Thunder Blessing layer (<code>SFX_THUNDER_BLESSING</code>, <code>SFX_TB_FIRST_HIT</code>, <code>SFX_TB_SYMBOL_UPGRADE</code>, <code>SFX_SECOND_HIT</code>, <code>SFX_TB_SETTLE</code>, <code>SFX_LIGHTNING_ACTIVATE</code>)</td></tr>
+<tr><td><code>COIN_TOSS</code></td><td>Coin toss layer (<code>SFX_COIN_TOSS_START</code>, <code>SFX_COIN_TOSS_FLIP</code> [loop], <code>SFX_COIN_HEADS</code> or <code>SFX_COIN_TAILS</code>, <code>SFX_COIN_MULT_PROGRESS</code>)</td></tr>
+<tr><td><code>FREE_GAME</code></td><td>All layers (same as CASCADE_RESOLVING + FG layer: <code>SFX_FG_ENTER</code>, <code>SFX_FG_BONUS_*</code>, <code>SFX_FG_MULT_UP</code>, <code>SFX_FG_MULT_77</code>, <code>SFX_FG_ROUND_START</code>, <code>SFX_FG_COMPLETE</code>)</td></tr>
+<tr><td><code>RESULT_DISPLAY</code></td><td>Win tier layer + FG complete layer</td></tr>
+<tr><td><code>NETWORK_ERROR</code></td><td>UI error layer (<code>SFX_ERROR</code>, <code>SFX_UI_DIALOG_*</code>) only</td></tr>
+</table>
 <hr>
-<h2 id="h-5-animationqueue-audio-mapping">§5 AnimationQueue Audio Mapping</h2>
+<h2>§5 AnimationQueue Audio Mapping</h2>
 <p>This section defines which audio events are fired for each <code>AnimationStep</code> type dispatched by <code>AnimationQueue.play()</code> (FRONTEND.md §6.1). The <code>AnimationDispatcher.dispatch()</code> implementation is responsible for triggering audio alongside visual playback.</p>
 <p>All timings below are relative to the start of <code>dispatcher.dispatch(step)</code> being called.</p>
 <hr>
-<h3 id="h-51-near_miss">5.1 <code>NEAR_MISS</code></h3>
+<h3>5.1 <code>NEAR_MISS</code></h3>
 <p><strong>Trigger:</strong> <code>outcome.nearMissApplied = true</code>; fires before cascade steps.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Time offset</th>
-<th>Audio Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>0ms</td>
-<td><code>SFX_NEAR_MISS</code> — electric crackle at near-miss positions; plays as grid stops</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Time offset</th><th>Audio Action</th></tr>
+<tr><td>0ms</td><td><code>SFX_NEAR_MISS</code> — electric crackle at near-miss positions; plays as grid stops</td></tr>
+</table>
 <p><strong>Notes:</strong> Near miss plays once at grid-stop moment. Does not affect BGM.</p>
 <hr>
-<h3 id="h-52-cascade_step">5.2 <code>CASCADE_STEP</code></h3>
+<h3>5.2 <code>CASCADE_STEP</code></h3>
 <p><strong>Trigger:</strong> Each <code>CascadeStep</code> from <code>cascadeSequence.steps</code>. Steps 1 through N in sequence.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Animation Sub-step</th>
-<th>Time Offset</th>
-<th>Audio Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Symbol win animation starts</td>
-<td>0ms</td>
-<td><code>SFX_WIN</code> (generic chime, if <code>step.stepWin &gt; 0</code>)</td>
-</tr>
-<tr>
-<td>Scatter win (if SC in win line)</td>
-<td>0ms</td>
-<td><code>SFX_SCATTER_WIN</code> (layered with <code>SFX_WIN</code>)</td>
-</tr>
-<tr>
-<td>WIN counter starts</td>
-<td>0ms</td>
-<td><code>SFX_WIN_ROLLUP_TICK</code> (throttled — fire at most every 80ms during roll-up)</td>
-</tr>
-<tr>
-<td>Symbol elimination starts</td>
-<td>~800ms for non-SC symbols; ~1800ms when SC present (waits for 1.8s SC win animation before elimination)</td>
-<td><code>SFX_CASCADE</code> (base cascade layer; played once per step, concurrent with <code>SFX_CASCADE_EXPLODE</code>)</td>
-</tr>
-<tr>
-<td>Symbol elimination starts</td>
-<td>~800ms / ~1800ms (same timing as <code>SFX_CASCADE</code>)</td>
-<td><code>SFX_CASCADE_EXPLODE</code> (per symbol; pitch ±1 semitone randomized; layered over <code>SFX_CASCADE</code>)</td>
-</tr>
-<tr>
-<td>Lightning Mark appears</td>
-<td>concurrent with elimination</td>
-<td><code>SFX_LIGHTNING_MARK</code> (per new mark; pitch +2st × mark count)</td>
-</tr>
-<tr>
-<td>Reel expansion (if <code>step.rows &gt; prev</code>)</td>
-<td>~1000ms</td>
-<td><code>SFX_REEL_EXPAND</code></td>
-</tr>
-<tr>
-<td>FREE letter lights</td>
-<td>concurrent with expansion</td>
-<td><code>SFX_FREE_LETTER</code> (per letter lit; pitch shifts by letter position)</td>
-</tr>
-<tr>
-<td>Symbol falls and lands</td>
-<td>~1420ms (drop start + 420ms)</td>
-<td><code>SFX_CASCADE_DROP</code> (per symbol; staggered per VDD §4.2 delay formula)</td>
-</tr>
-<tr>
-<td>Lightning Marks persist</td>
-<td>continuous</td>
-<td><code>SFX_LIGHTNING_PERSIST</code> [loop] gain adjusted by mark count</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Animation Sub-step</th><th>Time Offset</th><th>Audio Action</th></tr>
+<tr><td>Symbol win animation starts</td><td>0ms</td><td><code>SFX_WIN</code> (generic chime, if <code>step.stepWin &gt; 0</code>)</td></tr>
+<tr><td>Scatter win (if SC in win line)</td><td>0ms</td><td><code>SFX_SCATTER_WIN</code> (layered with <code>SFX_WIN</code>)</td></tr>
+<tr><td>WIN counter starts</td><td>0ms</td><td><code>SFX_WIN_ROLLUP_TICK</code> (throttled — fire at most every 80ms during roll-up)</td></tr>
+<tr><td>Symbol elimination starts</td><td>~800ms for non-SC symbols; ~1800ms when SC present (waits for 1.8s SC win animation before elimination)</td><td><code>SFX_CASCADE</code> (base cascade layer; played once per step, concurrent with <code>SFX_CASCADE_EXPLODE</code>)</td></tr>
+<tr><td>Symbol elimination starts</td><td>~800ms / ~1800ms (same timing as <code>SFX_CASCADE</code>)</td><td><code>SFX_CASCADE_EXPLODE</code> (per symbol; pitch ±1 semitone randomized; layered over <code>SFX_CASCADE</code>)</td></tr>
+<tr><td>Lightning Mark appears</td><td>concurrent with elimination</td><td><code>SFX_LIGHTNING_MARK</code> (per new mark; pitch +2st × mark count)</td></tr>
+<tr><td>Reel expansion (if <code>step.rows &gt; prev</code>)</td><td>~1000ms</td><td><code>SFX_REEL_EXPAND</code></td></tr>
+<tr><td>FREE letter lights</td><td>concurrent with expansion</td><td><code>SFX_FREE_LETTER</code> (per letter lit; pitch shifts by letter position)</td></tr>
+<tr><td>Symbol falls and lands</td><td>~1420ms (drop start + 420ms)</td><td><code>SFX_CASCADE_DROP</code> (per symbol; staggered per VDD §4.2 delay formula)</td></tr>
+<tr><td>Lightning Marks persist</td><td>continuous</td><td><code>SFX_LIGHTNING_PERSIST</code> [loop] gain adjusted by mark count</td></tr>
+</table>
 <p><strong>Win tier SFX mapping</strong> (fired at WIN counter start, <code>step.stepWin / baseBet</code>):</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Step Win / baseBet</th>
-<th>SFX Fired</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>0</td>
-<td>None</td>
-</tr>
-<tr>
-<td>&gt; 0 and &lt; 5</td>
-<td><code>SFX_WIN_SMALL</code></td>
-</tr>
-<tr>
-<td>5 ≤ ratio &lt; 20</td>
-<td><code>SFX_WIN_MEDIUM</code></td>
-</tr>
-<tr>
-<td>≥ 20</td>
-<td>None (cumulative totalWin evaluated at WIN_DISPLAY step only — see §5.8)</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Step Win / baseBet</th><th>SFX Fired</th></tr>
+<tr><td>0</td><td>None</td></tr>
+<tr><td>&gt; 0 and &lt; 5</td><td><code>SFX_WIN_SMALL</code></td></tr>
+<tr><td>5 ≤ ratio &lt; 20</td><td><code>SFX_WIN_MEDIUM</code></td></tr>
+<tr><td>≥ 20</td><td>None (cumulative totalWin evaluated at WIN_DISPLAY step only — see §5.8)</td></tr>
+</table>
 <blockquote><p><strong>Important:</strong> Per-cascade-step SFX uses only <code>SFX_WIN_SMALL</code> / <code>SFX_WIN_MEDIUM</code> for in-step feedback. The major win tier SFX (<code>SFX_WIN_BIG</code>, <code>SFX_WIN_MEGA</code>, <code>SFX_WIN_JACKPOT</code>, <code>SFX_MAX_WIN</code>, <code>SFX_MAX_WIN_LEGENDARY</code>) are reserved for the <code>WIN_DISPLAY</code> step (non-FG path — see §5.8) and the <code>FG_COMPLETE</code> step (FG path — see §5.7), both evaluated against the cumulative <code>totalWin</code>.</p></blockquote>
 <hr>
-<h3 id="h-53-thunder_blessing">5.3 <code>THUNDER_BLESSING</code></h3>
+<h3>5.3 <code>THUNDER_BLESSING</code></h3>
 <p><strong>Trigger:</strong> After the cascade step that sets <code>thunderBlessingTriggeredAfterStep = true</code>.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Time Offset</th>
-<th>Audio Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>200ms</td>
-<td><code>SFX_LIGHTNING_ACTIVATE</code> — marks begin to pulse (t=0.2s per §3.2 and FRONTEND.md §6.4)</td>
-</tr>
-<tr>
-<td>800ms</td>
-<td><code>SFX_THUNDER_BLESSING</code> — all marks explode; white flash sync</td>
-</tr>
-<tr>
-<td>800ms</td>
-<td><code>SFX_TB_FIRST_HIT</code> — layered with <code>SFX_THUNDER_BLESSING</code> for first hit signature</td>
-</tr>
-<tr>
-<td>1500ms</td>
-<td><code>SFX_TB_SYMBOL_UPGRADE</code> — target symbol assembles at each converted position</td>
-</tr>
-<tr>
-<td>2300ms (if <code>thunderBlessingSecondHit = true</code>)</td>
-<td><code>SFX_SECOND_HIT</code> — second pulse white flash</td>
-</tr>
-<tr>
-<td>3000ms</td>
-<td><code>SFX_TB_SETTLE</code> — sequence complete; cascade resume signal</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Time Offset</th><th>Audio Action</th></tr>
+<tr><td>200ms</td><td><code>SFX_LIGHTNING_ACTIVATE</code> — marks begin to pulse (t=0.2s per §3.2 and FRONTEND.md §6.4)</td></tr>
+<tr><td>800ms</td><td><code>SFX_THUNDER_BLESSING</code> — all marks explode; white flash sync</td></tr>
+<tr><td>800ms</td><td><code>SFX_TB_FIRST_HIT</code> — layered with <code>SFX_THUNDER_BLESSING</code> for first hit signature</td></tr>
+<tr><td>1500ms</td><td><code>SFX_TB_SYMBOL_UPGRADE</code> — target symbol assembles at each converted position</td></tr>
+<tr><td>2300ms (if <code>thunderBlessingSecondHit = true</code>)</td><td><code>SFX_SECOND_HIT</code> — second pulse white flash</td></tr>
+<tr><td>3000ms</td><td><code>SFX_TB_SETTLE</code> — sequence complete; cascade resume signal</td></tr>
+</table>
 <blockquote><p><strong>BGM during Thunder Blessing:</strong> BGM continues at unchanged gain throughout the TB sequence per FRONTEND.md §7.3. No ducking is applied; the SFX foreground is impactful without BGM attenuation.</p></blockquote>
 <hr>
-<h3 id="h-54-coin_toss">5.4 <code>COIN_TOSS</code></h3>
+<h3>5.4 <code>COIN_TOSS</code></h3>
 <p><strong>Trigger:</strong> When <code>coinTossTriggered = true</code> (Main Game) or after each FG round&#x27;s cascade resolves.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Time Offset</th>
-<th>Audio Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>0ms</td>
-<td><code>SFX_COIN_TOSS_START</code> — coin fly-in woosh (BGM crossfade to <code>BGM_COIN_TOSS</code> is state-observer owned — see §4.2 <code>CASCADE_RESOLVING→COIN_TOSS</code>)</td>
-</tr>
-<tr>
-<td>500ms</td>
-<td><code>SFX_COIN_TOSS_FLIP</code> [loop starts] — spinning metal sound</td>
-</tr>
-<tr>
-<td>500ms–2000ms</td>
-<td><code>SFX_COIN_TOSS_FLIP</code> loop continues for 1000–1500ms (spin phase)</td>
-</tr>
-<tr>
-<td>~2000ms</td>
-<td><code>SFX_COIN_TOSS_FLIP</code> loop stops</td>
-</tr>
-<tr>
-<td>~3500ms (deceleration complete; coin face fully settled)</td>
-<td><code>SFX_COIN_HEADS</code> or <code>SFX_COIN_TAILS</code> — result reveal</td>
-</tr>
-<tr>
-<td>On HEADS: deceleration settle + 0ms</td>
-<td><code>SFX_COIN_MULT_PROGRESS</code> — progress bar animates</td>
-</tr>
-<tr>
-<td>On TAILS: deceleration settle + 0ms</td>
-<td><em>(No SFX fired here — <code>SFX_COIN_TAILS</code> was already fired in the row above. BGM crossfade to <code>BGM_MAIN</code> (500ms) is state-observer owned — see §4.2 <code>COIN_TOSS→RESULT_DISPLAY</code>.)</em></td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Time Offset</th><th>Audio Action</th></tr>
+<tr><td>0ms</td><td><code>SFX_COIN_TOSS_START</code> — coin fly-in woosh (BGM crossfade to <code>BGM_COIN_TOSS</code> is state-observer owned — see §4.2 <code>CASCADE_RESOLVING→COIN_TOSS</code>)</td></tr>
+<tr><td>500ms</td><td><code>SFX_COIN_TOSS_FLIP</code> [loop starts] — spinning metal sound</td></tr>
+<tr><td>500ms–2000ms</td><td><code>SFX_COIN_TOSS_FLIP</code> loop continues for 1000–1500ms (spin phase)</td></tr>
+<tr><td>~2000ms</td><td><code>SFX_COIN_TOSS_FLIP</code> loop stops</td></tr>
+<tr><td>~3500ms (deceleration complete; coin face fully settled)</td><td><code>SFX_COIN_HEADS</code> or <code>SFX_COIN_TAILS</code> — result reveal</td></tr>
+<tr><td>On HEADS: deceleration settle + 0ms</td><td><code>SFX_COIN_MULT_PROGRESS</code> — progress bar animates</td></tr>
+<tr><td>On TAILS: deceleration settle + 0ms</td><td><em>(No SFX fired here — <code>SFX_COIN_TAILS</code> was already fired in the row above. BGM crossfade to <code>BGM_MAIN</code> (500ms) is state-observer owned — see §4.2 <code>COIN_TOSS→RESULT_DISPLAY</code>.)</em></td></tr>
+</table>
 <hr>
-<h3 id="h-55-fg_entry">5.5 <code>FG_ENTRY</code></h3>
+<h3>5.5 <code>FG_ENTRY</code></h3>
 <p><strong>Trigger:</strong> FG triggered (<code>fgTriggered = true</code>); plays before first <code>FG_ROUND</code>.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Time Offset</th>
-<th>Audio Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>0ms</td>
-<td><code>SFX_FG_ENTER</code> — full fanfare; plays over BGM crossfade (BGM_COIN_TOSS → BGM_FREE_GAME crossfade is state-observer owned per §4.2)</td>
-</tr>
-<tr>
-<td>800ms</td>
-<td>Scene cross-dissolve to Sky Temple background</td>
-</tr>
-<tr>
-<td>1800ms (banner drop + multiplier reveal)</td>
-<td><code>SFX_FG_BONUS_REVEAL</code> (for ×1), or <code>SFX_FG_BONUS_5X</code> / <code>SFX_FG_BONUS_20X</code> / <code>SFX_FG_BONUS_100X</code> based on <code>fgBonusMultiplier</code> value</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Time Offset</th><th>Audio Action</th></tr>
+<tr><td>0ms</td><td><code>SFX_FG_ENTER</code> — full fanfare; plays over BGM crossfade (BGM_COIN_TOSS → BGM_FREE_GAME crossfade is state-observer owned per §4.2)</td></tr>
+<tr><td>800ms</td><td>Scene cross-dissolve to Sky Temple background</td></tr>
+<tr><td>1800ms (banner drop + multiplier reveal)</td><td><code>SFX_FG_BONUS_REVEAL</code> (for ×1), or <code>SFX_FG_BONUS_5X</code> / <code>SFX_FG_BONUS_20X</code> / <code>SFX_FG_BONUS_100X</code> based on <code>fgBonusMultiplier</code> value</td></tr>
+</table>
 <p><strong>Bonus multiplier SFX selection:</strong></p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th><code>fgBonusMultiplier</code></th>
-<th>SFX Fired</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>1</td>
-<td><code>SFX_FG_BONUS_REVEAL</code></td>
-</tr>
-<tr>
-<td>5</td>
-<td><code>SFX_FG_BONUS_5X</code></td>
-</tr>
-<tr>
-<td>20</td>
-<td><code>SFX_FG_BONUS_20X</code></td>
-</tr>
-<tr>
-<td>100</td>
-<td><code>SFX_FG_BONUS_100X</code> + BGM duck −9dB for 4000ms <em>(state-observer owned — see §4.3)</em></td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th><code>fgBonusMultiplier</code></th><th>SFX Fired</th></tr>
+<tr><td>1</td><td><code>SFX_FG_BONUS_REVEAL</code></td></tr>
+<tr><td>5</td><td><code>SFX_FG_BONUS_5X</code></td></tr>
+<tr><td>20</td><td><code>SFX_FG_BONUS_20X</code></td></tr>
+<tr><td>100</td><td><code>SFX_FG_BONUS_100X</code> + BGM duck −9dB for 4000ms <em>(state-observer owned — see §4.3)</em></td></tr>
+</table>
 <hr>
-<h3 id="h-56-fg_round">5.6 <code>FG_ROUND</code></h3>
+<h3>5.6 <code>FG_ROUND</code></h3>
 <p><strong>Trigger:</strong> Each element of <code>fgRounds</code> array, in sequence. Internally plays a full cascade sequence plus a post-round coin toss.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sub-phase</th>
-<th>Time Offset</th>
-<th>Audio Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Round start</td>
-<td>0ms</td>
-<td><code>SFX_FG_ROUND_START</code></td>
-</tr>
-<tr>
-<td>Cascade steps (each)</td>
-<td>Per-cascade</td>
-<td>Same SFX mapping as <code>CASCADE_STEP</code> (§5.2)</td>
-</tr>
-<tr>
-<td>Post-round coin toss</td>
-<td>After cascade resolves</td>
-<td>Same SFX mapping as <code>COIN_TOSS</code> (§5.4). <em>(Caveat: in FG context a TAILS result triggers <code>FG_COMPLETE</code>, NOT a crossfade to <code>BGM_MAIN</code> — the §5.4 TAILS BGM note does not apply here; BGM continues as <code>BGM_FREE_GAME</code>/<code>BGM_77X</code> until <code>RESULT_DISMISSED</code> — see §4.2 <code>FREE_GAME→RESULT_DISPLAY</code> and §5.7.)</em></td>
-</tr>
-<tr>
-<td>HEADS → multiplier advance (mult ≠ 77)</td>
-<td>Post-coin result</td>
-<td><code>SFX_FG_MULT_UP</code> + <code>SFX_COIN_MULT_PROGRESS</code> — see §4.2 <code>FG_ROUND_COMPLETE_HEADS</code> + mult≠77</td>
-</tr>
-<tr>
-<td>HEADS → multiplier advance (mult = 77)</td>
-<td>Post-coin result</td>
-<td><code>SFX_FG_MULT_77</code> + BGM crossfade to <code>BGM_77X</code> (800ms, state-observer owned); <strong><code>SFX_FG_MULT_UP</code> does NOT fire</strong> on this branch — see §4.2 <code>FG_ROUND_COMPLETE_HEADS</code> + mult=77</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Sub-phase</th><th>Time Offset</th><th>Audio Action</th></tr>
+<tr><td>Round start</td><td>0ms</td><td><code>SFX_FG_ROUND_START</code></td></tr>
+<tr><td>Cascade steps (each)</td><td>Per-cascade</td><td>Same SFX mapping as <code>CASCADE_STEP</code> (§5.2)</td></tr>
+<tr><td>Post-round coin toss</td><td>After cascade resolves</td><td>Same SFX mapping as <code>COIN_TOSS</code> (§5.4). <em>(Caveat: in FG context a TAILS result triggers <code>FG_COMPLETE</code>, NOT a crossfade to <code>BGM_MAIN</code> — the §5.4 TAILS BGM note does not apply here; BGM continues as <code>BGM_FREE_GAME</code>/<code>BGM_77X</code> until <code>RESULT_DISMISSED</code> — see §4.2 <code>FREE_GAME→RESULT_DISPLAY</code> and §5.7.)</em></td></tr>
+<tr><td>HEADS → multiplier advance (mult ≠ 77)</td><td>Post-coin result</td><td><code>SFX_FG_MULT_UP</code> + <code>SFX_COIN_MULT_PROGRESS</code> — see §4.2 <code>FG_ROUND_COMPLETE_HEADS</code> + mult≠77</td></tr>
+<tr><td>HEADS → multiplier advance (mult = 77)</td><td>Post-coin result</td><td><code>SFX_FG_MULT_77</code> + BGM crossfade to <code>BGM_77X</code> (800ms, state-observer owned); <strong><code>SFX_FG_MULT_UP</code> does NOT fire</strong> on this branch — see §4.2 <code>FG_ROUND_COMPLETE_HEADS</code> + mult=77</td></tr>
+</table>
 <hr>
-<h3 id="h-57-fg_complete">5.7 <code>FG_COMPLETE</code></h3>
+<h3>5.7 <code>FG_COMPLETE</code></h3>
 <p><strong>Trigger:</strong> After all FG rounds complete (last coin toss result = TAILS or max 5 rounds consumed).</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Time Offset</th>
-<th>Audio Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>0ms</td>
-<td><code>SFX_FG_COMPLETE</code> — summary panel appears</td>
-</tr>
-<tr>
-<td>0ms</td>
-<td>WIN roll-up to <code>outcome.totalWin</code> begins; <code>SFX_WIN_ROLLUP_TICK</code> fires throttled</td>
-</tr>
-<tr>
-<td>End of roll-up</td>
-<td>Win tier SFX (evaluated against <code>totalWin / baseBet</code>): <code>SFX_WIN_SMALL</code> (ratio &lt; 5) / <code>SFX_WIN_MEDIUM</code> (5 ≤ ratio &lt; 20) / <code>SFX_WIN_BIG</code> (20 ≤ ratio &lt; 100) / <code>SFX_WIN_MEGA</code> (100 ≤ ratio &lt; 500) / <code>SFX_WIN_JACKPOT</code> (500 ≤ ratio &lt; 30,000) / <code>SFX_MAX_WIN</code> (30,000×) / <code>SFX_MAX_WIN_LEGENDARY</code> (90,000×)</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Time Offset</th><th>Audio Action</th></tr>
+<tr><td>0ms</td><td><code>SFX_FG_COMPLETE</code> — summary panel appears</td></tr>
+<tr><td>0ms</td><td>WIN roll-up to <code>outcome.totalWin</code> begins; <code>SFX_WIN_ROLLUP_TICK</code> fires throttled</td></tr>
+<tr><td>End of roll-up</td><td>Win tier SFX (evaluated against <code>totalWin / baseBet</code>): <code>SFX_WIN_SMALL</code> (ratio &lt; 5) / <code>SFX_WIN_MEDIUM</code> (5 ≤ ratio &lt; 20) / <code>SFX_WIN_BIG</code> (20 ≤ ratio &lt; 100) / <code>SFX_WIN_MEGA</code> (100 ≤ ratio &lt; 500) / <code>SFX_WIN_JACKPOT</code> (500 ≤ ratio &lt; 30,000) / <code>SFX_MAX_WIN</code> (30,000×) / <code>SFX_MAX_WIN_LEGENDARY</code> (90,000×)</td></tr>
+</table>
 <blockquote><p><strong>BGM after FG_COMPLETE:</strong> BGM (<code>BGM_FREE_GAME</code> or <code>BGM_77X</code>) continues playing through the FG summary panel. The crossfade back to <code>BGM_MAIN</code> occurs on <code>RESULT_DISPLAY → IDLE</code> (<code>RESULT_DISMISSED</code> event, i.e. when the player dismisses the result), as specified in §4.2. This avoids an abrupt BGM change while the player is still reading the win summary.</p></blockquote>
 <hr>
-<h3 id="h-58-win_display">5.8 <code>WIN_DISPLAY</code></h3>
+<h3>5.8 <code>WIN_DISPLAY</code></h3>
 <p><strong>Trigger:</strong> <code>outcome.totalWin &gt; 0</code> and <code>!outcome.fgTriggered</code> — non-FG win resolution.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th><code>totalWin / baseBet</code></th>
-<th>Time Offset</th>
-<th>Audio Action</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>&lt; 5</td>
-<td>0ms</td>
-<td><code>SFX_WIN_SMALL</code></td>
-</tr>
-<tr>
-<td>5 ≤ ratio &lt; 20</td>
-<td>0ms</td>
-<td><code>SFX_WIN_MEDIUM</code></td>
-</tr>
-<tr>
-<td>20 ≤ ratio &lt; 100</td>
-<td>0ms</td>
-<td><code>SFX_WIN_BIG</code> + BGM duck −6dB for 2000ms <em>(state-observer owned — see §4.3)</em></td>
-</tr>
-<tr>
-<td>100 ≤ ratio &lt; 500</td>
-<td>0ms</td>
-<td><code>SFX_WIN_MEGA</code> + BGM duck −6dB for 3000ms <em>(state-observer owned — see §4.3)</em></td>
-</tr>
-<tr>
-<td>500 ≤ ratio &lt; 30,000</td>
-<td>0ms</td>
-<td><code>SFX_WIN_JACKPOT</code> + BGM duck −6dB for 4000ms <em>(state-observer owned — see §4.3)</em></td>
-</tr>
-<tr>
-<td>30000 (Main Game max)</td>
-<td>0ms</td>
-<td><code>SFX_MAX_WIN</code> + BGM duck −12dB for 6000ms <em>(state-observer owned — see §4.3)</em></td>
-</tr>
-<tr>
-<td>90000 (Buy Feature max)</td>
-<td>0ms</td>
-<td><code>SFX_MAX_WIN_LEGENDARY</code> + BGM duck −12dB for 10000ms <em>(state-observer owned — see §4.3)</em></td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th><code>totalWin / baseBet</code></th><th>Time Offset</th><th>Audio Action</th></tr>
+<tr><td>&lt; 5</td><td>0ms</td><td><code>SFX_WIN_SMALL</code></td></tr>
+<tr><td>5 ≤ ratio &lt; 20</td><td>0ms</td><td><code>SFX_WIN_MEDIUM</code></td></tr>
+<tr><td>20 ≤ ratio &lt; 100</td><td>0ms</td><td><code>SFX_WIN_BIG</code> + BGM duck −6dB for 2000ms <em>(state-observer owned — see §4.3)</em></td></tr>
+<tr><td>100 ≤ ratio &lt; 500</td><td>0ms</td><td><code>SFX_WIN_MEGA</code> + BGM duck −6dB for 3000ms <em>(state-observer owned — see §4.3)</em></td></tr>
+<tr><td>500 ≤ ratio &lt; 30,000</td><td>0ms</td><td><code>SFX_WIN_JACKPOT</code> + BGM duck −6dB for 4000ms <em>(state-observer owned — see §4.3)</em></td></tr>
+<tr><td>30000 (Main Game max)</td><td>0ms</td><td><code>SFX_MAX_WIN</code> + BGM duck −12dB for 6000ms <em>(state-observer owned — see §4.3)</em></td></tr>
+<tr><td>90000 (Buy Feature max)</td><td>0ms</td><td><code>SFX_MAX_WIN_LEGENDARY</code> + BGM duck −12dB for 10000ms <em>(state-observer owned — see §4.3)</em></td></tr>
+</table>
 <p>WIN roll-up (<code>SFX_WIN_ROLLUP_TICK</code>) fires throttled to once per 80ms during the roll-up animation (FRONTEND.md §6.7 win roll-up algorithm drives timing).</p>
 <hr>
-<h2 id="h-6-audio-implementation-notes">§6 Audio Implementation Notes</h2>
-<h3 id="h-61-audiomanager-api-integration">6.1 AudioManager API Integration</h3>
+<h2>§6 Audio Implementation Notes</h2>
+<h3>6.1 AudioManager API Integration</h3>
 <p>All audio interactions go through <code>AudioManager.getInstance()</code> (FRONTEND.md §7.1). Key integration rules:</p>
 <p><strong>Preload priority order</strong> (executed in <code>MobileAudioUnlock.preloadAudioAssets</code>):</p>
-<ol>
-<li><strong>Tier 1 — Critical (block on load):</strong></li>
-</ol>
-<ul>
-<li><code>BGM_MAIN</code> (<code>audio/bgm_main.ogg</code>)</li>
-</ul>
-<ol>
-<li><strong>Tier 2 — High priority (fire-and-forget after Tier 1):</strong></li>
-</ol>
-<ul>
-<li><code>BGM_FREE_GAME</code></li>
-<li><code>SFX_CASCADE</code>, <code>SFX_WIN</code>, <code>SFX_LIGHTNING</code>, <code>SFX_COIN_TOSS</code>, <code>SFX_SCATTER</code></li>
-</ul>
-<p>   &gt; These IDs correspond exactly to <code>loadRemainingAudio()</code> in FRONTEND.md §7.4 (<code>MobileAudioUnlock</code> post-unlock deferred load). FRONTEND.md §7.4 is the <strong>authoritative implementation</strong> of the load order. Do not add new IDs to Tier 2 without updating <code>loadRemainingAudio()</code>. Note: <code>BGM_FREE_GAME</code> is loaded at Tier 2 (post-unlock deferred) even though it is first needed at FG entry — pre-loading it reduces first-FG-entry latency.</p>
-<ol>
-<li><strong>Tier 3 — Deferred (loaded on-demand at first state approach):</strong></li>
-</ol>
-<ul>
-<li><code>BGM_COIN_TOSS</code> — loaded when <code>CASCADE_RESOLVING</code> → <code>COIN_TOSS</code> transition first occurs</li>
-<li><code>BGM_ANTICIPATION</code> — loaded when FREE letter 4 first lights (first <code>BGM_ANTICIPATION</code> crossfade approach)</li>
-<li><code>BGM_77X</code></li>
-<li>All <code>SFX_WIN_*</code> tier sounds</li>
-<li><code>SFX_THUNDER_BLESSING</code>, <code>SFX_SECOND_HIT</code></li>
-<li><code>SFX_FG_ENTER</code>, <code>SFX_FG_BONUS_<em></code>, <code>SFX_FG_MULT_</em></code></li>
-<li><code>SFX_MAX_WIN</code>, <code>SFX_MAX_WIN_LEGENDARY</code></li>
-</ul>
-<ol>
-<li><strong>Tier 4 — Lazy (loaded on first approach):</strong></li>
-</ol>
-<ul>
-<li>All <code>SFX_UI_*</code> sounds</li>
-<li><code>SFX_SESSION_*</code>, <code>SFX_ERROR</code></li>
-<li><code>SFX_EXTRA_BET_<em></code>, <code>SFX_BUY_FG_</em></code></li>
-</ul>
+<ol><li><strong>Tier 1 — Critical (block on load):</strong></li></ol>
+<ul><li style="margin-left:1.5rem"><code>BGM_MAIN</code> (<code>audio/bgm_main.ogg</code>)</li></ul>
+<ol><li><strong>Tier 2 — High priority (fire-and-forget after Tier 1):</strong></li></ol>
+<ul><li style="margin-left:1.5rem"><code>BGM_FREE_GAME</code></li><li style="margin-left:1.5rem"><code>SFX_CASCADE</code>, <code>SFX_WIN</code>, <code>SFX_LIGHTNING</code>, <code>SFX_COIN_TOSS</code>, <code>SFX_SCATTER</code></li></ul>
+<blockquote><p>These IDs correspond exactly to <code>loadRemainingAudio()</code> in FRONTEND.md §7.4 (<code>MobileAudioUnlock</code> post-unlock deferred load). FRONTEND.md §7.4 is the <strong>authoritative implementation</strong> of the load order. Do not add new IDs to Tier 2 without updating <code>loadRemainingAudio()</code>. Note: <code>BGM_FREE_GAME</code> is loaded at Tier 2 (post-unlock deferred) even though it is first needed at FG entry — pre-loading it reduces first-FG-entry latency.</p></blockquote>
+<ol><li><strong>Tier 3 — Deferred (loaded on-demand at first state approach):</strong></li></ol>
+<ul><li style="margin-left:1.5rem"><code>BGM_COIN_TOSS</code> — loaded when <code>CASCADE_RESOLVING</code> → <code>COIN_TOSS</code> transition first occurs</li><li style="margin-left:1.5rem"><code>BGM_ANTICIPATION</code> — loaded when FREE letter 4 first lights (first <code>BGM_ANTICIPATION</code> crossfade approach)</li><li style="margin-left:1.5rem"><code>BGM_77X</code></li><li style="margin-left:1.5rem">All <code>SFX_WIN_*</code> tier sounds</li><li style="margin-left:1.5rem"><code>SFX_THUNDER_BLESSING</code>, <code>SFX_SECOND_HIT</code></li><li style="margin-left:1.5rem"><code>SFX_FG_ENTER</code>, <code>SFX_FG_BONUS_<em></code>, <code>SFX_FG_MULT_</em></code></li><li style="margin-left:1.5rem"><code>SFX_MAX_WIN</code>, <code>SFX_MAX_WIN_LEGENDARY</code></li></ul>
+<ol><li><strong>Tier 4 — Lazy (loaded on first approach):</strong></li></ol>
+<ul><li style="margin-left:1.5rem">All <code>SFX_UI_*</code> sounds</li><li style="margin-left:1.5rem"><code>SFX_SESSION_*</code>, <code>SFX_ERROR</code></li><li style="margin-left:1.5rem"><code>SFX_EXTRA_BET_<em></code>, <code>SFX_BUY_FG_</em></code></li></ul>
 <p><strong>Missing-audio fallback:</strong> If a Tier 3 or Tier 4 sound is not yet loaded when triggered, the <code>AudioManager.play()</code> call is a no-op (no error thrown). This is acceptable for non-critical SFX. Critical sounds (Tier 1–2) must be loaded before gameplay begins.</p>
 <p><strong>Crossfade usage:</strong></p>
 <pre><code class="language-typescript">// Crossfade BGM on state transition
@@ -2595,462 +643,138 @@ AudioManager.getInstance().play(&#x27;SFX_THUNDER_BLESSING&#x27;, &#x27;SFX&#x27
 // Play looping SFX (e.g., coin flip)
 AudioManager.getInstance().play(&#x27;SFX_COIN_TOSS_FLIP&#x27;, &#x27;SFX&#x27;, true);</code></pre>
 <p>The <code>SoundId</code> type in <code>AudioManager</code> is <code>string</code>. All Sound IDs in this document map directly to the <code>soundId</code> parameter.</p>
-<h3 id="h-62-mobile-audio-unlock-pattern">6.2 Mobile Audio Unlock Pattern</h3>
+<h3>6.2 Mobile Audio Unlock Pattern</h3>
 <p>As defined in FRONTEND.md §7.4, the <code>MobileAudioUnlock</code> class handles iOS Safari / Chrome for Android constraints:</p>
-<ul>
-<li><code>AudioContext</code> must not be created until a user gesture (<code>touchstart</code> or <code>click</code>) fires.</li>
-<li><code>MobileAudioUnlock.setup(audioManager)</code> is called once at app initialization (before any audio plays).</li>
-<li>On first gesture: <code>audioManager.unlock()</code> creates <code>AudioContext</code>, initializes <code>gainNodes</code>, calls <code>context.resume()</code>.</li>
-<li>After unlock: <code>BGM_MAIN</code> is preloaded immediately; remaining assets deferred.</li>
-<li>Double-invocation is prevented by the <code>unlocked</code> boolean guard in the handler (set to <code>true</code> after first invocation; handler returns early on subsequent calls). The <code>once: true</code> option on each individual listener additionally prevents that specific listener from firing more than once, but since both <code>touchstart</code> and <code>click</code> listeners are registered, the boolean guard is the primary double-invocation fence.</li>
-<li>If the player mutes before the first interaction, <code>muted = true</code> is set in <code>AudioManager</code> config; the unlock still runs but gain stays at 0.</li>
-</ul>
+<ul><li><code>AudioContext</code> must not be created until a user gesture (<code>touchstart</code> or <code>click</code>) fires.</li><li><code>MobileAudioUnlock.setup(audioManager)</code> is called once at app initialization (before any audio plays).</li><li>On first gesture: <code>audioManager.unlock()</code> creates <code>AudioContext</code>, initializes <code>gainNodes</code>, calls <code>context.resume()</code>.</li><li>After unlock: <code>BGM_MAIN</code> is preloaded immediately; remaining assets deferred.</li><li>Double-invocation is prevented by the <code>unlocked</code> boolean guard in the handler (set to <code>true</code> after first invocation; handler returns early on subsequent calls). The <code>once: true</code> option on each individual listener additionally prevents that specific listener from firing more than once, but since both <code>touchstart</code> and <code>click</code> listeners are registered, the boolean guard is the primary double-invocation fence.</li><li>If the player mutes before the first interaction, <code>muted = true</code> is set in <code>AudioManager</code> config; the unlock still runs but gain stays at 0.</li></ul>
 <p><strong>Pre-unlock state:</strong> No audio plays. The SOUND toggle button is visible and functional (sets the <code>muted</code> flag) before unlock, so when unlock occurs, the muted state is already correct.</p>
-<h3 id="h-63-volume-mixing-levels">6.3 Volume Mixing Levels</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Category</th>
-<th>Default Gain</th>
-<th>Range</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>BGM (<code>gainNodes.BGM</code>)</td>
-<td>1.00</td>
-<td>0.0–1.0</td>
-<td>Matches <code>AudioManager</code> default <code>config.volume.bgm = 1.0</code>; user-adjustable (future settings panel)</td>
-</tr>
-<tr>
-<td>SFX (<code>gainNodes.SFX</code>)</td>
-<td>1.00</td>
-<td>0.0–1.0</td>
-<td>User-adjustable</td>
-</tr>
-<tr>
-<td>BGM during duck (Big/Mega/Jackpot win)</td>
-<td>0.5 × current (−6 dB)</td>
-<td>—</td>
-<td>Temporary; auto-restores after 2000/3000/4000ms hold</td>
-</tr>
-<tr>
-<td>BGM during duck (FG Bonus ×100)</td>
-<td>0.35 × current (−9 dB)</td>
-<td>—</td>
-<td>Temporary; auto-restores after 4000ms hold — see §4.3</td>
-</tr>
-<tr>
-<td>BGM during duck (Max Win 30,000× / 90,000×)</td>
-<td>0.25 × current (−12 dB)</td>
-<td>—</td>
-<td>Temporary; auto-restores after 6000ms / 10,000ms hold — see §4.3</td>
-</tr>
-<tr>
-<td>SFX_LIGHTNING_PERSIST (1–2 marks)</td>
-<td>0.13 (−18dBFS of SFX gain)</td>
-<td>—</td>
-<td>Applied per-source via source gain</td>
-</tr>
-<tr>
-<td>SFX_LIGHTNING_PERSIST (3–4 marks)</td>
-<td>0.25 (−12dBFS)</td>
-<td>—</td>
-<td></td>
-</tr>
-<tr>
-<td>SFX_LIGHTNING_PERSIST (5+ marks)</td>
-<td>0.50 (−6dBFS)</td>
-<td>—</td>
-<td></td>
-</tr>
-<tr>
-<td>SFX_WIN_ROLLUP_TICK</td>
-<td>0.30</td>
-<td>—</td>
-<td>Kept low; background feedback only</td>
-</tr>
-<tr>
-<td>Win tier SFX (Big Win+)</td>
-<td>1.00</td>
-<td>—</td>
-<td>Full gain; BGM ducked to compensate</td>
-</tr>
-</tbody></table></div>
+<h3>6.3 Volume Mixing Levels</h3>
+<table>
+<tr><th>Category</th><th>Default Gain</th><th>Range</th><th>Notes</th></tr>
+<tr><td>BGM (<code>gainNodes.BGM</code>)</td><td>1.00</td><td>0.0–1.0</td><td>Matches <code>AudioManager</code> default <code>config.volume.bgm = 1.0</code>; user-adjustable (future settings panel)</td></tr>
+<tr><td>SFX (<code>gainNodes.SFX</code>)</td><td>1.00</td><td>0.0–1.0</td><td>User-adjustable</td></tr>
+<tr><td>BGM during duck (Big/Mega/Jackpot win)</td><td>0.5 × current (−6 dB)</td><td>—</td><td>Temporary; auto-restores after 2000/3000/4000ms hold</td></tr>
+<tr><td>BGM during duck (FG Bonus ×100)</td><td>0.35 × current (−9 dB)</td><td>—</td><td>Temporary; auto-restores after 4000ms hold — see §4.3</td></tr>
+<tr><td>BGM during duck (Max Win 30,000× / 90,000×)</td><td>0.25 × current (−12 dB)</td><td>—</td><td>Temporary; auto-restores after 6000ms / 10,000ms hold — see §4.3</td></tr>
+<tr><td>SFX_LIGHTNING_PERSIST (1–2 marks)</td><td>0.13 (−18dBFS of SFX gain)</td><td>—</td><td>Applied per-source via source gain</td></tr>
+<tr><td>SFX_LIGHTNING_PERSIST (3–4 marks)</td><td>0.25 (−12dBFS)</td><td>—</td><td></td></tr>
+<tr><td>SFX_LIGHTNING_PERSIST (5+ marks)</td><td>0.50 (−6dBFS)</td><td>—</td><td></td></tr>
+<tr><td>SFX_WIN_ROLLUP_TICK</td><td>0.30</td><td>—</td><td>Kept low; background feedback only</td></tr>
+<tr><td>Win tier SFX (Big Win+)</td><td>1.00</td><td>—</td><td>Full gain; BGM ducked to compensate</td></tr>
+</table>
 <p><strong>Master volume:</strong> There is no separate master gain node in the current <code>AudioManager</code>. Per-player volume adjustments are implemented by scaling both <code>gainNodes.BGM</code> and <code>gainNodes.SFX</code> together. A future settings panel may add a master gain node between the category nodes and destination.</p>
-<h3 id="h-64-looping-specifications">6.4 Looping Specifications</h3>
+<h3>6.4 Looping Specifications</h3>
 <p>Seamless loop markers must be set by the audio artist in the source DAW (Pro Tools / Logic / Reaper) before export. The loop point is encoded in the OGG file&#x27;s <code>LOOPSTART</code> and <code>LOOPEND</code> metadata tags so the <code>AudioBufferSourceNode</code> loop aligns without client-side trimming.</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Sound ID</th>
-<th><code>source.loop</code></th>
-<th><code>source.loopStart</code> (s)</th>
-<th><code>source.loopEnd</code> (s)</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>BGM_MAIN</code></td>
-<td><code>true</code></td>
-<td>4.00</td>
-<td>128.00</td>
-<td>Set after <code>AudioBufferSourceNode</code> creation</td>
-</tr>
-<tr>
-<td><code>BGM_ANTICIPATION</code></td>
-<td><code>true</code></td>
-<td>2.00</td>
-<td>64.00</td>
-<td></td>
-</tr>
-<tr>
-<td><code>BGM_COIN_TOSS</code></td>
-<td><code>true</code></td>
-<td>1.00</td>
-<td>32.00</td>
-<td></td>
-</tr>
-<tr>
-<td><code>BGM_FREE_GAME</code></td>
-<td><code>true</code></td>
-<td>8.00</td>
-<td>192.00</td>
-<td></td>
-</tr>
-<tr>
-<td><code>BGM_77X</code></td>
-<td><code>true</code></td>
-<td>4.00</td>
-<td>96.00</td>
-<td></td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TOSS_FLIP</code></td>
-<td><code>true</code></td>
-<td>0.00</td>
-<td>0.40</td>
-<td>Loop for spin phase only; stopped manually on decelerate</td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING_PERSIST</code></td>
-<td><code>true</code></td>
-<td>0.00</td>
-<td>1.20</td>
-<td>Per-mark instance; one source node per active mark group</td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Sound ID</th><th><code>source.loop</code></th><th><code>source.loopStart</code> (s)</th><th><code>source.loopEnd</code> (s)</th><th>Notes</th></tr>
+<tr><td><code>BGM_MAIN</code></td><td><code>true</code></td><td>4.00</td><td>128.00</td><td>Set after <code>AudioBufferSourceNode</code> creation</td></tr>
+<tr><td><code>BGM_ANTICIPATION</code></td><td><code>true</code></td><td>2.00</td><td>64.00</td><td></td></tr>
+<tr><td><code>BGM_COIN_TOSS</code></td><td><code>true</code></td><td>1.00</td><td>32.00</td><td></td></tr>
+<tr><td><code>BGM_FREE_GAME</code></td><td><code>true</code></td><td>8.00</td><td>192.00</td><td></td></tr>
+<tr><td><code>BGM_77X</code></td><td><code>true</code></td><td>4.00</td><td>96.00</td><td></td></tr>
+<tr><td><code>SFX_COIN_TOSS_FLIP</code></td><td><code>true</code></td><td>0.00</td><td>0.40</td><td>Loop for spin phase only; stopped manually on decelerate</td></tr>
+<tr><td><code>SFX_LIGHTNING_PERSIST</code></td><td><code>true</code></td><td>0.00</td><td>1.20</td><td>Per-mark instance; one source node per active mark group</td></tr>
+</table>
 <p>All other SFX: <code>source.loop = false</code>. They play once and the node is discarded.</p>
 <p><strong>Loop integrity requirement:</strong> The amplitude at <code>loopEnd</code> must match <code>loopStart</code> within ±1 dBFS. Phase must match within ±5°. The audio team must export a reference listen test at 44.1 kHz mono (looped 3×) before delivery. Loop click artifacts fail QA.</p>
-<h3 id="h-65-file-format-requirements">6.5 File Format Requirements</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Format</th>
-<th>Usage</th>
-<th>Codec</th>
-<th>Target Bitrate</th>
-<th>Sample Rate</th>
-<th>Channels</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>OGG Vorbis</td>
-<td>Primary (all browsers except Safari &lt; 11)</td>
-<td>Vorbis q7 (~224kbps)</td>
-<td>~224kbps</td>
-<td>44100 Hz</td>
-<td>Stereo for BGM; Mono for SFX</td>
-</tr>
-<tr>
-<td>MP3</td>
-<td>Fallback (Safari, iOS WebAudio)</td>
-<td>LAME 3.100</td>
-<td>192kbps CBR</td>
-<td>44100 Hz</td>
-<td>Stereo for BGM; Mono for SFX</td>
-</tr>
-</tbody></table></div>
+<h3>6.5 File Format Requirements</h3>
+<table>
+<tr><th>Format</th><th>Usage</th><th>Codec</th><th>Target Bitrate</th><th>Sample Rate</th><th>Channels</th></tr>
+<tr><td>OGG Vorbis</td><td>Primary (all browsers except Safari &lt; 11)</td><td>Vorbis q7 (~224kbps)</td><td>~224kbps</td><td>44100 Hz</td><td>Stereo for BGM; Mono for SFX</td></tr>
+<tr><td>MP3</td><td>Fallback (Safari, iOS WebAudio)</td><td>LAME 3.100</td><td>192kbps CBR</td><td>44100 Hz</td><td>Stereo for BGM; Mono for SFX</td></tr>
+</table>
 <p><strong>Format detection:</strong></p>
 <pre><code class="language-typescript">const supportsOgg = new Audio().canPlayType(&#x27;audio/ogg; codecs=vorbis&#x27;) !== &#x27;&#x27;;
 const ext = supportsOgg ? &#x27;ogg&#x27; : &#x27;mp3&#x27;;
 // Preload URL: `audio/bgm_main.${ext}`</code></pre>
 <p><strong>SFX normalization:</strong> All SFX must be normalized to −1.0 dBFS peak before encode. BGM tracks normalized to −3.0 dBFS (headroom for layering). No SFX should contain DC offset (high-pass filter at 20 Hz before encode).</p>
-<h3 id="h-66-memory-budget">6.6 Memory Budget</h3>
+<h3>6.6 Memory Budget</h3>
 <p>Target: <strong>&lt; 80 MB total decoded audio in memory</strong> at peak (Tier 1–2 loaded + one Tier 3 BGM loaded simultaneously; sequential BGM loading strategy keeps peak manageable — see below).</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Track / Group</th>
-<th>Estimated Decoded Size</th>
-<th>Notes</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>BGM_MAIN</code> (132s stereo 44.1kHz)</td>
-<td>~22 MB</td>
-<td>Largest single asset</td>
-</tr>
-<tr>
-<td><code>BGM_FREE_GAME</code> (200s stereo)</td>
-<td>~34 MB</td>
-<td>Exceeds budget alone if all BGMs loaded simultaneously</td>
-</tr>
-<tr>
-<td><code>BGM_COIN_TOSS</code> (34s stereo)</td>
-<td>~6 MB</td>
-<td></td>
-</tr>
-<tr>
-<td><code>BGM_ANTICIPATION</code> (66s stereo)</td>
-<td>~11 MB</td>
-<td></td>
-</tr>
-<tr>
-<td><code>BGM_77X</code> (100s stereo)</td>
-<td>~17 MB</td>
-<td></td>
-</tr>
-<tr>
-<td>All SFX (est. 60 files × ~1s mono avg)</td>
-<td>~10 MB</td>
-<td></td>
-</tr>
-</tbody></table></div>
+<table>
+<tr><th>Track / Group</th><th>Estimated Decoded Size</th><th>Notes</th></tr>
+<tr><td><code>BGM_MAIN</code> (132s stereo 44.1kHz)</td><td>~22 MB</td><td>Largest single asset</td></tr>
+<tr><td><code>BGM_FREE_GAME</code> (200s stereo)</td><td>~34 MB</td><td>Exceeds budget alone if all BGMs loaded simultaneously</td></tr>
+<tr><td><code>BGM_COIN_TOSS</code> (34s stereo)</td><td>~6 MB</td><td></td></tr>
+<tr><td><code>BGM_ANTICIPATION</code> (66s stereo)</td><td>~11 MB</td><td></td></tr>
+<tr><td><code>BGM_77X</code> (100s stereo)</td><td>~17 MB</td><td></td></tr>
+<tr><td>All SFX (est. 60 files × ~1s mono avg)</td><td>~10 MB</td><td></td></tr>
+</table>
 <p><strong>BGM budget strategy:</strong> BGM tracks are loaded sequentially on demand, not all at once. Only one BGM track beyond <code>BGM_MAIN</code> is held in memory at a time. When <code>crossfadeBGM</code> completes, the old BGM buffer is garbage-collected (the <code>AudioBufferSourceNode</code> is stopped and dereferenced; the <code>AudioBuffer</code> is removed from <code>sounds</code> Map). This requires tracking which BGM buffers are evictable.</p>
 <p><strong>Practical peak memory with sequential loading:</strong></p>
-<ul>
-<li><code>BGM_MAIN</code> + one Tier 3 BGM + all SFX ≈ 22 MB + 34 MB (worst case <code>BGM_FREE_GAME</code>) + 10 MB = ~66 MB.</li>
-<li>This is within the &lt; 80 MB target when sequential BGM eviction is applied (old BGM buffer released after crossfade completes).</li>
-<li>If the Engineering Lead requires a stricter &lt; 50 MB budget: reduce <code>BGM_FREE_GAME</code> to ≤ 90s loop (≈15 MB) and <code>BGM_MAIN</code> to ≤ 60s loop (≈10 MB). Audio artist must design loops musically complete within those durations.</li>
-</ul>
+<ul><li><code>BGM_MAIN</code> + one Tier 3 BGM + all SFX ≈ 22 MB + 34 MB (worst case <code>BGM_FREE_GAME</code>) + 10 MB = ~66 MB.</li><li>This is within the &lt; 80 MB target when sequential BGM eviction is applied (old BGM buffer released after crossfade completes).</li><li>If the Engineering Lead requires a stricter &lt; 50 MB budget: reduce <code>BGM_FREE_GAME</code> to ≤ 90s loop (≈15 MB) and <code>BGM_MAIN</code> to ≤ 60s loop (≈10 MB). Audio artist must design loops musically complete within those durations.</li></ul>
 <hr>
-<h2 id="h-7-accessibility">§7 Accessibility</h2>
-<h3 id="h-71-mute-control-behavior">7.1 Mute Control Behavior</h3>
+<h2>§7 Accessibility</h2>
+<h3>7.1 Mute Control Behavior</h3>
 <p>The SOUND button in the HUD (<code>HUDComponent</code>) toggles <code>AudioManager.setMuted(true/false)</code>. When muted:</p>
-<ul>
-<li><code>gainNodes.BGM.gain.value</code> is set to <code>0</code> immediately (no fade).</li>
-<li><code>gainNodes.SFX.gain.value</code> is set to <code>0</code> immediately.</li>
-<li>All currently playing <code>AudioBufferSourceNode</code> instances continue their internal time position (they are not stopped). This preserves loop synchronization so that when unmuted, BGM resumes at the correct position without restart.</li>
-<li>The mute state persists in <code>localStorage</code> under key <code>thunder_blessing_muted</code> so it survives page reload.</li>
-</ul>
+<ul><li><code>gainNodes.BGM.gain.value</code> is set to <code>0</code> immediately (no fade).</li><li><code>gainNodes.SFX.gain.value</code> is set to <code>0</code> immediately.</li><li>All currently playing <code>AudioBufferSourceNode</code> instances continue their internal time position (they are not stopped). This preserves loop synchronization so that when unmuted, BGM resumes at the correct position without restart.</li><li>The mute state persists in <code>localStorage</code> under key <code>thunder_blessing_muted</code> so it survives page reload.</li></ul>
 <p><strong>Mute during unlock:</strong> If the player interacts with the SOUND button before the first gameplay interaction, the <code>muted</code> flag is set in <code>AudioManager.config</code>. On unlock, <code>AudioContext</code> is created with both gain nodes at 0.</p>
 <p><strong>SFX_UI_SOUND_TOGGLE</strong> plays at full gain before the mute is applied (so the player gets tactile click feedback even when muting). On unmute, <code>SFX_UI_SOUND_TOGGLE</code> plays at full gain after the gain nodes are restored.</p>
-<h3 id="h-72-reduced-motion-audio-mode">7.2 Reduced Motion / Audio Mode</h3>
+<h3>7.2 Reduced Motion / Audio Mode</h3>
 <p>Players using platform accessibility settings (iOS Reduce Motion, Android Accessibility, browser <code>prefers-reduced-motion</code>) may experience reduced animation fidelity (per VDD §4 rules). Audio design accommodates:</p>
-<ul>
-<li><strong>Reduced motion does NOT automatically reduce audio.</strong> Audio is independently mutable.</li>
-<li>If <code>prefers-reduced-motion: reduce</code> is detected, the following audio changes apply:</li>
-<li><code>SFX_NEAR_MISS</code> gain reduced by −6 dB (crackle is associated with lightning animation; reduced if animation is suppressed).</li>
-<li><code>SFX_LIGHTNING_MARK</code> plays once per mark appearance but pitch-shift algorithm is disabled (fixed pitch).</li>
-<li>All other audio remains unchanged.</li>
-</ul>
-<h3 id="h-73-visual-alternatives-for-audio-cues">7.3 Visual Alternatives for Audio Cues</h3>
+<ul><li><strong>Reduced motion does NOT automatically reduce audio.</strong> Audio is independently mutable.</li><li>If <code>prefers-reduced-motion: reduce</code> is detected, the following audio changes apply:</li><li style="margin-left:1.0rem"><code>SFX_NEAR_MISS</code> gain reduced by −6 dB (crackle is associated with lightning animation; reduced if animation is suppressed).</li><li style="margin-left:1.0rem"><code>SFX_LIGHTNING_MARK</code> plays once per mark appearance but pitch-shift algorithm is disabled (fixed pitch).</li><li style="margin-left:1.0rem">All other audio remains unchanged.</li></ul>
+<h3>7.3 Visual Alternatives for Audio Cues</h3>
 <p>For players who are deaf or hard of hearing, every significant audio cue has a corresponding visual indicator. The following table maps audio events to their visual counterpart:</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>Audio Cue</th>
-<th>Visual Alternative</th>
-<th>Component</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>BGM_COIN_TOSS</code> starts</td>
-<td>Full-screen coin toss overlay activates with spotlight cone</td>
-<td><code>CoinTossComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_COIN_HEADS</code></td>
-<td>&quot;ZEUS SMILES!&quot; banner with gold burst particles</td>
-<td><code>CoinTossComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_COIN_TAILS</code></td>
-<td>&quot;NOT THIS TIME&quot; silver text; coin dims</td>
-<td><code>CoinTossComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_THUNDER_BLESSING</code></td>
-<td>White flash (opacity 0→0.9→0); fx_thunder_blessing_hit1.spine</td>
-<td><code>ThunderBlessingComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_SECOND_HIT</code></td>
-<td>White flash (opacity 0→0.6→0); fx_thunder_blessing_hit2.spine</td>
-<td><code>ThunderBlessingComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING_MARK</code></td>
-<td>Gold lightning bolt overlay scales in (scale 0→1.2→1.0)</td>
-<td><code>LightningMarkComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_LIGHTNING_PERSIST</code></td>
-<td>Continuous gold arc particles (Additive blend) on marked cells</td>
-<td><code>LightningMarkComponent</code></td>
-</tr>
-<tr>
-<td><code>BGM_ANTICIPATION</code> starts</td>
-<td>All 4 FREE letters glow at full brightness simultaneously</td>
-<td><code>HUDComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_FREE_LETTER</code></td>
-<td>Individual FREE letter lights up with brightness animation</td>
-<td><code>HUDComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_FG_ENTER</code></td>
-<td>Scene cross-dissolves to Sky Temple; FG banner drops</td>
-<td><code>FreeGameComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_FG_MULT_UP</code></td>
-<td>Old multiplier explodes; new multiplier scales in from center</td>
-<td><code>CoinTossComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_WIN_BIG</code> / <code>SFX_WIN_MEGA</code> / <code>SFX_WIN_JACKPOT</code></td>
-<td>BIG WIN / MEGA WIN / JACKPOT overlay with particle effects</td>
-<td><code>BalanceComponent.showWinTier()</code></td>
-</tr>
-<tr>
-<td><code>SFX_MAX_WIN</code></td>
-<td>MAX WIN overlay + gold coin rain animation</td>
-<td><code>ResultScene</code> overlay</td>
-</tr>
-<tr>
-<td><code>SFX_NEAR_MISS</code></td>
-<td>Lightning crackle VFX near near-miss symbol positions</td>
-<td><code>ReelComponent.showNearMiss()</code></td>
-</tr>
-<tr>
-<td><code>SFX_REEL_STOP_N</code></td>
-<td>Reel column physically snaps to stop position</td>
-<td><code>ReelComponent</code></td>
-</tr>
-<tr>
-<td><code>SFX_REEL_EXPAND</code></td>
-<td>Cloud dissipation effect; reel frame extends downward</td>
-<td><code>ReelComponent.expandToRows()</code></td>
-</tr>
-<tr>
-<td><code>SFX_EXTRA_BET_ON</code></td>
-<td>EXTRA BET toggle button activates with orange color state</td>
-<td><code>BetPanelComponent</code></td>
-</tr>
-<tr>
-<td>Error/network state</td>
-<td>Offline banner appears in red (<code>--color-error</code>) at screen top</td>
-<td><code>HUDComponent.showOfflineBanner()</code></td>
-</tr>
-</tbody></table></div>
-<h3 id="h-74-volume-controls-future-v11">7.4 Volume Controls (Future v1.1)</h3>
+<table>
+<tr><th>Audio Cue</th><th>Visual Alternative</th><th>Component</th></tr>
+<tr><td><code>BGM_COIN_TOSS</code> starts</td><td>Full-screen coin toss overlay activates with spotlight cone</td><td><code>CoinTossComponent</code></td></tr>
+<tr><td><code>SFX_COIN_HEADS</code></td><td>&quot;ZEUS SMILES!&quot; banner with gold burst particles</td><td><code>CoinTossComponent</code></td></tr>
+<tr><td><code>SFX_COIN_TAILS</code></td><td>&quot;NOT THIS TIME&quot; silver text; coin dims</td><td><code>CoinTossComponent</code></td></tr>
+<tr><td><code>SFX_THUNDER_BLESSING</code></td><td>White flash (opacity 0→0.9→0); fx_thunder_blessing_hit1.spine</td><td><code>ThunderBlessingComponent</code></td></tr>
+<tr><td><code>SFX_SECOND_HIT</code></td><td>White flash (opacity 0→0.6→0); fx_thunder_blessing_hit2.spine</td><td><code>ThunderBlessingComponent</code></td></tr>
+<tr><td><code>SFX_LIGHTNING_MARK</code></td><td>Gold lightning bolt overlay scales in (scale 0→1.2→1.0)</td><td><code>LightningMarkComponent</code></td></tr>
+<tr><td><code>SFX_LIGHTNING_PERSIST</code></td><td>Continuous gold arc particles (Additive blend) on marked cells</td><td><code>LightningMarkComponent</code></td></tr>
+<tr><td><code>BGM_ANTICIPATION</code> starts</td><td>All 4 FREE letters glow at full brightness simultaneously</td><td><code>HUDComponent</code></td></tr>
+<tr><td><code>SFX_FREE_LETTER</code></td><td>Individual FREE letter lights up with brightness animation</td><td><code>HUDComponent</code></td></tr>
+<tr><td><code>SFX_FG_ENTER</code></td><td>Scene cross-dissolves to Sky Temple; FG banner drops</td><td><code>FreeGameComponent</code></td></tr>
+<tr><td><code>SFX_FG_MULT_UP</code></td><td>Old multiplier explodes; new multiplier scales in from center</td><td><code>CoinTossComponent</code></td></tr>
+<tr><td><code>SFX_WIN_BIG</code> / <code>SFX_WIN_MEGA</code> / <code>SFX_WIN_JACKPOT</code></td><td>BIG WIN / MEGA WIN / JACKPOT overlay with particle effects</td><td><code>BalanceComponent.showWinTier()</code></td></tr>
+<tr><td><code>SFX_MAX_WIN</code></td><td>MAX WIN overlay + gold coin rain animation</td><td><code>ResultScene</code> overlay</td></tr>
+<tr><td><code>SFX_NEAR_MISS</code></td><td>Lightning crackle VFX near near-miss symbol positions</td><td><code>ReelComponent.showNearMiss()</code></td></tr>
+<tr><td><code>SFX_REEL_STOP_N</code></td><td>Reel column physically snaps to stop position</td><td><code>ReelComponent</code></td></tr>
+<tr><td><code>SFX_REEL_EXPAND</code></td><td>Cloud dissipation effect; reel frame extends downward</td><td><code>ReelComponent.expandToRows()</code></td></tr>
+<tr><td><code>SFX_EXTRA_BET_ON</code></td><td>EXTRA BET toggle button activates with orange color state</td><td><code>BetPanelComponent</code></td></tr>
+<tr><td>Error/network state</td><td>Offline banner appears in red (<code>--color-error</code>) at screen top</td><td><code>HUDComponent.showOfflineBanner()</code></td></tr>
+</table>
+<h3>7.4 Volume Controls (Future v1.1)</h3>
 <p>A dedicated settings panel (planned for v1.1) will expose:</p>
-<ul>
-<li>BGM volume slider (0–100%, sets <code>config.volume.bgm</code>, which is applied directly as <code>gainNodes.BGM.gain.value</code> when not muted).</li>
-<li>SFX volume slider (0–100%, sets <code>config.volume.sfx</code>, which is applied directly as <code>gainNodes.SFX.gain.value</code>).</li>
-<li>Both sliders persist to <code>localStorage</code> and are restored on load.</li>
-</ul>
+<ul><li>BGM volume slider (0–100%, sets <code>config.volume.bgm</code>, which is applied directly as <code>gainNodes.BGM.gain.value</code> when not muted).</li><li>SFX volume slider (0–100%, sets <code>config.volume.sfx</code>, which is applied directly as <code>gainNodes.SFX.gain.value</code>).</li><li>Both sliders persist to <code>localStorage</code> and are restored on load.</li></ul>
 <p>The <code>AudioManager.config.volume</code> fields support these controls natively — no architectural changes are required.</p>
 <hr>
-<h3 id="h-75-audio-qa-checklist">7.5 Audio QA Checklist</h3>
+<h3>7.5 Audio QA Checklist</h3>
 <p>The following tests must pass before any audio-inclusive build is signed off.</p>
-<h4 id="loop-integrity">Loop Integrity</h4>
-<ul>
-<li>[ ] Each BGM track exported and listened at 44.1 kHz mono, looped ×3 — no audible click or pop at loop point</li>
-<li>[ ] Amplitude at <code>loopEnd</code> measured within ±1 dBFS of <code>loopStart</code>; phase within ±5°</li>
-<li>[ ] <code>SFX_COIN_TOSS_FLIP</code> loop exits cleanly when stopped at deceleration (~2000ms) — no clipping on node stop</li>
-</ul>
-<h4 id="mobile-audio-unlock-must-test-on-physical-device">Mobile Audio Unlock (must test on physical device)</h4>
-<ul>
-<li>[ ] iOS Safari (latest): audio plays after first tap gesture; no double-fire on second tap</li>
-<li>[ ] Chrome for Android (latest): same as above</li>
-<li>[ ] Rapid double-tap on SPIN button: only one unlock fires; <code>unlocked</code> guard confirmed via console log</li>
-<li>[ ] SOUND button pressed before first gesture: <code>config.muted=true</code> applied on unlock; no audio plays</li>
-</ul>
-<h4 id="ducking-correctness">Ducking Correctness</h4>
-<ul>
-<li>[ ] Small win (ratio &lt; 5×): BGM gain unchanged after win SFX fires</li>
-<li>[ ] Medium win (5 ≤ ratio &lt; 20×): BGM gain unchanged after win SFX fires</li>
-<li>[ ] Big Win (20 ≤ ratio &lt; 100×): BGM ducks −6 dB over 200ms; restores after 2000ms hold</li>
-<li>[ ] Mega Win (100 ≤ ratio &lt; 500×): BGM ducks −6 dB over 200ms; restores after 3000ms hold</li>
-<li>[ ] Jackpot (500 ≤ ratio &lt; 30,000×): BGM ducks −6 dB over 200ms; restores after 4000ms hold</li>
-<li>[ ] Max Win 30,000× (Main Game): BGM ducks −12 dB over 300ms; holds 6000ms; restores</li>
-<li>[ ] Max Win 90,000× (Buy Feature): BGM ducks −12 dB over 300ms; holds 10,000ms; restores</li>
-<li>[ ] FG Bonus ×100 reveal: BGM ducks −9 dB over 300ms; holds 4000ms; restores</li>
-<li>[ ] THUNDER_BLESSING sequence: BGM gain unchanged throughout — no duck applied</li>
-</ul>
-<h4 id="sfx-double-fire-regression-aq-tagged-events">SFX Double-Fire Regression (<code>[AQ]</code>-tagged events)</h4>
-<ul>
-<li>[ ] <code>SFX_LIGHTNING_ACTIVATE</code>: fires exactly once per TB trigger (AnimationQueue only; state observer must not fire separately)</li>
-<li>[ ] <code>SFX_COIN_TOSS_START</code>: fires exactly once on COIN_TOSS entry</li>
-<li>[ ] <code>SFX_FG_ENTER</code>: fires exactly once on FG entry</li>
-<li>[ ] <code>SFX_FG_MULT_77</code> / <code>SFX_FG_MULT_UP</code>: each fires exactly once per qualifying round (no double-fire from §4.2 observer + §5.6 AQ)</li>
-<li>[ ] On ×77 multiplier transition: <code>SFX_FG_MULT_UP</code> does <strong>NOT</strong> fire; <code>SFX_FG_MULT_77</code> fires exactly once (within-AQ mutual exclusion — per §5.6 split branches)</li>
-<li>[ ] <code>SFX_COIN_TAILS</code>: fires exactly once at coin settle (§5.4 result row); NOT again from TAILS note row</li>
-<li>[ ] <code>SFX_FG_ROUND_START</code>: fires exactly once per FG round (AnimationQueue via §5.6)</li>
-<li>[ ] <code>SFX_TB_SETTLE</code>: fires exactly once per TB sequence at 3000ms (AnimationQueue via §5.3); state observer <code>THUNDER_BLESSING→CASCADE_RESOLVING</code> row must NOT fire it separately</li>
-<li>[ ] <code>SFX_FG_COMPLETE</code>: fires exactly once per FG end (AnimationQueue via §5.7 at 0ms); state observer <code>FG_ROUND_COMPLETE_TAILS</code> row must NOT double-fire it</li>
-</ul>
-<h4 id="sfx-throttle-and-gain-calibration">SFX Throttle and Gain Calibration</h4>
-<ul>
-<li>[ ] <code>SFX_WIN_ROLLUP_TICK</code> fires at most once per 80ms during WIN counter roll-up — verify via AudioContext event log that no two fire events occur within an 80ms window</li>
-<li>[ ] <code>SFX_LIGHTNING_PERSIST</code> gain matches mark count: 1–2 marks = −18 dBFS (gain 0.13), 3–4 marks = −12 dBFS (gain 0.25), 5+ marks = −6 dBFS (gain 0.50) — verify per-source gain node values at each threshold transition</li>
-</ul>
-<h4 id="bgm-crossfade-continuity">BGM Crossfade Continuity</h4>
-<ul>
-<li>[ ] BGM_MAIN → BGM_COIN_TOSS: smooth 800ms crossfade; no hard cut</li>
-<li>[ ] BGM_COIN_TOSS → BGM_FREE_GAME (HEADS): smooth 800ms crossfade</li>
-<li>[ ] BGM_COIN_TOSS → BGM_MAIN (TAILS): smooth 500ms crossfade</li>
-<li>[ ] BGM_FREE_GAME → BGM_77X (×77 mult): smooth 800ms crossfade</li>
-<li>[ ] BGM_FREE_GAME or BGM_77X → BGM_MAIN: fires on RESULT_DISMISSED, not FG_COMPLETE; smooth 800ms</li>
-<li>[ ] BGM_MAIN → BGM_ANTICIPATION: smooth 300ms crossfade when all 4 FREE letters lit</li>
-<li>[ ] BGM_ANTICIPATION → BGM_MAIN: cascade resolves without FG — smooth 800ms crossfade back to BGM_MAIN</li>
-</ul>
-<h4 id="sfx-functional-correctness">SFX Functional Correctness</h4>
-<ul>
-<li>[ ] <code>SFX_NEAR_MISS</code>: fires exactly once at grid-stop when <code>nearMissApplied = true</code>; does NOT fire when <code>nearMissApplied = false</code>; BGM gain unchanged (no duck applied)</li>
-</ul>
-<h4 id="cross-browser-playback">Cross-Browser Playback</h4>
-<ul>
-<li>[ ] Chrome (latest): all BGM and SFX play without error; no AudioContext suspension issues</li>
-<li>[ ] Firefox (latest): OGG Vorbis primary format plays correctly; loop integrity verified</li>
-<li>[ ] Safari (latest): MP3 fallback plays for all tracks; no iOS silent-audio issue (SFX gate tests pass)</li>
-</ul>
+<h4>Loop Integrity</h4>
+<ul><li style="list-style:none"><input type="checkbox" disabled> Each BGM track exported and listened at 44.1 kHz mono, looped ×3 — no audible click or pop at loop point</li><li style="list-style:none"><input type="checkbox" disabled> Amplitude at <code>loopEnd</code> measured within ±1 dBFS of <code>loopStart</code>; phase within ±5°</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_COIN_TOSS_FLIP</code> loop exits cleanly when stopped at deceleration (~2000ms) — no clipping on node stop</li></ul>
+<h4>Mobile Audio Unlock (must test on physical device)</h4>
+<ul><li style="list-style:none"><input type="checkbox" disabled> iOS Safari (latest): audio plays after first tap gesture; no double-fire on second tap</li><li style="list-style:none"><input type="checkbox" disabled> Chrome for Android (latest): same as above</li><li style="list-style:none"><input type="checkbox" disabled> Rapid double-tap on SPIN button: only one unlock fires; <code>unlocked</code> guard confirmed via console log</li><li style="list-style:none"><input type="checkbox" disabled> SOUND button pressed before first gesture: <code>config.muted=true</code> applied on unlock; no audio plays</li></ul>
+<h4>Ducking Correctness</h4>
+<ul><li style="list-style:none"><input type="checkbox" disabled> Small win (ratio &lt; 5×): BGM gain unchanged after win SFX fires</li><li style="list-style:none"><input type="checkbox" disabled> Medium win (5 ≤ ratio &lt; 20×): BGM gain unchanged after win SFX fires</li><li style="list-style:none"><input type="checkbox" disabled> Big Win (20 ≤ ratio &lt; 100×): BGM ducks −6 dB over 200ms; restores after 2000ms hold</li><li style="list-style:none"><input type="checkbox" disabled> Mega Win (100 ≤ ratio &lt; 500×): BGM ducks −6 dB over 200ms; restores after 3000ms hold</li><li style="list-style:none"><input type="checkbox" disabled> Jackpot (500 ≤ ratio &lt; 30,000×): BGM ducks −6 dB over 200ms; restores after 4000ms hold</li><li style="list-style:none"><input type="checkbox" disabled> Max Win 30,000× (Main Game): BGM ducks −12 dB over 300ms; holds 6000ms; restores</li><li style="list-style:none"><input type="checkbox" disabled> Max Win 90,000× (Buy Feature): BGM ducks −12 dB over 300ms; holds 10,000ms; restores</li><li style="list-style:none"><input type="checkbox" disabled> FG Bonus ×100 reveal: BGM ducks −9 dB over 300ms; holds 4000ms; restores</li><li style="list-style:none"><input type="checkbox" disabled> THUNDER_BLESSING sequence: BGM gain unchanged throughout — no duck applied</li></ul>
+<h4>SFX Double-Fire Regression (<code>[AQ]</code>-tagged events)</h4>
+<ul><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_LIGHTNING_ACTIVATE</code>: fires exactly once per TB trigger (AnimationQueue only; state observer must not fire separately)</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_COIN_TOSS_START</code>: fires exactly once on COIN_TOSS entry</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_FG_ENTER</code>: fires exactly once on FG entry</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_FG_MULT_77</code> / <code>SFX_FG_MULT_UP</code>: each fires exactly once per qualifying round (no double-fire from §4.2 observer + §5.6 AQ)</li><li style="list-style:none"><input type="checkbox" disabled> On ×77 multiplier transition: <code>SFX_FG_MULT_UP</code> does <strong>NOT</strong> fire; <code>SFX_FG_MULT_77</code> fires exactly once (within-AQ mutual exclusion — per §5.6 split branches)</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_COIN_TAILS</code>: fires exactly once at coin settle (§5.4 result row); NOT again from TAILS note row</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_FG_ROUND_START</code>: fires exactly once per FG round (AnimationQueue via §5.6)</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_TB_SETTLE</code>: fires exactly once per TB sequence at 3000ms (AnimationQueue via §5.3); state observer <code>THUNDER_BLESSING→CASCADE_RESOLVING</code> row must NOT fire it separately</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_FG_COMPLETE</code>: fires exactly once per FG end (AnimationQueue via §5.7 at 0ms); state observer <code>FG_ROUND_COMPLETE_TAILS</code> row must NOT double-fire it</li></ul>
+<h4>SFX Throttle and Gain Calibration</h4>
+<ul><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_WIN_ROLLUP_TICK</code> fires at most once per 80ms during WIN counter roll-up — verify via AudioContext event log that no two fire events occur within an 80ms window</li><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_LIGHTNING_PERSIST</code> gain matches mark count: 1–2 marks = −18 dBFS (gain 0.13), 3–4 marks = −12 dBFS (gain 0.25), 5+ marks = −6 dBFS (gain 0.50) — verify per-source gain node values at each threshold transition</li></ul>
+<h4>BGM Crossfade Continuity</h4>
+<ul><li style="list-style:none"><input type="checkbox" disabled> BGM_MAIN → BGM_COIN_TOSS: smooth 800ms crossfade; no hard cut</li><li style="list-style:none"><input type="checkbox" disabled> BGM_COIN_TOSS → BGM_FREE_GAME (HEADS): smooth 800ms crossfade</li><li style="list-style:none"><input type="checkbox" disabled> BGM_COIN_TOSS → BGM_MAIN (TAILS): smooth 500ms crossfade</li><li style="list-style:none"><input type="checkbox" disabled> BGM_FREE_GAME → BGM_77X (×77 mult): smooth 800ms crossfade</li><li style="list-style:none"><input type="checkbox" disabled> BGM_FREE_GAME or BGM_77X → BGM_MAIN: fires on RESULT_DISMISSED, not FG_COMPLETE; smooth 800ms</li><li style="list-style:none"><input type="checkbox" disabled> BGM_MAIN → BGM_ANTICIPATION: smooth 300ms crossfade when all 4 FREE letters lit</li><li style="list-style:none"><input type="checkbox" disabled> BGM_ANTICIPATION → BGM_MAIN: cascade resolves without FG — smooth 800ms crossfade back to BGM_MAIN</li></ul>
+<h4>SFX Functional Correctness</h4>
+<ul><li style="list-style:none"><input type="checkbox" disabled> <code>SFX_NEAR_MISS</code>: fires exactly once at grid-stop when <code>nearMissApplied = true</code>; does NOT fire when <code>nearMissApplied = false</code>; BGM gain unchanged (no duck applied)</li></ul>
+<h4>Cross-Browser Playback</h4>
+<ul><li style="list-style:none"><input type="checkbox" disabled> Chrome (latest): all BGM and SFX play without error; no AudioContext suspension issues</li><li style="list-style:none"><input type="checkbox" disabled> Firefox (latest): OGG Vorbis primary format plays correctly; loop integrity verified</li><li style="list-style:none"><input type="checkbox" disabled> Safari (latest): MP3 fallback plays for all tracks; no iOS silent-audio issue (SFX gate tests pass)</li></ul>
 <hr>
-<p><em>End of AUDIO.md</em></p>
-      </article>
-    </main>
+<p><em>End of AUDIO.md</em></p></main>
   </div>
-
-  <footer class="site-footer">
-    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
-    <span>AUDIO — Audio Design</span>
-    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
-  </footer>
-
-  <script>
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const isOpen  = sidebar.classList.toggle('open');
-      overlay.classList.toggle('active', isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      themeVariables: {
-        background:         '#1a2032',
-        primaryColor:       '#1e2535',
-        primaryBorderColor: '#2a3347',
-        primaryTextColor:   '#e2e8f0',
-        lineColor:          '#f6ad55',
-        secondaryColor:     '#161b27',
-        tertiaryColor:      '#0f1117',
-        edgeLabelBackground:'#1a2032',
-        clusterBkg:         '#1a2032',
-        titleColor:         '#f6ad55',
-      }
-    });
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:true,theme:'default',
+      flowchart:{curve:'basis',nodeSpacing:60,rankSpacing:80},
+      er:{layoutDirection:'TD',minEntityWidth:100,fontSize:12},
+      sequence:{actorMargin:60,messageMargin:30}});
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+  <script src="assets/app.js"></script>
 </body>
 </html>
