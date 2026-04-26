@@ -176,6 +176,7 @@ CREATE TABLE spins (
 
     -- Coin Toss
     coin_toss_result          TEXT          CHECK (coin_toss_result IN ('HEADS', 'TAILS') OR coin_toss_result IS NULL),
+    coin_toss_triggered       BOOLEAN       NOT NULL DEFAULT FALSE,
 
     -- Free Game
     fg_triggered              BOOLEAN       NOT NULL DEFAULT FALSE,
@@ -204,6 +205,10 @@ CREATE TABLE spins (
         (fg_triggered = FALSE AND fg_multiplier IS NULL) OR
         (fg_triggered = TRUE AND fg_multiplier IS NOT NULL)
     ),
+    CONSTRAINT chk_coin_toss_triggered CHECK (
+        (coin_toss_triggered = FALSE AND coin_toss_result IS NULL) OR
+        (coin_toss_triggered = TRUE AND coin_toss_result IS NOT NULL)
+    ),
     CONSTRAINT chk_coin_toss_consistency CHECK (
         (coin_toss_result IS NULL AND fg_triggered = FALSE) OR
         (coin_toss_result = 'HEADS' AND fg_triggered = TRUE) OR
@@ -230,8 +235,13 @@ CREATE INDEX idx_spins_player_id_created_at
 -- Note: cross-partition lookups by session_id require scanning all partitions
 -- (partition key is created_at). For O(1) partition targeting at scale,
 -- maintain a supplementary session_spin_lookup table (see §7.1).
-CREATE INDEX CONCURRENTLY idx_spins_session_id
+CREATE INDEX idx_spins_session_id
     ON spins (session_id);
+-- Note: For adding this index to an already-populated production table,
+-- use CREATE INDEX CONCURRENTLY in a separate non-transactional step:
+--   supabase db execute --no-transaction -c "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_spins_session_id ON spins (session_id);"
+-- (CREATE INDEX CONCURRENTLY cannot run inside a transaction block, which is
+-- how Supabase db push applies migrations.)
 
 -- Regulatory date-range export
 CREATE INDEX idx_spins_created_at
@@ -549,6 +559,11 @@ CREATE INDEX idx_wallet_tx_spin_id
 CREATE INDEX idx_wallet_tx_type
     ON wallet_transactions (tx_type)
     WHERE tx_type = 'COMPENSATE';
+
+-- For multi-type reconciliation and monitoring queries:
+CREATE INDEX idx_wallet_tx_compensation_types ON wallet_transactions (tx_type, created_at)
+  WHERE tx_type IN ('COMPENSATE', 'CREDIT_COMPENSATION', 'CREDIT_BUY_FEATURE_FLOOR');
+-- Supports §10.2 reconciliation queries filtering on compensation-type credits
 ```
 
 **RLS Policies (Append-Only Enforcement):**
@@ -702,6 +717,7 @@ erDiagram
         BOOLEAN buy_feature_active
         BOOLEAN thunder_blessing_triggered
         TEXT coin_toss_result
+        BOOLEAN coin_toss_triggered
         BOOLEAN fg_triggered
         INTEGER fg_multiplier
         INTEGER bonus_multiplier
@@ -1200,6 +1216,21 @@ WHERE status IN ('COMPLETE', 'EXPIRED')
 ### 8.1 Migration File Convention
 
 All schema changes are applied via numbered, sequential migration files:
+
+**001_initial_schema.sql — Object Creation Order (IMPORTANT):**
+
+Objects inside `001_initial_schema.sql` must be defined in this order:
+
+```sql
+-- IMPORTANT: Objects must be created in this order:
+-- 1. ENUM types (fg_session_status, wallet_tx_type, etc.)
+-- 2. update_updated_at_column() and other shared functions
+-- 3. Tables (players, spins, fg_sessions, wallet_transactions, game_config_versions)
+-- 4. Triggers (players_updated_at, fg_sessions_updated_at, etc.)
+-- 5. RLS policies
+```
+
+The `update_updated_at_column()` function (defined in §2.3) must appear at the top of the migration file, before any `CREATE TABLE` or `CREATE TRIGGER` statement that depends on it, regardless of the section order in this document.
 
 ```
 migrations/
