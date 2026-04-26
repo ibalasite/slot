@@ -270,7 +270,7 @@ Migrations must run **before** deploying the new API version.
    ```sql
    SELECT tablename FROM pg_tables WHERE schemaname = 'public'
    ORDER BY tablename;
-   -- Expected: fg_sessions, players, spins, wallet_transactions
+   -- Expected: fg_sessions, game_config_versions, players, spins, wallet_transactions
    ```
 
 4. Deploy the new API version after migrations are confirmed.
@@ -401,7 +401,8 @@ All five checks must pass before declaring the deploy successful.
    # Check TTL remaining
    TTL session:<sessionId>:state
    ```
-4. Check if sessions are expiring prematurely. Default TTL is 1800s (30 minutes). If TTL is much shorter, the TTL renewal on FG round completion may be broken.
+4. Check if sessions are expiring prematurely. Default TTL is 300s (5 minutes). If TTL is much shorter, the TTL renewal on FG round completion may be broken.
+   Note: SCHEMA.md §4.1 documents 1800s but API contract defines 300s — use 300s as the operative value for session expiry incidents.
 5. Check PostgreSQL `fg_sessions` for the durable fallback:
    ```sql
    SELECT id, status, fg_round, total_fg_win, expires_at
@@ -518,16 +519,16 @@ All five checks must pass before declaring the deploy successful.
 3. Check Redis rate-limit counters:
    ```bash
    redis-cli -u $REDIS_URL
-   # Rate limit keys follow pattern: rl:<player-uuid>
-   KEYS rl:*
-   TTL rl:<player-uuid>
+   # Rate limit keys follow pattern: player:{player-uuid}:ratelimit
+   KEYS player:*:ratelimit
+   TTL player:{player-uuid}:ratelimit
    ```
 
 **Resolution:**
 - If the JWT key extractor is broken (falling back to IP): deploy a fix for `keyGenerator`.
 - If a legitimate player has hit the limit due to a client retry loop: wait for the 1-second window to expire, or flush the key:
   ```bash
-  redis-cli -u $REDIS_URL DEL rl:<player-uuid>
+  redis-cli -u $REDIS_URL DEL player:{player-uuid}:ratelimit
   ```
 - If the rate limit is genuinely too restrictive for the traffic pattern, adjust `RATE_LIMIT_MAX` env var and redeploy.
 
@@ -645,6 +646,7 @@ JWT signing is managed by Supabase Auth. The backend holds only the RS256 **publ
      --from-literal=supabase-jwt-secret="<new-rs256-public-key>" \
      --dry-run=client -o yaml | kubectl apply -f - -n thunder-prod
    ```
+   ⚠️  In-memory cache: The application caches the RS256 public key with a 1-hour TTL. During emergency rotation (key compromise), trigger a rolling restart immediately after updating the secret so all pods reload the new key. Until the rolling restart completes, existing pods continue verifying tokens against the cached old key.
 3. Trigger a rolling restart so all pods pick up the new secret:
    ```bash
    kubectl rollout restart deployment/thunder-blessing-api -n thunder-prod
@@ -749,7 +751,7 @@ The rate limit is configured via `@fastify/rate-limit` plugin settings. Currentl
 To adjust:
 1. Update the `max` and/or `timeWindow` values in `src/interface/routes/spin.route.ts` (or the rate-limit plugin registration in the Fastify server bootstrap).
 2. Deploy via normal pipeline.
-3. Redis rate-limit counters use keys prefixed `rl:` with a 1-second TTL — they expire automatically.
+3. Redis rate-limit counters use keys with pattern `player:{playerId}:ratelimit` with a 1-second TTL — they expire automatically.
 
 **Aggressive auth-failure lockout:** After 10 consecutive JWT failures from the same IP in 60s, the IP is more aggressively rate-limited. Threshold configurable via `RATE_LIMIT_AUTH_FAIL_MAX` env var.
 
