@@ -108,7 +108,7 @@ All error responses from `/v1/*` endpoints use this envelope:
 
 | HTTP Status | Code | Trigger Endpoint(s) | Description |
 |-------------|------|---------------------|-------------|
-| 400 | `INSUFFICIENT_FUNDS` | POST /v1/spin | Player balance is less than the spin cost (baseBet or baseBet×100 for Buy Feature) |
+| 400 | `INSUFFICIENT_FUNDS` | POST /v1/spin | Player balance is less than the spin cost: baseBet (normal), baseBet×3 (Extra Bet), baseBet×100 (Buy Feature), or baseBet×300 (Extra Bet + Buy Feature combined). |
 | 400 | `INVALID_BET_LEVEL` | POST /v1/spin | `betLevel` is outside the configured range (USD: 1–20; TWD: 1–320); or `betLevel` is not an integer |
 | 400 | `INVALID_CURRENCY` | POST /v1/spin | `currency` is not `"USD"` or `"TWD"` |
 | 400 | `BUY_FEATURE_NOT_ALLOWED` | POST /v1/spin | `buyFeature: true` combined with invalid bet level or in a context where Buy Feature is unavailable |
@@ -404,10 +404,11 @@ In development, `Access-Control-Allow-Origin: *` is permitted. In production, on
 | 5 | $0.50 | TWD 15 | $0.50 | $1.50 |
 | 7 | $1.00 | TWD 30 | $1.00 | $3.00 |
 | 10 | $2.00 | TWD 30 | $2.00 | $6.00 |
-| 15 | $5.00 | TWD 150 | $5.00 | $15.00 |
 | 20 | $10.00 | TWD 60 | $10.00 | $30.00 |
 
 > Note: USD and TWD use independent level→baseBet mappings; the same betLevel integer maps to different baseBet amounts per currency.
+
+> Note: This table shows selected representative levels. Obtain the complete bet table from GET /v1/config.
 
 Full bet table is available via `GET /v1/config`.
 
@@ -648,7 +649,7 @@ Full bet table is available via `GET /v1/config`.
   "definitions": {
     "CascadeSequence": {
       "type": "object",
-      "description": "Complete cascade result. If totalWin > 0, steps array contains at least one entry.",
+      "description": "Complete cascade result. If totalWin > 0, steps array contains at least one entry. Note: abbreviated examples may show `steps: []` for brevity; in production responses `steps` contains one entry per cascade iteration, and will be non-empty when totalWin > 0.",
       "required": ["steps", "totalWin", "finalGrid", "finalRows", "lightningMarks"],
       "properties": {
         "steps": { "type": "array", "items": { "$ref": "#/definitions/CascadeStep" } },
@@ -1030,6 +1031,8 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 
 #### Response 200 JSON Schema — Session State (data object)
 
+> **Note:** This schema references shared type definitions (`LightningMarkSet`, `FGRound`) defined in the §3.1 FullSpinOutcome schema `definitions` block. For standalone schema validation, merge the `definitions` sections from both schemas.
+
 ```json
 {
   "type": "object",
@@ -1042,13 +1045,13 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
     "currency": { "type": "string", "enum": ["USD", "TWD"] },
     "extraBet": { "type": "boolean" },
     "buyFeature": { "type": "boolean" },
-    "fgRound": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Current FG round index (0-based; 0 means not yet started)" },
+    "fgRound": { "type": "integer", "minimum": 0, "maximum": 5, "description": "1-indexed round number of the next FG round to be played. Value 1 = first round not yet started but session initialized. Value 2 = second round upcoming (1 completed). Value 0 = Free Game not yet entered." },
     "fgMultiplier": { "type": ["integer", "null"], "enum": [3, 7, 17, 27, 77, null], "description": "Current FG multiplier; null when no active FG sequence" },
     "fgBonusMultiplier": { "type": ["integer", "null"], "enum": [1, 5, 20, 100, null], "description": "Bonus multiplier drawn at FG sequence start. Null if no FG sequence is active or bonus multiplier has not yet been determined." },
     "totalFGWin": { "type": "number" },
-    "lightningMarks": { "$ref": "#/definitions/LightningMarkSet" },
+    "lightningMarks": { "$ref": "#/definitions/LightningMarkSet" }, // See §3.1 definitions
     "floorValue": { "type": "number", "description": "20 × baseBet if buyFeature; 0 otherwise" },
-    "completedRounds": { "type": "array", "items": { "$ref": "#/definitions/FGRound" } },
+    "completedRounds": { "type": "array", "items": { "$ref": "#/definitions/FGRound" } }, // See §3.1 definitions
     "remainingMaxRounds": { "type": "integer", "minimum": 0, "maximum": 5 },
     "ttlSeconds": { "type": "integer", "description": "Seconds remaining before this Redis session key expires" }
   }
@@ -1900,8 +1903,8 @@ All request body fields are validated against the Fastify/JSON Schema before rea
 4. If `coinTossTriggered`: play Coin Toss animation with `coinTossResult`
 5. If `fgTriggered`:
    a. Show FG multiplier reveal (`fgMultiplier`)
-   b. For each `fgRounds[i]`: play FG round spin + Cascade sequence
-   c. After last round: show Bonus Multiplier reveal (`fgBonusMultiplier`)
+   b. Show Bonus Multiplier reveal (`fgBonusMultiplier`) — drawn before round 1, display before the first round begins
+   c. For each `fgRounds[i]`: play FG round spin + Cascade sequence
 6. Display `totalWin` as the final win amount
 
 **Reconnect flow (player returns after disconnect):**

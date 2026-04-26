@@ -1084,7 +1084,7 @@ SlotEngine.spin(request):
            - CoinTossEvaluator.evaluate(rng, config, stage) looks up coinProbs[stage] from GameConfig
   4. if CoinToss = Heads: runFGSequence(); advance stage by 1 for next Coin Toss in sequence
   5. computeTotalWin() = mainCascadeWin + fgWin (× fgMultiplier × bonusMultiplier)
-  6. enforce maxWin cap (30,000× main; 90,000× EB+BuyFG)
+  6. enforce maxWin cap: 30,000× baseBet for mainGame and ExtraBet-only spins; 90,000× baseBet for BuyFeature and ExtraBet+BuyFeature spins
   7. return FullSpinOutcome
 ```
 
@@ -1999,7 +1999,7 @@ spec:
 | Endpoint | Purpose | Response |
 |----------|---------|---------|
 | GET `/health` | Liveness (always returns 200 if process is up) | `{"status": "ok"}` |
-| GET `/ready` | Readiness (checks DB + Redis) | `{"status": "ready", "db": "ok", "redis": "ok"}` |
+| GET `/ready` | Readiness (checks DB + Redis) | `{"status": "ready", "timestamp": "2026-04-26T00:00:00Z", "checks": {"db": "ok", "redis": "ok"}}` |
 
 ---
 
