@@ -122,6 +122,7 @@ C4Container
     Container_Boundary(toolchain, "slot-engine Toolchain") {
         Container(excel, "Thunder_Config.xlsx", "Excel Workbook", "Source of all probability params")
         Container(buildConfig, "build_config.js", "Node.js Script", "Parses Excel, emits engine_config.json")
+        Container(excelSim, "excel_simulator.js", "Node.js Script", "1M Monte Carlo simulations; writes SIMULATION + DESIGN_VIEW tabs")
         Container(verifyJs, "verify.js", "Node.js Script", "Validates engine_config.json; MUST PASS before generation")
         Container(engineGen, "engine_generator.js", "Node.js Script", "Generates GameConfig.generated.ts from verified config")
     }
@@ -139,7 +140,8 @@ C4Container
     Rel(infra, redisCache, "Redis")
     Rel(api, jwtProvider, "Validates JWT")
     Rel(excel, buildConfig, "Input")
-    Rel(buildConfig, verifyJs, "engine_config.json")
+    Rel(buildConfig, excelSim, "engine_config.json")
+    Rel(excelSim, verifyJs, "simulation results")
     Rel(verifyJs, engineGen, "PASS signal")
     Rel(engineGen, config, "Generates")
     Rel(domain, config, "Reads at startup")
@@ -214,7 +216,7 @@ C4Container
 | Environment | K8s Namespace | Replicas (API) | CPU Request/Limit | Memory Request/Limit | PostgreSQL | Redis | DB Host | HPA Min/Max | Notes |
 |------------|---------------|---------------|-------------------|----------------------|-----------|-------|---------|-------------|-------|
 | Local | N/A (docker-compose) | 1 | 250m / 1000m | 256Mi / 512Mi | Supabase local (docker) | localhost:6379 | localhost:54322 | N/A | `NODE_ENV=development`; `docker compose up` |
-| Development | `thunder-dev` | 1 | 250m / 1000m | 256Mi / 512Mi | Supabase Free | localhost:6379 | db.xxx.supabase.co | N/A | CI deploy on `staging` branch push |
+| Development | `thunder-dev` | 1 | 250m / 1000m | 256Mi / 512Mi | Supabase Free | Upstash Hobby | db.xxx.supabase.co | N/A | CI deploy on `staging` branch push |
 | Staging | `thunder-staging` | 2 | 250m / 1000m | 256Mi / 512Mi | Supabase Pro | Upstash Hobby | db.yyy.supabase.co | 2/4 | Mirror prod config; Blue-Green deploy |
 | Production | `thunder-prod` | 3 | 250m / 1000m | 256Mi / 512Mi | Supabase Pro | Upstash Standard | db.zzz.supabase.co | 3/10 | PDB minAvailable=2; Canary deploy |
 
@@ -896,7 +898,9 @@ flowchart TD
     Start([Operator edits Thunder_Config.xlsx]) --> RunBuild[Run build_config.js]
     RunBuild --> ParseExcel[Parse DATA tab: symbol weights, paylines, fgBonusWeights, nearMiss, coinToss]
     ParseExcel --> EmitJSON[Emit engine_config.json]
-    EmitJSON --> RunVerify[Run verify.js]
+    EmitJSON --> RunSim[Run excel_simulator.js — 1M Monte Carlo simulations]
+    RunSim --> WriteSimTabs[Write SIMULATION + DESIGN_VIEW tabs to Thunder_Config.xlsx]
+    WriteSimTabs --> RunVerify[Run verify.js]
     RunVerify --> Scenario1{Main Game RTP within ±1%?}
     Scenario1 -->|No| FailVerify[FAIL: Print error report]
     Scenario1 -->|Yes| Scenario2{Extra Bet RTP within ±1%?}
