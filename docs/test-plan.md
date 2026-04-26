@@ -1352,7 +1352,7 @@ Production release sign-off requires all of the following approvals and evidence
 | US-APIV-001/AC-2 | buyFG yields 5 fgSpins in response | TC-INT-BUYF-001 | Integration | P0 | Planned |
 | US-APIV-001/AC-3 | P99 ≤ 500ms (no-FG) | §13 Load Test / OBJ-03 | Performance | P0 | Planned |
 | US-APIV-001/AC-4 | JWT auth required on every spin | TC-SEC-AUTH-001 | Security | P0 | Planned |
-| US-APIV-001/AC-5 | totalWin is authoritative: server-computed value in response is the sole accounting authority | TC-INT-API-002-HAPPY (server totalWin) | Integration | P0 | Planned |
+| US-APIV-001/AC-5 | totalWin is authoritative: server-computed value in response is the sole accounting authority | TC-INT-API-001-HAPPY, TC-SEC-BET-003 | Integration, Security | P0 | Planned |
 | US-NRMS-001 | Near Miss: toolchain-configured, no code custom | TC-UNIT-PROB-001 (config integrity) | Unit | P0 | Planned |
 | US-TOOL-001/AC-1 | Toolchain: `build_config.js` generates valid `engine_config.json` | TC-INT-CONFIG-001 | Integration | P0 | Planned |
 | US-TOOL-001/AC-2 | Toolchain: `excel_simulator.js` runs 1M Monte Carlo and writes results to SIMULATION/DESIGN_VIEW tabs | TC-UNIT-PROB-001; CI gate QG-06 | Unit/CI | P0 | Planned |
