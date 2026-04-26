@@ -847,7 +847,9 @@ interface SessionData {
   readonly playerId: string;
   readonly status: 'SPINNING' | 'FG_ACTIVE' | 'COMPLETE';
   readonly fgMultiplier: 3 | 7 | 17 | 27 | 77 | null;
-  readonly fgRound: number;              // 1-indexed; 0 means Free Game not yet entered
+  readonly fgRound: number;
+  // 0 when FG not active (status ≠ FG_ACTIVE); ≥1 when FG is active (1-indexed round in progress)
+  // i.e., fgRound=1 means round 1 is upcoming, fgRound=2 means round 2 is upcoming, etc.
   readonly lightningMarks: LightningMarkSet;  // Persisted Lightning Mark positions
   readonly currency: 'USD' | 'TWD';
   readonly baseBet: number;
@@ -880,7 +882,7 @@ class SessionService {
 
 **Reconnect protocol:**
 1. On app resume (visibility change to `visible`), call `SessionService.getSession(storedSessionId)`.
-2. If `status === 'FG_ACTIVE'`: enter `SESSION_RECONNECT` state; restore Lightning Marks from `lightningMarks.positions`; call `LightningMarkComponent.restoreMarks(session.lightningMarks.positions)`; resume FG from `fgRound` index.
+2. If `status === 'FG_ACTIVE'`: enter `SESSION_RECONNECT` state; restore Lightning Marks from `lightningMarks.positions`; call `LightningMarkComponent.restoreMarks(session.lightningMarks.positions)`; resume FG from `fgRound` index (if `session.fgRound >= 1`, FG is active from that round onward).
 3. If `status === 'SPINNING'` or `status === 'COMPLETE'`: return to `IDLE` state normally.
 4. If `SESSION_NOT_FOUND` (404): show "Session Expired" dialog; return to `IDLE`.
 
@@ -1248,6 +1250,11 @@ class AudioManager {
   private bgmNode: AudioBufferSourceNode | null = null;
   private sounds: Map<string, AudioBuffer> = new Map();
   private muted = false;
+  private config: AudioConfig = { volume: { bgm: 1.0, sfx: 1.0 }, muted: false };
+
+  // Per-category gain nodes — BGM and SFX are routed through independent gain nodes
+  // so volume and mute can be applied per-category without disconnecting sources.
+  private gainNodes!: Record<SoundCategory, GainNode>;
 
   static getInstance(): AudioManager {
     if (!AudioManager.instance) AudioManager.instance = new AudioManager();
@@ -1258,6 +1265,15 @@ class AudioManager {
   async unlock(): Promise<void> {
     if (this.context) return;
     this.context = new AudioContext();
+    // Initialize per-category gain nodes after context is created
+    this.gainNodes = {
+      BGM: this.context.createGain(),
+      SFX: this.context.createGain(),
+    };
+    this.gainNodes.BGM.gain.value = this.config.volume.bgm;
+    this.gainNodes.SFX.gain.value = this.config.volume.sfx;
+    this.gainNodes.BGM.connect(this.context.destination);
+    this.gainNodes.SFX.connect(this.context.destination);
     await this.context.resume();
   }
 
@@ -1275,17 +1291,31 @@ class AudioManager {
     const source = this.context.createBufferSource();
     source.buffer = buffer;
     source.loop = loop;
-    source.connect(this.context.destination);
+    // Route through category gain node (not directly to destination)
+    source.connect(this.gainNodes[category]);
+    // Track BGM node so setMuted() and crossfadeBGM() can control it
+    if (loop) {
+      this.bgmNode?.stop();
+      this.bgmNode = source;
+    }
     source.start();
   }
 
-  async crossfadeBGM(newBgmId: string, durationMs = 800): Promise<void> {
-    // Fade out current BGM, fade in new BGM over durationMs
+  async crossfadeBGM(newSoundId: string, durationMs = 1000): Promise<void> {
+    const oldNode = this.bgmNode;
+    // play() assigns this.bgmNode to the new source via the loop=true branch
+    await this.play(newSoundId, 'BGM', true);
+    // Fade out old node over durationMs (ramp gain to 0, then stop)
+    if (oldNode) setTimeout(() => oldNode.stop(), durationMs);
   }
 
   setMuted(muted: boolean): void {
     this.muted = muted;
-    if (muted && this.bgmNode) this.bgmNode.disconnect();
+    // Mute/unmute all categories via their gain nodes (avoids disconnect/reconnect churn)
+    if (this.gainNodes) {
+      this.gainNodes.BGM.gain.value = muted ? 0 : this.config.volume.bgm;
+      this.gainNodes.SFX.gain.value = muted ? 0 : this.config.volume.sfx;
+    }
   }
 }
 ```
