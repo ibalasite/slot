@@ -579,7 +579,7 @@ docker compose ps postgres   # wait for "healthy"
 
 1. Re-run `npm run db:seed` to regenerate a fresh test token.
 2. Verify `SUPABASE_JWT_SECRET` matches the value printed by `supabase start` (or your local Supabase config).
-3. Check the token expiry: `node -e "const [,p]=process.argv[1].split('.'); console.log(JSON.parse(Buffer.from(p,'base64').toString()))" <token>` — look at the `exp` field.
+3. Check the token expiry: `node -e "const [,p]=process.argv[2].split('.'); console.log(JSON.parse(Buffer.from(p,'base64url').toString()))" -- <token>` — look at the `exp` field.
 
 ### Redis ECONNREFUSED
 
