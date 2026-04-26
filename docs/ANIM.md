@@ -350,7 +350,9 @@ Tint applied via `mix-blend-mode: overlay` on WIN counter container background.
 | Initial arc particles | 400ms concurrent | `ease-out` | 6–12 gold arc particles drift upward from mark center; `--color-gold-bright` (50%) + `--color-arc-white` (50%); 0.4–0.8s lifetime; Additive blend |
 | Overlay settle | 400ms | `ease-out-cubic` | Mark overlay opacity ramps to 0.6 (Additive blend on symbol layer below) |
 
-**SFX sync:** `SFX_LIGHTNING_MARK` fires at scale-in midpoint (~200ms into appearance). Pitch shifts +2 semitones per cumulative mark count (1 mark = base pitch, 5+ marks = +8 semitones) via AudioContext `detune` property (AUDIO.md §3.2).
+**SFX sync:** `SFX_LIGHTNING_MARK` fires at scale-in midpoint (~200ms into appearance). Pitch shifts +2 semitones per cumulative mark count, **capped at +8 semitones for 5 or more marks** (1 mark = 0st base, 2 marks = +2st, 3 marks = +4st, 4 marks = +6st, 5+ marks = +8st — no further pitch increase beyond 5 marks) via AudioContext `detune` property (AUDIO.md §3.2).
+
+**Mark persistence across cascade steps:** `LightningMarkComponent` is stateful — marks placed in `CASCADE_STEP[N]` remain rendered without any explicit retention call at the start of `CASCADE_STEP[N+1]`. No `retainMarks()` call is dispatched between steps. The component's internal mark array accumulates across all steps in the cascade chain and is cleared only by `LightningMarkComponent.clearAllMarks()` at the TB settle phase (§4.5) or on IDLE re-entry. This implicit persistence (main-game cascade) contrasts with explicit restoration via `restoreMarks(positions)` called at the start of each FG round (§6.2).
 
 **Mark idle (persistent) animation:**
 
@@ -471,6 +473,7 @@ At t=200ms, `SFX_LIGHTNING_ACTIVATE` fires and the following animations begin si
   - Gold light `scale`: 0 → 1.8 → 1.0 (400ms, `--ease-out-back`).
   - Symbol `opacity`: 0 → 1.0 (200ms, `linear`, starting at t=1600ms).
 - Whole reel gold filter: `sepia(0.3) brightness(1.4)` applied over 300ms (`ease-out-cubic`) starting t=1500ms.
+- At t=1800ms — Gold filter fade-out: `filter` returns to `none` over 400ms (`ease-in-out-cubic`). The ramp-in completes at t=1800ms and the fade-out begins immediately; the filter clears fully at t=2200ms. *(Second-hit path: this fade-out still occurs at t=1800ms — the second hit at t=2300ms produces a symbol over-brightening on a per-symbol basis, not a reel-wide gold filter re-application.)*
 - `SFX_TB_SYMBOL_UPGRADE` fires at t=1500ms — all positions simultaneously.
 
 ### 4.4 Second Hit (Optional, t=2300ms)
@@ -661,7 +664,7 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 **Win tier overlay (fires at roll-up completion):**
 - Evaluated against `outcome.totalWin / baseBet` (see §7.2 for overlay specs).
 - For FG outcomes this is the cumulative win including multiplier — applies the same overlay animation as non-FG.
-- **Win tier SFX timing:** The win tier SFX (`SFX_WIN_SMALL` through `SFX_WIN_LEGENDARY`) fires at roll-up **completion** (per AUDIO.md §5.7), not at t=0ms of the FG_COMPLETE step. This differs from WIN_DISPLAY (non-FG path) where the win tier SFX fires at t=0ms concurrent with roll-up start (AUDIO.md §5.8 and §10.1 AQ Step Map).
+- **Win tier SFX timing:** The win tier SFX (`SFX_WIN_SMALL` through `SFX_MAX_WIN_LEGENDARY`) fires at roll-up **completion** (per AUDIO.md §5.7), not at t=0ms of the FG_COMPLETE step. This differs from WIN_DISPLAY (non-FG path) where the win tier SFX fires at t=0ms concurrent with roll-up start (AUDIO.md §5.8 and §10.1 AQ Step Map).
 
 **Transition after summary:** After overlay resolves (or player dismisses), FG exits: background cross-dissolves back to main scene (800ms, `linear`). BGM crossfade to `BGM_MAIN` fires on `RESULT_DISMISSED` event (state-observer-owned, 800ms — per AUDIO.md §5.7).
 
@@ -924,6 +927,7 @@ If the player presses SPIN while an animation step is active, the `AnimationQueu
 
 | Active AQ Step | Interrupt Response | Audio |
 |:--------------:|-------------------|-------|
+| `NEAR_MISS` | Step completes within 200ms; if SPIN is pressed during this window, the twitch animation snaps immediately to final reel position. | `SFX_NEAR_MISS` call cancelled if not yet fired; no further audio action. |
 | `CASCADE_STEP` (win animation or elimination) | Step is cut short: all animations skip to final state immediately; particles already spawned fade out at 3× normal rate | `SFX_WIN_ROLLUP_TICK` stops; WIN counter jumps to step win value |
 | `CASCADE_STEP` (symbol drop) | Drop animations teleport to final positions instantly | `SFX_CASCADE_DROP` calls cancelled |
 | `WIN_DISPLAY` (roll-up in progress) | Roll-up jumps immediately to `totalWin` final value; win tier overlay dismissed in 400ms | `SFX_WIN_ROLLUP_TICK` stops; tier SFX cuts at natural end |
