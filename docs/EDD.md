@@ -1157,6 +1157,7 @@ TTL:   1800s (30 minutes; auto-renewed on each FG round via EXPIRE)
 Fields:
   playerId       string
   status         "SPINNING" | "FG_ACTIVE" | "COMPLETE"
+                 -- SPINNING: spin in progress; FG_ACTIVE: FG sequence in progress; COMPLETE: terminal, awaiting cleanup
   baseBet        number
   extraBet       boolean
   buyFeature     boolean

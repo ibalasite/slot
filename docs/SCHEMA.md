@@ -128,6 +128,16 @@ CREATE POLICY "players_no_direct_update"
 -- (Supabase service_role key bypasses RLS automatically)
 ```
 
+**Auto-Update Trigger:**
+
+```sql
+CREATE TRIGGER players_updated_at
+  BEFORE UPDATE ON players
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+```
+
+> **Note:** `update_updated_at_column()` is defined in §2.3 before the fg_sessions triggers. In migration order, define this shared function before any table trigger that invokes it.
+
 ---
 
 ### 2.2 `spins`
@@ -170,7 +180,7 @@ CREATE TABLE spins (
     -- Free Game
     fg_triggered              BOOLEAN       NOT NULL DEFAULT FALSE,
     fg_multiplier             INTEGER       CHECK (fg_multiplier IN (3, 7, 17, 27, 77) OR fg_multiplier IS NULL),
-    bonus_multiplier          INTEGER       CHECK (bonus_multiplier IN (1, 5, 20, 100)),
+    bonus_multiplier          INTEGER       CONSTRAINT chk_bonus_multiplier CHECK (bonus_multiplier IN (1, 5, 20, 100) OR bonus_multiplier IS NULL),
 
     -- Session Floor (Buy Feature)
     session_floor_applied     BOOLEAN       NOT NULL DEFAULT FALSE,
@@ -192,7 +202,7 @@ CREATE TABLE spins (
     -- FG and Coin Toss consistency constraints
     CONSTRAINT chk_fg_consistency CHECK (
         (fg_triggered = FALSE AND fg_multiplier IS NULL) OR
-        (fg_triggered = TRUE)
+        (fg_triggered = TRUE AND fg_multiplier IS NOT NULL)
     ),
     CONSTRAINT chk_coin_toss_consistency CHECK (
         (coin_toss_result IS NULL AND fg_triggered = FALSE) OR
@@ -267,7 +277,28 @@ CREATE POLICY "spins_insert_service_role_only"
     WITH CHECK (FALSE); -- service_role bypasses this automatically
 
 -- No UPDATE or DELETE ever allowed on spins (immutable audit log)
--- (service_role still cannot UPDATE/DELETE via policy enforcement)
+-- Note: service_role bypasses RLS — append-only enforcement uses triggers + REVOKE below
+```
+
+**Append-Only Enforcement (trigger + REVOKE — service_role bypasses RLS):**
+
+```sql
+CREATE OR REPLACE FUNCTION prevent_spins_mutation()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'spins table is immutable — UPDATE/DELETE not permitted';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER spins_no_update
+  BEFORE UPDATE ON spins
+  FOR EACH ROW EXECUTE FUNCTION prevent_spins_mutation();
+
+CREATE TRIGGER spins_no_delete
+  BEFORE DELETE ON spins
+  FOR EACH ROW EXECUTE FUNCTION prevent_spins_mutation();
+
+REVOKE UPDATE, DELETE ON spins FROM service_role;
 ```
 
 ---
@@ -299,6 +330,8 @@ CREATE TABLE fg_sessions (
     bonus_multiplier    INTEGER           NOT NULL DEFAULT 1
                                           CHECK (bonus_multiplier IN (1, 5, 20, 100)),
     fg_round            INTEGER           NOT NULL DEFAULT 0,
+    -- 1-indexed: 0 = FG not yet entered; 1 = first round upcoming (none completed);
+    -- N = Nth round upcoming (N-1 rounds completed). Updated after each round completes.
     total_fg_rounds     INTEGER           NOT NULL DEFAULT 0
                                           CHECK (total_fg_rounds >= 0 AND total_fg_rounds <= 5),
 
@@ -322,11 +355,25 @@ CREATE TABLE fg_sessions (
 );
 
 COMMENT ON TABLE fg_sessions IS 'Durable Free Game session state for disconnect recovery. Redis is the primary live store (TTL 1800s); this table is the persistent fallback. Rows are created when FG triggers and updated after each round.';
-COMMENT ON COLUMN fg_sessions.fg_round IS '0-indexed count of rounds completed. fg_round=0 means FG just started, no rounds played yet.';
+COMMENT ON COLUMN fg_sessions.fg_round IS '1-indexed: 0 = FG not yet entered; 1 = first round upcoming (none completed); N = Nth round upcoming (N-1 rounds completed). Updated after each round completes.';
 COMMENT ON COLUMN fg_sessions.completed_rounds IS 'Array of FGRound JSON snapshots. Allows full FG state reconstruction on reconnect without replaying engine.';
 COMMENT ON COLUMN fg_sessions.lightning_marks IS 'Accumulated Position[] across all FG rounds. Persists across FG spins (cleared only when entire FG session completes).';
 COMMENT ON COLUMN fg_sessions.floor_value IS 'Buy Feature session floor = 20 * baseBet. 0.00 for non-Buy-Feature sessions. Applied once at FG sequence end.';
 COMMENT ON COLUMN fg_sessions.expires_at IS 'Hard expiry for cleanup. Sessions not updated within 10 minutes are marked EXPIRED by the cleanup job.';
+```
+
+**Shared Trigger Function (updated_at maintenance):**
+
+```sql
+-- Shared trigger function for updated_at maintenance
+-- Must be created before any trigger that invokes it
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 ```
 
 **Status Transition Constraint:**
@@ -339,9 +386,14 @@ COMMENT ON COLUMN fg_sessions.expires_at IS 'Hard expiry for cleanup. Sessions n
 --   PENDING → EXPIRED  (cleanup job)
 --   ACTIVE  → EXPIRED  (cleanup job timeout)
 -- All other transitions are rejected.
+-- Non-status updates (e.g. fg_round++, total_fg_win) pass through without validation.
 CREATE OR REPLACE FUNCTION enforce_fg_session_status_transition()
 RETURNS TRIGGER AS $$
 BEGIN
+    -- Only validate when status actually changes
+    IF OLD.status IS NOT DISTINCT FROM NEW.status THEN
+        RETURN NEW;
+    END IF;
     IF NOT (
         (OLD.status = 'PENDING' AND NEW.status IN ('ACTIVE', 'EXPIRED')) OR
         (OLD.status = 'ACTIVE'  AND NEW.status IN ('COMPLETE', 'EXPIRED'))
@@ -404,6 +456,11 @@ CREATE POLICY "fg_sessions_no_player_write"
 CREATE POLICY "fg_sessions_no_player_update"
     ON fg_sessions FOR UPDATE
     USING (FALSE);
+
+-- Block player-initiated deletes (archiving deletes use service_role which bypasses RLS)
+CREATE POLICY "fg_sessions_no_player_delete"
+    ON fg_sessions FOR DELETE
+    USING (FALSE);
 ```
 
 ---
@@ -465,9 +522,11 @@ COMMENT ON COLUMN wallet_transactions.notes IS 'Optional human-readable annotati
 **Idempotency Key Convention:**
 
 ```
-DEBIT:    "DEBIT:{spinId}"
-CREDIT:   "CREDIT:{spinId}"
-COMPENSATE: "COMPENSATE:{spinId}:{isoTimestamp}"
+DEBIT:                    "DEBIT:{spinId}"
+CREDIT:                   "CREDIT:{spinId}"
+COMPENSATE:               "COMPENSATE:{spinId}:{isoTimestamp}"
+CREDIT_COMPENSATION:      "CREDIT_COMPENSATION:{spinId}:{isoTimestamp}"
+CREDIT_BUY_FEATURE_FLOOR: "CREDIT_BUY_FEATURE_FLOOR:{spinId}"
 ```
 
 **Indexes:**
@@ -727,11 +786,11 @@ Redis (Upstash Standard) serves as the high-speed session store and rate-limitin
 | Field | Type | Example | Notes |
 |-------|------|---------|-------|
 | `playerId` | string (UUID) | `"a3f7c2d1-..."` | Owner verification |
-| `status` | string | `"ACTIVE"` | `SPINNING\|FG_ACTIVE\|COMPLETE` |
+| `status` | string | `"FG_ACTIVE"` | `SPINNING` (spin in progress), `FG_ACTIVE` (FG sequence in progress), `COMPLETE` (terminal, awaiting cleanup) |
 | `baseBet` | string (number) | `"1.00"` | Base bet amount as string |
 | `extraBet` | string (boolean) | `"false"` | Serialized boolean |
 | `buyFeature` | string (boolean) | `"false"` | Serialized boolean |
-| `fgRound` | string (integer) | `"2"` | Rounds completed (0-indexed) |
+| `fgRound` | string (integer) | `"2"` | 1-indexed: 0=FG not yet entered; N=Nth round upcoming (N-1 completed) |
 | `fgMultiplier` | string (integer) | `"17"` | Current FG multiplier |
 | `fgBonusMultiplier` | string (integer) | `"5"` | FG bonus multiplier (drawn once at FG start) |
 | `totalFGWin` | string (number) | `"4200.00"` | Running FG win total |
@@ -744,7 +803,7 @@ Redis (Upstash Standard) serves as the high-speed session store and rate-limitin
 
 ```
 HSET session:sess-abc123:state playerId "a3f7c2d1" status "FG_ACTIVE" fgRound "2" fgMultiplier "17" totalFGWin "4200.00"
-EXPIRE session:sess-abc123:state 300
+EXPIRE session:sess-abc123:state 1800
 ```
 
 ---
@@ -847,7 +906,9 @@ The following mapping describes how the presence/absence of a Redis session key 
 
 | Redis Key State | fg_sessions.status | Meaning |
 |-----------------|-------------------|---------|
-| Key exists, `status=ACTIVE` | `ACTIVE` | Normal in-flight FG session |
+| Key exists, `status=SPINNING` | `ACTIVE` | Spin currently in progress for this session |
+| Key exists, `status=FG_ACTIVE` | `ACTIVE` | FG sequence actively in progress |
+| Key exists, `status=COMPLETE` | `COMPLETE` | FG finished; Redis key pending cleanup/expiry |
 | Key absent | `COMPLETE` | Normal completion — FG finished, Redis key expired/deleted |
 | Key absent | `PENDING` | Session not yet started, or expired without cleanup |
 | Key absent | `EXPIRED` | Cleanup job detected stale session (no Redis key, timeout elapsed) |
@@ -1028,12 +1089,16 @@ COMMIT;
 **Verification query (reconciliation job):**
 
 ```sql
-SELECT id, base_bet, total_win, session_floor_value
+SELECT id, base_bet, total_win, session_floor_value, extra_bet_active
 FROM spins
 WHERE buy_feature_active = TRUE
-  AND total_win < (base_bet * 20)
+  AND total_win < CASE
+    WHEN extra_bet_active = TRUE THEN base_bet * 60
+    ELSE base_bet * 20
+  END
   AND session_floor_applied = FALSE;
 -- Should return zero rows in correct operation
+-- Floor is 20× baseBet for BuyFeature-only; 60× baseBet for ExtraBet+BuyFeature
 ```
 
 ---
@@ -1075,7 +1140,7 @@ The correct migration order is:
 
 **Cross-Partition Session Lookup:**
 
-Cross-partition queries by `session_id` require scanning all partitions since the partition key is `created_at`. For production use at scale, maintain a supplementary `session_spin_lookup(session_id UUID, spin_id UUID, created_at TIMESTAMPTZ)` table to enable O(1) partition targeting. This table is populated via trigger on spins INSERT.
+Cross-partition queries by `session_id` require scanning all partitions since the partition key is `created_at`. For production use at scale, maintain a supplementary `session_spin_lookup(session_id TEXT, spin_id UUID, created_at TIMESTAMPTZ)` table to enable O(1) partition targeting. Note: `session_id` is TEXT (format: `sess-{uuid}`) to match `spins.session_id`. This table is populated via trigger on spins INSERT.
 
 **Local indexes on each partition:**
 
@@ -1302,13 +1367,12 @@ COMMIT;
 SELECT
     p.id,
     p.balance AS current_balance,
-    COALESCE(SUM(CASE WHEN wt.tx_type = 'CREDIT' THEN wt.amount
-                      WHEN wt.tx_type = 'COMPENSATE' THEN wt.amount
+    COALESCE(SUM(CASE WHEN wt.tx_type IN ('CREDIT', 'COMPENSATE', 'CREDIT_COMPENSATION', 'CREDIT_BUY_FEATURE_FLOOR') THEN wt.amount
                       ELSE 0 END), 0)
     - COALESCE(SUM(CASE WHEN wt.tx_type = 'DEBIT' THEN wt.amount ELSE 0 END), 0)
     AS computed_balance,
     p.balance - (
-        COALESCE(SUM(CASE WHEN wt.tx_type IN ('CREDIT','COMPENSATE') THEN wt.amount ELSE 0 END), 0)
+        COALESCE(SUM(CASE WHEN wt.tx_type IN ('CREDIT', 'COMPENSATE', 'CREDIT_COMPENSATION', 'CREDIT_BUY_FEATURE_FLOOR') THEN wt.amount ELSE 0 END), 0)
         - COALESCE(SUM(CASE WHEN wt.tx_type = 'DEBIT' THEN wt.amount ELSE 0 END), 0)
     ) AS discrepancy
 FROM players p
@@ -1316,7 +1380,7 @@ LEFT JOIN wallet_transactions wt ON wt.player_id = p.id
 GROUP BY p.id, p.balance
 HAVING ABS(
     p.balance - (
-        COALESCE(SUM(CASE WHEN wt.tx_type IN ('CREDIT','COMPENSATE') THEN wt.amount ELSE 0 END), 0)
+        COALESCE(SUM(CASE WHEN wt.tx_type IN ('CREDIT', 'COMPENSATE', 'CREDIT_COMPENSATION', 'CREDIT_BUY_FEATURE_FLOOR') THEN wt.amount ELSE 0 END), 0)
         - COALESCE(SUM(CASE WHEN wt.tx_type = 'DEBIT' THEN wt.amount ELSE 0 END), 0)
     )
 ) > 0.01;  -- Alert if discrepancy > $0.01
