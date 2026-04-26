@@ -79,10 +79,10 @@ Feature: Main Game Spin — UI Behavior
   @TC-E2E-SPIN-007
   Scenario: Network timeout during spin shows loading indicator then error
     Given the player clicks the SPIN button
-    When the server response is not received within 500 ms
+    When 500 ms elapse with no spin result displayed on the reel grid
     Then a loading indicator appears overlaid on the reel grid
     And the SPIN button remains disabled
-    When the response has not arrived after the configured timeout threshold
+    When the configured timeout threshold elapses with no spin result shown
     Then an error dialog appears with a human-readable message
     And the SPIN button re-enables so the player can retry
     And the player's balance is not double-debited

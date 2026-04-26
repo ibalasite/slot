@@ -15,7 +15,7 @@ Feature: Error and Disconnection Handling — UI Behavior
   @TC-E2E-ERR-001
   Scenario: Spin request times out — loading indicator then friendly error dialog
     Given the player clicks the SPIN button
-    When 500 ms elapse with no server response
+    When the loading indicator has been visible for 500 ms with no reel result displayed
     Then a loading indicator (spinner) appears over the reel grid
     And the SPIN button remains disabled
     When the configured network timeout is exceeded (no response received)
@@ -30,12 +30,12 @@ Feature: Error and Disconnection Handling — UI Behavior
     Given an error dialog appeared after a spin timeout
     When the player dismisses the dialog and attempts another spin
     Then the BALANCE field reflects only one deduction (not two)
-    And the second spin proceeds as a fresh request
+    And the second spin animation begins normally with no error dialog shown
 
   @TC-E2E-ERR-003
   Scenario: Server returns an error during spin — game shows error message and recovers
     Given the player clicks the SPIN button
-    When the server returns an error response (e.g., insufficient funds or service error)
+    When an error state is detected and no spin result is rendered
     Then the reel animation stops or does not start
     And an error dialog appears with the relevant error description
     And the BALANCE field does not change (no deduction is visible to the player)
@@ -63,8 +63,8 @@ Feature: Error and Disconnection Handling — UI Behavior
   @TC-E2E-ERR-005
   Scenario: Server rejects a duplicate spin attempt (concurrent lock)
     Given a spin is already in progress (SPIN button is disabled)
-    When a concurrent spin request is somehow sent (e.g., via automated tool or race condition)
-    Then an error dialog appears informing the player the request could not be processed
+    When the player triggers a second spin attempt while a spin is already in progress
+    Then an error dialog appears informing the player that the action could not be completed
     And an error dialog does not interrupt the currently playing animation
     And the BALANCE field does not show a double-deduction after the duplicate spin attempt
 
@@ -75,9 +75,9 @@ Feature: Error and Disconnection Handling — UI Behavior
   @TC-E2E-ERR-006
   Scenario: Unrecognised server error code shows a generic error dialog
     Given the player clicks the SPIN button
-    When the server returns an unexpected error status
+    When an unexpected error state appears on screen
     Then a generic error dialog is displayed (stone-carved frame style, consistent with game UI)
-    And the dialog does not expose technical details (no stack trace, no HTTP status code shown)
+    And the dialog does not expose raw technical details (no stack trace or numeric status codes visible to the player)
     And the dialog has a dismissal button that returns the player to IDLE state
 
   @TC-E2E-ERR-007

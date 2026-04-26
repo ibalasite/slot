@@ -7,7 +7,7 @@ Feature: Free Game Mode — UI Behavior
   Background:
     Given the game client is fully loaded in a browser
     And the player is authenticated
-    And a Coin Toss Heads result has triggered Free Game entry
+    And 5 or more Lightning Marks accumulated at round end triggering Free Game entry
 
   # ---------------------------------------------------------------------------
   # Happy Path — FG entry and scene
@@ -23,7 +23,7 @@ Feature: Free Game Mode — UI Behavior
 
   @TC-E2E-FG-001
   Scenario: Free Game entry — scene cross-dissolve and fanfare animation
-    When the Coin Toss resolves to Heads for the first time
+    When the Free Game entry animation plays after 5+ Lightning Marks accumulated
     Then the screen cross-dissolves from the main game (dusk temple) to the FG scene (night sky temple) over ~0.8 s
     And starfield particles drift slowly across the FG background
     And the temple columns in the FG scene glow brighter with gold light

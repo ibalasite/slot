@@ -32,14 +32,14 @@ Feature: Buy Feature Panel — UI Behavior
     And CONFIRM and CANCEL buttons are both visible and accessible
 
   @TC-E2E-BUY-003
-  Scenario: Clicking CONFIRM deducts balance and launches Free Game via Coin Toss
+  Scenario: Clicking CONFIRM deducts balance and launches Free Game immediately
     Given the confirmation dialog is open showing cost "$25.00"
-    When the player clicks the CONFIRM button
+    When the player confirms the Buy Feature purchase
     Then the dialog closes with a click sound and a brief visual concave-press effect on CONFIRM
-    And the BALANCE field immediately decrements by $25.00
-    And the game transitions directly to the Coin Toss overlay (guaranteed Heads = FG entry)
-    And the Coin Toss coin appears and flips as normal
-    And after the Coin Toss the FG scene begins
+    And the buy confirmation dialog shows the cost
+    And the BALANCE decreases by 100× the base bet amount
+    And the Free Game scene entry animation plays
+    And the Free Game HUD appears with 10 spins remaining
 
   @TC-E2E-BUY-004
   Scenario: Clicking CANCEL closes the dialog with no balance change
