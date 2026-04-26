@@ -24,6 +24,7 @@
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
 | v1.0 | 2026-04-26 | AI Generated | Initial generation covering all 16 sections |
+| v1.1 | 2026-04-26 | gendoc review | R1 fixes: APP→INFRA arrow labeled; ADR-007/008/009 full entries added; ADR numbering note; FinOps multi-scale projections; frontend version clarified. Note: EDD §1.1 states layer order as "Domain←Application←Infrastructure←Interface" — this is a typo in EDD. Correct order (confirmed here and in ARCH §2) is Domain←Application←Adapters←Infrastructure (Infrastructure is outermost). EDD §1.1 should be corrected in next EDD update. |
 
 ---
 
@@ -97,6 +98,8 @@ Inherited from EDD §9.1 SLO/SLI table and PRD §7 NFRs:
 ### §1.2 Architecture Decision Record (ADR) Index
 
 The following architecture decisions have been recorded and tracked. Full ADR entries appear in §14.
+
+> **ADR numbering note**: ARCH ADR IDs are independent from EDD ADR IDs. EDD §3.2 covers toolchain and game-engine level decisions (EDD-ADR-001 through EDD-ADR-008); ARCH ADRs cover system-level architecture decisions. Cross-reference by title, not by number.
 
 | ADR-ID | Decision Title | Status | Date | Scope |
 |--------|---------------|--------|------|-------|
@@ -393,7 +396,7 @@ graph TD
     Operator -->|"Excel edit"| XLSX
     API --> APP
     APP --> DOMAIN
-    APP --> INFRA
+    APP -->|"via Domain Port interfaces"| INFRA
     DOMAIN --> CONFIG
     INFRA --> SupaDB
     INFRA --> RedisDB
@@ -1180,7 +1183,7 @@ graph TD
 | SAST | semgrep + CodeQL | — | Security scan; blocks on CRITICAL findings | Various OSS |
 | Ingress | nginx-ingress | latest | K8s Ingress; TLS termination; HTTPS-only | Apache 2.0 |
 | Secret Manager | Kubernetes Secrets (etcd encrypted) | — | SUPABASE_SERVICE_KEY, REDIS_URL, DATABASE_URL, SUPABASE_JWT_SECRET | K8s Apache 2.0 |
-| Frontend | Cocos Creator / PixiJS | TBD | Display layer; Pure View; never calculates win | Various |
+| Frontend | Cocos Creator 3.x / PixiJS 7.x | (to be confirmed at frontend milestone) | Display layer; Pure View; never calculates win | Various |
 
 ---
 
@@ -1536,6 +1539,108 @@ The Cascade sequence accumulates `stepWin` across multiple cascade steps. Additi
 
 ---
 
+### ADR-007: Supabase PostgreSQL + RLS for Wallet and Audit Persistence
+
+```
+ADR-ID: ADR-007
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, CTO
+```
+
+**Context:**
+
+The Thunder Blessing backend requires a managed PostgreSQL service with Row Level Security (RLS) to enforce per-player data isolation at the database level. Wallet operations (`wallet_transactions`) and spin audit logs (`spin_logs`) contain sensitive financial data that must never be accessible across player boundaries, even if application-level auth fails.
+
+**Options Considered:**
+
+| Option | RLS Support | Managed | PITR | Decision |
+|--------|------------|---------|------|----------|
+| Supabase PostgreSQL | Native RLS (policy-based) | Yes | Yes (Pro tier) | **Selected** |
+| PlanetScale (MySQL) | Schema-level only | Yes | Limited | Rejected |
+| Self-hosted PostgreSQL (K8s) | Native RLS | No | Manual setup | Rejected |
+| AWS RDS PostgreSQL | Native RLS | Yes | Yes | More expensive; no Auth/JWT bundling |
+
+**Decision:**
+
+Adopt Supabase PostgreSQL Pro tier. Native RLS policies enforce `auth.uid() = player_id` at the DB level — even a compromised application token cannot read another player's wallet rows. Supabase Pro includes PITR (5-minute granularity), satisfying the RPO=5min target without custom backup tooling.
+
+**Consequences:**
+
+- Positive: Defense-in-depth for financial data; RLS catches application auth bypasses
+- Positive: PITR out-of-the-box satisfies RPO requirement without custom backup scripts
+- Negative: Supabase vendor lock-in; migration to self-hosted PostgreSQL requires RLS policy migration
+- Negative: Supabase Pro costs $25/month; free tier insufficient for PITR and compute
+- Risk: Supabase service outage → circuit breaker must open and return 503 within 10s
+
+---
+
+### ADR-008: Kubernetes Canary Deploy for Production, Blue-Green for Staging
+
+```
+ADR-ID: ADR-008
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, DevOps Lead
+```
+
+**Context:**
+
+The Thunder Blessing backend handles real-money wagering. A bad deploy to production can cause incorrect win calculations, accounting errors, or complete downtime — all with direct financial impact. The deployment strategy must minimize blast radius while still enabling rapid iteration.
+
+**Options Considered:**
+
+| Strategy | Risk Level | Rollback Speed | Production Cost | Decision |
+|----------|-----------|---------------|----------------|----------|
+| Big Bang (replace all) | High | Minutes (manual) | Low | Rejected |
+| Blue-Green | Medium | Seconds (switch LB) | 2× node cost | Production: Rejected (cost); Staging: **Selected** |
+| Canary (5%→25%→100%) | Low | Seconds (route 0% to new) | ~10% extra | Production: **Selected** |
+| Rolling (default K8s) | Medium | Minutes | Minimal | Dev: Selected |
+
+**Decision:**
+
+Production uses Canary with automated rollback: route 5% traffic to new pods; promote to 25% after 5 minutes with error rate <0.5%; promote to 100% after 5 more minutes. Automated rollback if `spin_error_total > 0.5%` for 2 minutes at any canary stage. Staging uses Blue-Green for full integration testing before production cut. Dev uses Rolling for simplicity.
+
+**Consequences:**
+
+- Positive: Canary limits bad deploy blast radius to 5% of players
+- Positive: Automated rollback on error rate threshold prevents manual intervention lag
+- Negative: Requires flagger/Argo Rollouts or equivalent for Canary traffic splitting
+- Negative: Canary deploys extend total deploy time by ~15 minutes vs rolling
+- Risk: Canary controller failure → deploy stalls at 5%; requires runbook for manual override
+
+---
+
+### ADR-009: outcome.totalWin Carved Out as Sole Accounting Authority
+
+```
+ADR-ID: ADR-009
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, Compliance, CTO
+```
+
+**Context:**
+
+The Thunder Blessing spin sequence accumulates wins across multiple sources: cascade step wins, FG round wins × FG multiplier × FG bonus multiplier, and optional session floor guards. The UI displays a `session.roundWin` rolling counter for animation. There is a risk of:
+- Double-counting: UI summing intermediate wins AND accounting uses `totalWin`
+- Under-crediting: Using `session.roundWin` (pre-floor, pre-maxWin) instead of `outcome.totalWin`
+- Over-crediting: Missing the `enforceMaxWin()` cap in accounting path
+
+**Decision:**
+
+`outcome.totalWin` returned by `SlotEngine.spin()` is the ONLY value ever passed to `WalletRepository.credit()`. `session.roundWin` is a UI-only display counter, never used for wallet operations. `enforceMaxWin()` is called inside the domain before `totalWin` is finalized in `FullSpinOutcome`. A CI lint rule (`grep -r "credit" src/ | grep -v totalWin`) enforces this constraint automatically.
+
+**Consequences:**
+
+- Positive: Single source of truth eliminates all classes of accounting discrepancy
+- Positive: CI lint gate provides automated enforcement; no manual code review required
+- Positive: `outcome.totalWin` is auditable: logged in `spin_logs.total_win` for every spin
+- Negative: Frontend must be carefully designed to use `fgRounds[].win` for animation only
+- Risk: Frontend bug (displaying `totalWin` but crediting `roundWin`) must be caught in E2E tests
+
+---
+
 ## §15 Architecture Review Checklist
 
 > Use for PR merges, major architectural changes, and quarterly architecture reviews.
@@ -1593,7 +1698,7 @@ The Cascade sequence accumulates `stepWin` across multiple cascade steps. Additi
 
 | # | NFR Item | Verification Method | Status |
 |---|----------|--------------------|----|
-| G-01 | ADR-001 through ADR-006 documented with Context/Decision/Consequences | This document §14 | ✅ |
+| G-01 | ADR-001 through ADR-009 documented with Context/Decision/Consequences | This document §14 | ✅ |
 | G-02 | `POST /v1/spin` versioned under `/v1/`; deprecation path defined for future `/v2/` | API version in path; no breaking changes without new version | ✅ Designed |
 | G-03 | All external dependencies listed in §13 with SLA and fallback | §13 External Dependency Map complete | ✅ |
 
@@ -1657,6 +1762,15 @@ labels:
 | **Total Estimated (Production)** | | **~$185–325/month** | Scales with player volume |
 
 **Development + Staging overhead:** ~$50–80/month additional (Supabase Free + Upstash Hobby + shared K8s namespace).
+
+#### Multi-Scale Cost Projections
+
+| Scale | RPS Range | Architecture Phase | Est. Monthly Cost (USD) | Key Driver |
+|-------|----------|--------------------|------------------------|-----------|
+| Phase 1 — Current (Small) | < 100 RPS | Modular Monolith; 3 K8s pods | $185–325/month | K8s nodes ($120-180) + Supabase Pro ($25) |
+| Phase 2 — Growth (Medium) | 100–500 RPS | Read replica + Redis Cluster; 5–8 pods + PgBouncer | $600–900/month | +Read replica ($50) +Redis Cluster ($80) +extra nodes ($200-400) |
+| Phase 3 — Scale (Large) | 500–2,000 RPS | Domain-split Microservices; dedicated K8s node pools; Supabase custom | $2,000–4,000/month | Multiple DB clusters + extra K8s node pools + observability stack |
+| Phase 4 — Hyper-scale | > 2,000 RPS | CQRS + Event Sourcing; global multi-region | $8,000+/month | Multi-region data replication + CDN + edge compute |
 
 **Cost optimization opportunities:**
 - Use Spot/Preemptible K8s nodes for dev/staging (60–80% discount)
