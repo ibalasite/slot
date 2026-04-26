@@ -554,7 +554,7 @@ All conditions must be satisfied before a test phase is considered complete and 
 
 | Risk ID | Description | Category | Probability | Impact | Risk Score | Mitigation | Contingency |
 |---------|-------------|----------|:-----------:|:------:|:----------:|-----------|-------------|
-| RISK-01 | RTP miscalculation — symbol weights mis-mapped to wrong scenario, causing RTP drift > ±1% | Probability | Medium | Critical | HIGH | Enforce `verify.js` hard gate in CI; cross-scenario weight contamination test (TC-UNIT-PROB-003); 4-scenario isolation unit tests | Re-run full toolchain with corrected Excel; hotfix deploy blocked until `verify.js` PASS |
+| RISK-01 | RTP miscalculation — symbol weights mis-mapped to wrong scenario, causing RTP drift > ±1% | Probability | Medium | Critical | HIGH | Enforce `verify.js` hard gate in CI; cross-scenario weight contamination test (TC-UNIT-PROB-002); 4-scenario isolation unit tests | Re-run full toolchain with corrected Excel; hotfix deploy blocked until `verify.js` PASS |
 | RISK-02 | Cascade boundary overflow — rows exceed 6 due to off-by-one in `expandRows()` | Game Logic | Low | High | MEDIUM | Unit test TC-UNIT-CASC-006 validates MAX_ROWS boundary; property-based test generates random cascade depths | Cap rows at 6 defensively in engine code; add runtime assertion in `SlotEngine.spin()` |
 | RISK-03 | Free Game sequence corruption — Lightning Marks incorrectly reset mid-FG or not inherited from Main Game | Game Logic | Medium | High | HIGH | Integration tests TC-INT-FG-001 and TC-INT-FG-002 verify mark persistence across FG rounds; TC-INT-FG-003 verifies marks cleared at FG end; TC-INT-FG-004 tests corruption recovery | Redis FG session read fallback from PostgreSQL `fg_sessions` table |
 | RISK-04 | Redis cache stampede — concurrent FG session reads after Redis eviction cause DB overload | Infrastructure | Low | High | MEDIUM | ConcurrencyLockGuard (Redis NX lock) prevents concurrent spins; circuit breaker on DB (ARCH §5.2); integration test TC-INT-REDIS-002 | Increase Redis TTL to 3600s; enable Redis persistence (AOF mode) for staging/prod |
@@ -684,12 +684,14 @@ Coverage is measured by `@vitest/coverage-v8`. Reports are published as HTML art
 | TC-UNIT-FG-002-HAPPY | FreeGameOrchestrator | `drawBonusMultiplier()` draws from weights {900:×1, 80:×5, 15:×20, 5:×100}; returns valid multiplier | Happy | P0 |
 | TC-UNIT-FG-003-HAPPY | FreeGameOrchestrator | FG Bonus multiplier drawn once (before round 1); same value in all `fgRounds[n].bonusMultiplier` | Happy | P0 |
 | TC-UNIT-FG-004-BOUNDARY | FreeGameOrchestrator | ×77 is max: after 5th Heads, additional Heads maintains ×77; does not produce ×78 or higher | Boundary | P0 |
-| TC-UNIT-FG-005-HAPPY | FreeGameOrchestrator | Tails at ×17: FG ends; `fgRounds` contains only 2 rounds (×3 round + ×7 round + Tails stops before ×17) | Happy | P0 |
+| TC-UNIT-FG-005-HAPPY | FreeGameOrchestrator | Tails at ×17 Coin Toss: FG entered, round 1 (×3) completed, round 2 (×7) completed, Coin Toss at ×17 stage fires Tails → FG ends; fgRounds.length = 2 (two completed rounds recorded); final multiplier = ×7 | Happy | P0 |
 | TC-UNIT-FLOOR-001-HAPPY | SessionFloorGuard | `applyFloor()`: totalFGWin=10 × baseBet=1.00 → adjustedWin=20.00 (floor applied) | Happy | P0 |
 | TC-UNIT-FLOOR-002-BOUNDARY | SessionFloorGuard | `applyFloor()`: totalFGWin=20 × baseBet=1.00 → adjustedWin=20.00 (exactly at floor; no change) | Boundary | P0 |
 | TC-UNIT-FLOOR-003-HAPPY | SessionFloorGuard | `applyFloor()`: totalFGWin=500 → adjustedWin=500 (above floor; floor not applied) | Happy | P0 |
 | TC-UNIT-MAXWIN-001-BOUNDARY | SlotEngine | Main Game: raw win 35,000× baseBet is capped to 30,000× baseBet | Boundary | P0 |
 | TC-UNIT-MAXWIN-002-BOUNDARY | SlotEngine | EBBuyFG: raw win 95,000× baseBet is capped to 90,000× baseBet | Boundary | P0 |
+| TC-UNIT-EXBT-002-HAPPY | ExtraBetHandler | Extra Bet ON with natural SC: SC preserved, no forced inject; dispatch payload extraBet=true, naturalSC=true → outcome.forceScatter=false | Happy | P0 |
+| TC-UNIT-EXBT-004-HAPPY | ExtraBetHandler | Extra Bet OFF reverts to mainGame weights; baseBet debited at standard rate (not ×3) | Happy | P0 |
 | TC-UNIT-CURR-001-HAPPY | CurrencyFormatter | `CurrencyFormatter.format(1.00, 'USD')` returns `"$1.00"`; `CurrencyFormatter.format(100, 'TWD')` returns `"NT$100"`; formatting sourced from `BetRangeConfig`; no hardcoded currency strings | Happy | P0 |
 
 ---
@@ -752,7 +754,7 @@ Every P0 API endpoint requires a happy-path 200 test and at least one error-path
 | TC-INT-API-013-ERROR | GET /v1/session/:sessionId | Non-existent or expired session: 404 SESSION_NOT_FOUND | Error | P0 |
 | TC-INT-API-014-HAPPY | GET /v1/config | Valid JWT: 200 with `BetRangeConfig` containing bet levels and currency display for both USD and TWD | Happy | P0 |
 | TC-INT-API-015-ERROR | GET /v1/config | Request without Authorization header: 401 UNAUTHORIZED | Error | P0 |
-| TC-INT-CURR-001-HAPPY | GET /v1/config / CurrencyFormatter | Calls GET /v1/config; verifies `BetRangeConfig` bet levels are correct for USD (min=0.20, max=20.00) and TWD (min=5, max=500); verifies currency display formatting via `CurrencyFormatter.ts` for both locales | Happy | P0 |
+| TC-INT-CURR-001-HAPPY | GET /v1/config / CurrencyFormatter | Calls GET /v1/config; verifies `BetRangeConfig` bet levels are correct for USD (min=$0.10, max=$10.00) and TWD (min=3, max=600); verifies currency display formatting via `CurrencyFormatter.ts` for both locales | Happy | P0 |
 | TC-INT-WALLET-001-HAPPY | SupabaseWalletRepository | `debit()` decrements balance by exact baseBet; `wallet_transactions` row inserted | Happy | P0 |
 | TC-INT-WALLET-002-HAPPY | SupabaseWalletRepository | `credit()` increments balance by exact `totalWin`; `wallet_transactions` row inserted | Happy | P0 |
 | TC-INT-WALLET-003-ERROR | SupabaseWalletRepository | `debit()` when balance = 0: DB CHECK constraint fires; balance not decremented | Error | P0 |
@@ -760,7 +762,7 @@ Every P0 API endpoint requires a happy-path 200 test and at least one error-path
 | TC-INT-WALLET-005-HAPPY | SupabaseWalletRepository | Idempotent retry: same idempotency key deduplicates duplicate credit insert | Happy | P0 |
 | TC-INT-DB-001-HAPPY | spins | `outcome_json JSONB` field stores complete `FullSpinOutcome`; retrievable and deserializable | Happy | P0 |
 | TC-INT-DB-002-ERROR | spins | INSERT with non-existent `player_id`: FK violation; insert rejected | Error | P0 |
-| TC-INT-REDIS-001-HAPPY | RedisSessionCache | `set()` then `get()` returns identical session state; TTL set to 1800s | Happy | P0 |
+| TC-INT-REDIS-001-HAPPY | RedisSessionCache | `set()` then `get()` returns identical session state; TTL set to 300s (renewed per round per API.md §1.8 and EDD §9.2) | Happy | P0 |
 | TC-INT-REDIS-002-HAPPY | ConcurrencyLockGuard | `acquireLock()` returns true for first caller; false for concurrent caller on same session | Happy | P0 |
 | TC-INT-FG-001-HAPPY | FreeGameOrchestrator | FG entry: Lightning Marks from main game cascade are present in `fgRounds[0].lightningMarksBefore` | Happy | P0 |
 | TC-INT-FG-002-HAPPY | FreeGameOrchestrator | FG round 2: marks from round 1 cascade accumulated in `fgRounds[1].lightningMarksBefore` | Happy | P0 |
@@ -889,7 +891,7 @@ test('basic spin returns totalWin and updates balance', async ({ page }) => {
 | TC-SEC-AUTH-003 | JWT with `exp` 1 second in past | 401 UNAUTHORIZED |
 | TC-SEC-AUTH-004 | JWT with tampered `sub` claim (modified after signing) | 401 UNAUTHORIZED (signature mismatch) |
 | TC-SEC-AUTH-005 | JWT with valid `sub` but `role: "service_role"` (forged) | 403 FORBIDDEN (role not player) |
-| TC-SEC-SESSION-001 | FG session TTL: session expires after 1800s of inactivity | 404 SESSION_NOT_FOUND |
+| TC-SEC-SESSION-001 | FG session TTL: session expires after 300s of inactivity | 404 SESSION_NOT_FOUND |
 | TC-SEC-SESSION-002 | Session lock TTL: lock expires after 10s; new spin can proceed | New spin succeeds within 11s of stale lock creation |
 
 ### §12.3 Betting API Manipulation Prevention
@@ -905,9 +907,9 @@ test('basic spin returns totalWin and updates balance', async ({ page }) => {
 
 ### §12.4 CORS Security Tests
 
-| TC-ID | Seq | Test | OWASP Ref | Expected Result |
-|-------|:---:|------|-----------|----------------|
-| TC-SEC-CORS-001 | 001 | Send cross-origin request to `POST /v1/spin` and `GET /v1/config` from untrusted origin; inspect `Access-Control-Allow-Origin` response header on staging and production | OWASP A05 — Security Misconfiguration | `Access-Control-Allow-Origin` must NOT return `*`; must be restricted to the configured allowlist of trusted origins |
+| TC-ID | Test | OWASP Ref | Expected Result |
+|-------|------|-----------|----------------|
+| TC-SEC-CORS-001 | Send cross-origin request to `POST /v1/spin` and `GET /v1/config` from untrusted origin; inspect `Access-Control-Allow-Origin` response header on staging and production | OWASP A05 — Security Misconfiguration | `Access-Control-Allow-Origin` must NOT return `*`; must be restricted to the configured allowlist of trusted origins |
 
 ### §12.5 RNG Integrity Verification
 
@@ -1049,6 +1051,7 @@ All accessibility tests target the game client (Cocos Creator / PixiJS web expor
 | 2.4.7 Focus Visible | AA | Manual + axe-core | Spin button (ANIM §9.2) | Spin button shows visible focus ring (glow effect per ANIM §9.2); focus style not `outline: none` without replacement |
 | 3.3.1 Error Identification | A | Manual | Insufficient balance modal | Error message identifies the issue in text (not just color/icon) |
 | 4.1.2 Name, Role, Value | A | axe-core | Spin button, balance display, bet panel | `role`, `aria-label`, and `aria-live` attributes on dynamic elements |
+| 2.3.1 Three Flashes or Below Threshold | A | Manual frequency measurement + automated flash analysis tool | Win flash animation | Win flash at 1.25Hz within 3Hz limit; `fx_fg_bonus_100x.spine` frame analysis required per ANIM.md §6.1 before ship |
 
 ### §14.2 Reduced Motion Testing
 
@@ -1188,6 +1191,7 @@ pnpm test:smoke --base-url=https://api-staging.thunderblessing.example.com
 | **Lint** | Every push | ESLint, TypeScript `tsc --noEmit`, Prettier | Block PR if lint fails |
 | **Unit Tests + Coverage** | Every push | Vitest + `@vitest/coverage-v8` | Block PR if < 80% coverage or any test fails |
 | **Config Integrity Check** | Every push | `sha256sum GameConfig.generated.ts` vs expected hash | Block PR if manual edit detected |
+| **toolchain-gate** | Config change | `verify.js` (all 4 scenarios) | `verify.js` must PASS before `engine_generator.js` runs; failure blocks both engine generation and downstream steps |
 | **Integration Tests** | PR merge to `develop` | Vitest + Supertest + test DB + test Redis | Block merge if any integration test fails |
 | **Smoke Tests** | Post-staging deploy | Custom k6 smoke + Supertest | Rollback staging if smoke fails |
 | **E2E Tests** | Post-staging deploy | Playwright on staging URL | Alert (no auto-rollback); manual review |
@@ -1227,6 +1231,12 @@ thresholds: {
   'http_req_failed': ['rate<0.005'],
 }
 ```
+
+**Toolchain quality gate:**
+
+| Gate ID | Gate | Threshold | Enforced At |
+|---------|------|-----------|-------------|
+| QG-TOOL | `verify.js` RTP deviation ≤ ±0.1% for all 4 scenarios — gates `engine_generator.js` execution | PASS (all 4 scenarios within ±0.1%) | Config change; `verify.js` must exit 0 before `engine_generator.js` runs |
 
 ### §17.3 Test Reporting
 
@@ -1336,11 +1346,15 @@ Production release sign-off requires all of the following approvals and evidence
 | US-BUYF-001 (floor) | Buy Feature: totalWin ≥ 20× baseBet | TC-UNIT-FLOOR-001, TC-INT-BUYF-003 | Unit/Int | P0 | Planned |
 | US-RTPV-001 | RTP ±1% per scenario, 1M Monte Carlo | TC via `verify.js` | Monte Carlo | P0 | Planned |
 | US-CURR-001 | USD/TWD display from BetRangeConfig | TC-UNIT-CURR-001, TC-INT-CURR-001 | Unit/Integration | P0 | Planned |
-| US-APIV-001 | JWT auth on every spin | TC-INT-API-002, TC-SEC-AUTH-001 through TC-SEC-AUTH-005 | Int/Security | P0 | Planned |
+| US-APIV-001/AC-1 | Single-trip FG response: complete FG sequence returned in one API response | TC-INT-API-002 | Integration | P0 | Planned |
+| US-APIV-001/AC-2 | buyFG yields 5 fgSpins in response | TC-INT-BUYF-001 | Integration | P0 | Planned |
+| US-APIV-001/AC-3 | P99 ≤ 500ms (no-FG) | §13 Load Test / OBJ-03 | Performance | P0 | Planned |
+| US-APIV-001/AC-4 | JWT auth required on every spin | TC-SEC-AUTH-001 | Security | P0 | Planned |
+| US-APIV-001/AC-5 | totalWin is authoritative: server-computed value in response is the sole accounting authority | TC-INT-API-002-HAPPY (server totalWin) | Integration | P0 | Planned |
 | US-NRMS-001 | Near Miss: toolchain-configured, no code custom | TC-UNIT-PROB-001 (config integrity) | Unit | P0 | Planned |
 | US-TOOL-001/AC-1 | Toolchain: `build_config.js` generates valid `engine_config.json` | TC-INT-CONFIG-001 | Integration | P0 | Planned |
-| US-TOOL-001/AC-2 | Toolchain: `verify.js` PASS gate for all 4 scenarios | TC-UNIT-PROB-001; CI gate QG-06 | Unit/CI | P0 | Planned |
-| US-TOOL-001/AC-3 | Toolchain: `engine_generator.js` produces `GameConfig.generated.ts` matching engine_config.json | TC-INT-CONFIG-001; CI gate QG-11 | Integration/CI | P0 | Planned |
+| US-TOOL-001/AC-2 | Toolchain: `excel_simulator.js` runs 1M Monte Carlo and writes results to SIMULATION/DESIGN_VIEW tabs | TC-UNIT-PROB-001; CI gate QG-06 | Unit/CI | P0 | Planned |
+| US-TOOL-001/AC-3 | Toolchain: `verify.js` PASS gate validates RTP within ±0.1% for all 4 scenarios | TC-INT-CONFIG-001; CI gate QG-11 | Integration/CI | P0 | Planned |
 | US-TOOL-001/AC-4 | Toolchain: SHA-256 checksum guard blocks manual edits to `GameConfig.generated.ts` | CI gate QG-11 | CI | P0 | Planned |
 | US-TOOL-001/AC-5 | Toolchain: `excel_simulator.js` feeds DESIGN_VIEW tab without cross-scenario weight contamination | TC-UNIT-PROB-001; CI gate QG-06 | Unit/CI | P0 | Planned |
 
