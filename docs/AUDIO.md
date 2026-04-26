@@ -308,7 +308,7 @@ The following Sound IDs appear in FRONTEND.md §7's preload list (`MobileAudioUn
 | `SFX_WIN_SMALL` | `audio/sfx_win_small.ogg` | 600 | Small win (0 < win < 5× baseBet); WIN counter starts | Light chime; coin clink. Confirmed in FRONTEND.md §7.2 as `SFX_WIN_SMALL`. |
 | `SFX_WIN_MEDIUM` | `audio/sfx_win_medium.ogg` | 900 | Medium win (5× ≤ win < 20× baseBet) | Brighter chime cluster; brief string swell |
 | `SFX_WIN_BIG` | `audio/sfx_win_big.ogg` | 2000 | Big Win (20× ≤ win < 100×); "BIG WIN" banner drops | Brass hit + choir exclaim + coin shower begins. Confirmed in FRONTEND.md §7.2. |
-| `SFX_WIN_MEGA` | `audio/sfx_win_mega.ogg` | 3000 | Mega Win (100×–500×); "MEGA WIN" effect | Extended brass fanfare; choir builds; lightning crack underneath |
+| `SFX_WIN_MEGA` | `audio/sfx_win_mega.ogg` | 3000 | Mega Win (100× ≤ win < 500× baseBet); "MEGA WIN" effect | Extended brass fanfare; choir builds; lightning crack underneath |
 | `SFX_WIN_JACKPOT` | `audio/sfx_win_jackpot.ogg` | 4000 | Jackpot (500× ≤ win < 30,000×); Zeus character animation | Full orchestral + choir peak; Zeus thunder signature. Confirmed in FRONTEND.md §7.2. |
 | `SFX_MAX_WIN` | `audio/sfx_max_win.ogg` | 6000 | 30,000× cap reached (Main Game) | Wall-of-sound climax. Golden coin rain. Choir sustain. Confirmed in FRONTEND.md §7.2. |
 | `SFX_MAX_WIN_LEGENDARY` | `audio/sfx_max_win_legendary.ogg` | 10000 | 90,000× cap reached (Extra Bet + Buy Feature) | Extended legendary win signature; separate mastering from `SFX_MAX_WIN`. Confirmed in FRONTEND.md §7.2. |
@@ -492,7 +492,8 @@ AudioState = {
 | Event | BGM Gain Change | Duration In | Hold | Duration Out | Notes |
 |-------|:---------------:|:-----------:|:----:|:------------:|-------|
 | Big Win / Mega Win / Jackpot SFX playing | −6 dB (factor 0.5) | 200ms linear | For win SFX duration | 400ms linear | SFX duration drives hold time |
-| Max Win (30,000×) event | −12 dB (factor 0.25) | 300ms linear | 6000ms | 800ms linear | Extended duck for max win |
+| Max Win (30,000×) event | −12 dB (factor 0.25) | 300ms linear | 6000ms | 800ms linear | Extended duck for max win (Main Game) |
+| Max Win (90,000×) event | −12 dB (factor 0.25) | 300ms linear | 10,000ms | 800ms linear | Extra Bet / Buy Feature max win; same duck depth as 30,000× with longer hold matching `SFX_MAX_WIN_LEGENDARY` duration |
 | `NETWORK_ERROR` state | −3 dB (factor 0.71) | 300ms linear | Until error cleared | 500ms linear | Subtle — game still feels alive |
 | FG Bonus ×100 reveal | −9 dB (factor 0.35) | 300ms linear | 4000ms | 600ms linear | Foreground spectacle takes priority |
 
@@ -586,14 +587,13 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 
 | Time Offset | Audio Action |
 |:-----------:|-------------|
-| 0ms | BGM crossfade to `BGM_COIN_TOSS` (800ms) |
-| 0ms | `SFX_COIN_TOSS_START` — coin fly-in woosh |
+| 0ms | `SFX_COIN_TOSS_START` — coin fly-in woosh (BGM crossfade to `BGM_COIN_TOSS` is state-observer owned — see §4.2 `CASCADE_RESOLVING→COIN_TOSS`) |
 | 500ms | `SFX_COIN_TOSS_FLIP` [loop starts] — spinning metal sound |
 | 500ms–2000ms | `SFX_COIN_TOSS_FLIP` loop continues for 1000–1500ms (spin phase) |
 | ~2000ms | `SFX_COIN_TOSS_FLIP` loop stops |
 | ~3500ms (deceleration complete; coin face fully settled) | `SFX_COIN_HEADS` or `SFX_COIN_TAILS` — result reveal |
 | On HEADS: deceleration settle + 0ms | `SFX_COIN_MULT_PROGRESS` — progress bar animates |
-| On TAILS: deceleration settle + 0ms | BGM crossfade to `BGM_MAIN` (500ms) |
+| On TAILS: deceleration settle + 0ms | `SFX_COIN_TAILS` fired above; BGM crossfade to `BGM_MAIN` (500ms) is state-observer owned — see §4.2 `COIN_TOSS→RESULT_DISPLAY` |
 
 ---
 
@@ -627,7 +627,7 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 | Round start | 0ms | `SFX_FG_ROUND_START` |
 | Cascade steps (each) | Per-cascade | Same SFX mapping as `CASCADE_STEP` (§5.2) |
 | Post-round coin toss | After cascade resolves | Same SFX mapping as `COIN_TOSS` (§5.4) |
-| HEADS → multiplier advance | Post-coin result | `SFX_FG_MULT_UP`; if new mult = 77 → `SFX_FG_MULT_77` + BGM crossfade to `BGM_77X` (800ms) |
+| HEADS → multiplier advance | Post-coin result | `SFX_FG_MULT_UP`; if new mult = 77 → `SFX_FG_MULT_77` + BGM crossfade to `BGM_77X` (800ms, state-observer owned — see §4.2 `FG_ROUND_COMPLETE_HEADS` + mult=77) |
 | HEADS → multiplier display | +0ms | `SFX_COIN_MULT_PROGRESS` |
 
 ---
@@ -654,9 +654,9 @@ All timings below are relative to the start of `dispatcher.dispatch(step)` being
 |:-------------------:|:-----------:|-------------|
 | < 5 | 0ms | `SFX_WIN_SMALL` |
 | 5 ≤ ratio < 20 | 0ms | `SFX_WIN_MEDIUM` |
-| 20–99 | 0ms | `SFX_WIN_BIG` + BGM duck −6dB for 2000ms |
-| 100–499 | 0ms | `SFX_WIN_MEGA` + BGM duck −6dB for 3000ms |
-| 500–29999 | 0ms | `SFX_WIN_JACKPOT` + BGM duck −6dB for 4000ms |
+| 20 ≤ ratio < 100 | 0ms | `SFX_WIN_BIG` + BGM duck −6dB for 2000ms |
+| 100 ≤ ratio < 500 | 0ms | `SFX_WIN_MEGA` + BGM duck −6dB for 3000ms |
+| 500 ≤ ratio < 30,000 | 0ms | `SFX_WIN_JACKPOT` + BGM duck −6dB for 4000ms |
 | 30000 (Main Game max) | 0ms | `SFX_MAX_WIN` + BGM duck −12dB for 6000ms |
 | 90000 (Buy Feature max) | 0ms | `SFX_MAX_WIN_LEGENDARY` + BGM duck −12dB for 10000ms |
 
