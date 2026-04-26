@@ -218,8 +218,22 @@ CREATE TABLE spins (
         (coin_toss_result = 'TAILS' AND fg_triggered = FALSE)
     ),
     CONSTRAINT chk_thunder_blessing_hits CHECK (
-        (thunder_blessing_triggered = FALSE AND thunder_blessing_first_hit = FALSE AND thunder_blessing_second_hit = FALSE AND upgraded_symbol IS NULL) OR
-        (thunder_blessing_triggered = TRUE AND thunder_blessing_first_hit = TRUE)
+      (thunder_blessing_triggered = FALSE
+        AND thunder_blessing_first_hit = FALSE
+        AND thunder_blessing_second_hit = FALSE
+        AND upgraded_symbol IS NULL)
+      OR
+      (thunder_blessing_triggered = TRUE
+        AND thunder_blessing_first_hit = TRUE
+        AND thunder_blessing_second_hit = FALSE)
+      OR
+      (thunder_blessing_triggered = TRUE
+        AND thunder_blessing_first_hit = TRUE
+        AND thunder_blessing_second_hit = TRUE
+        AND upgraded_symbol IS NOT NULL)
+    ),
+    CONSTRAINT chk_session_floor_consistency CHECK (
+      session_floor_applied = FALSE OR session_floor_value IS NOT NULL
     )
 
 ) PARTITION BY RANGE (created_at);
@@ -1096,6 +1110,7 @@ Valid transitions (enforced by `enforce_fg_session_status_transition` trigger):
 
 ```
 PENDING → ACTIVE      (FG sequence begins, first round starts)
+PENDING → EXPIRED     (cleanup job — session never activated, TTL exceeded)
 ACTIVE  → COMPLETE    (FG sequence finishes, all rounds done)
 ACTIVE  → EXPIRED     (cleanup job marks stale sessions)
 COMPLETE → (blocked)  (terminal state)
