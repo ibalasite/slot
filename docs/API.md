@@ -117,7 +117,7 @@ All error responses from `/v1/*` endpoints use this envelope:
 | 403 | `FORBIDDEN` | POST /v1/spin, GET /v1/session/:sessionId | JWT is valid but the player's account is suspended, or the player is attempting to access another player's session |
 | 404 | `SESSION_NOT_FOUND` | GET /v1/session/:sessionId | Session ID does not exist in Redis (expired after 300s TTL or never created) |
 | 409 | `SPIN_IN_PROGRESS` | POST /v1/spin | A concurrent spin is already in progress for this session (Redis NX lock `session:{sessionId}:lock` is held). Wait for the lock TTL (≤10s) before retrying. |
-| 422 | `VALIDATION_ERROR` | POST /v1/spin | Semantically invalid payload: betLevel out of currency-specific range, or extraBet/buyFeature unavailable per game config. |
+| 422 | `VALIDATION_ERROR` | POST /v1/spin | Semantically invalid payload: structurally valid but semantically unsupported combinations, such as extraBet/buyFeature unavailable per game config. |
 | 429 | `RATE_LIMITED` | POST /v1/spin | Player has exceeded 5 requests/second |
 | 500 | `INTERNAL_ERROR` | All /v1/* | Unexpected engine or infrastructure error not matching any specific code |
 | 503 | `SERVICE_UNAVAILABLE` | POST /v1/spin | Circuit breaker OPEN on PostgreSQL or Redis (cascading failure protection) |
@@ -402,11 +402,10 @@ In development, `Access-Control-Allow-Origin: *` is permitted. In production, on
 |----------|-------------|-------------|-------------------------------|------------------------------|
 | 1 | $0.10 | TWD 3 | $0.10 | $0.30 |
 | 5 | $0.50 | TWD 15 | $0.50 | $1.50 |
-| 7 | $1.00 | TWD 30 | $1.00 | $3.00 |
 | 10 | $2.00 | TWD 30 | $2.00 | $6.00 |
 | 20 | $10.00 | TWD 60 | $10.00 | $30.00 |
 
-> Note: USD and TWD use independent level→baseBet mappings; the same betLevel integer maps to different baseBet amounts per currency.
+> Note: USD and TWD use different canonical level boundaries. Use GET /v1/config for the complete table.
 
 > Note: This table shows selected representative levels. Obtain the complete bet table from GET /v1/config.
 
@@ -777,7 +776,7 @@ Full bet table is available via `GET /v1/config`.
 | 401 | `UNAUTHORIZED` | JWT missing, expired, or invalid signature |
 | 403 | `FORBIDDEN` | Account suspended |
 | 409 | `SPIN_IN_PROGRESS` | Redis concurrency lock already held for this session |
-| 422 | `VALIDATION_ERROR` | Semantically invalid payload: `betLevel` out of range for currency, or `extraBet`/`buyFeature` unavailable in this game config. Note: `extraBet: true` + `buyFeature: true` is a **valid** combination (costs 300× baseBet); `INSUFFICIENT_FUNDS` is returned when balance < 300× baseBet for this combination. |
+| 422 | `VALIDATION_ERROR` | Semantically invalid payload: structurally valid but semantically unsupported combinations, such as `extraBet`/`buyFeature` unavailable in this game config. Note: `extraBet: true` + `buyFeature: true` is a **valid** combination (costs 300× baseBet); `INSUFFICIENT_FUNDS` is returned when balance < 300× baseBet for this combination. |
 | 429 | `RATE_LIMITED` | More than 5 req/s per player |
 | 500 | `INTERNAL_ERROR` | Unexpected server-side error |
 | 503 | `SERVICE_UNAVAILABLE` | Circuit breaker open — database or cache unavailable |
@@ -1003,7 +1002,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
       ],
       "count": 5
     },
-    "floorValue": 0,
+    "floorValue": null,
     "completedRounds": [
       {
         "round": 1,
@@ -1050,7 +1049,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
     "fgBonusMultiplier": { "type": ["integer", "null"], "enum": [1, 5, 20, 100, null], "description": "Bonus multiplier drawn at FG sequence start. Null if no FG sequence is active or bonus multiplier has not yet been determined." },
     "totalFGWin": { "type": "number" },
     "lightningMarks": { "$ref": "#/definitions/LightningMarkSet" },
-    "floorValue": { "type": "number", "description": "Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin." },
+    "floorValue": { "type": ["number", "null"], "description": "Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin." },
     "completedRounds": { "type": "array", "items": { "$ref": "#/definitions/FGRound" } },
     "remainingMaxRounds": { "type": "integer", "minimum": 0, "maximum": 5 },
     "ttlSeconds": { "type": "integer", "description": "Seconds remaining before this Redis session key expires" }
@@ -1289,7 +1288,18 @@ The `maxWin` object in the game config contains three cap values: `mainGame` (30
         },
         "fgMultiplierSequence": { "type": "array", "items": { "type": "integer" } },
         "fgBonusMultipliers": { "type": "array", "items": { "type": "integer" } },
-        "coinTossProbabilities": { "type": "object", "description": "Per-stage Coin Toss HEADS probabilities. stage0_entry: probability of HEADS at FG entry stage (awards ×3 FG multiplier). stage1_x7 through stage4_x77: probabilities for advancing to the ×7, ×17, ×27, and ×77 multiplier tiers respectively." },
+        "coinTossProbabilities": {
+          "type": "object",
+          "description": "Per-stage Coin Toss HEADS probabilities. stage0_entry: probability of HEADS at FG entry stage (awards ×3 FG multiplier). stage1_x7 through stage4_x77: probabilities for advancing to the ×7, ×17, ×27, and ×77 multiplier tiers respectively.",
+          "required": ["stage0_entry", "stage1_x7", "stage2_x17", "stage3_x27", "stage4_x77"],
+          "properties": {
+            "stage0_entry": { "type": "number", "minimum": 0, "maximum": 1, "description": "HEADS probability at FG entry (awards ×3 multiplier)" },
+            "stage1_x7":    { "type": "number", "minimum": 0, "maximum": 1, "description": "HEADS probability at ×7 re-flip stage" },
+            "stage2_x17":   { "type": "number", "minimum": 0, "maximum": 1, "description": "HEADS probability at ×17 re-flip stage" },
+            "stage3_x27":   { "type": "number", "minimum": 0, "maximum": 1, "description": "HEADS probability at ×27 re-flip stage" },
+            "stage4_x77":   { "type": "number", "minimum": 0, "maximum": 1, "description": "HEADS probability at ×77 re-flip stage" }
+          }
+        },
         "maxWin": {
           "type": "object",
           "required": ["mainGame", "buyFeature", "extraBetBuyFeature", "unit"],
@@ -1669,7 +1679,7 @@ interface SessionStateDTO {
   fgBonusMultiplier: number | null; // 1 | 5 | 20 | 100 — drawn once at FG sequence start; null if no active FG
   totalFGWin: number;
   lightningMarks: LightningMarkSet;
-  floorValue: number;             // Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin.
+  floorValue: number | null;      // Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin.
   completedRounds: FGRound[];     // FG rounds already resolved
   remainingMaxRounds: number;     // max rounds still possible
   ttlSeconds: number;             // seconds until Redis key expires
