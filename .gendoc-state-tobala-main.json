@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "project_dir": "/Users/tobala/projects/slot",
-  "start_step": "D03-PRD",
+  "start_step": "D10-FRONTEND",
   "execution_mode": "full-auto",
   "review_strategy": "tiered",
   "review_strategy_custom": "",
@@ -13,9 +13,17 @@
   "completed_steps": [
     "D01-IDEA",
     "D02-BRD",
-    "handoff"
+    "handoff",
+    "D03-PRD",
+    "D04-PDD",
+    "D05-VDD",
+    "D06-EDD",
+    "D07-ARCH",
+    "D07b-UML",
+    "D08-API",
+    "D09-SCHEMA"
   ],
-  "last_updated": "2026-04-25T20:25:54.845114Z",
+  "last_updated": "2026-04-26T13:30:00Z",
   "input_type": "doc_local+codebase_local",
   "input_source": "/Users/tobala/Downloads/GDD – Thunder Blessing Slot Game.pdf + /Users/tobala/projects/thunder-blessing-slot",
   "req_dir": "docs/req",
@@ -37,5 +45,129 @@
   "brd_generated": true,
   "brd_path": "docs/BRD.md",
   "brd_review_passed": true,
-  "handoff": true
+  "handoff": true,
+  "review_progress": {
+    "D03-PRD": {
+      "rounds_done": 7,
+      "terminated": true,
+      "findings_per_round": [
+        8,
+        5,
+        3,
+        4,
+        3,
+        1,
+        0
+      ],
+      "last_commit": "4a962e4",
+      "terminate_reason": "tiered round 7: CRITICAL+HIGH+MEDIUM=0"
+    },
+    "D04-PDD": {
+      "rounds_done": 4,
+      "terminated": true,
+      "terminate_reason": "tiered round 4: finding=0",
+      "findings_per_round": [
+        7,
+        4,
+        2,
+        0
+      ]
+    },
+    "D05-VDD": {
+      "rounds_done": 11,
+      "terminated": true,
+      "terminate_reason": "tiered round 11: CRITICAL+HIGH+MEDIUM=0",
+      "findings_per_round": [
+        5,
+        2,
+        1,
+        5,
+        3,
+        8,
+        3,
+        4,
+        3,
+        1,
+        0
+      ]
+    },
+    "D06-EDD": {
+      "rounds_done": 7,
+      "terminated": true,
+      "terminate_reason": "tiered round 7: CRITICAL+HIGH+MEDIUM=0",
+      "findings_per_round": [
+        9,
+        3,
+        3,
+        3,
+        2,
+        3,
+        0
+      ],
+      "last_commit": "b12cd85"
+    },
+    "D07-ARCH": {
+      "rounds_done": 9,
+      "terminated": true,
+      "terminate_reason": "tiered round 9: CRITICAL+HIGH+MEDIUM=0",
+      "findings_per_round": [
+        5,
+        4,
+        2,
+        5,
+        5,
+        1,
+        1,
+        1,
+        0
+      ],
+      "last_commit": "0bd6000"
+    },
+    "D08-API": {
+      "rounds_done": 8,
+      "terminated": true,
+      "findings_per_round": [
+        19,
+        20,
+        12,
+        11,
+        8,
+        8,
+        4,
+        0
+      ],
+      "last_commit": "9c4440d",
+      "terminate_reason": "tiered round 8: CRITICAL+HIGH+MEDIUM=0"
+    },
+    "D09-SCHEMA": {
+      "rounds_done": 7,
+      "terminated": true,
+      "findings_per_round": [
+        22,
+        14,
+        4,
+        3,
+        3,
+        3,
+        0
+      ],
+      "terminate_reason": "tiered round 7: CRITICAL+HIGH+MEDIUM=0",
+      "last_commit": "18cdf5f"
+    },
+    "D10-FRONTEND": {
+      "rounds_done": 6,
+      "terminated": false,
+      "findings_per_round": [
+        11,
+        4,
+        2,
+        3,
+        2,
+        5
+      ]
+    }
+  },
+  "special_completed": {
+    "D07b-UML": true
+  }
 }

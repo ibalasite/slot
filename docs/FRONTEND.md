@@ -278,7 +278,7 @@ interface ReelComponent {
 }
 
 interface ReelConfig {
-  readonly reelStrips: SymbolId[][];  // From GET /v1/config
+  readonly reelStrips: SymbolId[][];  // Loaded from bundled game asset (not GET /v1/config)
   readonly initialRows: 3;
   readonly maxRows: 6;
   readonly symbolSizePx: number;       // 190px at 1920×1080
@@ -445,7 +445,7 @@ interface ThunderBlessingResult {
 - Animate 3D coin flip (Y-axis rotation, 3000–3500ms total per VDD §4.5).
 - Display HEADS result ("ZEUS SMILES!" banner) or TAILS result ("NOT THIS TIME").
 - Drive FG multiplier progress bar (§6.4 of PDD) showing current stage.
-- During FG: toss is shown before each FG round (driven by `fgRounds[i].coinTossResult`).
+- During FG: toss is shown AFTER each round's cascade resolves (post-round), driven by `fgRounds[i].coinTossResult`. HEADS continues to next round; TAILS ends FG.
 
 **Public interface:**
 
@@ -513,6 +513,9 @@ interface FreeGameComponent {
   // Update spin counter display
   updateSpinCounter(currentRound: number, isFinal: boolean): void;
 
+  // Restore FG state from session (used on reconnect; §8.3)
+  restoreFromSession(fgMultiplier: 3 | 7 | 17 | 27 | 77, fgRound: number): void;
+
   // Events
   onFGComplete: EventEmitter<{ totalFGWin: number }>;
 }
@@ -550,8 +553,11 @@ interface BetPanelComponent {
   // Lock/unlock bet controls
   setLocked(locked: boolean): void;
 
-  // Sync Extra Bet toggle state
+  // Sync Extra Bet toggle state (player-driven ON/OFF)
   setExtraBet(active: boolean): void;
+
+  // Enable or disable the Extra Bet toggle based on config (§9.3)
+  setExtraBetEnabled(enabled: boolean): void;
 
   // Show Buy Feature button with computed cost label
   setBuyFeatureEnabled(enabled: boolean, cost: number): void;
@@ -564,7 +570,7 @@ interface BetPanelComponent {
 }
 
 interface BetConfig {
-  readonly levels: BetLevel[];  // From GET /v1/config
+  readonly levels: BetLevelEntry[];  // From config.betRange[currency].levels
   readonly extraBetEnabled: boolean;
   readonly buyFeatureEnabled: boolean;
   readonly currency: 'USD' | 'TWD';
@@ -894,15 +900,64 @@ class SessionService {
 ```typescript
 // src/services/ConfigService.ts
 
+// Mirrors GET /v1/config response (json.data field)
+interface BetLevelEntry {
+  readonly level: number;
+  readonly baseBet: number;
+  readonly extraBetCost: number;
+  readonly buyFeatureCost: number;
+}
+
+interface BetRangeData {
+  readonly minBetLevel: number;
+  readonly maxBetLevel: number;
+  readonly levels: BetLevelEntry[];
+}
+
+interface SymbolDef {
+  readonly id: SymbolId;
+  readonly name: string;
+  readonly isWild: boolean;
+  readonly isScatter: boolean;
+  readonly tier?: 'premium' | 'low';
+}
+
 interface GameConfig {
-  readonly betLevels: BetLevel[];
-  readonly reelStrips: SymbolId[][];    // Symbol sequences per reel
-  readonly paytable: PaytableEntry[];   // Symbol win multipliers
-  readonly extraBetEnabled: boolean;
-  readonly buyFeatureEnabled: boolean;
-  readonly maxWinMultiplier: number;    // 30000 (Main Game) or 90000 (Extra Bet + Buy FG)
-  readonly fgMults: [3, 7, 17, 27, 77];
-  readonly coinProbs: [0.80, 0.68, 0.56, 0.48, 0.40];
+  readonly engineVersion: string;
+  readonly betRange: {
+    readonly USD: BetRangeData;
+    readonly TWD: BetRangeData;
+  };
+  readonly gameParameters: {
+    readonly reels: number;
+    readonly initialRows: number;
+    readonly maxRows: number;
+    readonly paylines: { at3Rows: number; at4Rows: number; at5Rows: number; at6Rows: number };
+    readonly symbols: SymbolDef[];
+    readonly fgMultiplierSequence: readonly [3, 7, 17, 27, 77];
+    readonly fgBonusMultipliers: readonly [1, 5, 20, 100];
+    readonly coinTossProbabilities: {
+      stage0_entry: number;
+      stage1_x7: number;
+      stage2_x17: number;
+      stage3_x27: number;
+      stage4_x77: number;
+    };
+    readonly maxWin: {
+      readonly mainGame: number;            // 30000 (× baseBet)
+      readonly buyFeature: number;          // 90000 (× baseBet)
+      readonly extraBetBuyFeature: number;  // 90000 (× baseBet)
+    };
+    readonly buyFeatureSessionFloor: number;   // 20 (× baseBet)
+    readonly extraBetCostMultiplier: number;   // 3
+    readonly buyFeatureCostMultiplier: number; // 100
+  };
+  readonly rtpTargets: {
+    readonly mainGame:     { target: number; tolerance: number; unit: string };
+    readonly extraBet:     { target: number; tolerance: number; unit: string };
+    readonly buyFeature:   { target: number; tolerance: number; unit: string };
+    readonly ebBuyFeature: { target: number; tolerance: number; unit: string };
+  };
 }
 
 class ConfigService {
@@ -915,13 +970,18 @@ class ConfigService {
     });
     if (!response.ok) throw new Error('Failed to load game config');
     const json = await response.json();
-    this.cachedConfig = json.data;
+    this.cachedConfig = json.data as GameConfig;
     return this.cachedConfig!;
   }
 
   getConfig(): GameConfig {
     if (!this.cachedConfig) throw new Error('Config not loaded');
     return this.cachedConfig;
+  }
+
+  // Convenience: levels for current currency (used by BetPanelComponent)
+  getBetLevels(currency: 'USD' | 'TWD'): BetLevelEntry[] {
+    return this.getConfig().betRange[currency].levels;
   }
 }
 ```
@@ -1565,28 +1625,26 @@ ConfigService.loadConfig()  →  GET /v1/config
 Bet levels are **never hardcoded** in the frontend. All values come from `GET /v1/config`:
 
 ```typescript
-interface BetLevel {
-  readonly level: number;     // 1–20 for USD; 1–320 for TWD
-  readonly baseBet: number;   // e.g., 0.50 for USD level 5
-  readonly currency: 'USD' | 'TWD';
-}
+// BetLevelEntry is defined in ConfigService (mirrors GET /v1/config betRange[currency].levels)
+// { level, baseBet, extraBetCost, buyFeatureCost }
 ```
 
-The `BetPanelComponent` populates its level selector from `config.betLevels` filtered by the player's selected currency.
+The `BetPanelComponent` populates its level selector from `ConfigService.getBetLevels(currency)`, which returns `config.betRange[currency].levels` for the player's selected currency (USD or TWD).
 
 ### 9.3 Extra Bet and Buy Feature Toggles
 
 ```typescript
 const config = ConfigService.getInstance().getConfig();
 
-// Extra Bet availability
-BetPanelComponent.setExtraBetEnabled(config.extraBetEnabled);
+// Extra Bet: always available when extraBetCostMultiplier is present in gameParameters
+BetPanelComponent.setExtraBetEnabled(config.gameParameters.extraBetCostMultiplier > 0);
 
-// Buy Feature availability
-if (config.buyFeatureEnabled) {
+// Buy Feature: always available when buyFeatureCostMultiplier is present in gameParameters
+const buyFeatureEnabled = config.gameParameters.buyFeatureCostMultiplier > 0;
+if (buyFeatureEnabled) {
   const cost = GameContext.getInstance().baseBet
-    * 100
-    * (GameContext.getInstance().extraBet ? 3 : 1);
+    * config.gameParameters.buyFeatureCostMultiplier
+    * (GameContext.getInstance().extraBet ? config.gameParameters.extraBetCostMultiplier : 1);
   BetPanelComponent.setBuyFeatureEnabled(true, cost);
 } else {
   BetPanelComponent.setBuyFeatureEnabled(false, 0);
@@ -1595,11 +1653,11 @@ if (config.buyFeatureEnabled) {
 
 ### 9.4 Reel Strip Configuration
 
-The `ReelComponent` uses `config.reelStrips` (5 arrays of symbol IDs) to determine what symbols appear in each reel. This drives both the visual reel strip and the initial grid display.
+The `ReelComponent` uses reel strip data (5 arrays of symbol IDs) bundled as a game asset, **not** from `GET /v1/config`. The config response (`gameParameters.symbols`) provides symbol metadata (id, name, isWild, isScatter, tier) used for display purposes only. Reel strip sequences are embedded in the game asset bundle and loaded by the asset pipeline at startup.
 
 ### 9.5 Paytable Configuration
 
-The paytable from `config.paytable` is used only for display in the Info panel (not for win calculation — the backend computes all win amounts). The frontend never uses the paytable to compute `payout` values.
+Symbol metadata from `config.gameParameters.symbols` is used only for display in the Info panel (symbol names, types). Win multipliers are never stored on the frontend — the backend computes all payout values. The frontend never uses paytable data to compute `payout` values.
 
 ---
 
@@ -1739,16 +1797,17 @@ When `FullSpinOutcome.sessionFloorApplied = true` (Buy Feature spin where floor 
 ### 11.3 Max Win Cap
 
 Cap selection logic:
-- buyFeature = true (with or without extraBet): maxWin = config.maxWin.buyFeature (90,000×)
-- extraBet = true, buyFeature = false: maxWin = config.maxWin.mainGame (30,000×)
-- neither: maxWin = config.maxWin.mainGame (30,000×)
+- buyFeature = true (with or without extraBet): maxWin = config.gameParameters.maxWin.buyFeature (90,000×)
+- extraBet = true, buyFeature = false: maxWin = config.gameParameters.maxWin.mainGame (30,000×)
+- neither: maxWin = config.gameParameters.maxWin.mainGame (30,000×)
 
 When `totalWin` equals the applicable max win cap:
 
 ```typescript
+const { maxWin } = configService.getConfig().gameParameters;
 const maxWinMultiplier = outcome.buyFeatureActive
-  ? configService.config.maxWin.buyFeature        // 90,000×
-  : configService.config.maxWin.mainGame;          // 30,000×
+  ? maxWin.buyFeature        // 90,000×
+  : maxWin.mainGame;         // 30,000×
 const maxWinValue = maxWinMultiplier * outcome.baseBet;
 const isMaxWin = Math.abs(outcome.totalWin - maxWinValue) < 0.01;
 ```
