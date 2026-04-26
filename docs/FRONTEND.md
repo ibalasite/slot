@@ -546,7 +546,7 @@ interface FGEntryParams {
 **Responsibilities:**
 - Display and control bet level selector (betLevel 1–20 for USD, 1–320 for TWD).
 - Control Extra Bet toggle ON/OFF (updates displayed total bet = baseBet × 3 when ON).
-- Display Buy Feature button with cost label (100× baseBet normal; 300× baseBet if Extra Bet ON).
+- Display Buy Feature button with cost label: `baseBet × config.gameParameters.buyFeatureCostMultiplier` (normal) or `× buyFeatureCostMultiplier × extraBetCostMultiplier` (Extra Bet ON) — always read from ConfigService, never hardcoded.
 - Lock bet changes during spin / FG.
 - Read all limits from `ConfigService` — never hardcode bet ranges.
 
@@ -702,7 +702,7 @@ enum GameState {
 | `SPINNING` | `SPIN_RESPONSE_OK` | `CASCADE_RESOLVING` | Store `FullSpinOutcome`; set initial grid; hide loading indicator |
 | `SPINNING` | `SPIN_RESPONSE_ERROR` | `NETWORK_ERROR` | Unlock UI; display error |
 | `SPINNING` | `SPIN_TIMEOUT` | `TIMEOUT_RETRY` | Increment retry count |
-| `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | `CASCADE_RESOLVING` | Play `AnimationQueue.dequeue()` step |
+| `CASCADE_RESOLVING` | `NEXT_CASCADE_STEP` | `CASCADE_RESOLVING` | `AnimationQueue.play(dispatcher)` drives each step via `AnimationDispatcher.dispatch()` |
 | `CASCADE_RESOLVING` | `TB_TRIGGERED` | `THUNDER_BLESSING` | After current step completes |
 | `CASCADE_RESOLVING` | `CASCADE_COMPLETE_COIN_TOSS` | `COIN_TOSS` | All steps done; `coinTossTriggered = true` |
 | `CASCADE_RESOLVING` | `CASCADE_COMPLETE_NO_WIN` | `RESULT_DISPLAY` | `totalWin = 0` |
@@ -915,7 +915,8 @@ class SessionService {
 **Reconnect protocol:**
 1. On app resume (visibility change to `visible`), call `SessionService.getSession(storedSessionId)`.
 2. If `status === 'FG_ACTIVE'`: enter `SESSION_RECONNECT` state; restore Lightning Marks from `lightningMarks.positions`; call `LightningMarkComponent.restoreMarks(session.lightningMarks.positions)`; resume FG from `fgRound` index (if `session.fgRound >= 1`, FG is active from that round onward).
-3. If `status === 'SPINNING'` or `status === 'COMPLETE'`: return to `IDLE` state normally.
+3. If `status === 'COMPLETE'`: return to `IDLE` state normally (spin result was already processed).
+   If `status === 'SPINNING'`: the wager has been deducted but the result has not yet been delivered. Do NOT return to IDLE — enter a `SPIN_PENDING_RECONNECT` polling loop: re-query `GET /v1/session` every 2 seconds (max 10 retries) until status transitions to `COMPLETE` or `FG_ACTIVE`, then process the outcome. If status remains `SPINNING` after all retries, show a "Spin result pending — please contact support" dialog and prevent further spins until resolved. Returning to IDLE would silently discard a live wager.
 4. If `SESSION_NOT_FOUND` (404): show "Session Expired" dialog; return to `IDLE`.
 
 ### 5.3 ConfigService
@@ -1691,10 +1692,12 @@ The `BetPanelComponent` populates its level selector from `ConfigService.getBetL
 ### 9.3 Extra Bet and Buy Feature Toggles
 
 ```typescript
+// betPanelComponent is the module-level BetPanelComponent instance (interface, not class).
+// BetPanelComponent cannot be used as BetPanelComponent.method() — call on the concrete instance.
 const config = ConfigService.getInstance().getConfig();
 
 // Extra Bet: always available when extraBetCostMultiplier is present in gameParameters
-BetPanelComponent.setExtraBetEnabled(config.gameParameters.extraBetCostMultiplier > 0);
+betPanelComponent.setExtraBetEnabled(config.gameParameters.extraBetCostMultiplier > 0);
 
 // Buy Feature: always available when buyFeatureCostMultiplier is present in gameParameters
 const buyFeatureEnabled = config.gameParameters.buyFeatureCostMultiplier > 0;
@@ -1702,9 +1705,9 @@ if (buyFeatureEnabled) {
   const cost = GameContext.getInstance().baseBet
     * config.gameParameters.buyFeatureCostMultiplier
     * (GameContext.getInstance().extraBet ? config.gameParameters.extraBetCostMultiplier : 1);
-  BetPanelComponent.setBuyFeatureEnabled(true, cost);
+  betPanelComponent.setBuyFeatureEnabled(true, cost);
 } else {
-  BetPanelComponent.setBuyFeatureEnabled(false, 0);
+  betPanelComponent.setBuyFeatureEnabled(false, 0);
 }
 ```
 
@@ -1850,17 +1853,18 @@ When `FullSpinOutcome.sessionFloorApplied = true` (Buy Feature spin where floor 
 ### 11.3 Max Win Cap
 
 Cap selection logic:
-- buyFeature = true (with or without extraBet): maxWin = config.gameParameters.maxWin.buyFeature (90,000×)
-- extraBet = true, buyFeature = false: maxWin = config.gameParameters.maxWin.mainGame (30,000×)
-- neither: maxWin = config.gameParameters.maxWin.mainGame (30,000×)
+- extraBet = true AND buyFeature = true: maxWin = config.gameParameters.maxWin.extraBetBuyFeature (90,000×)
+- buyFeature = true only: maxWin = config.gameParameters.maxWin.buyFeature (90,000×)
+- otherwise: maxWin = config.gameParameters.maxWin.mainGame (30,000×)
 
 When `totalWin` equals the applicable max win cap:
 
 ```typescript
 const { maxWin } = configService.getConfig().gameParameters;
-const maxWinMultiplier = outcome.buyFeature
-  ? maxWin.buyFeature        // 90,000×
-  : maxWin.mainGame;         // 30,000×
+const maxWinMultiplier =
+  (outcome.extraBet && outcome.buyFeature) ? maxWin.extraBetBuyFeature  // 90,000×
+  : outcome.buyFeature                     ? maxWin.buyFeature          // 90,000×
+  :                                          maxWin.mainGame;            // 30,000×
 const maxWinValue = maxWinMultiplier * outcome.baseBet;
 const isMaxWin = Math.abs(outcome.totalWin - maxWinValue) < 0.01;
 ```
