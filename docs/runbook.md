@@ -51,7 +51,7 @@
 
 | System | Purpose | Timeout | Circuit Breaker Threshold |
 |--------|---------|---------|--------------------------|
-| Supabase PostgreSQL | Player wallet, spin_logs, fg_sessions | 2000ms | 5 failures / 10s window |
+| Supabase PostgreSQL | Player wallet, spins, fg_sessions | 2000ms | 5 failures / 10s window |
 | Redis / Upstash | FG session state, concurrency lock, rate limit | 500ms | 10 failures / 10s window |
 | Supabase Auth (JWT) | RS256 token verification | 1000ms | 5 failures / 10s window |
 | CDN (Cloudflare / CloudFront) | Static frontend assets | — | N/A (frontend only) |
