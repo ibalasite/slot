@@ -645,6 +645,7 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 | "×77" number scale-in | 800ms | `--ease-out-back` | `scale`: 0 → 1.8 → 1.0; color: `--color-gold-divine`; text size increases to `--text-mult-max` (72px) |
 | Screen gold flash | 300ms | `ease-out-expo` | `rgba(255,200,0,0.4)` overlay flash, fade to 0 |
 | All progress nodes illuminate | 500ms | `ease-out-cubic` | All 5 nodes reach maximum brightness simultaneously |
+| Particle burst (`PS_FG_MULT_77`) | 0ms (concurrent with node illuminate) | — | 200–300 particles desktop / 100–150 mobile; `--color-gold-divine`; Additive blend; 1000ms lifetime; spawn from multiplier display area (screen center, same Y as multiplier number) |
 | BGM crossfade begins | 0ms (concurrent) | — | `BGM_FREE_GAME` → `BGM_77X` over 800ms (state-observer-owned) |
 
 ### 6.4 FG Complete (AQ Step: `FG_COMPLETE`)
@@ -769,7 +770,8 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 | `PS_WIN_JACKPOT` | Jackpot overlay | 200 / 100 | Additive | 1200 | Full Bloom + divine gold |
 | `PS_WIN_MAX` | Max Win (30,000×) | **2000 / 600** (exception, coin rain) | Normal (coin sprites) | 2000–3000 | Gold coin sprites; gravity simulation |
 | `PS_WIN_MAX_LIGHTNING` | Max Win Zeus strike | 300 / 150 | Additive | 800 | Electric radial burst at strike base |
-| `PS_WIN_LEGENDARY` | Max Win Legendary (90,000×) | **3000 / 600** (exception) | Normal | 3000 | Extended coin rain; divine gold |
+| `PS_WIN_LEGENDARY` | Max Win Legendary (90,000×) | **3000 / 600** burst → **500 / 150** continuous | Normal | 3000 (burst) / ongoing (continuous) | Burst phase: 3s at 3000/600 (VDD §5.4 exception); continuous phase: emitter rate drops via old-particle preemptive recycle after 3s, settles to 500 desktop / 150 mobile; persists until overlay dismisses |
+| `PS_TB_SECOND_HIT` | t=2300ms second hit (thunderBlessingSecondHit=true) | 20–30 per cell / 10–15 per cell | Additive | 300–600 | `--color-gold-divine`; upward radial; per converted cell |
 | `PS_NEAR_MISS` | nearMissApplied = true | None (no particles) | — | — | Near miss is positional only (reel twitch) |
 | `PS_CASCADE_TINT` | Cascade counter increment | None (CSS filter only) | — | — | WIN area background tint; no particles |
 
@@ -859,6 +861,19 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 - Dialog closes: `opacity` 1.0 → 0, 200ms, `ease-in`.
 - SFX: `SFX_BUY_FG_CONFIRM` (600ms rich coin placement).
 
+**Buy Feature session floor banner ("BONUS WIN GUARANTEED", from FRONTEND.md §11.2):**
+
+Displayed when `sessionFloorApplied = true` in `FullSpinOutcome` (Buy Feature guarantee triggered).
+
+| Phase | Duration | Easing | Effect |
+|-------|:--------:|--------|--------|
+| Banner slide-in | 400ms | `--ease-out-cubic` | Gold ribbon banner `translateY`: −60px → 0; appears below the multiplier display area |
+| Text fade-in | 300ms (delay 100ms) | `linear` | "BONUS WIN GUARANTEED" text `opacity`: 0 → 1.0; `--color-gold-bright` |
+| Auto-dismiss | 1500ms hold → 300ms | `ease-in` | After 1500ms display, banner fades `opacity` 1.0 → 0; `translateY` 0 → −30px (slides back up) |
+
+- SFX: `SFX_UI_DIALOG_CLOSE` (150ms) fires at banner auto-dismiss start (reuses standard UI SFX; no dedicated SFX for banner).
+- Banner does not block SPIN or interrupt any AQ step; it renders as a HUD overlay above the game canvas.
+
 **Buy Feature cancel/dismiss (player closes dialog without confirming):**
 - Dialog closes: `opacity` 1.0 → 0, 200ms, `ease-in` (same as confirm-close duration).
 - SFX: `SFX_UI_DIALOG_CLOSE` (150ms) fires at dismiss start.
@@ -881,6 +896,19 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 - Slides down from top: `translateY` −48px → 0 (300ms, `--ease-out-cubic`).
 - `--color-warning` background; white text.
 - Slides back up on `hideOfflineBanner()` (300ms, `ease-in`).
+
+**SESSION_RECONNECT visual restore (from FRONTEND.md §11.5):**
+
+When the session reconnects after a network interruption mid-spin, the game restores state with these animations:
+
+| Element | Animation | Duration | Notes |
+|---------|-----------|:--------:|-------|
+| Loading overlay dismiss | `opacity` 1.0 → 0.0 | 400ms, `ease-in` | Fires after `FullSpinOutcome` is re-received and state restored |
+| Lightning Marks restore | `LightningMarkComponent.restoreMarks(positions)` — no scale-in animation | Instant | Same instant-restore behavior as FG round start (§6.2); marks appear without transition to avoid confusion about new vs restored marks |
+| FG multiplier bar restore | Multiplier progress bar animates from 0 to restored position | 500ms, `--ease-in-out-cubic` | Only if in FG context; gives player a quick visual confirmation of their restored multiplier |
+| Balance display | `BalanceComponent.setBalance(balance)` — no roll-up animation | Instant | Balance is restored value, not a win; no roll-up |
+
+- SFX: No SFX on reconnect restore (silent state restoration; player was aware of disconnect).
 
 ---
 
