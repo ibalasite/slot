@@ -70,15 +70,14 @@ Thunder Blessing is anchored in Greek mythology: the domain of Zeus, divine ligh
 | Token | `cubic-bezier()` value | Character |
 |-------|------------------------|-----------|
 | `--ease-out-cubic` | `cubic-bezier(0.33, 1, 0.68, 1)` | Smooth deceleration — most UI transitions |
-| `--ease-in-out-cubic` | `cubic-bezier(0.65, 0, 0.35, 1)` | Symmetrical acceleration/deceleration |
-| `ease-in-cubic` | `cubic-bezier(0.32, 0, 0.67, 0)` | Smooth acceleration — used for near-miss twitch |
+| `--ease-in-out-cubic` | `cubic-bezier(0.65, 0, 0.35, 1)` | Symmetrical acceleration/deceleration; also used for FG multiplier progress bars |
+| `ease-in-cubic` (inline only — no CSS custom property) | `cubic-bezier(0.32, 0, 0.67, 0)` | Smooth acceleration — near-miss twitch; used as inline value not a CSS variable |
 | `--ease-out-back` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Overshoot settle — symbol landings, banners |
 | `--ease-out-expo` | `cubic-bezier(0.16, 1, 0.3, 1)` | Sharp deceleration — flash effects, bursts |
-| `--ease-in-out-cubic` (for progress bars) | Same as above | Used for FG multiplier progress bars |
 | `--ease-coin-decel` | `cubic-bezier(0.05, 0.7, 0.1, 1.0)` | Coin toss deceleration — slow-start heavy settle |
 | `ease-out-bounce` | JS custom (not CSS cubic-bezier) | See VDD §4.1 for implementation — used for symbol drop |
 
-All `--ease-*` tokens are CSS custom properties defined in the global animation stylesheet (VDD §4.1). Non-prefixed values (`ease-out-expo`, `ease-in-cubic`) are inline shorthand for the same curves applied without a CSS variable.
+All `--ease-*` tokens are CSS custom properties defined in the global animation stylesheet (VDD §4.1). `ease-in-cubic` and `ease-out-bounce` are inline shorthand only — no corresponding CSS custom property is defined.
 
 **AnimationQueue architecture (from FRONTEND.md §6.1):**
 - The `AnimationQueue` is the single sequencer for all animation. No animation is played ad hoc; every visual event is triggered by `AnimationDispatcher.dispatch(step)`.
@@ -809,7 +808,7 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 - Desktop instantaneous particle cap: 500 particles.
 - Mobile instantaneous particle cap: 200 particles.
 - Priority-based throttle order (when approaching cap):
-  1. Reduce `PS_MARK_IDLE` first (background ambient; least critical).
+  1. Reduce `PS_MARK_IDLE`, `PS_WILD_IDLE_ARC`, and `PS_SC_IDLE_ARC` first (all three are background ambient idle emitters; treat as equal priority — halve their count together).
   2. Reduce `PS_SYM_ELIMINATE_STD` count from 14 to 8.
   3. Reduce `PS_FG_ENTRY_STAR` from 30 to 15.
   4. Never reduce `PS_MARK_EXPLODE`, `PS_TB_ARC_LINE`, or `PS_WIN_MAX*` (critical feedback moments).
