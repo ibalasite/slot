@@ -520,7 +520,8 @@ interface FreeGameComponent {
 interface FGEntryParams {
   readonly fgBonusMultiplier: 1 | 5 | 20 | 100;  // From FullSpinOutcome.fgBonusMultiplier
   readonly initialMultiplier: 3;
-  readonly fgRounds: FGRound[];
+  // Individual FG rounds are enqueued as separate FG_ROUND steps in AnimationQueue —
+  // FGEntryParams only covers the entry phase (multiplier reveal + fanfare + background switch).
 }
 ```
 
@@ -533,7 +534,7 @@ interface FGEntryParams {
 ### 3.7 BetPanelComponent
 
 **Responsibilities:**
-- Display and control bet level selector (betLevel 1–25 for USD, 1–320 for TWD).
+- Display and control bet level selector (betLevel 1–20 for USD, 1–320 for TWD).
 - Control Extra Bet toggle ON/OFF (updates displayed total bet = baseBet × 3 when ON).
 - Display Buy Feature button with cost label (100× baseBet normal; 300× baseBet if Extra Bet ON).
 - Lock bet changes during spin / FG.
@@ -700,6 +701,7 @@ enum GameState {
 | `SESSION_RECONNECT` | `SESSION_RESTORED_FG` | `FREE_GAME` | Replay from stored FG position |
 | `SESSION_RECONNECT` | `SESSION_RESTORED_IDLE` | `IDLE` | No active FG |
 | `SESSION_RECONNECT` | `SESSION_EXPIRED` | `IDLE` | Show "Session Expired" dialog |
+| Any | `NETWORK_OFFLINE` | `NETWORK_ERROR` | Show offline banner; disable SPIN; wait for connectivity restore |
 
 ### 4.3 State Entry and Exit Actions
 
@@ -843,12 +845,21 @@ class SpinService {
 interface SessionData {
   readonly sessionId: string;
   readonly playerId: string;
-  readonly status: 'IDLE' | 'FG_ACTIVE' | 'COMPLETED';
+  readonly status: 'SPINNING' | 'FG_ACTIVE' | 'COMPLETE';
   readonly fgMultiplier: 3 | 7 | 17 | 27 | 77 | null;
   readonly fgRound: number | null;       // Current FG round index (0-based)
-  readonly lightningMarks: Position[];   // Persisted Lightning Mark positions
+  readonly lightningMarks: LightningMarkSet;  // Persisted Lightning Mark positions
   readonly balance: number;
   readonly currency: 'USD' | 'TWD';
+  readonly baseBet: number;
+  readonly extraBet: boolean;
+  readonly buyFeature: boolean;
+  readonly fgBonusMultiplier: 1 | 5 | 20 | 100 | null;
+  readonly totalFGWin: number;
+  readonly floorValue: number | null;
+  readonly completedRounds: FGRound[];
+  readonly remainingMaxRounds: number;
+  readonly ttlSeconds: number;
 }
 
 class SessionService {
@@ -870,8 +881,8 @@ class SessionService {
 
 **Reconnect protocol:**
 1. On app resume (visibility change to `visible`), call `SessionService.getSession(storedSessionId)`.
-2. If `status === 'FG_ACTIVE'`: enter `SESSION_RECONNECT` state; restore Lightning Marks from `lightningMarks`; call `LightningMarkComponent.restoreMarks()`; resume FG from `fgRound` index.
-3. If `status === 'IDLE'` or `status === 'COMPLETED'`: return to `IDLE` state normally.
+2. If `status === 'FG_ACTIVE'`: enter `SESSION_RECONNECT` state; restore Lightning Marks from `lightningMarks.positions`; call `LightningMarkComponent.restoreMarks(session.lightningMarks.positions)`; resume FG from `fgRound` index.
+3. If `status === 'SPINNING'` or `status === 'COMPLETE'`: return to `IDLE` state normally.
 4. If `SESSION_NOT_FOUND` (404): show "Session Expired" dialog; return to `IDLE`.
 
 ### 5.3 ConfigService
@@ -954,9 +965,10 @@ GameStateMachine.handleSpinPressed()
 | 400 | `INSUFFICIENT_FUNDS` | Show "Insufficient balance" dialog; unlock UI; return to IDLE |
 | 400 | `INVALID_BET_LEVEL` | Should not occur if ConfigService is respected; log error; return to IDLE |
 | 400 | `INVALID_CURRENCY` | Should not occur; log error; return to IDLE |
+| 400 | `BUY_FEATURE_NOT_ALLOWED` | Show 'Buy Feature unavailable at current configuration' dialog; unlock UI; transition to IDLE state |
 | 401 | `UNAUTHORIZED` | Trigger token refresh via Supabase SDK; retry once; else redirect to login |
 | 403 | `FORBIDDEN` | Show "Account suspended" dialog; disable SPIN permanently |
-| 409 | `SPIN_IN_PROGRESS` | Wait 1s (lock TTL) and retry automatically (no user action required) |
+| 409 | `SPIN_IN_PROGRESS` | Show brief "Please wait" message; do not retry automatically — wait for player to re-submit |
 | 422 | `VALIDATION_ERROR` | Show "Feature unavailable" dialog; return to IDLE |
 | 429 | `RATE_LIMITED` | Show cooldown timer from `retryAfter` field; auto-enable SPIN after timer |
 | 500 | `INTERNAL_ERROR` | Show generic error dialog; offer retry (max 3 attempts) |
@@ -1031,7 +1043,6 @@ class AnimationQueue {
         data: {
           fgBonusMultiplier: outcome.fgBonusMultiplier!,
           initialMultiplier: 3,
-          fgRounds: outcome.fgRounds,
         },
       });
       for (let i = 0; i < outcome.fgRounds.length; i++) {
@@ -1157,7 +1168,7 @@ Driven by `CoinTossComponent.playToss(result, stage)`:
 Driven by `FreeGameComponent`:
 
 1. **FG Entry (cross-dissolve 800ms):** Scene transitions to Sky Temple background (night, starfield particles).
-2. **FG Bonus Reveal (if `fgBonusMultiplier > 1`):** Banner from top ("×20 BONUS!" etc.) with particle burst.
+2. **FG Bonus Reveal (always shown):** Banner from top reveals the bonus multiplier ("×1 BONUS", "×5 BONUS!", "×20 BONUS!", "×100 BONUS!" etc.) before the first FG round begins. ×1 shows a standard reveal animation with no particle fanfare; higher values add proportionally larger particle bursts.
 3. **Per-round loop:** For each `FGRound` in `fgRounds`:
    a. Show pre-round Coin Toss (CoinTossComponent.playToss).
    b. If TAILS: skip to FG summary.
@@ -1383,7 +1394,7 @@ const RETRY_CONFIG = {
   maxAttempts: 3,
   backoffMs: [1000, 2000, 4000],  // Exponential backoff
   retryableStatusCodes: [500, 503, 504],
-  nonRetryableCodes: ['INSUFFICIENT_FUNDS', 'INVALID_BET_LEVEL', 'UNAUTHORIZED', 'FORBIDDEN', 'VALIDATION_ERROR'],
+  nonRetryableCodes: ['INSUFFICIENT_FUNDS', 'INVALID_BET_LEVEL', 'UNAUTHORIZED', 'FORBIDDEN', 'VALIDATION_ERROR', 'SPIN_IN_PROGRESS'],
 } as const;
 
 async function withRetry<T>(
@@ -1434,7 +1445,7 @@ document.addEventListener('visibilitychange', async () => {
   try {
     const session = await sessionService.getSession(sessionId);
     if (session.status === 'FG_ACTIVE') {
-      lightningMarkComponent.restoreMarks(session.lightningMarks);
+      lightningMarkComponent.restoreMarks(session.lightningMarks.positions);
       freeGameComponent.restoreFromSession(session.fgMultiplier!, session.fgRound!);
       stateMachine.transition('SESSION_RESTORED_FG');
     } else {
@@ -1695,7 +1706,7 @@ async function restoreFGSession(session: SessionData): Promise<void> {
   await sceneManager.switchBackground('freegame', false);
 
   // 2. Restore Lightning Marks
-  lightningMarkComponent.restoreMarks(session.lightningMarks);
+  lightningMarkComponent.restoreMarks(session.lightningMarks.positions);
 
   // 3. Restore multiplier progress bar to session.fgMultiplier
   coinTossComponent.updateMultiplierProgress(
@@ -1731,9 +1742,9 @@ Before executing a `buyFeature = true` spin, show confirmation dialog (PDD §8.2
 ### 11.7 Concurrent Spin Guard (`SPIN_IN_PROGRESS` — HTTP 409)
 
 If `SPIN_IN_PROGRESS` (409) is received (should not normally occur with proper UI locking):
-- Wait 1000ms automatically.
-- Retry the same spin request once.
-- If second attempt also returns 409, display error and return to IDLE.
+- Show a brief "Please wait" message to the player.
+- Do not retry automatically — wait for the player to re-submit the spin.
+- Unlock the SPIN button so the player can re-submit when ready.
 
 ---
 
