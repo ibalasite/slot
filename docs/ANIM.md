@@ -466,8 +466,8 @@ At t=200ms, `SFX_LIGHTNING_ACTIVATE` fires and the following animations begin si
 - Particle velocity ramps from 40px/s to 100px/s over the same 300ms.
 
 **Arc line draw (Bezier from SC → each mark):**
-- The SC cell `{col, row}` must be passed in the `THUNDER_BLESSING` AQ step dispatch data: `dispatcher.dispatch({ type: 'THUNDER_BLESSING', data: { scatterCell: {col, row}, secondHit: thunderBlessingSecondHit, convertedSymbol } })`. `ThunderBlessingComponent` reads the arc origin from this payload, not from the live grid — SC will have been eliminated and replaced by cascade-drop symbols before this AQ step fires.
-- Each arc line draws from the `scatterCell` pixel center to the target mark cell center using a Bezier path.
+- The `THUNDER_BLESSING` AQ step is dispatched using the `ThunderBlessingParams` interface defined in FRONTEND.md §6.4: `dispatcher.dispatch({ type: 'THUNDER_BLESSING', data: { thunderBlessingResult, thunderBlessingFirstHit, thunderBlessingSecondHit, upgradedSymbol } })`. The SC cell position for arc-line source is **not** a separate `scatterCell` field; instead `ThunderBlessingComponent` derives the SC cell origin from `thunderBlessingResult` (which carries the converted mark positions and their source SC reference) or from the `FullSpinOutcome` snapshot captured before elimination. `ThunderBlessingComponent` must not query the live grid for SC position — SC will have been eliminated and replaced by cascade-drop symbols before this AQ step fires.
+- Each arc line draws from the derived SC pixel center to the target mark cell center using a Bezier path.
 - Arc draw duration: 200ms per line, staggered 20ms apart from nearest to farthest mark.
 - Arc line: 2px stroke, `--color-arc-white`, Additive blend, opacity 0.8.
 - Arc lines persist (flicker at 0.8 opacity ± 0.2, 80ms period) from t=200ms through t=3000ms. The lines remain rendered through the mark explosion (t=800ms) and symbol upgrade (t=1500ms) phases — they are not cleared at mark explosion. At t=3000ms (settle phase, §4.5) they fade opacity 0.8 → 0.0 over 300ms.
