@@ -29,6 +29,7 @@
 | v1.3 | 2026-04-26 | gendoc review | R3 fixes: C4 L2 INFRA→SupaDB labeled "SQL / TLS :5432", INFRA→RedisDB labeled "Redis Protocol / TLS :6379"; CDN node (Cloudflare/CloudFront) added to C4 L1 System Context with Player→CDN→TB_Frontend static asset path. |
 | v1.4 | 2026-04-26 | gendoc review | R4 fixes: §5.1/§15 D-02/F-03/ADR-003 corrected — wallet IS debited before engine; engine timeout requires compensating credit per §6; C4 L3 HC and DTOS nodes connected (Client→HC, GC→DTOS); BetRangeConfig.generated.ts node added to C4 L3 with GC→BCF arrow; §11 frontend version placeholder standardized; EDD §2.1 synchronized with CDN node addition. |
 | v1.5 | 2026-04-26 | gendoc review | R5 fixes: C4 L3 AC (authController future node) removed (orphaned); GSU→ISC arrow added (Redis primary for GET /v1/session); §9.2 NetworkPolicy egress adds port 4317 (OTLP gRPC); §9.2 monitoring namespace label corrected to kubernetes.io/metadata.name:monitoring; EDD §1.1 layer order corrected (Adapters←Infrastructure). |
+| v1.6 | 2026-04-26 | gendoc review | R7 fix: ADR-003 and ADR-005 Options Considered tables added (single-trip vs multi-trip vs WebSocket for ADR-003; hard gate vs ungated vs manual vs post-generation for ADR-005). |
 
 ---
 
@@ -1470,6 +1471,14 @@ A Free Game sequence can include up to 5 Coin Toss rounds (×3→×7→×17→×
 - Latency accumulation (5 × network RTT ≈ 5 × 50–200ms = 250–1000ms extra)
 - State management complexity on both client and server
 
+**Options Considered:**
+
+| Option | Reconnect Safety | Latency | State Complexity | Payload Size | Decision |
+|--------|-----------------|---------|-----------------|--------------|----------|
+| Single-trip: server computes full FG in one response | High — atomic outcome; Redis session enables recovery | P99 ≤ 800ms for ≤5 FG rounds | Low — Pure View client | 50–100KB (5 FG rounds) | **Selected** |
+| Multi-trip: client polls POST /spin per FG round | Low — network drop mid-FG loses session | 5 RTT × 50–200ms = 250–1000ms extra | High — client must manage FG state machine | < 10KB per trip | Rejected |
+| WebSocket streaming per FG round | Medium — WebSocket drop recoverable | Lowest per-message latency | High — requires WS infra + reconnect protocol | N/A | Rejected (over-engineering for ≤5 rounds) |
+
 **Decision:**
 
 `POST /v1/spin` computes all FG rounds, all Coin Toss results, and the final `totalWin` server-side and returns the complete `FullSpinOutcome` in a single HTTP response. Redis session state tracks `fgRound`, `lightningMarks`, `fgMultiplier` during the computation (all in-process) and is cleared on response.
@@ -1536,6 +1545,15 @@ Deciders: Engineering Lead, Game Designer, Compliance
 **Context:**
 
 RTP misconfiguration is a compliance risk. If `engine_generator.js` runs before `verify.js` validates all 4 scenarios, a broken config could reach production, causing incorrect payouts and regulatory violations.
+
+**Options Considered:**
+
+| Option | Compliance Risk | CI Complexity | Developer UX | Decision |
+|--------|----------------|--------------|-------------|----------|
+| verify.js hard gate (exit 1 on fail) | None — broken config cannot reach generation | Low — single `node verify.js && node engine_generator.js` step | Clear fail fast with per-scenario RTP report | **Selected** |
+| Ungated pipeline (verify.js runs but doesn't block) | High — misconfigured params can generate broken GameConfig | Low | Silent; developer may not notice verify failure | Rejected |
+| Manual review gate (human sign-off) | Medium — depends on reviewer diligence | High — adds PR approval step | Slow; not reproducible | Rejected |
+| Post-generation check (verify after engine_generator.js) | High — broken code already generated before check | Low | Confusing; generated file must be discarded | Rejected |
 
 **Decision:**
 
