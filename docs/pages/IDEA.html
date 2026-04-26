@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>專案名稱：Thunder Blessing Slot GDD — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">專案名稱：Thunder Blessing Slot GDD</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>📄 Documentation</span>
+        <span>Source: <code>IDEA.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="專案名稱thunder-blessing-slot-gdd">專案名稱：Thunder Blessing Slot GDD</h1>
+<h2 id="h-1-核心概念elevator-pitch">1. 核心概念（Elevator Pitch）</h2>
+<p>Thunder Blessing 是一款希臘神話主題的 5×3（最大5×6）老虎機遊戲，以「滾輪持續擴展 × 符號鍊式消除 × 閃電能量蓄積」為核心遊戲循環：每次獲獎觸發 Cascade 連鎖消除並擴展滾輪列數，累積的閃電標記一旦被 Scatter 引爆，即可將整版標記格轉換為同一高賠符號，最終透過 Coin Toss 翻幣決定是否進入最高 ×77 倍率的 Free Game，提供高峰值爆發與持續張力兼具的玩家體驗。</p>
+<p>本 GDD 套件的目標是為開發團隊提供完整且可直接執行的規格文件，使前後端工程師、企劃和 QA 均能 100% 按規格實作，最終交付 RTP 97.5%、最大獎金 30,000× 的高品質老虎機產品。</p>
+<h2 id="h-2-目標使用者">2. 目標使用者</h2>
+<ul>
+<li>線上博弈平台遊戲開發者（前端：Cocos/PixiJS，後端：TypeScript/Fastify）</li>
+<li>遊戲企劃設計師（負責機率平衡與機制設計）</li>
+<li>QA 工程師（驗收引擎與前端行為）</li>
+</ul>
+<h2 id="h-3-核心問題與解決方案">3. 核心問題與解決方案</h2>
+<p><strong>問題</strong>：缺乏完整且工程可執行的 GDD，導致開發過程中規格不一致、機率錯誤難以追蹤。</p>
+<p><strong>解決方案</strong>：以既有的 PDF GDD、Probability_Design.md、slot-engine EDD.md 和 engine_config.json 為基礎，整合成一份完整的 GDD 文件套件，涵蓋：</p>
+<ul>
+<li>完整遊戲機制規格（16 個章節）</li>
+<li>機率設計（目標 RTP 97.5%，四情境獨立平衡）</li>
+<li>slot-engine 工具鏈整合（Excel→TypeScript 生成流程）</li>
+</ul>
+<h2 id="h-4-核心功能清單">4. 核心功能清單</h2>
+<ol>
+<li><strong>基礎滾輪系統</strong>：5 滾輪 × 3列（初始），25 條連線，左到右判定</li>
+<li><strong>Cascade 連鎖消除</strong>：贏→消除→擴展滾輪（最多6列/57條），循環直到無獲獎</li>
+<li><strong>閃電標記（Lightning Mark）</strong>：消除位置留下標記，跨 Cascade 累積</li>
+<li><strong>雷霆祝福 Scatter</strong>：標記存在時落下 Scatter → 全部標記格轉同一高賠符號（2擊制）</li>
+<li><strong>Coin Toss 硬幣翻轉</strong>：6列＋再次Cascade→觸發翻幣→Heads進入FG，Tails結束</li>
+<li><strong>Free Game 免費遊戲</strong>：倍率×3→×7→×17→×27→×77，閃電標記整局累積</li>
+<li><strong>Extra Bet</strong>：投注額×3，保證出現 Scatter</li>
+<li><strong>Buy Feature</strong>：100× 投注額直接購入 Free Game</li>
+<li><strong>機率引擎工具鏈</strong>：Excel DATA tab → build_config.js → engine_config.json → GameConfig.generated.ts</li>
+</ol>
+<h2 id="h-5-成功指標">5. 成功指標</h2>
+<ul>
+<li>RTP 97.5%（四情境各自驗收，100萬次蒙地卡羅模擬）</li>
+<li>最大獎金 30,000× 總投注額</li>
+<li>Cascade 循環正確（無越界、無重複計算）</li>
+<li>Free Game 倍率序列正確（×3→×7→×17→×27→×77）</li>
+<li>Buy Feature 保底：整場 ≥ 20× baseBet</li>
+</ul>
+<h2 id="h-6-技術棧">6. 技術棧</h2>
+<ul>
+<li>後端：TypeScript / Node.js / Fastify / Clean Architecture</li>
+<li>資料庫：Supabase PostgreSQL</li>
+<li>快取：Redis（IoRedis / Upstash）</li>
+<li>機率引擎：Excel 驅動工具鏈（tools/slot-engine/）</li>
+<li>前端：Cocos Creator 或 PixiJS（待定）</li>
+</ul>
+<h2 id="h-7-風險">7. 風險</h2>
+<ol>
+<li>機率平衡複雜度：4 個情境獨立，需 verify.js 通過才能執行 engine_generator</li>
+<li>Cascade 深度計算：Lightning Mark 位置需跨多步驟正確追蹤</li>
+<li>Free Game 一次性回傳：單次 spin request/response 涵蓋完整 FG 序列（最多5回合）</li>
+</ol>
+<h2 id="h-8-素材來源appendix">8. 素材來源（Appendix）</h2>
+<ul>
+<li>docs/req/GDD-Thunder-Blessing-Slot-Game.pdf（PDF GDD，20 頁，含截圖）</li>
+<li>docs/req/GDD_Thunder_Blessing_Slot.md（開發者版 GDD，含全機制規格）</li>
+<li>docs/req/Probability_Design.md（機率設計文件）</li>
+<li>docs/req/slot-engine-EDD.md（工程設計文件，工具鏈架構）</li>
+<li>docs/req/engine_config.json（實際引擎配置參數）</li>
+<li>/Users/tobala/projects/thunder-blessing-slot（既有實作 codebase）</li>
+</ul>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>專案名稱：Thunder Blessing Slot GDD</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>

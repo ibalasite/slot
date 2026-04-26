@@ -1,0 +1,4854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Plan — QA Strategy — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">Test Plan — QA Strategy</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link active"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>🧪 Testing</span>
+        <span>Source: <code>test-plan.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="test-plan-thunder-blessing-slot-game">Test Plan — Thunder Blessing Slot Game</h1>
+<p>&lt;!-- Standard: IEEE 829-2008 Software and System Test Documentation --&gt;</p>
+<hr>
+<h2 id="document-control">Document Control</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Field</th>
+<th>Content</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>DOC-ID</strong></td>
+<td>TP-THUNDERBLESSING-20260426</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>Thunder Blessing Slot Game</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>DRAFT</td>
+</tr>
+<tr>
+<td><strong>Author</strong></td>
+<td>AI Generated (devsop-gen-test-plan)</td>
+</tr>
+<tr>
+<td><strong>Date</strong></td>
+<td>2026-04-26</td>
+</tr>
+<tr>
+<td><strong>Standard</strong></td>
+<td>IEEE 829-2008</td>
+</tr>
+<tr>
+<td><strong>Upstream Documents</strong></td>
+<td>IDEA.md, BRD.md, PRD.md, EDD.md v1.3, ARCH.md v1.7, API.md v1.0, SCHEMA.md v1.0, FRONTEND.md v1.0, AUDIO.md v1.0, ANIM.md v1.0, VDD.md v1.0, PDD.md v1.0</td>
+</tr>
+<tr>
+<td><strong>Reviewers</strong></td>
+<td>QA Lead, Engineering Lead, Security Lead</td>
+</tr>
+<tr>
+<td><strong>Approver</strong></td>
+<td>QA Lead, Engineering Lead</td>
+</tr>
+</tbody></table></div>
+<h3 id="change-log">Change Log</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Summary</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-04-26</td>
+<td>AI Generated</td>
+<td>Initial IEEE 829 Test Plan generation</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#§1-test-strategy">Test Strategy</a></li>
+<li><a href="#§2-test-scope">Test Scope</a></li>
+<li><a href="#§3-test-tools">Test Tools</a></li>
+<li><a href="#§4-test-data">Test Data</a></li>
+<li><a href="#§5-test-environment">Test Environment</a></li>
+<li><a href="#§6-entryexit-criteria">Entry/Exit Criteria</a></li>
+<li><a href="#§7-risk-assessment">Risk Assessment</a></li>
+<li><a href="#§8-schedule">Schedule</a></li>
+<li><a href="#§9-unit-test-plan">Unit Test Plan</a></li>
+<li><a href="#§10-integration-test-plan">Integration Test Plan</a></li>
+<li><a href="#§11-e2e-test-plan">E2E Test Plan</a></li>
+<li><a href="#§12-security-test-plan">Security Test Plan</a></li>
+<li><a href="#§13-performance-test-plan">Performance Test Plan</a></li>
+<li><a href="#§14-accessibility-test-plan">Accessibility Test Plan</a></li>
+<li><a href="#§15-regression-test-plan">Regression Test Plan</a></li>
+<li><a href="#§16-smoke-test-plan">Smoke Test Plan</a></li>
+<li><a href="#§17-cicd-integration">CI/CD Integration</a></li>
+<li><a href="#§18-reporting">Reporting</a></li>
+</ol>
+<ul>
+<li><a href="#appendix-a-requirements-traceability-matrix-rtm">Appendix A: Requirements Traceability Matrix (RTM)</a></li>
+<li><a href="#appendix-b-performance-test-k6-script-skeleton">Appendix B: Performance Test k6 Script Skeleton</a></li>
+</ul>
+<hr>
+<h2 id="h-1-test-strategy">§1 Test Strategy</h2>
+<h3 id="h-11-testing-objectives-smart">§1.1 Testing Objectives (SMART)</h3>
+<p>The following objectives govern all testing activities for Thunder Blessing. Each objective is Specific, Measurable, Achievable, Relevant, and Time-bound (target: prior to Production deployment).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Objective ID</th>
+<th>Objective</th>
+<th>Metric</th>
+<th>Target</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>OBJ-01</td>
+<td>Verify RTP accuracy across all four game scenarios</td>
+<td>Monte Carlo simulation (1,000,000 spins per scenario)</td>
+<td>Each scenario within ±1% of 97.5% target; <code>verify.js</code> must report PASS</td>
+</tr>
+<tr>
+<td>OBJ-02</td>
+<td>Validate backend API correctness</td>
+<td>API contract test pass rate</td>
+<td>100% of P0 endpoints return correct status codes and schema for happy + error paths</td>
+</tr>
+<tr>
+<td>OBJ-03</td>
+<td>Ensure spin latency meets SLO</td>
+<td>Prometheus <code>spin_duration_seconds</code> histogram</td>
+<td>P50 ≤ 150ms, P95 ≤ 300ms, P99 ≤ 500ms (no FG); P99 ≤ 800ms (FG sequence)</td>
+</tr>
+<tr>
+<td>OBJ-04</td>
+<td>Validate Cascade chain elimination logic</td>
+<td>Unit test coverage</td>
+<td>100% of Cascade boundary conditions covered; 0 off-by-one errors in row expansion</td>
+</tr>
+<tr>
+<td>OBJ-05</td>
+<td>Confirm Free Game multiplier sequence correctness</td>
+<td>Integration test</td>
+<td>FG sequence ×3→×7→×17→×27→×77 executes correctly in all 4 scenarios; coinProbs[stage] applied correctly</td>
+</tr>
+<tr>
+<td>OBJ-06</td>
+<td>Verify wallet accounting integrity</td>
+<td>Wallet reconciliation integration test</td>
+<td>0 debit/credit discrepancies; <code>outcome.totalWin</code> is the sole accounting authority</td>
+</tr>
+<tr>
+<td>OBJ-07</td>
+<td>Achieve test automation rate ≥ 90%</td>
+<td>Automation coverage ratio</td>
+<td>≥ 90% of all test cases are automated (excluding exploratory and manual visual checks)</td>
+</tr>
+<tr>
+<td>OBJ-08</td>
+<td>Maintain code coverage</td>
+<td>Vitest/Jest coverage report</td>
+<td>≥ 80% line coverage, ≥ 80% branch coverage on all <code>src/domain/<strong></code> and <code>src/application/</strong></code> modules</td>
+</tr>
+<tr>
+<td>OBJ-09</td>
+<td>Validate error rate under load</td>
+<td>k6 soak test error counter</td>
+<td>&lt; 0.5% HTTP 5xx rate at 500 concurrent users sustained for 2 hours</td>
+</tr>
+<tr>
+<td>OBJ-10</td>
+<td>Confirm Buy Feature session floor guarantee</td>
+<td>Integration test</td>
+<td><code>totalFGWin</code> ≥ 20× baseBet for every Buy Feature spin (100% pass rate over 10,000 simulated BuyFG runs)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-12-test-scope">§1.2 Test Scope</h3>
+<h4 id="in-scope">In Scope</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Domain</th>
+<th>Components</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Backend game engine</td>
+<td><code>SlotEngine</code>, <code>CascadeEngine</code>, <code>ThunderBlessingHandler</code>, <code>CoinTossEvaluator</code>, <code>FreeGameOrchestrator</code>, <code>NearMissSelector</code></td>
+</tr>
+<tr>
+<td>Application use cases</td>
+<td><code>SpinUseCase</code>, <code>BuyFeatureUseCase</code>, <code>GetSessionStateUseCase</code>, <code>SessionFloorGuard</code>, <code>ConcurrencyLockGuard</code></td>
+</tr>
+<tr>
+<td>Infrastructure adapters</td>
+<td><code>SupabaseWalletRepository</code>, <code>SupabaseSessionRepository</code>, <code>RedisSessionCache</code>, <code>JwtAuthGuard</code></td>
+</tr>
+<tr>
+<td>API contract</td>
+<td><code>POST /v1/spin</code>, <code>GET /v1/session/:sessionId</code>, <code>GET /v1/config</code>, <code>GET /health</code>, <code>GET /ready</code></td>
+</tr>
+<tr>
+<td>Database schema</td>
+<td>All tables: <code>players</code>, <code>spins</code>, <code>wallet_transactions</code>, <code>fg_sessions</code></td>
+</tr>
+<tr>
+<td>Probability engine</td>
+<td>Excel toolchain: <code>build_config.js</code>, <code>excel_simulator.js</code>, <code>verify.js</code>, <code>engine_generator.js</code></td>
+</tr>
+<tr>
+<td>Frontend (game client)</td>
+<td>Scene transitions, AnimationQueue correctness, Pure View compliance (no win recalculation on client)</td>
+</tr>
+<tr>
+<td>Performance</td>
+<td>API throughput and latency under load (k6: smoke, load, stress, soak)</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>Authentication, authorization, betting manipulation prevention, OWASP A01–A10</td>
+</tr>
+<tr>
+<td>Accessibility</td>
+<td>WCAG 2.1 AA, reduced motion, keyboard navigation</td>
+</tr>
+<tr>
+<td>Config integrity</td>
+<td><code>GameConfig.generated.ts</code> immutability CI guard</td>
+</tr>
+</tbody></table></div>
+<h4 id="out-of-scope">Out of Scope</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Excluded Item</th>
+<th>Rationale</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Real-money payment gateway integration</td>
+<td>Handled by B2B platform operator, outside product boundary</td>
+</tr>
+<tr>
+<td>Third-party RNG certification (hardware RNG)</td>
+<td>Regulatory submission is operator responsibility; this plan covers software-level RNG integrity</td>
+</tr>
+<tr>
+<td>Multi-language (i18n) testing</td>
+<td>Deferred to Phase 2 per PRD §4.3</td>
+</tr>
+<tr>
+<td>Native mobile app (iOS/Android) packaging</td>
+<td>Web-only for Phase 1 per PRD §4.4</td>
+</tr>
+<tr>
+<td>Visual asset production (art, audio file recording)</td>
+<td>Creative production, not engineering scope</td>
+</tr>
+<tr>
+<td>Physical compliance filing with gaming authorities</td>
+<td>Operator obligation</td>
+</tr>
+<tr>
+<td>PixiJS-specific visual regression (if Cocos is selected)</td>
+<td>One framework will be selected; tests run against chosen framework only</td>
+</tr>
+<tr>
+<td>DESIGN_VIEW Excel tab automation</td>
+<td>Manual QA by Game Designer; toolchain output verified by <code>verify.js</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-13-test-pyramid">§1.3 Test Pyramid</h3>
+<pre><code>           /\
+          /  \
+         / E2E\   10% — Critical user flows, visual regression
+        /──────\
+       /  Integ \  20% — API contracts, DB integration, Redis
+      /──────────\
+     /    Unit    \ 70% — Domain engine, game logic, utilities
+    /______________\</code></pre>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Level</th>
+<th>Target Ratio</th>
+<th>Automation Rate</th>
+<th>Primary Tools</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Unit</td>
+<td>70%</td>
+<td>100%</td>
+<td>Vitest, custom RNG seed fixtures</td>
+</tr>
+<tr>
+<td>Integration</td>
+<td>20%</td>
+<td>100%</td>
+<td>Supertest, Vitest, test Supabase DB</td>
+</tr>
+<tr>
+<td>E2E</td>
+<td>10%</td>
+<td>≥ 90%</td>
+<td>Playwright, Percy (visual regression)</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>100%</strong></td>
+<td><strong>≥ 90%</strong></td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p><strong>Minimum total automated TCs before production release:</strong> 200 (unit) + 60 (integration) + 30 (E2E) = 290 automated test cases.</p>
+<h3 id="h-14-quality-gates">§1.4 Quality Gates</h3>
+<p>All quality gates are enforced in CI/CD pipeline (§17). Release is blocked if any gate fails.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Gate ID</th>
+<th>Gate</th>
+<th>Threshold</th>
+<th>Enforced At</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>QG-01</td>
+<td>Unit test pass rate</td>
+<td>100%</td>
+<td>PR merge</td>
+</tr>
+<tr>
+<td>QG-02</td>
+<td>Line coverage (domain + application)</td>
+<td>≥ 80%</td>
+<td>PR merge</td>
+</tr>
+<tr>
+<td>QG-03</td>
+<td>Branch coverage (domain + application)</td>
+<td>≥ 80%</td>
+<td>PR merge</td>
+</tr>
+<tr>
+<td>QG-04</td>
+<td>Integration test pass rate</td>
+<td>100%</td>
+<td>PR merge</td>
+</tr>
+<tr>
+<td>QG-05</td>
+<td>E2E test pass rate (P0 flows)</td>
+<td>100%</td>
+<td>Staging deploy</td>
+</tr>
+<tr>
+<td>QG-06</td>
+<td>RTP verification (<code>verify.js</code>)</td>
+<td>PASS (all 4 scenarios)</td>
+<td>Config change + nightly</td>
+</tr>
+<tr>
+<td>QG-07</td>
+<td>API P99 latency (no FG)</td>
+<td>≤ 500ms</td>
+<td>Load test gate on staging</td>
+</tr>
+<tr>
+<td>QG-08</td>
+<td>API P99 latency (FG sequence)</td>
+<td>≤ 800ms</td>
+<td>Load test gate on staging</td>
+</tr>
+<tr>
+<td>QG-09</td>
+<td>Error rate under 500 concurrent users</td>
+<td>&lt; 0.5% 5xx</td>
+<td>Soak test on staging</td>
+</tr>
+<tr>
+<td>QG-10</td>
+<td>CRITICAL security findings</td>
+<td>0 open CRITICAL</td>
+<td>Pre-release security scan</td>
+</tr>
+<tr>
+<td>QG-11</td>
+<td><code>GameConfig.generated.ts</code> checksum</td>
+<td>SHA-256 matches generated output</td>
+<td>CI build</td>
+</tr>
+<tr>
+<td>QG-12</td>
+<td>OWASP ZAP scan HIGH findings</td>
+<td>0 HIGH</td>
+<td>Pre-release security scan</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-2-test-scope">§2 Test Scope</h2>
+<h3 id="h-21-features-to-test-mapped-to-prd-p0p1-user-stories">§2.1 Features to Test (Mapped to PRD P0/P1 User Stories)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Feature</th>
+<th>PRD US-ID</th>
+<th>Priority</th>
+<th>Test Types</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Basic spin — 5×3 grid, payline evaluation, Wild substitution</td>
+<td>US-SPIN-001</td>
+<td>P0</td>
+<td>Unit, Integration, E2E</td>
+</tr>
+<tr>
+<td>Insufficient balance rejection</td>
+<td>US-SPIN-001/AC-2</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>JWT authentication on every spin</td>
+<td>US-SPIN-001/AC-3, US-APIV-001</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>Concurrent spin rejection (409)</td>
+<td>US-SPIN-001/AC-4</td>
+<td>P0</td>
+<td>Integration, E2E</td>
+</tr>
+<tr>
+<td>Cascade chain elimination — symbol removal, gravity drop</td>
+<td>US-CASC-001/AC-1</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Row expansion (3→4→5→6) during Cascade</td>
+<td>US-CASC-001/AC-1</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Lightning Mark generation at winning positions</td>
+<td>US-CASC-001/AC-1</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>MAX_ROWS=6 boundary — no further expansion</td>
+<td>US-CASC-001/AC-2</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Lightning Mark reset on new Main Game spin</td>
+<td>US-CASC-001/AC-3</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Thunder Blessing first hit — mark-to-symbol upgrade</td>
+<td>US-TBSC-001/AC-1</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Thunder Blessing second hit — symbol tier upgrade (40% probability)</td>
+<td>US-TBSC-001/AC-2</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>SC with no Lightning Marks — no Thunder Blessing trigger</td>
+<td>US-TBSC-001/AC-3</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Symbol upgrade boundary — P1 stays P1</td>
+<td>US-TBSC-001/AC-4</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Coin Toss trigger condition (rows=6 + cascade win)</td>
+<td>US-COIN-001/AC-1</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Coin Toss Heads — FG entry at ×3</td>
+<td>US-COIN-001/AC-2</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>Coin Toss Tails — no FG</td>
+<td>US-COIN-001/AC-3</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Buy Feature — guaranteed Heads (entryBuy=1.0)</td>
+<td>US-COIN-001/AC-4</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>Coin Toss boundary — rows&lt;6 never triggers</td>
+<td>US-COIN-001/AC-5</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>FG multiplier sequence ×3→×7→×17→×27→×77</td>
+<td>US-FGAM-001</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>FG Lightning Marks persist across FG rounds</td>
+<td>US-FGAM-001/AC-1</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>FG Bonus multiplier draw (×1/×5/×20/×100)</td>
+<td>US-FGAM-001/AC-6</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>FG ends on Tails — marks cleared, totalWin returned</td>
+<td>US-FGAM-001/AC-4, AC-7</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>FG disconnection recovery</td>
+<td>US-FGREC-001</td>
+<td>P1</td>
+<td>Integration</td>
+</tr>
+<tr>
+<td>Extra Bet ×3 cost deduction</td>
+<td>US-EXBT-001/AC-1</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>Extra Bet guaranteed SC injection</td>
+<td>US-EXBT-001/AC-3</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Buy Feature 100× baseBet cost</td>
+<td>US-BUYF-001</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>Buy Feature session floor ≥ 20× baseBet</td>
+<td>US-BUYF-001</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>RTP verification — 4 scenarios via verify.js</td>
+<td>US-RTPV-001</td>
+<td>P0</td>
+<td>Monte Carlo</td>
+</tr>
+<tr>
+<td>Currency display from BetRangeConfig (USD/TWD)</td>
+<td>US-CURR-001</td>
+<td>P0</td>
+<td>Unit, Integration</td>
+</tr>
+<tr>
+<td>Near Miss visual configuration (toolchain-driven)</td>
+<td>US-NRMS-001</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Single-trip API — complete FG sequence in one response</td>
+<td>BR-07 §6.2</td>
+<td>P0</td>
+<td>Integration, E2E</td>
+</tr>
+<tr>
+<td>Max Win enforcement (30,000× / 90,000×)</td>
+<td>EDD §5.8</td>
+<td>P0</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>Frontend Pure View compliance (no client-side win calc)</td>
+<td>FRONTEND §1.2</td>
+<td>P1</td>
+<td>E2E</td>
+</tr>
+<tr>
+<td>AnimationQueue sequential drain (no parallel cross-step)</td>
+<td>ANIM §1.3</td>
+<td>P1</td>
+<td>E2E</td>
+</tr>
+<tr>
+<td>Audio deferred load after first user interaction</td>
+<td>AUDIO §1.3</td>
+<td>P1</td>
+<td>E2E, Accessibility</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-22-features-not-to-test-with-rationale">§2.2 Features NOT to Test (with Rationale)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Excluded Feature</th>
+<th>Rationale</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Real wallet payment processing</td>
+<td>Out of scope per PRD §4.4; handled by operator payment gateway</td>
+</tr>
+<tr>
+<td>Supabase Auth account registration flow</td>
+<td>Supabase-managed infrastructure; tested by Supabase Auth team</td>
+</tr>
+<tr>
+<td>K8s cluster provisioning and node lifecycle</td>
+<td>Infrastructure testing; separate ops runbook</td>
+</tr>
+<tr>
+<td>Excel UI usability for Game Designers</td>
+<td>Manual operator workflow, not an engineering deliverable</td>
+</tr>
+<tr>
+<td>DESIGN_VIEW Excel tab rendering</td>
+<td>Excel feature; Game Designer manually verifies via visual inspection</td>
+</tr>
+<tr>
+<td>Third-party CDN (Cloudflare/CloudFront) caching behavior</td>
+<td>CDN vendor responsibility; tested via synthetic probes</td>
+</tr>
+<tr>
+<td>Native iOS/Android app</td>
+<td>Excluded per PRD §4.4; web-first only</td>
+</tr>
+<tr>
+<td>Multi-language string correctness</td>
+<td>i18n deferred to Phase 2 per PRD §4.3</td>
+</tr>
+<tr>
+<td>Hardware RNG source entropy quality</td>
+<td>OS-provided CSPRNG; not testable at application level</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-23-game-specific-test-domains">§2.3 Game-Specific Test Domains</h3>
+<h4 id="probability-and-rtp-testing">Probability and RTP Testing</h4>
+<ul>
+<li>All four scenarios (Main / ExtraBet / BuyFG / EBBuyFG) must independently achieve RTP within ±1% of 97.5% after 1,000,000 Monte Carlo simulated spins each.</li>
+<li><code>verify.js</code> pass/fail output is the authoritative acceptance record.</li>
+<li>Symbol weights (<code>mainGame</code>, <code>extraBet</code>, <code>freeGame</code>, <code>buyFG</code>) must not be cross-contaminated between scenarios.</li>
+<li>FG Bonus multiplier distribution (×1/×5/×20/×100 at weights 900/80/15/5) must be statistically verified over 100,000 FG triggers.</li>
+</ul>
+<h4 id="cascade-correctness-testing">Cascade Correctness Testing</h4>
+<ul>
+<li>Row expansion sequence: 3→4→5→6; row count must never exceed 6.</li>
+<li>Payline count must track row expansion: 25 (3 rows) → 33 (4 rows) → 45 (5 rows) → 57 (6 rows).</li>
+<li>Lightning Mark positions must be deduplicated (no repeated mark at same grid cell).</li>
+<li>Cascade depth limit of 50 steps must abort with ERROR log, never infinite loop.</li>
+<li>Gravity drop after symbol elimination must fill all vacant cells correctly.</li>
+</ul>
+<h4 id="free-game-sequence-testing">Free Game Sequence Testing</h4>
+<ul>
+<li>FG entry: <code>coinProbs[0] = 0.80</code> for Main Game; <code>entryBuy = 1.00</code> for Buy Feature.</li>
+<li>FG Coin Toss stage progression: <code>coinProbs[1..4] = [0.68, 0.56, 0.48, 0.40]</code>.</li>
+<li>FG Bonus multiplier is drawn exactly once per FG sequence (before round 1).</li>
+<li>FG Lightning Marks: inherited from Main Game entry state; accumulated across FG rounds; cleared only at FG termination.</li>
+<li><code>FullSpinOutcome.fgRounds[]</code> must contain all completed FG rounds; Buy Feature must contain exactly 5 rounds.</li>
+</ul>
+<h4 id="coin-toss-testing">Coin Toss Testing</h4>
+<ul>
+<li>Trigger boundary: <code>rows = 6 AND lastCascadeHadWin AND mgFgTriggerProb check (0.009624)</code>.</li>
+<li>Buy Feature: bypasses <code>mgFgTriggerProb</code>; directly enters Coin Toss with <code>entryBuy = 1.00</code>.</li>
+<li>Statistical distribution of Heads/Tails must match expected <code>coinProbs</code> values within 2% margin over 100,000 trials.</li>
+</ul>
+<hr>
+<h2 id="h-3-test-tools">§3 Test Tools</h2>
+<h3 id="h-31-backend-unitintegration-vitest-supertest">§3.1 Backend Unit/Integration: Vitest + Supertest</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tool</th>
+<th>Version</th>
+<th>Purpose</th>
+<th>Config File</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Vitest</td>
+<td>≥ 1.6</td>
+<td>Unit and integration test runner; TypeScript native; fast HMR</td>
+<td><code>vitest.config.ts</code></td>
+</tr>
+<tr>
+<td><code>@vitest/coverage-v8</code></td>
+<td>≥ 1.6</td>
+<td>V8-based code coverage (line/branch/statement/function)</td>
+<td><code>vitest.config.ts</code> → <code>coverage</code></td>
+</tr>
+<tr>
+<td>Supertest</td>
+<td>≥ 7.0</td>
+<td>HTTP assertion layer over Fastify test server (in-process, no port binding)</td>
+<td><code>test/helpers/supertest.ts</code></td>
+</tr>
+<tr>
+<td><code>vitest-mock-extended</code></td>
+<td>≥ 2.0</td>
+<td>Type-safe mocking of interfaces (<code>IWalletRepository</code>, <code>ISessionCache</code>, etc.)</td>
+<td>Per test file</td>
+</tr>
+<tr>
+<td><code>@faker-js/faker</code></td>
+<td>≥ 8.0</td>
+<td>Test data generation (UUIDs, player IDs, bet levels)</td>
+<td><code>test/factories/</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Coverage thresholds</strong> (enforced in CI by <code>vitest.config.ts</code>):</p>
+<pre><code>lines: 80, branches: 80, functions: 80, statements: 80</code></pre>
+<h3 id="h-32-e2e-playwright">§3.2 E2E: Playwright</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tool</th>
+<th>Version</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Playwright</td>
+<td>≥ 1.44</td>
+<td>Browser automation for full user-flow E2E tests</td>
+</tr>
+<tr>
+<td><code>@playwright/test</code></td>
+<td>≥ 1.44</td>
+<td>Test runner with built-in assertions, fixtures, parallelism</td>
+</tr>
+<tr>
+<td>Playwright screenshots</td>
+<td>built-in</td>
+<td>Visual regression baseline capture at key breakpoints</td>
+</tr>
+</tbody></table></div>
+<p><strong>Browsers:</strong> Chromium (primary), Firefox, WebKit (Safari simulation). <strong>Viewports tested:</strong> 320px, 768px, 1024px, 1440px.</p>
+<h3 id="h-33-performance-k6">§3.3 Performance: k6</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tool</th>
+<th>Version</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>k6</td>
+<td>≥ 0.51</td>
+<td>Load, stress, and soak testing of <code>POST /v1/spin</code> and related endpoints</td>
+</tr>
+<tr>
+<td>k6 Cloud (optional)</td>
+<td>—</td>
+<td>Distributed load generation for stress test (2000 concurrent)</td>
+</tr>
+<tr>
+<td><code>k6-reporter</code></td>
+<td>≥ 2.4</td>
+<td>HTML summary report from k6 JSON output</td>
+</tr>
+</tbody></table></div>
+<p><strong>SLO targets from ARCH §1.1 / EDD:</strong></p>
+<ul>
+<li>Base spin P99 ≤ 500ms</li>
+<li>FG sequence P99 ≤ 800ms</li>
+<li>Error rate &lt; 0.5% at 500 concurrent users</li>
+</ul>
+<h3 id="h-34-security-owasp-zap-npm-audit">§3.4 Security: OWASP ZAP + npm audit</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tool</th>
+<th>Purpose</th>
+<th>Run Frequency</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>OWASP ZAP (Zed Attack Proxy)</td>
+<td>Dynamic application security testing (DAST); automated spider + active scan of all <code>/v1/*</code> endpoints</td>
+<td>Pre-release, nightly on staging</td>
+</tr>
+<tr>
+<td><code>npm audit</code></td>
+<td>Dependency vulnerability scan (CRITICAL/HIGH CVEs)</td>
+<td>Every PR, every build</td>
+</tr>
+<tr>
+<td>Semgrep / CodeQL</td>
+<td>Static application security testing (SAST); injection, auth bypass, hardcoded secrets</td>
+<td>Every PR</td>
+</tr>
+<tr>
+<td><code>trivy</code></td>
+<td>Container image vulnerability scanning (K8s pod images)</td>
+<td>Every Docker build</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-35-visual-regression-percy-playwright-screenshots">§3.5 Visual Regression: Percy + Playwright Screenshots</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Percy (BrowserStack)</td>
+<td>Visual regression diffing against approved baselines; pixel-diff at 320/768/1024/1440px</td>
+</tr>
+<tr>
+<td>Playwright built-in screenshots</td>
+<td>Fallback visual regression for CI (compare against committed baseline PNGs)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Key visual regression targets:</strong></p>
+<ul>
+<li>GameScene idle state (no FG, no marks)</li>
+<li>Cascade step 1 (row=4), step 3 (row=6)</li>
+<li>Thunder Blessing first hit and second hit states</li>
+<li>Coin Toss heads/tails result overlay</li>
+<li>FG entry fanfare (multiplier ×3)</li>
+<li>FG multiplier ×77 state</li>
+<li>Buy Feature result (session floor applied)</li>
+<li>Error state (insufficient funds modal)</li>
+</ul>
+<h3 id="h-36-probabilityrtp-monte-carlo-simulation-runner">§3.6 Probability/RTP: Monte Carlo Simulation Runner</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>verify.js</code> (slot-engine toolchain)</td>
+<td>Authoritative RTP verification; 1,000,000 spins per scenario; PASS/FAIL per scenario within ±1% of 97.5%</td>
+</tr>
+<tr>
+<td><code>excel_simulator.js</code></td>
+<td>Feeds simulation results into DESIGN_VIEW tab; precondition for <code>verify.js</code></td>
+</tr>
+<tr>
+<td>Custom <code>test/montecarlo/rtp-runner.ts</code></td>
+<td>CI-integrated RTP sanity check (100,000 spins per scenario) for faster PR-level feedback; full 1M run nightly</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-37-mobilegame-client-cocos-creator-test-runner-fps-monitor">§3.7 Mobile/Game Client: Cocos Creator Test Runner + FPS Monitor</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Cocos Creator build system</td>
+<td>Build <code>.web-mobile</code> and <code>.web-desktop</code> targets for test</td>
+</tr>
+<tr>
+<td>Playwright (mobile viewport simulation)</td>
+<td>E2E tests at 320px/768px viewport</td>
+</tr>
+<tr>
+<td>Chrome DevTools Performance tab</td>
+<td>Frame rate profiling; verify 60fps desktop / 30fps mobile targets (ANIM §1.3)</td>
+</tr>
+<tr>
+<td><code>stats.js</code> (game client integration)</td>
+<td>In-game FPS monitor for manual QA sessions; <code>rAF</code>-based frame counter</td>
+</tr>
+<tr>
+<td>Web Audio API mock</td>
+<td>Jest/Vitest mock for <code>AudioContext</code> in unit tests; prevents &quot;user gesture required&quot; errors</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-4-test-data">§4 Test Data</h2>
+<h3 id="h-41-data-creation-strategy">§4.1 Data Creation Strategy</h3>
+<p>All test data is created programmatically via factory functions. No manual SQL inserts are used in automated tests.</p>
+<pre><code class="language-typescript">// test/factories/player.factory.ts
+export function createTestPlayer(overrides?: Partial&lt;PlayerRow&gt;): PlayerRow {
+  return {
+    id: faker.string.uuid(),
+    email: faker.internet.email(),
+    display_name: faker.person.fullName(),
+    balance: 1000.00,
+    currency: &#x27;USD&#x27;,
+    is_suspended: false,
+    engine_version: &#x27;1.0.0&#x27;,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+// test/factories/spin-request.factory.ts
+export function createSpinRequest(overrides?: Partial&lt;SpinRequest&gt;): SpinRequest {
+  return {
+    playerId: faker.string.uuid(),
+    betLevel: 7,
+    currency: &#x27;USD&#x27;,
+    extraBet: false,
+    buyFeature: false,
+    sessionId: faker.string.uuid(),
+    ...overrides,
+  };
+}</code></pre>
+<p><strong>Fixture files</strong> (<code>test/fixtures/</code>):</p>
+<ul>
+<li><code>engine-config.fixture.json</code> — copy of verified <code>engine_config.json</code> for unit tests</li>
+<li><code>game-config.fixture.ts</code> — typed <code>GameConfig</code> object with known symbol weights</li>
+<li><code>grid-5x3.fixture.ts</code> — deterministic 5×3 grid with known payline outcomes</li>
+<li><code>grid-5x6-cascade.fixture.ts</code> — 5×6 grid after 3 cascade steps with lightning marks</li>
+</ul>
+<h3 id="h-42-data-isolation">§4.2 Data Isolation</h3>
+<ul>
+<li><strong>Unit tests:</strong> Pure in-memory objects. No DB, no Redis. All repositories are injected via <code>vitest-mock-extended</code> mocks.</li>
+<li><strong>Integration tests:</strong> Each test runs inside a PostgreSQL transaction that is rolled back via <code>ROLLBACK</code> after the test completes. Redis keys are namespaced with <code>test:{testRunId}:</code> prefix and deleted via <code>FLUSHDB</code> on the test Redis instance after each suite.</li>
+<li><strong>E2E tests:</strong> Use a dedicated <code>test</code> Supabase project (separate from <code>staging</code>). Seed via <code>test/e2e/setup.ts</code> (<code>beforeAll</code>) and teardown via <code>afterAll</code>.</li>
+</ul>
+<pre><code class="language-typescript">// test/integration/setup.ts
+let txn: Transaction;
+
+beforeEach(async () =&gt; {
+  txn = await supabaseTestClient.rpc(&#x27;begin_transaction&#x27;);
+});
+
+afterEach(async () =&gt; {
+  await supabaseTestClient.rpc(&#x27;rollback_transaction&#x27;, { txn_id: txn.id });
+  await redisTestClient.flushdb();
+});</code></pre>
+<h3 id="h-43-game-specific-test-data-fixed-rng-seeds">§4.3 Game-Specific Test Data — Fixed RNG Seeds</h3>
+<p>Deterministic cascade sequences are produced by seeding the RNG with known values.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Seed</th>
+<th>Scenario</th>
+<th>Expected Outcome</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>seed-001</code></td>
+<td>Main Game, 0 wins</td>
+<td>Grid with 0 winning paylines; no cascade; totalWin=0</td>
+</tr>
+<tr>
+<td><code>seed-002</code></td>
+<td>Main Game, 3 cascade steps</td>
+<td>3 cascade eliminations; 12 lightning marks; rows=6</td>
+</tr>
+<tr>
+<td><code>seed-003</code></td>
+<td>Thunder Blessing first hit only</td>
+<td>SC falls on marked grid; RNG &gt; 0.40 (no second hit)</td>
+</tr>
+<tr>
+<td><code>seed-004</code></td>
+<td>Thunder Blessing both hits</td>
+<td>SC falls; RNG &lt; 0.40; P4 upgrades to P3</td>
+</tr>
+<tr>
+<td><code>seed-005</code></td>
+<td>Coin Toss Heads, FG ×3</td>
+<td>rows=6, cascade win, mgFgTriggerProb passes, Heads result</td>
+</tr>
+<tr>
+<td><code>seed-006</code></td>
+<td>Full FG sequence ×3→×77</td>
+<td>5 consecutive Heads; bonusMultiplier=×1</td>
+</tr>
+<tr>
+<td><code>seed-007</code></td>
+<td>FG with bonus ×100</td>
+<td>FG triggered; bonusMultiplier=×100 drawn</td>
+</tr>
+<tr>
+<td><code>seed-008</code></td>
+<td>Buy Feature, floor applied</td>
+<td>totalFGWin &lt; 20×baseBet; floor activated</td>
+</tr>
+<tr>
+<td><code>seed-009</code></td>
+<td>Extra Bet, SC injected</td>
+<td>extraBet=true; SC not natural; forced into row 2 col 3</td>
+</tr>
+<tr>
+<td><code>seed-010</code></td>
+<td>Max win cap (30,000×)</td>
+<td>Raw win exceeds 30,000×; capped at exactly 30,000×</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-44-test-data-for-4-scenarios">§4.4 Test Data for 4 Scenarios</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Scenario</th>
+<th>Symbol Weight Fixture</th>
+<th>coinProbs</th>
+<th>entryProb</th>
+<th>Max Win Cap</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Main Game (Extra Bet Off)</td>
+<td><code>weights.mainGame</code></td>
+<td>[0.80, 0.68, 0.56, 0.48, 0.40]</td>
+<td>0.009624</td>
+<td>30,000× baseBet</td>
+</tr>
+<tr>
+<td>Main Game (Extra Bet On)</td>
+<td><code>weights.extraBet</code></td>
+<td>[0.80, 0.68, 0.56, 0.48, 0.40]</td>
+<td>0.009624</td>
+<td>30,000× baseBet</td>
+</tr>
+<tr>
+<td>Free Game (Buy FG Off)</td>
+<td><code>weights.freeGame</code></td>
+<td>[0.80, 0.68, 0.56, 0.48, 0.40]</td>
+<td>0.009081 (ref only)</td>
+<td>30,000× baseBet</td>
+</tr>
+<tr>
+<td>Buy Free Game (Buy FG On)</td>
+<td><code>weights.buyFG</code></td>
+<td>all 1.00 (guaranteed)</td>
+<td>bypass</td>
+<td>90,000× baseBet</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-5-test-environment">§5 Test Environment</h2>
+<h3 id="h-51-local-development-environment">§5.1 Local Development Environment</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Component</th>
+<th>Setup</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Node.js</td>
+<td>20 LTS (<code>nvm use 20</code>)</td>
+<td>Required runtime</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td><code>docker compose up supabase</code></td>
+<td>Supabase local stack (port 54322)</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td><code>docker compose up redis</code></td>
+<td>Redis 7 on localhost:6379</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td><code>pnpm dev</code></td>
+<td>Fastify with hot reload (<code>tsx watch</code>)</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td><code>cocos-creator --open .</code> or <code>npx vite</code></td>
+<td>Cocos or PixiJS dev server</td>
+</tr>
+<tr>
+<td>RNG seed injection</td>
+<td><code>TEST_RNG_SEED=seed-001 pnpm test:unit</code></td>
+<td>Environment variable for deterministic tests</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-bash"># One-command local test setup
+docker compose -f docker-compose.test.yml up -d
+pnpm install
+pnpm run db:migrate:test
+pnpm test:unit
+pnpm test:integration</code></pre>
+<h3 id="h-52-ci-environment-github-actions">§5.2 CI Environment (GitHub Actions)</h3>
+<pre><code class="language-yaml"># .github/workflows/test.yml (abbreviated)
+name: Test Suite
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: supabase/postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+        ports: [&#x27;54322:5432&#x27;]
+      redis:
+        image: redis:7-alpine
+        ports: [&#x27;6379:6379&#x27;]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: &#x27;20&#x27; }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run db:migrate:test
+      - run: pnpm test:unit --coverage
+      - run: pnpm test:integration
+      - run: pnpm test:e2e (on staging only)</code></pre>
+<p><strong>CI resource allocation:</strong> 4 vCPU, 16 GB RAM, Ubuntu 24.04. Test suite target completion: &lt; 10 minutes.</p>
+<h3 id="h-53-staging-environment-k8s">§5.3 Staging Environment (K8s)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Component</th>
+<th>Spec</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>K8s Namespace</td>
+<td><code>thunder-staging</code></td>
+<td>Mirror of prod; 2 API replicas</td>
+</tr>
+<tr>
+<td>API replicas</td>
+<td>2</td>
+<td>HPA 2/4</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>Supabase Pro (yyy instance)</td>
+<td>Separate project from prod</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Upstash Hobby</td>
+<td>Staging tier</td>
+</tr>
+<tr>
+<td>Deployment</td>
+<td>Blue-Green</td>
+<td>Zero-downtime staging deploys</td>
+</tr>
+<tr>
+<td>E2E suite</td>
+<td>Playwright in CI against staging URL</td>
+<td>Runs after staging deploy</td>
+</tr>
+<tr>
+<td>k6 load tests</td>
+<td>Run against staging API</td>
+<td>Performance gate before prod promotion</td>
+</tr>
+</tbody></table></div>
+<p><strong>Staging environment setup commands:</strong></p>
+<pre><code class="language-bash">kubectl apply -f k8s/staging/
+kubectl rollout status deployment/thunder-api -n thunder-staging
+pnpm test:e2e --base-url=https://api-staging.thunderblessing.example.com
+pnpm test:load:smoke --target=https://api-staging.thunderblessing.example.com</code></pre>
+<h3 id="h-54-environment-setup-commands">§5.4 Environment Setup Commands</h3>
+<pre><code class="language-bash"># Fresh local setup
+git clone &lt;repo&gt; &amp;&amp; cd thunder-blessing
+nvm use 20
+pnpm install
+cp .env.test.example .env.test
+
+# Start local dependencies
+docker compose -f docker-compose.test.yml up -d
+
+# Run DB migrations on test DB
+pnpm run db:migrate:test
+
+# Full test suite (unit + integration)
+pnpm test
+
+# Individual test layers
+pnpm test:unit               # Vitest unit tests
+pnpm test:integration        # Vitest integration tests (requires DB + Redis)
+pnpm test:e2e                # Playwright (requires staging URL or local server)
+pnpm test:perf:smoke         # k6 smoke test
+pnpm test:rtp:fast           # 100k Monte Carlo RTP check
+pnpm test:rtp:full           # 1M Monte Carlo verify.js (nightly only)
+pnpm test:security:audit     # npm audit + semgrep</code></pre>
+<hr>
+<h2 id="h-6-entryexit-criteria">§6 Entry/Exit Criteria</h2>
+<h3 id="h-61-entry-criteria">§6.1 Entry Criteria</h3>
+<p>All conditions must be satisfied before a test phase may begin:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>Condition</th>
+<th>Measurement</th>
+<th>Phase</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>EC-01</td>
+<td>All code changes have passed peer code review (at least 1 approved reviewer on PR)</td>
+<td>GitHub PR approved status</td>
+<td>Unit, Integration, E2E</td>
+</tr>
+<tr>
+<td>EC-02</td>
+<td>Unit test coverage ≥ 80% line and branch on <code>src/domain/<strong></code> and <code>src/application/</strong></code></td>
+<td>Vitest coverage report in CI</td>
+<td>Integration, E2E</td>
+</tr>
+<tr>
+<td>EC-03</td>
+<td>Staging environment is available and healthy (<code>GET /ready</code> returns HTTP 200)</td>
+<td>CI step: <code>curl https://api-staging.../ready</code></td>
+<td>E2E, Performance</td>
+</tr>
+<tr>
+<td>EC-04</td>
+<td><code>verify.js</code> has passed all 4 scenarios for the current <code>engine_config.json</code></td>
+<td><code>verify.js</code> output in CI log shows ✅ for all 4</td>
+<td>Any test involving probability</td>
+</tr>
+<tr>
+<td>EC-05</td>
+<td>No CRITICAL open defects from previous test phase</td>
+<td>JIRA/defect tracker: 0 CRITICAL open</td>
+<td>Each successive phase</td>
+</tr>
+<tr>
+<td>EC-06</td>
+<td>Test data factories and seed fixtures are committed and reviewed</td>
+<td>File presence in <code>test/factories/</code> and <code>test/fixtures/</code></td>
+<td>Integration, E2E</td>
+</tr>
+<tr>
+<td>EC-07</td>
+<td>K8s staging namespace is at green state (0 pod restarts in last 1 hour)</td>
+<td><code>kubectl get pods -n thunder-staging</code></td>
+<td>Performance, E2E</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-62-exit-criteria">§6.2 Exit Criteria</h3>
+<p>All conditions must be satisfied before a test phase is considered complete and sign-off is granted:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>Condition</th>
+<th>Measurement</th>
+<th>Blocking?</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>EX-01</td>
+<td>All P0 test cases (TC-UNIT, TC-INT, TC-E2E) pass with no failures</td>
+<td>100% pass rate on P0 TCs</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>EX-02</td>
+<td>0 CRITICAL defects in open state</td>
+<td>Defect tracker: CRITICAL count = 0</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>EX-03</td>
+<td>Line and branch coverage ≥ 80% on domain + application layers</td>
+<td>Vitest coverage report</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>EX-04</td>
+<td><code>verify.js</code> reports PASS for all 4 scenarios (1,000,000 spins each, ±1% RTP)</td>
+<td><code>verify.js</code> exit code 0</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>EX-05</td>
+<td>API P99 latency ≤ 500ms (no FG), ≤ 800ms (FG) under 500 concurrent users for 10 minutes</td>
+<td>k6 load test report</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>EX-06</td>
+<td>Error rate &lt; 0.5% under 500 concurrent users sustained for 2 hours (soak test)</td>
+<td>k6 soak test report</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>EX-07</td>
+<td>0 HIGH-severity OWASP ZAP findings on staging</td>
+<td>ZAP HTML report</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>EX-08</td>
+<td>All P1 defects are documented with resolution plan (fix or accepted risk)</td>
+<td>Defect tracker: all P1 have resolution field populated</td>
+<td>NO (soft gate)</td>
+</tr>
+<tr>
+<td>EX-09</td>
+<td>Visual regression baselines approved by Art Director for key screens</td>
+<td>Percy dashboard: all snapshots approved</td>
+<td>NO (soft gate)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-7-risk-assessment">§7 Risk Assessment</h2>
+<h3 id="h-71-risk-table">§7.1 Risk Table</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Risk ID</th>
+<th>Description</th>
+<th>Category</th>
+<th>Probability</th>
+<th>Impact</th>
+<th>Risk Score</th>
+<th>Mitigation</th>
+<th>Contingency</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>RISK-01</td>
+<td>RTP miscalculation — symbol weights mis-mapped to wrong scenario, causing RTP drift &gt; ±1%</td>
+<td>Probability</td>
+<td>Medium</td>
+<td>Critical</td>
+<td>HIGH</td>
+<td>Enforce <code>verify.js</code> hard gate in CI; cross-scenario weight contamination test (TC-UNIT-PROB-002); 4-scenario isolation unit tests</td>
+<td>Re-run full toolchain with corrected Excel; hotfix deploy blocked until <code>verify.js</code> PASS</td>
+</tr>
+<tr>
+<td>RISK-02</td>
+<td>Cascade boundary overflow — rows exceed 6 due to off-by-one in <code>expandRows()</code></td>
+<td>Game Logic</td>
+<td>Low</td>
+<td>High</td>
+<td>MEDIUM</td>
+<td>Unit test TC-UNIT-CASC-006 validates MAX_ROWS boundary; property-based test generates random cascade depths</td>
+<td>Cap rows at 6 defensively in engine code; add runtime assertion in <code>SlotEngine.spin()</code></td>
+</tr>
+<tr>
+<td>RISK-03</td>
+<td>Free Game sequence corruption — Lightning Marks incorrectly reset mid-FG or not inherited from Main Game</td>
+<td>Game Logic</td>
+<td>Medium</td>
+<td>High</td>
+<td>HIGH</td>
+<td>Integration tests TC-INT-FG-001 and TC-INT-FG-002 verify mark persistence across FG rounds; TC-INT-FG-003 verifies marks cleared at FG end; TC-INT-FG-004 tests corruption recovery</td>
+<td>Redis FG session read fallback from PostgreSQL <code>fg_sessions</code> table</td>
+</tr>
+<tr>
+<td>RISK-04</td>
+<td>Redis cache stampede — concurrent FG session reads after Redis eviction cause DB overload</td>
+<td>Infrastructure</td>
+<td>Low</td>
+<td>High</td>
+<td>MEDIUM</td>
+<td>ConcurrencyLockGuard (Redis NX lock) prevents concurrent spins; circuit breaker on DB (ARCH §5.2); integration test TC-INT-REDIS-002</td>
+<td>Increase Redis TTL to 3600s; enable Redis persistence (AOF mode) for staging/prod</td>
+</tr>
+<tr>
+<td>RISK-05</td>
+<td>Wallet double-debit — retry on timeout causes duplicate <code>debit()</code> call</td>
+<td>Financial</td>
+<td>Low</td>
+<td>Critical</td>
+<td>HIGH</td>
+<td>Idempotency key on <code>wallet_transactions</code>; <code>FOR UPDATE</code> lock in DB transaction; TC-INT-WALLET-005 tests idempotent retry</td>
+<td>Automated reconciliation job detects discrepancy within 1 minute; compensating credit issued</td>
+</tr>
+<tr>
+<td>RISK-06</td>
+<td>Buy Feature session floor not applied — <code>SessionFloorGuard.applyFloor()</code> returns raw win below 20× baseBet</td>
+<td>Game Logic</td>
+<td>Low</td>
+<td>High</td>
+<td>MEDIUM</td>
+<td>TC-UNIT-FLOOR-001 tests floor enforcement; TC-INT-BUYF-003 end-to-end floor application; property test: 10,000 BuyFG simulations all satisfy floor</td>
+<td>Manual QA checklist: floor always verified in Buy Feature regression suite</td>
+</tr>
+<tr>
+<td>RISK-07</td>
+<td><code>GameConfig.generated.ts</code> manual edit in production — config drift from Excel source</td>
+<td>Config Integrity</td>
+<td>Low</td>
+<td>High</td>
+<td>MEDIUM</td>
+<td>CI SHA-256 checksum guard (QG-11); git pre-commit hook rejects modifications; TC-INT-CONFIG-001</td>
+<td>Regenerate config from Excel and redeploy; rotate affected sessions</td>
+</tr>
+<tr>
+<td>RISK-08</td>
+<td>Thunder Blessing second hit upgrade path incorrect — L1/L2/L3/L4 upgrade path skips P4</td>
+<td>Game Logic</td>
+<td>Low</td>
+<td>High</td>
+<td>MEDIUM</td>
+<td>TC-UNIT-TB-004 tests every symbol upgrade path including boundary cases; table-driven test for all symbol transitions</td>
+<td>Hotfix <code>ThunderBlessingHandler.upgradeSymbol()</code> with correct jump table</td>
+</tr>
+<tr>
+<td>RISK-09</td>
+<td>Coin Toss probability stage index off-by-one — <code>coinProbs[stage]</code> references wrong index</td>
+<td>Probability</td>
+<td>Medium</td>
+<td>High</td>
+<td>HIGH</td>
+<td>TC-UNIT-COIN-006 validates each stage (0–4) independently; Monte Carlo distribution test on Coin Toss outcomes</td>
+<td>Re-index <code>stage</code> offset in <code>CoinTossEvaluator.evaluate()</code>; re-verify with <code>verify.js</code></td>
+</tr>
+<tr>
+<td>RISK-10</td>
+<td>Single-trip API regression — multi-round FG response truncated due to serialization size limit</td>
+<td>API</td>
+<td>Low</td>
+<td>Medium</td>
+<td>MEDIUM</td>
+<td>TC-INT-API-010 asserts <code>fgRounds.length</code> for Buy Feature (must be 5); response size monitoring in k6</td>
+<td>Increase Fastify <code>bodyLimit</code> if needed; stream large FG responses</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-8-schedule">§8 Schedule</h2>
+<h3 id="h-81-test-phases-and-timeline">§8.1 Test Phases and Timeline</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Activities</th>
+<th>Duration</th>
+<th>Dependencies</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Phase 0: Test Infrastructure Setup</strong></td>
+<td>Configure Vitest, Supertest, Playwright, k6; create factory functions and seed fixtures; set up CI pipeline (GitHub Actions); configure test DB and Redis</td>
+<td>3 days</td>
+<td>Repository scaffolding complete</td>
+</tr>
+<tr>
+<td><strong>Phase 1: Unit Testing</strong></td>
+<td>Write and execute all TC-UNIT test cases (≥ 200 TCs); achieve ≥ 80% coverage; probability/RTP Monte Carlo sanity check (100k spins)</td>
+<td>5 days</td>
+<td>Phase 0 complete; domain modules coded</td>
+</tr>
+<tr>
+<td><strong>Phase 2: Integration Testing</strong></td>
+<td>Write and execute all TC-INT test cases (≥ 60 TCs); API contract testing with Supertest; DB schema tests; Redis session tests</td>
+<td>4 days</td>
+<td>Phase 1 pass; staging DB available</td>
+</tr>
+<tr>
+<td><strong>Phase 3: E2E Testing</strong></td>
+<td>Write and execute all TC-E2E test cases (≥ 30 TCs) with Playwright; visual regression baselines captured in Percy</td>
+<td>4 days</td>
+<td>Phase 2 pass; staging fully deployed</td>
+</tr>
+<tr>
+<td><strong>Phase 4: Security Testing</strong></td>
+<td>OWASP ZAP scan on staging; npm audit; Semgrep SAST; JWT boundary tests; betting manipulation tests</td>
+<td>2 days</td>
+<td>Phase 2 pass; staging deployed</td>
+</tr>
+<tr>
+<td><strong>Phase 5: Performance Testing</strong></td>
+<td>k6 smoke, load, stress, and soak tests on staging; SLO gate validation</td>
+<td>3 days</td>
+<td>Phase 2 pass; staging deployed</td>
+</tr>
+<tr>
+<td><strong>Phase 6: Full RTP Verification</strong></td>
+<td><code>verify.js</code> 1M Monte Carlo for all 4 scenarios; FG Bonus multiplier distribution check</td>
+<td>1 day (compute: ~4 hours)</td>
+<td>Phase 1 pass; toolchain validated</td>
+</tr>
+<tr>
+<td><strong>Phase 7: Regression + Smoke</strong></td>
+<td>Full regression suite execution; nightly automation confirmed; pre-release smoke tests</td>
+<td>2 days</td>
+<td>Phases 1–6 complete</td>
+</tr>
+</tbody></table></div>
+<p><strong>Total estimated test duration:</strong> 24 days (can parallelize Phases 4–6 once Phase 2 is complete).</p>
+<h3 id="h-82-milestone-dependencies">§8.2 Milestone Dependencies</h3>
+<pre><code>Phase 0 (Infra Setup)
+    │
+    ▼
+Phase 1 (Unit Tests) ────────────────────────── Phase 6 (RTP Verification)
+    │                                                   │
+    ▼                                                   │
+Phase 2 (Integration Tests)                            │
+    │    │    │                                         │
+    │    ▼    ▼                                         │
+    │  Phase 4  Phase 5                                 │
+    │  (Security) (Perf)                                │
+    ▼                                                   ▼
+Phase 3 (E2E Tests)                              All phases complete
+    │                                                   │
+    ▼                                                   ▼
+Phase 7 (Regression + Smoke) ─────────────────► Production Release</code></pre>
+<hr>
+<h2 id="h-9-unit-test-plan">§9 Unit Test Plan</h2>
+<h3 id="h-90-tc-id-format-convention">§9.0 TC-ID Format Convention</h3>
+<p>All test case identifiers follow a unified format to ensure traceability across layers:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Layer</th>
+<th>Format</th>
+<th>Example</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Unit</td>
+<td><code>TC-UNIT-{MODULE}-{SEQ}-{PATH}</code></td>
+<td><code>TC-UNIT-CASC-001-HAPPY</code></td>
+</tr>
+<tr>
+<td>Integration</td>
+<td><code>TC-INT-{MODULE}-{SEQ}-{PATH}</code></td>
+<td><code>TC-INT-API-001-HAPPY</code></td>
+</tr>
+<tr>
+<td>E2E</td>
+<td><code>TC-E2E-{MODULE}-{SEQ}-{PATH}</code></td>
+<td><code>TC-E2E-SPIN-001-HAPPY</code></td>
+</tr>
+<tr>
+<td>Security</td>
+<td><code>TC-SEC-{MODULE}-{SEQ}</code></td>
+<td><code>TC-SEC-AUTH-001</code></td>
+</tr>
+<tr>
+<td>Smoke</td>
+<td><code>TC-SMOKE-{SEQ}</code></td>
+<td><code>TC-SMOKE-001</code></td>
+</tr>
+</tbody></table></div>
+<p>Where:</p>
+<ul>
+<li><code>{MODULE}</code> = logical module or API group (e.g., CASC, API, FG, WALLET, AUTH)</li>
+<li><code>{SEQ}</code> = zero-padded 3-digit sequence number within the module</li>
+<li><code>{PATH}</code> = test path type: <code>HAPPY</code> (success path), <code>ERROR</code> (failure/error path), <code>BOUNDARY</code> (edge/boundary case)</li>
+</ul>
+<h3 id="h-91-coverage-target">§9.1 Coverage Target</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Scope</th>
+<th>Line Coverage</th>
+<th>Branch Coverage</th>
+<th>Enforcement</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>src/domain/**</code></td>
+<td>≥ 80%</td>
+<td>≥ 80%</td>
+<td>CI gate QG-02/03</td>
+</tr>
+<tr>
+<td><code>src/application/**</code></td>
+<td>≥ 80%</td>
+<td>≥ 80%</td>
+<td>CI gate QG-02/03</td>
+</tr>
+<tr>
+<td><code>src/infrastructure/**</code></td>
+<td>≥ 70%</td>
+<td>≥ 70%</td>
+<td>Informational (complex mocking)</td>
+</tr>
+<tr>
+<td><code>src/interface/**</code></td>
+<td>≥ 60%</td>
+<td>≥ 60%</td>
+<td>Informational (thin route layer)</td>
+</tr>
+</tbody></table></div>
+<p>Coverage is measured by <code>@vitest/coverage-v8</code>. Reports are published as HTML artifacts in CI.</p>
+<h3 id="h-92-critical-modules">§9.2 Critical Modules</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Module</th>
+<th>File</th>
+<th>Key Methods Under Test</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Probability Engine</td>
+<td><code>GameConfig.generated.ts</code> (loader)</td>
+<td>config loading, weight sum validation</td>
+</tr>
+<tr>
+<td>Cascade Logic</td>
+<td><code>CascadeEngine.ts</code></td>
+<td><code>runCascade()</code>, <code>detectWinLines()</code>, <code>eliminateSymbols()</code>, <code>expandRows()</code></td>
+</tr>
+<tr>
+<td>Lightning Mark Tracker</td>
+<td><code>CascadeEngine.ts</code> + <code>LightningMarkSet.ts</code></td>
+<td>mark generation, deduplication, persistence across steps</td>
+</tr>
+<tr>
+<td>Thunder Blessing Handler</td>
+<td><code>ThunderBlessingHandler.ts</code></td>
+<td><code>evaluate()</code>, <code>applyFirstHit()</code>, <code>applySecondHit()</code>, <code>upgradeSymbol()</code></td>
+</tr>
+<tr>
+<td>FG Multiplier Sequencer</td>
+<td><code>FreeGameOrchestrator.ts</code></td>
+<td><code>runSequence()</code>, <code>drawBonusMultiplier()</code>, multiplier stage transitions</td>
+</tr>
+<tr>
+<td>Coin Toss Resolver</td>
+<td><code>CoinTossEvaluator.ts</code></td>
+<td><code>evaluate(rng, config, stage)</code>, <code>isHeads()</code>, stage index accuracy</td>
+</tr>
+<tr>
+<td>Session Floor Guard</td>
+<td><code>SessionFloorGuard.ts</code></td>
+<td><code>applyFloor()</code>, <code>isFloorActive()</code>, 20× baseBet enforcement</td>
+</tr>
+<tr>
+<td>Max Win Enforcer</td>
+<td><code>SlotEngine.ts</code> → <code>enforceMaxWin()</code></td>
+<td>30,000× and 90,000× cap scenarios</td>
+</tr>
+<tr>
+<td>Near Miss Selector</td>
+<td><code>NearMissSelector.ts</code></td>
+<td><code>select()</code>, grid integrity post-selection</td>
+</tr>
+<tr>
+<td>Currency Formatter</td>
+<td><code>CurrencyFormatter.ts</code></td>
+<td>USD and TWD formatting from <code>BetRangeConfig</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-93-test-cases">§9.3 Test Cases</h3>
+<p><strong>TC-ID Format:</strong> <code>TC-UNIT-{MODULE}-{SEQ}-{PATH}</code> where PATH = HAPPY / ERROR / BOUNDARY</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>TC-ID</th>
+<th>Module</th>
+<th>Description</th>
+<th>Path</th>
+<th>Priority</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>TC-UNIT-PROB-001-HAPPY</td>
+<td>Probability</td>
+<td>Symbol weight tables load correctly for all 4 scenarios; total weight = 90 per scenario</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-PROB-002-BOUNDARY</td>
+<td>Probability</td>
+<td>Cross-scenario weight isolation: extraBet weights must not be used in mainGame scenario</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-PROB-003-ERROR</td>
+<td>Probability</td>
+<td><code>assertValidGameConfig()</code> throws on missing <code>fgMults</code> field</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CASC-001-HAPPY</td>
+<td>CascadeEngine</td>
+<td><code>runCascade()</code> with 3-win cascade: rows expand 3→4→5→6, lightningMarks count = winning positions</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CASC-002-HAPPY</td>
+<td>CascadeEngine</td>
+<td><code>detectWinLines()</code> returns correct payline hits for 5×3 grid with known Wild placement</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CASC-003-HAPPY</td>
+<td>CascadeEngine</td>
+<td><code>eliminateSymbols()</code> clears exactly the winning positions; null/empty cells filled by gravity</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CASC-004-HAPPY</td>
+<td>CascadeEngine</td>
+<td><code>expandRows()</code> increments rows from 4→5; payline count updates from 33→45</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CASC-005-ERROR</td>
+<td>CascadeEngine</td>
+<td><code>runCascade()</code> with 51 cascade depth: terminates with ERROR log; returns partial <code>CascadeSequence</code></td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CASC-006-BOUNDARY</td>
+<td>CascadeEngine</td>
+<td><code>expandRows()</code> at rows=6: rows stays 6, paylines stays 57; no further expansion</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CASC-007-BOUNDARY</td>
+<td>CascadeEngine</td>
+<td>Lightning Mark deduplication: winning position that wins in 2 consecutive cascades produces only 1 mark</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CASC-008-HAPPY</td>
+<td>CascadeEngine</td>
+<td>Main Game: <code>lightningMarks</code> cleared at start of new spin (not carried over)</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-TB-001-HAPPY</td>
+<td>ThunderBlessingHandler</td>
+<td>First hit: all mark positions replaced with same random premium symbol; <code>selectedSymbol</code> in result</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-TB-002-HAPPY</td>
+<td>ThunderBlessingHandler</td>
+<td>Second hit triggered (RNG=0.20 &lt; tbSecondHit=0.40): L4 symbol on mark upgrades to P4</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-TB-003-HAPPY</td>
+<td>ThunderBlessingHandler</td>
+<td>Second hit NOT triggered (RNG=0.80 &gt; 0.40): mark symbols remain at first-hit level</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-TB-004-BOUNDARY</td>
+<td>ThunderBlessingHandler</td>
+<td>Upgrade path: P1→P1 (no change); P2→P1; P3→P2; P4→P3; L1/L2/L3/L4→P4</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-TB-005-ERROR</td>
+<td>ThunderBlessingHandler</td>
+<td>SC falls with no lightning marks: <code>evaluate()</code> returns <code>triggered=false</code>; no symbol modification</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-COIN-001-HAPPY</td>
+<td>CoinTossEvaluator</td>
+<td><code>evaluate(0.50, config, 0)</code>: coinProbs[0]=0.80 → Heads (0.50 &lt; 0.80)</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-COIN-002-HAPPY</td>
+<td>CoinTossEvaluator</td>
+<td><code>evaluate(0.85, config, 0)</code>: coinProbs[0]=0.80 → Tails (0.85 ≥ 0.80)</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-COIN-003-BOUNDARY</td>
+<td>CoinTossEvaluator</td>
+<td>Stage boundaries: stage 0→4 correctly maps to coinProbs [0.80, 0.68, 0.56, 0.48, 0.40]</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-COIN-004-HAPPY</td>
+<td>CoinTossEvaluator</td>
+<td>Buy Feature mode: <code>entryBuy=1.00</code> always returns Heads regardless of RNG value</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-COIN-005-BOUNDARY</td>
+<td>CoinTossEvaluator</td>
+<td><code>rows &lt; 6</code>: Coin Toss must not be invoked; engine guard assertion verified</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-COIN-006-BOUNDARY</td>
+<td>CoinTossEvaluator</td>
+<td>RNG boundary values at each stage: RNG exactly equal to <code>coinProbs[stage]</code> is treated as Tails (≥ threshold); RNG at <code>coinProbs[stage] - ε</code> is Heads; verify all 5 stage thresholds [0.80, 0.68, 0.56, 0.48, 0.40]</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-FG-001-HAPPY</td>
+<td>FreeGameOrchestrator</td>
+<td><code>runSequence()</code> Buy Feature (5 guaranteed Heads): <code>fgRounds.length === 5</code>; multipliers [3,7,17,27,77]</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-FG-002-HAPPY</td>
+<td>FreeGameOrchestrator</td>
+<td><code>drawBonusMultiplier()</code> draws from weights {900:×1, 80:×5, 15:×20, 5:×100}; returns valid multiplier</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-FG-003-HAPPY</td>
+<td>FreeGameOrchestrator</td>
+<td>FG Bonus multiplier drawn once (before round 1); same value in all <code>fgRounds[n].bonusMultiplier</code></td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-FG-004-BOUNDARY</td>
+<td>FreeGameOrchestrator</td>
+<td>×77 is max: after 5th Heads, additional Heads maintains ×77; does not produce ×78 or higher</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-FG-005-HAPPY</td>
+<td>FreeGameOrchestrator</td>
+<td>Tails at ×17 Coin Toss: FG entered, round 1 (×3) completed, round 2 (×7) completed, Coin Toss at ×17 stage fires Tails → FG ends; fgRounds.length = 2 (two completed rounds recorded); final multiplier = ×7</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-FLOOR-001-HAPPY</td>
+<td>SessionFloorGuard</td>
+<td><code>applyFloor()</code>: totalFGWin=10 × baseBet=1.00 → adjustedWin=20.00 (floor applied)</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-FLOOR-002-BOUNDARY</td>
+<td>SessionFloorGuard</td>
+<td><code>applyFloor()</code>: totalFGWin=20 × baseBet=1.00 → adjustedWin=20.00 (exactly at floor; no change)</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-FLOOR-003-HAPPY</td>
+<td>SessionFloorGuard</td>
+<td><code>applyFloor()</code>: totalFGWin=500 → adjustedWin=500 (above floor; floor not applied)</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-MAXWIN-001-BOUNDARY</td>
+<td>SlotEngine</td>
+<td>Main Game: raw win 35,000× baseBet is capped to 30,000× baseBet</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-MAXWIN-002-BOUNDARY</td>
+<td>SlotEngine</td>
+<td>EBBuyFG: raw win 95,000× baseBet is capped to 90,000× baseBet</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-EXBT-001-HAPPY</td>
+<td>ExtraBetHandler</td>
+<td>Extra Bet ON: wallet debited at 3× baseBet; when extraBet=true, debitAmount = baseBet × 3; assert wallet.debit called with correct amount</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-EXBT-002-HAPPY</td>
+<td>ExtraBetHandler</td>
+<td>Extra Bet ON with natural SC: SC preserved, no forced inject; dispatch payload extraBet=true, naturalSC=true → outcome.forceScatter=false</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-EXBT-003-HAPPY</td>
+<td>ExtraBetHandler</td>
+<td>Extra Bet ON with no natural SC: SC forced into grid; forceScatter=true injected; assert outcomeGrid contains SC symbol at forced position</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-EXBT-004-HAPPY</td>
+<td>ExtraBetHandler</td>
+<td>Extra Bet OFF reverts to mainGame weights; baseBet debited at standard rate (not ×3)</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-UNIT-CURR-001-HAPPY</td>
+<td>CurrencyFormatter</td>
+<td><code>CurrencyFormatter.format(1.00, &#x27;USD&#x27;)</code> returns <code>&quot;$1.00&quot;</code>; <code>CurrencyFormatter.format(100, &#x27;TWD&#x27;)</code> returns <code>&quot;NT$100&quot;</code>; formatting sourced from <code>BetRangeConfig</code>; no hardcoded currency strings</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-10-integration-test-plan">§10 Integration Test Plan</h2>
+<h3 id="h-101-api-contract-testing">§10.1 API Contract Testing</h3>
+<p>Every P0 API endpoint requires a happy-path 200 test and at least one error-path test.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Endpoint</th>
+<th>Happy Path Status</th>
+<th>Key Error Status Codes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>POST /v1/spin</code></td>
+<td>200 with <code>FullSpinOutcome</code></td>
+<td>400 (INSUFFICIENT_FUNDS, INVALID_BET_LEVEL, INVALID_CURRENCY), 401 (UNAUTHORIZED), 403 (FORBIDDEN), 409 (SPIN_IN_PROGRESS), 422 (VALIDATION_ERROR), 429 (RATE_LIMITED)</td>
+</tr>
+<tr>
+<td><code>GET /v1/session/:sessionId</code></td>
+<td>200 with session state</td>
+<td>401, 403, 404 (SESSION_NOT_FOUND)</td>
+</tr>
+<tr>
+<td><code>GET /v1/config</code></td>
+<td>200 with bet ranges</td>
+<td>401</td>
+</tr>
+<tr>
+<td><code>GET /health</code></td>
+<td>200 <code>{&quot;status&quot;:&quot;ok&quot;}</code></td>
+<td>N/A (no auth)</td>
+</tr>
+<tr>
+<td><code>GET /ready</code></td>
+<td>200 when DB + Redis healthy</td>
+<td>503 (SERVICE_UNAVAILABLE) when DB/Redis down</td>
+</tr>
+</tbody></table></div>
+<p><strong>Response schema validation:</strong> All responses are validated against OpenAPI-derived JSON Schema using <code>ajv</code>. Schema mismatch = test FAIL.</p>
+<h3 id="h-102-database-integration">§10.2 Database Integration</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Test Target</th>
+<th>Constraint Tested</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>players</code> table</td>
+<td><code>balance CHECK (balance &gt;= 0)</code> — debit below zero rejected at DB level</td>
+</tr>
+<tr>
+<td><code>players</code> table</td>
+<td><code>currency CHECK (currency IN (&#x27;USD&#x27;, &#x27;TWD&#x27;))</code> — invalid currency rejected</td>
+</tr>
+<tr>
+<td><code>wallet_transactions</code></td>
+<td>Append-only: no UPDATE or DELETE permitted by player role</td>
+</tr>
+<tr>
+<td><code>spins</code></td>
+<td>FK: <code>player_id REFERENCES players(id)</code> — orphaned insert rejected</td>
+</tr>
+<tr>
+<td><code>fg_sessions</code></td>
+<td><code>session_id UNIQUE NOT NULL</code> — duplicate session_id rejected</td>
+</tr>
+<tr>
+<td><code>fg_sessions</code></td>
+<td><code>status CHECK (status IN (&#x27;ACTIVE&#x27;, &#x27;COMPLETE&#x27;))</code> — invalid status rejected</td>
+</tr>
+<tr>
+<td>Wallet atomicity</td>
+<td>Debit + <code>wallet_transactions</code> INSERT inside same DB transaction; ROLLBACK on engine failure</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-103-redis-cache-integration">§10.3 Redis Cache Integration</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Test Target</th>
+<th>Behavior Tested</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Session state persistence</td>
+<td>FG session saved to Redis on FG entry; retrieved correctly on reconnect</td>
+</tr>
+<tr>
+<td>Session lock NX</td>
+<td>Two concurrent spin requests for same session: first acquires lock, second returns 409</td>
+</tr>
+<tr>
+<td>Session TTL</td>
+<td>Session state expires after 300s (auto-renewed per FG round per API.md §1.8); <code>GET /v1/session/:sessionId</code> returns 404 after expiry</td>
+</tr>
+<tr>
+<td>Redis disconnect</td>
+<td>Circuit breaker OPEN on Redis failure; <code>POST /v1/spin</code> returns 503 within 5 seconds</td>
+</tr>
+<tr>
+<td>Lock release</td>
+<td>Lock released after spin completes (success or error); next spin can proceed</td>
+</tr>
+<tr>
+<td>Rate limit counter</td>
+<td>6th request within 1 second: HTTP 429 with <code>Retry-After: 1</code> header</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-104-tc-int-test-cases">§10.4 TC-INT Test Cases</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>TC-ID</th>
+<th>Endpoint / Module</th>
+<th>Description</th>
+<th>Path</th>
+<th>Priority</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>TC-INT-API-001-HAPPY</td>
+<td>POST /v1/spin</td>
+<td>Valid JWT, balance≥baseBet, extraBet=false: 200 with <code>FullSpinOutcome</code>; <code>totalWin</code> in response</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-002-ERROR</td>
+<td>POST /v1/spin</td>
+<td>No Authorization header: 401 UNAUTHORIZED</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-003-ERROR</td>
+<td>POST /v1/spin</td>
+<td>Expired JWT (exp in past): 401 UNAUTHORIZED</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-004-ERROR</td>
+<td>POST /v1/spin</td>
+<td>Balance = 0, betLevel=7: 400 INSUFFICIENT_FUNDS</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-005-ERROR</td>
+<td>POST /v1/spin</td>
+<td>betLevel=999 (exceeds USD max=20): 400 INVALID_BET_LEVEL</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-006-ERROR</td>
+<td>POST /v1/spin</td>
+<td>currency=&quot;EUR&quot; (unsupported): 400 INVALID_CURRENCY</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-007-ERROR</td>
+<td>POST /v1/spin</td>
+<td>Second concurrent spin from same session: 409 SPIN_IN_PROGRESS</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-008-ERROR</td>
+<td>POST /v1/spin</td>
+<td>6 requests in 1 second from same player: 429 RATE_LIMITED with <code>Retry-After</code> header</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-009-HAPPY</td>
+<td>POST /v1/spin</td>
+<td>buyFeature=true, balance≥100×baseBet: 200 with <code>fgRounds.length === 5</code>, <code>sessionFloorApplied</code> field present</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-010-HAPPY</td>
+<td>POST /v1/spin</td>
+<td>Full FG sequence in single response: <code>fgRounds</code> array contains all completed rounds; no additional request needed</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-011-ERROR</td>
+<td>POST /v1/spin</td>
+<td>Suspended player (<code>is_suspended=true</code>): 403 FORBIDDEN</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-012-HAPPY</td>
+<td>GET /v1/session/:sessionId</td>
+<td>FG session in Redis: 200 with correct <code>fg_multiplier</code>, <code>lightning_marks</code>, <code>fg_bonus_mult</code></td>
+<td>Happy</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>TC-INT-API-013-ERROR</td>
+<td>GET /v1/session/:sessionId</td>
+<td>Non-existent or expired session: 404 SESSION_NOT_FOUND</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-014-HAPPY</td>
+<td>GET /v1/config</td>
+<td>Valid JWT: 200 with <code>BetRangeConfig</code> containing bet levels and currency display for both USD and TWD</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-API-015-ERROR</td>
+<td>GET /v1/config</td>
+<td>Request without Authorization header: 401 UNAUTHORIZED</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-CURR-001-HAPPY</td>
+<td>GET /v1/config / CurrencyFormatter</td>
+<td>Calls GET /v1/config; verifies <code>BetRangeConfig</code> bet levels are correct for USD (min=$0.10, max=$10.00) and TWD (min=3, max=600); verifies currency display formatting via <code>CurrencyFormatter.ts</code> for both locales</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-WALLET-001-HAPPY</td>
+<td>SupabaseWalletRepository</td>
+<td><code>debit()</code> decrements balance by exact baseBet; <code>wallet_transactions</code> row inserted</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-WALLET-002-HAPPY</td>
+<td>SupabaseWalletRepository</td>
+<td><code>credit()</code> increments balance by exact <code>totalWin</code>; <code>wallet_transactions</code> row inserted</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-WALLET-003-ERROR</td>
+<td>SupabaseWalletRepository</td>
+<td><code>debit()</code> when balance = 0: DB CHECK constraint fires; balance not decremented</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-WALLET-004-HAPPY</td>
+<td>SupabaseWalletRepository</td>
+<td>Debit + credit in same spin: net balance change = <code>totalWin - baseBet</code></td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-WALLET-005-HAPPY</td>
+<td>SupabaseWalletRepository</td>
+<td>Idempotent retry: same idempotency key deduplicates duplicate credit insert</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-DB-001-HAPPY</td>
+<td>spins</td>
+<td><code>outcome_json JSONB</code> field stores complete <code>FullSpinOutcome</code>; retrievable and deserializable</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-DB-002-ERROR</td>
+<td>spins</td>
+<td>INSERT with non-existent <code>player_id</code>: FK violation; insert rejected</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-REDIS-001-HAPPY</td>
+<td>RedisSessionCache</td>
+<td><code>set()</code> then <code>get()</code> returns identical session state; TTL set to 300s (renewed per round per API.md §1.8 and EDD §9.2)</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-REDIS-002-HAPPY</td>
+<td>ConcurrencyLockGuard</td>
+<td><code>acquireLock()</code> returns true for first caller; false for concurrent caller on same session</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-FG-001-HAPPY</td>
+<td>FreeGameOrchestrator</td>
+<td>FG entry: Lightning Marks from main game cascade are present in <code>fgRounds[0].lightningMarksBefore</code></td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-FG-002-HAPPY</td>
+<td>FreeGameOrchestrator</td>
+<td>FG round 2: marks from round 1 cascade accumulated in <code>fgRounds[1].lightningMarksBefore</code></td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-FG-003-HAPPY</td>
+<td>FreeGameOrchestrator</td>
+<td>FG end (Tails): <code>lightningMarks = []</code> in <code>FullSpinOutcome</code>; marks not in subsequent spin response</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-FG-004-ERROR</td>
+<td>FreeGameOrchestrator</td>
+<td>FG sequence corruption: Lightning Marks are incorrectly reset mid-FG (simulate Redis partial eviction); engine must recover from <code>fg_sessions</code> PostgreSQL table; <code>fgRounds</code> marks remain consistent</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-CONFIG-001-HAPPY</td>
+<td>GameConfig / GET /v1/config</td>
+<td>Config endpoint returns correct <code>BetRangeConfig</code> bet levels and currency display for USD and TWD; SHA-256 checksum of <code>GameConfig.generated.ts</code> matches the value in CI guard (QG-11); manual edit of generated config causes checksum mismatch</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-BUYF-001-HAPPY</td>
+<td>BuyFeatureUseCase</td>
+<td>Buy Feature: wallet debited by <code>100 × baseBet</code>; <code>fgRounds.length === 5</code></td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-BUYF-002-HAPPY</td>
+<td>BuyFeatureUseCase</td>
+<td>Buy Feature with extraBet ON: wallet debited by <code>300 × baseBet</code></td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-INT-BUYF-003-HAPPY</td>
+<td>SessionFloorGuard</td>
+<td>Buy Feature with low win: <code>totalWin ≥ 20 × baseBet</code>; <code>sessionFloorApplied: true</code></td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-11-e2e-test-plan">§11 E2E Test Plan</h2>
+<h3 id="h-111-critical-user-flows-from-frontendmd">§11.1 Critical User Flows (from FRONTEND.md)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Flow ID</th>
+<th>Flow Name</th>
+<th>Entry Point</th>
+<th>Key Steps</th>
+<th>Exit Condition</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>FLOW-01</td>
+<td>Basic Spin (no FG)</td>
+<td>GameScene loaded, balance ≥ baseBet</td>
+<td>Click Spin → wait for reel stop → verify totalWin displayed</td>
+<td><code>outcome.totalWin</code> displayed correctly; balance updated</td>
+</tr>
+<tr>
+<td>FLOW-02</td>
+<td>Cascade Chain (3 steps)</td>
+<td>Fixed RNG seed <code>seed-002</code></td>
+<td>Spin → observe 3 cascade eliminations → verify row expansion animation</td>
+<td>rows=6 displayed; lightning marks visible</td>
+</tr>
+<tr>
+<td>FLOW-03</td>
+<td>Extra Bet toggle + spin</td>
+<td>Lobby → Extra Bet ON</td>
+<td>Toggle Extra Bet ON → verify cost display ×3 → Spin → SC visible in result</td>
+<td>SC appears in every spin; cost = baseBet × 3</td>
+</tr>
+<tr>
+<td>FLOW-04</td>
+<td>Thunder Blessing sequence</td>
+<td>Seed <code>seed-003</code></td>
+<td>Spin → cascade → SC falls → first hit animation → symbol upgrade</td>
+<td>Mark positions replaced with same premium symbol</td>
+</tr>
+<tr>
+<td>FLOW-05</td>
+<td>Coin Toss → FG entry</td>
+<td>Seed <code>seed-005</code></td>
+<td>Cascade to rows=6 → Coin Toss animation → Heads → FG entry fanfare</td>
+<td>FG entry screen with ×3 multiplier displayed</td>
+</tr>
+<tr>
+<td>FLOW-06</td>
+<td>Full FG sequence (Buy Feature)</td>
+<td>Buy Feature button</td>
+<td>Click Buy Feature → confirm cost → FG entry → 5 rounds → result</td>
+<td><code>fgRounds.length === 5</code>; correct multiplier per round displayed</td>
+</tr>
+<tr>
+<td>FLOW-07</td>
+<td>FG multiplier progression</td>
+<td>Seed <code>seed-006</code></td>
+<td>Enter FG → Heads consecutive → multiplier HUD updates ×3→×7→×17→×27→×77</td>
+<td>HUD shows correct multiplier at each stage</td>
+</tr>
+<tr>
+<td>FLOW-08</td>
+<td>Insufficient balance error</td>
+<td>balance = 0</td>
+<td>Click Spin → error modal appears</td>
+<td>&quot;Insufficient balance&quot; error displayed; no spin executed</td>
+</tr>
+<tr>
+<td>FLOW-09</td>
+<td>Concurrent spin prevention</td>
+<td>Active spin in progress</td>
+<td>Click Spin again during animation</td>
+<td>Spin button locked; second click ignored</td>
+</tr>
+<tr>
+<td>FLOW-10</td>
+<td>Session reconnect (FG in progress)</td>
+<td>Disconnect during FG</td>
+<td>Close browser → reopen → reconnect</td>
+<td>FG state restored; correct multiplier and marks displayed</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-112-playwright-test-scenarios">§11.2 Playwright Test Scenarios</h3>
+<pre><code class="language-typescript">// test/e2e/spin-basic.spec.ts (example)
+import { test, expect } from &#x27;@playwright/test&#x27;;
+
+test(&#x27;basic spin returns totalWin and updates balance&#x27;, async ({ page }) =&gt; {
+  await page.goto(&#x27;/game&#x27;);
+  await page.waitForSelector(&#x27;[data-testid=&quot;spin-button&quot;]&#x27;);
+  const balanceBefore = await page.locator(&#x27;[data-testid=&quot;balance-display&quot;]&#x27;).textContent();
+  await page.click(&#x27;[data-testid=&quot;spin-button&quot;]&#x27;);
+  await page.waitForSelector(&#x27;[data-testid=&quot;spin-result&quot;]&#x27;);
+  const balanceAfter = await page.locator(&#x27;[data-testid=&quot;balance-display&quot;]&#x27;).textContent();
+  // Balance should differ by (totalWin - baseBet)
+  expect(balanceBefore).not.toBe(balanceAfter);
+  // Spin button re-enabled after result
+  await expect(page.locator(&#x27;[data-testid=&quot;spin-button&quot;]&#x27;)).toBeEnabled();
+});</code></pre>
+<p><strong>Playwright configuration:</strong></p>
+<ul>
+<li><code>baseURL</code>: set to staging URL in CI; <code>localhost:3000</code> for local</li>
+<li><code>retries: 1</code> in CI (flake tolerance)</li>
+<li>Timeout per test: 30 seconds</li>
+<li><code>video: &#x27;retain-on-failure&#x27;</code> for debugging</li>
+<li><code>screenshot: &#x27;only-on-failure&#x27;</code></li>
+</ul>
+<h3 id="h-113-visual-regression-testing-targets">§11.3 Visual Regression Testing Targets</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Target</th>
+<th>Breakpoints</th>
+<th>Percy Snapshot Name</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>GameScene — idle state</td>
+<td>320, 768, 1024, 1440</td>
+<td><code>game-idle-{width}</code></td>
+</tr>
+<tr>
+<td>GameScene — cascade step 1 (row=4)</td>
+<td>768, 1440</td>
+<td><code>cascade-step1-{width}</code></td>
+</tr>
+<tr>
+<td>GameScene — rows=6 (max expansion)</td>
+<td>768, 1440</td>
+<td><code>cascade-max-rows-{width}</code></td>
+</tr>
+<tr>
+<td>Thunder Blessing — first hit activated</td>
+<td>1440</td>
+<td><code>tb-first-hit</code></td>
+</tr>
+<tr>
+<td>Thunder Blessing — second hit (upgrade)</td>
+<td>1440</td>
+<td><code>tb-second-hit</code></td>
+</tr>
+<tr>
+<td>Coin Toss — Heads result overlay</td>
+<td>768, 1440</td>
+<td><code>coin-toss-heads-{width}</code></td>
+</tr>
+<tr>
+<td>FG entry fanfare (×3 multiplier)</td>
+<td>768, 1440</td>
+<td><code>fg-entry-{width}</code></td>
+</tr>
+<tr>
+<td>FG HUD — ×77 multiplier state</td>
+<td>1440</td>
+<td><code>fg-mult-77</code></td>
+</tr>
+<tr>
+<td>FG Bonus reveal (×100 bonus)</td>
+<td>1440</td>
+<td><code>fg-bonus-100</code></td>
+</tr>
+<tr>
+<td>Buy Feature result (floor applied)</td>
+<td>1440</td>
+<td><code>buyfeature-floor-applied</code></td>
+</tr>
+<tr>
+<td>Error modal (insufficient balance)</td>
+<td>375, 1440</td>
+<td><code>error-insufficient-funds-{width}</code></td>
+</tr>
+<tr>
+<td>Extra Bet ON state (bet panel)</td>
+<td>375, 1440</td>
+<td><code>extra-bet-on-{width}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-114-tc-e2e-test-cases">§11.4 TC-E2E Test Cases</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>TC-ID</th>
+<th>Flow</th>
+<th>Description</th>
+<th>Path</th>
+<th>Priority</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>TC-E2E-SPIN-001-HAPPY</td>
+<td>FLOW-01</td>
+<td>Basic spin: reel stops, <code>totalWin</code> displayed, balance updated correctly</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-SPIN-002-ERROR</td>
+<td>FLOW-08</td>
+<td>Insufficient balance: error modal shown; no spin executed; Spin button stays enabled</td>
+<td>Error</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-SPIN-003-BOUNDARY</td>
+<td>FLOW-09</td>
+<td>Concurrent spin: second click during animation ignored; Spin button locked</td>
+<td>Boundary</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-CASC-001-HAPPY</td>
+<td>FLOW-02</td>
+<td>Cascade 3 steps: row expansion animation plays; lightning marks appear on grid</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-TB-001-HAPPY</td>
+<td>FLOW-04</td>
+<td>Thunder Blessing first hit: mark positions replaced with same symbol class; animation plays</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-EXBT-001-HAPPY</td>
+<td>FLOW-03</td>
+<td>Extra Bet ON: cost display shows baseBet×3; SC appears in every spin result</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-COIN-001-HAPPY</td>
+<td>FLOW-05</td>
+<td>Coin Toss Heads: FG entry fanfare plays; FG HUD shows ×3 multiplier</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-FG-001-HAPPY</td>
+<td>FLOW-06</td>
+<td>Buy Feature full FG: 5 FG rounds played; multipliers progress correctly; result screen shows totalWin</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-FG-002-HAPPY</td>
+<td>FLOW-07</td>
+<td>FG multiplier HUD: each consecutive Heads updates multiplier display ×3→×7→×17→×27→×77</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-E2E-FG-003-HAPPY</td>
+<td>FLOW-10</td>
+<td>FG reconnect: refreshing browser during FG restores correct multiplier and mark positions</td>
+<td>Happy</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>TC-E2E-VIS-001-HAPPY</td>
+<td>Visual Regression</td>
+<td>All visual regression snapshots match approved Percy baselines at 4 breakpoints</td>
+<td>Happy</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>TC-E2E-PURE-001-HAPPY</td>
+<td>FLOW-01</td>
+<td>Pure View: <code>window.__debug_clientComputedWin</code> is undefined (no client-side win calculation)</td>
+<td>Happy</td>
+<td>P0</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-12-security-test-plan">§12 Security Test Plan</h2>
+<h3 id="h-121-owasp-a01a10-coverage-plan">§12.1 OWASP A01–A10 Coverage Plan</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>OWASP Code</th>
+<th>Threat</th>
+<th>Test Method</th>
+<th>Pass Criteria</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>A01 — Broken Access Control</strong></td>
+<td>Player accessing another player&#x27;s spin logs or session</td>
+<td>Integration test: Player A&#x27;s JWT requesting <code>/v1/session/:sessionId_B</code></td>
+<td>Returns 403 FORBIDDEN; no data leaked</td>
+</tr>
+<tr>
+<td>A01</td>
+<td>Operator role attempting <code>POST /v1/spin</code></td>
+<td>Integration test: operator-role JWT on spin endpoint</td>
+<td>Returns 403 FORBIDDEN</td>
+</tr>
+<tr>
+<td><strong>A02 — Cryptographic Failures</strong></td>
+<td>Weak or self-signed JWT</td>
+<td>Integration test: JWT signed with HS256 (wrong algorithm)</td>
+<td>Returns 401 UNAUTHORIZED</td>
+</tr>
+<tr>
+<td>A02</td>
+<td>Plaintext HTTP (non-HTTPS)</td>
+<td>OWASP ZAP active scan</td>
+<td>TLS enforced; HTTP connections rejected at ingress</td>
+</tr>
+<tr>
+<td><strong>A03 — Injection</strong></td>
+<td>SQL injection via <code>betLevel</code> parameter</td>
+<td>Send <code>betLevel: &quot;1&#x27;; DROP TABLE players;--&quot;</code></td>
+<td>Returns 400 VALIDATION_ERROR; no DB effect</td>
+</tr>
+<tr>
+<td>A03</td>
+<td>NoSQL injection via <code>sessionId</code></td>
+<td>Send <code>sessionId: {&quot;$gt&quot;: &quot;&quot;}</code></td>
+<td>Returns 400 VALIDATION_ERROR</td>
+</tr>
+<tr>
+<td><strong>A04 — Insecure Design</strong></td>
+<td>Double-spend via duplicate concurrent spin</td>
+<td>Send 2 concurrent POSTs with same sessionId</td>
+<td>Second returns 409; wallet debited exactly once</td>
+</tr>
+<tr>
+<td>A04</td>
+<td>Race condition on wallet debit</td>
+<td>k6 concurrent-user test targeting same player</td>
+<td>Balance never goes negative; <code>CHECK (balance &gt;= 0)</code> never violated</td>
+</tr>
+<tr>
+<td><strong>A05 — Security Misconfiguration</strong></td>
+<td>Default Fastify headers exposing server info</td>
+<td>Check <code>X-Powered-By</code> and <code>Server</code> headers</td>
+<td>Headers removed or replaced with non-identifying values</td>
+</tr>
+<tr>
+<td>A05</td>
+<td>Open K8s ports (non-HTTPS)</td>
+<td>Port scan on staging K8s NodePort</td>
+<td>Only 443 and health probe port accessible</td>
+</tr>
+<tr>
+<td>A05 / TC-SEC-CORS-001</td>
+<td>CORS wildcard misconfiguration</td>
+<td>Send cross-origin request to <code>POST /v1/spin</code> and <code>GET /v1/config</code> from untrusted origin; inspect <code>Access-Control-Allow-Origin</code> response header on staging and production</td>
+<td><code>Access-Control-Allow-Origin</code> must NOT return <code>*</code>; must be restricted to the configured allowlist of trusted origins</td>
+</tr>
+<tr>
+<td><strong>A06 — Vulnerable Components</strong></td>
+<td>Known CVE in npm dependencies</td>
+<td><code>npm audit --audit-level=high</code> in CI</td>
+<td>0 HIGH or CRITICAL CVEs in production dependencies</td>
+</tr>
+<tr>
+<td>A06</td>
+<td>Outdated Fastify or Supabase client</td>
+<td>Dependabot alerts</td>
+<td>No dependency &gt;90 days old with unresolved HIGH CVE</td>
+</tr>
+<tr>
+<td><strong>A07 — Auth Failures</strong></td>
+<td>Brute-force spin with invalid JWTs</td>
+<td>100 rapid requests with forged JWT</td>
+<td>All return 401; no successful auth bypass</td>
+</tr>
+<tr>
+<td>A07</td>
+<td>Expired token reuse</td>
+<td>Replay captured JWT after expiry</td>
+<td>Returns 401 UNAUTHORIZED</td>
+</tr>
+<tr>
+<td><strong>A08 — Software Integrity</strong></td>
+<td>Manual modification of <code>GameConfig.generated.ts</code></td>
+<td>Mutate file, run CI</td>
+<td>CI build fails with checksum mismatch error</td>
+</tr>
+<tr>
+<td>A08</td>
+<td>Supply chain attack via <code>npm install</code></td>
+<td><code>npm ci --ignore-scripts</code> in CI; package-lock.json committed</td>
+<td>No un-reviewed script execution at install time</td>
+</tr>
+<tr>
+<td><strong>A09 — Logging Failures</strong></td>
+<td>Missing audit log for spin</td>
+<td>Execute spin; check <code>spins</code> table</td>
+<td>Every spin has a corresponding <code>spins</code> row with <code>outcome</code> JSONB</td>
+</tr>
+<tr>
+<td>A09</td>
+<td>Sensitive data in logs (balance, JWT)</td>
+<td>Search CI log output for PII patterns</td>
+<td>No player balance or JWT token in application log output</td>
+</tr>
+<tr>
+<td><strong>A10 — SSRF</strong></td>
+<td>SSRF via crafted spin parameter containing URL</td>
+<td>Send <code>sessionId: &quot;http://169.254.169.254/latest/meta-data&quot;</code></td>
+<td>Returns 400 VALIDATION_ERROR; no outbound HTTP from backend</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-122-authenticationsession-tests">§12.2 Authentication/Session Tests</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>TC-ID</th>
+<th>Test</th>
+<th>Expected Result</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>TC-SEC-AUTH-001</td>
+<td>Missing Authorization header on <code>POST /v1/spin</code></td>
+<td>401 UNAUTHORIZED</td>
+</tr>
+<tr>
+<td>TC-SEC-AUTH-002</td>
+<td>JWT with algorithm <code>&quot;alg&quot;: &quot;none&quot;</code></td>
+<td>401 UNAUTHORIZED (algorithm must be RS256)</td>
+</tr>
+<tr>
+<td>TC-SEC-AUTH-003</td>
+<td>JWT with <code>exp</code> 1 second in past</td>
+<td>401 UNAUTHORIZED</td>
+</tr>
+<tr>
+<td>TC-SEC-AUTH-004</td>
+<td>JWT with tampered <code>sub</code> claim (modified after signing)</td>
+<td>401 UNAUTHORIZED (signature mismatch)</td>
+</tr>
+<tr>
+<td>TC-SEC-AUTH-005</td>
+<td>JWT with valid <code>sub</code> but <code>role: &quot;service_role&quot;</code> (forged)</td>
+<td>403 FORBIDDEN (role not player)</td>
+</tr>
+<tr>
+<td>TC-SEC-SESSION-001</td>
+<td>FG session TTL: session expires after 300s of inactivity</td>
+<td>404 SESSION_NOT_FOUND</td>
+</tr>
+<tr>
+<td>TC-SEC-SESSION-002</td>
+<td>Session lock TTL: lock expires after 10s; new spin can proceed</td>
+<td>New spin succeeds within 11s of stale lock creation</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-123-betting-api-manipulation-prevention">§12.3 Betting API Manipulation Prevention</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>TC-ID</th>
+<th>Attack Vector</th>
+<th>Expected Defense</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>TC-SEC-BET-001</td>
+<td><code>betLevel: -1</code> (negative bet)</td>
+<td>400 INVALID_BET_LEVEL</td>
+</tr>
+<tr>
+<td>TC-SEC-BET-002</td>
+<td><code>betLevel: 999999</code> (far exceeds max)</td>
+<td>400 INVALID_BET_LEVEL</td>
+</tr>
+<tr>
+<td>TC-SEC-BET-003</td>
+<td><code>totalWin</code> injected in request body (client attempting to set win)</td>
+<td>Field ignored; <code>totalWin</code> computed solely by engine; response uses engine value</td>
+</tr>
+<tr>
+<td>TC-SEC-BET-004</td>
+<td><code>buyFeature: true</code> with <code>betLevel</code> at minimum (cost would be 100× = possible)</td>
+<td>Accepted if balance sufficient; rejected with 400 if not</td>
+</tr>
+<tr>
+<td>TC-SEC-BET-005</td>
+<td>Request replay attack (same request replayed 10 minutes later)</td>
+<td>Redis lock released; spin executes but wallet balance check prevents over-debit</td>
+</tr>
+<tr>
+<td>TC-SEC-BET-006</td>
+<td><code>extraBet: true</code> combined with <code>buyFeature: true</code> (300× cost)</td>
+<td>Accepted with correct 300× cost deduction; rejected if insufficient balance</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-124-cors-security-tests">§12.4 CORS Security Tests</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>TC-ID</th>
+<th>Test</th>
+<th>OWASP Ref</th>
+<th>Expected Result</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>TC-SEC-CORS-001</td>
+<td>Send cross-origin request to <code>POST /v1/spin</code> and <code>GET /v1/config</code> from untrusted origin; inspect <code>Access-Control-Allow-Origin</code> response header on staging and production</td>
+<td>OWASP A05 — Security Misconfiguration</td>
+<td><code>Access-Control-Allow-Origin</code> must NOT return <code>*</code>; must be restricted to the configured allowlist of trusted origins</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-125-rng-integrity-verification">§12.5 RNG Integrity Verification</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Test</th>
+<th>Method</th>
+<th>Acceptance Criteria</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>CSPRNG source</td>
+<td>Code review: confirm <code>crypto.getRandomValues()</code> or Node.js <code>crypto.randomBytes()</code> used; no <code>Math.random()</code> in game-critical paths</td>
+<td>0 instances of <code>Math.random()</code> in <code>src/domain/</code></td>
+</tr>
+<tr>
+<td>RNG seed auditability</td>
+<td><code>rngSeed</code> field in <code>FullSpinOutcome</code> and <code>spins.outcome_json</code></td>
+<td>Every spin log contains reproducible <code>rngSeed</code>; replaying with same seed produces identical <code>FullSpinOutcome</code></td>
+</tr>
+<tr>
+<td>Statistical distribution</td>
+<td>Chi-squared test on 100,000 symbol draws per reel position per scenario</td>
+<td>p-value &gt; 0.05 (distribution consistent with expected weights)</td>
+</tr>
+<tr>
+<td>Engine immutability</td>
+<td><code>verify.js</code> PASS gate + CI checksum on <code>GameConfig.generated.ts</code></td>
+<td><code>verify.js</code> exits 0; checksum matches after deployment</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-13-performance-test-plan">§13 Performance Test Plan</h2>
+<p>All performance tests target the staging environment (<code>thunder-staging</code> K8s namespace, 2 replicas). SLO targets are sourced from ARCH §1.1 / EDD §9.1.</p>
+<h3 id="h-131-smoke-test-5-users-1-minute">§13.1 Smoke Test (5 users, 1 minute)</h3>
+<p><strong>Purpose:</strong> Verify staging deployment is healthy before running heavier load tests.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Virtual Users (VUs)</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>60 seconds</td>
+</tr>
+<tr>
+<td>Ramp-up</td>
+<td>0 seconds (flat start)</td>
+</tr>
+<tr>
+<td>Target endpoint</td>
+<td><code>POST /v1/spin</code></td>
+</tr>
+<tr>
+<td>Accept threshold</td>
+<td>P50 ≤ 150ms; P95 ≤ 300ms; P99 ≤ 500ms; error rate &lt; 1%</td>
+</tr>
+</tbody></table></div>
+<p><strong>Pass criteria:</strong> All requests return HTTP 200; no 5xx errors; P50 ≤ 150ms, P95 ≤ 300ms, P99 ≤ 500ms.</p>
+<h3 id="h-132-load-test-500-concurrent-10-minutes">§13.2 Load Test (500 concurrent, 10 minutes)</h3>
+<p><strong>Purpose:</strong> Validate SLO targets under expected production load.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Virtual Users (VUs)</td>
+<td>500</td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>10 minutes</td>
+</tr>
+<tr>
+<td>Ramp-up</td>
+<td>2 minutes (0→500 VUs linear)</td>
+</tr>
+<tr>
+<td>Ramp-down</td>
+<td>1 minute</td>
+</tr>
+<tr>
+<td>Target endpoint</td>
+<td><code>POST /v1/spin</code> (mixed: 70% no FG, 20% FG, 10% Buy Feature)</td>
+</tr>
+</tbody></table></div>
+<p><strong>SLO targets (from ARCH §1.1 / EDD):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Metric</th>
+<th>Target</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>P50 latency (no FG)</td>
+<td>≤ 150ms</td>
+</tr>
+<tr>
+<td>P95 latency (no FG)</td>
+<td>≤ 300ms</td>
+</tr>
+<tr>
+<td>P99 latency (no FG)</td>
+<td>≤ 500ms</td>
+</tr>
+<tr>
+<td>P99 latency (FG sequence)</td>
+<td>≤ 800ms</td>
+</tr>
+<tr>
+<td>HTTP 5xx error rate</td>
+<td>&lt; 0.5%</td>
+</tr>
+<tr>
+<td>HTTP 429 rate</td>
+<td>&lt; 5% (expected at rate limit boundary)</td>
+</tr>
+<tr>
+<td>Wallet debit/credit discrepancy</td>
+<td>0 events</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-133-stress-test-2000-concurrent-peak">§13.3 Stress Test (2,000 concurrent peak)</h3>
+<p><strong>Purpose:</strong> Find the breaking point and confirm graceful degradation (circuit breaker, 503 responses).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Virtual Users (VUs)</td>
+<td>Ramp from 500 → 2000 over 5 minutes; hold 2000 for 5 minutes</td>
+</tr>
+<tr>
+<td>Target endpoint</td>
+<td><code>POST /v1/spin</code></td>
+</tr>
+<tr>
+<td>HPA behavior</td>
+<td>Monitor <code>kubectl get hpa -n thunder-staging</code>; expect scale-out to 4–8 replicas</td>
+</tr>
+<tr>
+<td>Acceptance</td>
+<td>System degrades gracefully; 503 returned (not hang); no data corruption; wallet balances consistent after test</td>
+</tr>
+</tbody></table></div>
+<p><strong>Degraded SLO thresholds at 2× normal load (explicit acceptance criteria):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Metric</th>
+<th>Threshold</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>P50 latency (no FG)</td>
+<td>≤ 200ms</td>
+</tr>
+<tr>
+<td>P95 latency (no FG)</td>
+<td>≤ 600ms</td>
+</tr>
+<tr>
+<td>P99 latency (no FG)</td>
+<td>≤ 1000ms</td>
+</tr>
+<tr>
+<td>HTTP 5xx error rate</td>
+<td>&lt; 5% (graceful degradation; system must not hang)</td>
+</tr>
+<tr>
+<td>Wallet discrepancy events</td>
+<td>0</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-134-soak-test-500-concurrent-2-hours">§13.4 Soak Test (500 concurrent, 2 hours)</h3>
+<p><strong>Purpose:</strong> Detect memory leaks, Redis connection pool exhaustion, and slow wallet drift over sustained load.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Virtual Users (VUs)</td>
+<td>500 (steady)</td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>2 hours</td>
+</tr>
+<tr>
+<td>Metrics monitored</td>
+<td>Memory RSS per pod (Grafana), Redis connection count, PostgreSQL connection pool, wallet reconciliation check every 10 minutes</td>
+</tr>
+<tr>
+<td>Pass criteria</td>
+<td>Error rate &lt; 0.5% for full 2 hours; memory RSS stable (&lt; 20% drift); 0 wallet discrepancy events</td>
+</tr>
+</tbody></table></div>
+<p><strong>Explicit latency thresholds (must hold throughout the full 2-hour soak window):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Metric</th>
+<th>Threshold</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>P50 latency (no FG)</td>
+<td>≤ 150ms throughout entire 2-hour window</td>
+</tr>
+<tr>
+<td>P95 latency (no FG)</td>
+<td>≤ 300ms throughout entire 2-hour window</td>
+</tr>
+<tr>
+<td>P99 latency (no FG)</td>
+<td>≤ 500ms throughout entire 2-hour window</td>
+</tr>
+<tr>
+<td>HTTP 5xx error rate</td>
+<td>&lt; 0.5%</td>
+</tr>
+<tr>
+<td>Memory RSS drift</td>
+<td>&lt; 20% from baseline</td>
+</tr>
+<tr>
+<td>Wallet discrepancy events</td>
+<td>0</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-135-k6-script-skeleton-for-spin-endpoint-load-test">§13.5 k6 Script Skeleton for Spin Endpoint Load Test</h3>
+<p>See Appendix B for the complete runnable k6 script. Key structure:</p>
+<pre><code class="language-javascript">import http from &#x27;k6/http&#x27;;
+import { check, sleep } from &#x27;k6&#x27;;
+import { Trend, Rate } from &#x27;k6/metrics&#x27;;
+
+export const options = {
+  stages: [
+    { duration: &#x27;2m&#x27;, target: 500 },  // ramp up
+    { duration: &#x27;10m&#x27;, target: 500 }, // steady load
+    { duration: &#x27;1m&#x27;, target: 0 },    // ramp down
+  ],
+  thresholds: {
+    &#x27;http_req_duration{type:spin_no_fg}&#x27;: [&#x27;p(99)&lt;500&#x27;],
+    &#x27;http_req_duration{type:spin_fg}&#x27;: [&#x27;p(99)&lt;800&#x27;],
+    &#x27;http_req_failed&#x27;: [&#x27;rate&lt;0.005&#x27;],
+  },
+};</code></pre>
+<hr>
+<h2 id="h-14-accessibility-test-plan">§14 Accessibility Test Plan</h2>
+<h3 id="h-141-wcag-21-aa-checklist">§14.1 WCAG 2.1 AA Checklist</h3>
+<p>All accessibility tests target the game client (Cocos Creator / PixiJS web export) and HUD elements. Screen-level WCAG compliance applies to HUD, modals, and overlay elements rendered as DOM nodes.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>WCAG Criterion</th>
+<th>Level</th>
+<th>Test Method</th>
+<th>Target Element</th>
+<th>Pass Criteria</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1.1.1 Non-text Content</td>
+<td>A</td>
+<td>Manual + axe-core</td>
+<td>All symbol images</td>
+<td><code>alt</code> text or <code>aria-label</code> on canvas elements; informative elements have meaningful description</td>
+</tr>
+<tr>
+<td>1.3.1 Info and Relationships</td>
+<td>A</td>
+<td>axe-core</td>
+<td>Balance display, bet panel, win counter</td>
+<td>Semantic HTML elements (<code>&lt;output&gt;</code>, <code>&lt;label&gt;</code>) for balance and bet amounts</td>
+</tr>
+<tr>
+<td>1.4.1 Use of Color</td>
+<td>A</td>
+<td>Manual</td>
+<td>Lightning Mark state (gold→orange→white)</td>
+<td>Color not sole indicator; brightness change also present (VDD §5.1 threshold system)</td>
+</tr>
+<tr>
+<td>1.4.3 Contrast (Minimum)</td>
+<td>AA</td>
+<td>axe-core + Colour Contrast Analyser</td>
+<td>Win counter, balance text, bet label</td>
+<td>Contrast ≥ 4.5:1 (text); ≥ 3:1 (large text/UI components)</td>
+</tr>
+<tr>
+<td>1.4.11 Non-text Contrast</td>
+<td>AA</td>
+<td>Manual</td>
+<td>Spin button, Extra Bet toggle, Buy Feature button</td>
+<td>UI component boundaries have ≥ 3:1 contrast against adjacent backgrounds</td>
+</tr>
+<tr>
+<td>2.1.1 Keyboard</td>
+<td>A</td>
+<td>Manual keyboard navigation</td>
+<td>Spin button, Extra Bet toggle, Buy Feature, bet level controls</td>
+<td>All interactive controls reachable via Tab; Enter/Space activates; Escape closes modals</td>
+</tr>
+<tr>
+<td>2.1.2 No Keyboard Trap</td>
+<td>A</td>
+<td>Manual</td>
+<td>All modals and overlays</td>
+<td>Tab cycles out of modal; Escape closes modal</td>
+</tr>
+<tr>
+<td>2.4.3 Focus Order</td>
+<td>A</td>
+<td>Manual</td>
+<td>Tab order across HUD</td>
+<td>Logical focus order: Bet Level → Extra Bet → Spin → Buy Feature</td>
+</tr>
+<tr>
+<td>2.4.7 Focus Visible</td>
+<td>AA</td>
+<td>Manual + axe-core</td>
+<td>Spin button (ANIM §9.2)</td>
+<td>Spin button shows visible focus ring (glow effect per ANIM §9.2); focus style not <code>outline: none</code> without replacement</td>
+</tr>
+<tr>
+<td>3.3.1 Error Identification</td>
+<td>A</td>
+<td>Manual</td>
+<td>Insufficient balance modal</td>
+<td>Error message identifies the issue in text (not just color/icon)</td>
+</tr>
+<tr>
+<td>4.1.2 Name, Role, Value</td>
+<td>A</td>
+<td>axe-core</td>
+<td>Spin button, balance display, bet panel</td>
+<td><code>role</code>, <code>aria-label</code>, and <code>aria-live</code> attributes on dynamic elements</td>
+</tr>
+<tr>
+<td>2.3.1 Three Flashes or Below Threshold</td>
+<td>A</td>
+<td>Manual frequency measurement + automated flash analysis tool</td>
+<td>Win flash animation</td>
+<td>Win flash at 1.25Hz within 3Hz limit; <code>fx_fg_bonus_100x.spine</code> frame analysis required per ANIM.md §6.1 before ship</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-142-reduced-motion-testing">§14.2 Reduced Motion Testing</h3>
+<p><strong>Source requirement:</strong> ANIM §1.3, FRONTEND.md, VDD accessibility sections.</p>
+<pre><code class="language-css">/* Verify this media query is respected in game client */
+@media (prefers-reduced-motion: reduce) {
+  /* Cascade elimination: disable particle explosion; use simple fade */
+  /* Lightning Mark: disable pulse animation; static display only */
+  /* Coin Toss: disable spin animation; direct reveal of result */
+  /* FG entry: disable fanfare sequence; direct transition to FG HUD */
+}</code></pre>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Test</th>
+<th>Method</th>
+<th>Pass Criteria</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Cascade animation (reduced motion)</td>
+<td>Enable <code>prefers-reduced-motion</code> in OS settings; trigger cascade</td>
+<td>Particle explosion replaced by fade; no position-shifting animations</td>
+</tr>
+<tr>
+<td>Lightning Mark pulse (reduced motion)</td>
+<td>Enable reduced motion; accumulate 5+ marks</td>
+<td>Mark renders as static icon; no pulsing animation</td>
+</tr>
+<tr>
+<td>Coin Toss animation (reduced motion)</td>
+<td>Enable reduced motion; trigger Coin Toss</td>
+<td>Coin does not spin; result (Heads/Tails) shown immediately via text</td>
+</tr>
+<tr>
+<td>FG entry fanfare (reduced motion)</td>
+<td>Enable reduced motion; enter FG</td>
+<td>Fanfare particle burst suppressed; HUD transitions via opacity only</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-143-keyboard-navigation-testing">§14.3 Keyboard Navigation Testing</h3>
+<p><strong>Source requirement:</strong> ANIM §9.2 (Spin button focus states), FRONTEND.md §component architecture.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Interaction</th>
+<th>Key</th>
+<th>Expected Behavior</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Navigate to Spin button</td>
+<td>Tab</td>
+<td>Focus visible on Spin button (gold glow ring per ANIM §9.2)</td>
+</tr>
+<tr>
+<td>Activate Spin</td>
+<td>Enter / Space</td>
+<td>Spin executes if balance sufficient</td>
+</tr>
+<tr>
+<td>Navigate to Extra Bet toggle</td>
+<td>Tab (from Spin)</td>
+<td>Focus on Extra Bet toggle</td>
+</tr>
+<tr>
+<td>Toggle Extra Bet</td>
+<td>Enter / Space</td>
+<td>Extra Bet state toggles; cost display updates</td>
+</tr>
+<tr>
+<td>Navigate to Buy Feature</td>
+<td>Tab</td>
+<td>Focus on Buy Feature button</td>
+</tr>
+<tr>
+<td>Open Buy Feature confirm</td>
+<td>Enter</td>
+<td>Confirmation modal opens</td>
+</tr>
+<tr>
+<td>Dismiss modal</td>
+<td>Escape</td>
+<td>Modal closes; focus returns to Buy Feature button</td>
+</tr>
+<tr>
+<td>Bet level increase</td>
+<td>Arrow Right / Arrow Up</td>
+<td>Bet level increments by 1 step</td>
+</tr>
+<tr>
+<td>Bet level decrease</td>
+<td>Arrow Left / Arrow Down</td>
+<td>Bet level decrements by 1 step</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-144-screen-reader-testing">§14.4 Screen Reader Testing</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Test</th>
+<th>Tool</th>
+<th>Expected Behavior</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Balance display live update</td>
+<td>NVDA (Windows), VoiceOver (macOS)</td>
+<td><code>aria-live=&quot;polite&quot;</code> announces new balance after spin completes</td>
+</tr>
+<tr>
+<td>Win amount announcement</td>
+<td>VoiceOver</td>
+<td><code>aria-live=&quot;assertive&quot;</code> announces totalWin amount when result is ready</td>
+</tr>
+<tr>
+<td>Error modal</td>
+<td>NVDA</td>
+<td>Error message read aloud immediately on modal appearance</td>
+</tr>
+<tr>
+<td>FG entry notification</td>
+<td>VoiceOver</td>
+<td>&quot;Free Game activated, multiplier ×3&quot; announced via <code>aria-live</code></td>
+</tr>
+<tr>
+<td>Spin button disabled state</td>
+<td>NVDA</td>
+<td>&quot;Spin button, dimmed&quot; announced when spin in progress</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-15-regression-test-plan">§15 Regression Test Plan</h2>
+<h3 id="h-151-regression-suite-composition">§15.1 Regression Suite Composition</h3>
+<p>The regression suite is a curated subset of the full test suite, optimized for speed while covering all P0 features.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Layer</th>
+<th>Included Tests</th>
+<th>Approximate Count</th>
+<th>Run Time</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Unit — Core engine</td>
+<td>TC-UNIT-PROB, TC-UNIT-CASC, TC-UNIT-TB, TC-UNIT-COIN, TC-UNIT-FG, TC-UNIT-FLOOR, TC-UNIT-MAXWIN</td>
+<td>~80 TCs</td>
+<td>~2 min</td>
+</tr>
+<tr>
+<td>Integration — API contracts</td>
+<td>TC-INT-API-001 through TC-INT-API-013</td>
+<td>~25 TCs</td>
+<td>~3 min</td>
+</tr>
+<tr>
+<td>Integration — Wallet + DB</td>
+<td>TC-INT-WALLET, TC-INT-DB</td>
+<td>~10 TCs</td>
+<td>~2 min</td>
+</tr>
+<tr>
+<td>Integration — Redis session</td>
+<td>TC-INT-REDIS, TC-INT-FG, TC-INT-BUYF</td>
+<td>~10 TCs</td>
+<td>~2 min</td>
+</tr>
+<tr>
+<td>E2E — Critical flows</td>
+<td>TC-E2E-SPIN-001, TC-E2E-CASC-001, TC-E2E-FG-001, TC-E2E-EXBT-001, TC-E2E-COIN-001</td>
+<td>~5 TCs</td>
+<td>~5 min</td>
+</tr>
+<tr>
+<td>Smoke — Basic health</td>
+<td>POST /v1/spin 200, GET /health 200, GET /ready 200</td>
+<td>~3 TCs</td>
+<td>~1 min</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>~133 TCs</strong></td>
+<td><strong>~15 min</strong></td>
+</tr>
+</tbody></table></div>
+<p><strong>Exclusions from regression:</strong> Full 1M Monte Carlo RTP run (nightly only), full visual regression Percy scan (pre-release only), full security OWASP ZAP scan (pre-release only), soak test (scheduled).</p>
+<h3 id="h-152-trigger-conditions">§15.2 Trigger Conditions</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Trigger</th>
+<th>Regression Subset</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Every PR to <code>main</code> or <code>develop</code> branch</td>
+<td>Full regression suite (~133 TCs)</td>
+<td>CI must pass before merge</td>
+</tr>
+<tr>
+<td>Every commit to PR branch</td>
+<td>Unit tests only + affected integration tests</td>
+<td>Fast feedback loop</td>
+</tr>
+<tr>
+<td>Nightly (2:00 AM UTC)</td>
+<td>Full regression suite + 100k Monte Carlo RTP sanity + security <code>npm audit</code></td>
+<td>Scheduled GitHub Actions workflow</td>
+</tr>
+<tr>
+<td>Weekly (Sunday 00:00 UTC)</td>
+<td>Full regression + full 1M Monte Carlo <code>verify.js</code></td>
+<td>Long-running job; separate workflow</td>
+</tr>
+<tr>
+<td>Pre-production deploy</td>
+<td>Full regression + E2E on staging + k6 load test + OWASP ZAP scan</td>
+<td>Promotion gate to production</td>
+</tr>
+<tr>
+<td><code>engine_config.json</code> update</td>
+<td>Full regression + full 1M Monte Carlo <code>verify.js</code> + 4-scenario RTP verification</td>
+<td>Triggered by toolchain PR</td>
+</tr>
+<tr>
+<td><code>GameConfig.generated.ts</code> update</td>
+<td>CI checksum guard (QG-11) + unit tests for probability loader</td>
+<td>Guards against manual edits</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-16-smoke-test-plan">§16 Smoke Test Plan</h2>
+<h3 id="h-161-p0-smoke-tests">§16.1 P0 Smoke Tests</h3>
+<p>The smoke test suite is the fastest possible verification that the deployed system is functional. It runs immediately after each environment deployment.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>TC-ID</th>
+<th>Test</th>
+<th>Endpoint</th>
+<th>Expected Result</th>
+<th>Priority</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>TC-SMOKE-001</td>
+<td>Liveness probe</td>
+<td>GET /health</td>
+<td>HTTP 200 <code>{&quot;status&quot;:&quot;ok&quot;}</code></td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-SMOKE-002</td>
+<td>Readiness probe (DB + Redis connected)</td>
+<td>GET /ready</td>
+<td>HTTP 200 <code>{&quot;db&quot;:&quot;ok&quot;,&quot;redis&quot;:&quot;ok&quot;}</code></td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-SMOKE-003</td>
+<td>Config endpoint accessible</td>
+<td>GET /v1/config</td>
+<td>HTTP 200 with bet ranges for USD and TWD</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-SMOKE-004</td>
+<td>Auth required on spin</td>
+<td>POST /v1/spin (no JWT)</td>
+<td>HTTP 401 UNAUTHORIZED</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-SMOKE-005</td>
+<td>Basic spin executes successfully</td>
+<td>POST /v1/spin (valid JWT, balance≥baseBet)</td>
+<td>HTTP 200 with <code>totalWin</code> field; <code>success: true</code></td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-SMOKE-006</td>
+<td>Balance deducted after spin</td>
+<td>POST /v1/spin → GET balance</td>
+<td>Balance decreased by <code>baseBet - totalWin</code> (net)</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-SMOKE-007</td>
+<td>FG trigger works (Buy Feature)</td>
+<td>POST /v1/spin (buyFeature=true, balance≥100×baseBet)</td>
+<td>HTTP 200; <code>fgTriggered: true</code>; <code>fgRounds.length === 5</code></td>
+<td>P0</td>
+</tr>
+<tr>
+<td>TC-SMOKE-008</td>
+<td>Session endpoint accessible</td>
+<td>GET /v1/session/:sessionId</td>
+<td>HTTP 200 (active session) or 404 (expired)</td>
+<td>P0</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-162-execution-target">§16.2 Execution Target</h3>
+<p><strong>Target:</strong> Complete smoke suite in &lt; 5 minutes.</p>
+<pre><code class="language-bash"># Smoke test execution
+pnpm test:smoke --base-url=https://api-staging.thunderblessing.example.com
+# Expected output: 8/8 tests passed | Duration: 2m 47s</code></pre>
+<p><strong>Automated trigger:</strong> Smoke tests run automatically in CI after each <code>kubectl rollout</code> completes in staging or production. Deployment pipeline is blocked if smoke tests fail.</p>
+<hr>
+<h2 id="h-17-cicd-integration">§17 CI/CD Integration</h2>
+<h3 id="h-171-pipeline-stages">§17.1 Pipeline Stages</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                       GitHub Actions CI/CD Pipeline                                  │
+│                                                                                       │
+│  PR Branch Push ──► [Lint] ──► [Unit Tests + Coverage] ──► PR Ready for Review      │
+│                                                                                       │
+│  PR Merge to develop ──► [Integration Tests] ──► [Smoke Tests] ──► Staging Deploy   │
+│                                                                                       │
+│  Staging Deploy ──► [E2E Tests] ──► [k6 Load Gate] ──► [Security Audit]            │
+│                                                                                       │
+│  Promote to prod ──► [k6 Smoke on Prod] ──► [Canary Monitor 5 min] ──► Full Deploy  │
+│                                                                                       │
+│  Nightly (2 AM) ──► [Full Regression] ──► [100k Monte Carlo RTP] ──► Grafana alert  │
+│  Weekly (Sun) ──► [1M Monte Carlo verify.js] ──► [OWASP ZAP scan] ──► Report       │
+└─────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Stage</th>
+<th>Trigger</th>
+<th>Tools</th>
+<th>Gate Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Lint</strong></td>
+<td>Every push</td>
+<td>ESLint, TypeScript <code>tsc --noEmit</code>, Prettier</td>
+<td>Block PR if lint fails</td>
+</tr>
+<tr>
+<td><strong>Unit Tests + Coverage</strong></td>
+<td>Every push</td>
+<td>Vitest + <code>@vitest/coverage-v8</code></td>
+<td>Block PR if &lt; 80% coverage or any test fails</td>
+</tr>
+<tr>
+<td><strong>Config Integrity Check</strong></td>
+<td>Every push</td>
+<td><code>sha256sum GameConfig.generated.ts</code> vs expected hash</td>
+<td>Block PR if manual edit detected</td>
+</tr>
+<tr>
+<td><strong>toolchain-gate</strong></td>
+<td>Config change</td>
+<td><code>verify.js</code> (all 4 scenarios)</td>
+<td><code>verify.js</code> must PASS before <code>engine_generator.js</code> runs; failure blocks both engine generation and downstream steps</td>
+</tr>
+<tr>
+<td><strong>Integration Tests</strong></td>
+<td>PR merge to <code>develop</code></td>
+<td>Vitest + Supertest + test DB + test Redis</td>
+<td>Block merge if any integration test fails</td>
+</tr>
+<tr>
+<td><strong>Smoke Tests</strong></td>
+<td>Post-staging deploy</td>
+<td>Custom k6 smoke + Supertest</td>
+<td>Rollback staging if smoke fails</td>
+</tr>
+<tr>
+<td><strong>E2E Tests</strong></td>
+<td>Post-staging deploy</td>
+<td>Playwright on staging URL</td>
+<td>Alert (no auto-rollback); manual review</td>
+</tr>
+<tr>
+<td><strong>k6 Load Gate</strong></td>
+<td>Pre-prod promotion</td>
+<td>k6 500 VU 10-min load test</td>
+<td>Block prod promotion if P99 ≤ 500ms fails</td>
+</tr>
+<tr>
+<td><strong>Security Audit</strong></td>
+<td>Weekly + pre-release</td>
+<td><code>npm audit</code>, OWASP ZAP, Semgrep</td>
+<td>Block release if HIGH/CRITICAL found</td>
+</tr>
+<tr>
+<td><strong>1M Monte Carlo</strong></td>
+<td>Weekly + config change</td>
+<td><code>verify.js</code> (all 4 scenarios)</td>
+<td>Alert QA Lead if FAIL; block config deploy</td>
+</tr>
+<tr>
+<td><strong>OWASP ZAP Scan</strong></td>
+<td>Weekly + pre-release</td>
+<td>OWASP ZAP baseline scan on staging</td>
+<td>Block release if HIGH found</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-172-quality-gates">§17.2 Quality Gates</h3>
+<p>CI quality gates are enforced via <code>vitest.config.ts</code> coverage thresholds and pipeline step exit codes.</p>
+<pre><code class="language-typescript">// vitest.config.ts (abbreviated)
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: &#x27;v8&#x27;,
+      include: [&#x27;src/domain/**&#x27;, &#x27;src/application/**&#x27;],
+      thresholds: {
+        lines: 80,
+        branches: 80,
+        functions: 80,
+        statements: 80,
+      },
+      reporter: [&#x27;text&#x27;, &#x27;html&#x27;, &#x27;lcov&#x27;],
+    },
+  },
+});</code></pre>
+<p><strong>k6 performance gate (thresholds in script):</strong></p>
+<pre><code class="language-javascript">thresholds: {
+  &#x27;http_req_duration{endpoint:spin,fg:false}&#x27;: [&#x27;p(99)&lt;500&#x27;],
+  &#x27;http_req_duration{endpoint:spin,fg:true}&#x27;: [&#x27;p(99)&lt;800&#x27;],
+  &#x27;http_req_failed&#x27;: [&#x27;rate&lt;0.005&#x27;],
+}</code></pre>
+<p><strong>Toolchain quality gate:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Gate ID</th>
+<th>Gate</th>
+<th>Threshold</th>
+<th>Enforced At</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>QG-TOOL</td>
+<td><code>verify.js</code> RTP deviation ≤ ±0.1% for all 4 scenarios — gates <code>engine_generator.js</code> execution</td>
+<td>PASS (all 4 scenarios within ±0.1%)</td>
+<td>Config change; <code>verify.js</code> must exit 0 before <code>engine_generator.js</code> runs</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-173-test-reporting">§17.3 Test Reporting</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Report Type</th>
+<th>Format</th>
+<th>Location</th>
+<th>Retention</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Unit test results</td>
+<td>JUnit XML + HTML</td>
+<td><code>test-results/unit/junit.xml</code>, <code>coverage/index.html</code></td>
+<td>90 days in CI artifacts</td>
+</tr>
+<tr>
+<td>Integration test results</td>
+<td>JUnit XML</td>
+<td><code>test-results/integration/junit.xml</code></td>
+<td>90 days</td>
+</tr>
+<tr>
+<td>E2E test results</td>
+<td>JUnit XML + Playwright HTML</td>
+<td><code>test-results/e2e/report.html</code></td>
+<td>30 days + failure videos</td>
+</tr>
+<tr>
+<td>Coverage report</td>
+<td>LCOV + HTML</td>
+<td><code>coverage/lcov.info</code>, <code>coverage/index.html</code></td>
+<td>90 days; uploaded to Codecov</td>
+</tr>
+<tr>
+<td>k6 performance report</td>
+<td>JSON + HTML (k6-reporter)</td>
+<td><code>test-results/perf/k6-report.html</code></td>
+<td>90 days</td>
+</tr>
+<tr>
+<td>OWASP ZAP report</td>
+<td>HTML</td>
+<td><code>test-results/security/zap-report.html</code></td>
+<td>1 year</td>
+</tr>
+<tr>
+<td>Monte Carlo RTP report</td>
+<td>Text (verify.js stdout)</td>
+<td>CI log + <code>test-results/rtp/verify-output.txt</code></td>
+<td>1 year</td>
+</tr>
+<tr>
+<td>Percy visual regression</td>
+<td>Percy dashboard</td>
+<td>Percy cloud (30-day approval window)</td>
+<td>Percy platform</td>
+</tr>
+</tbody></table></div>
+<p><strong>Slack/email notifications:</strong> CI pipeline sends notification on:</p>
+<ul>
+<li>Any FAIL in integration, E2E, or performance gate</li>
+<li><code>verify.js</code> FAIL (high priority; notifies Game Designer and QA Lead immediately)</li>
+<li>OWASP ZAP HIGH finding</li>
+<li>Nightly regression FAIL</li>
+</ul>
+<hr>
+<h2 id="h-18-reporting">§18 Reporting</h2>
+<h3 id="h-181-test-result-metrics">§18.1 Test Result Metrics</h3>
+<p>The following metrics are tracked per test cycle and reported in the QA Dashboard (Grafana or GitHub wiki):</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Metric</th>
+<th>Formula</th>
+<th>Target</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Overall pass rate</td>
+<td><code>(passed_TCs / total_TCs) × 100</code></td>
+<td>≥ 99% before release</td>
+</tr>
+<tr>
+<td>P0 pass rate</td>
+<td><code>(passed_P0_TCs / total_P0_TCs) × 100</code></td>
+<td>100% required</td>
+</tr>
+<tr>
+<td>Code coverage (domain)</td>
+<td><code>lines_covered / total_lines × 100</code></td>
+<td>≥ 80%</td>
+</tr>
+<tr>
+<td>Automation rate</td>
+<td><code>automated_TCs / total_TCs × 100</code></td>
+<td>≥ 90%</td>
+</tr>
+<tr>
+<td>Defect density</td>
+<td><code>total_defects / KLOC</code></td>
+<td>Tracking only</td>
+</tr>
+<tr>
+<td>Defect escape rate</td>
+<td><code>prod_defects / (dev_defects + prod_defects) × 100</code></td>
+<td>&lt; 5%</td>
+</tr>
+<tr>
+<td>Mean time to fix (P0 defects)</td>
+<td>Average hours from open to VERIFIED</td>
+<td>&lt; 24 hours</td>
+</tr>
+<tr>
+<td>RTP variance (4 scenarios)</td>
+<td>`</td>
+<td>simulated_RTP - 97.5%</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-182-defect-severity-classification">§18.2 Defect Severity Classification</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Severity</th>
+<th>Definition</th>
+<th>SLA (Fix)</th>
+<th>Examples</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>CRITICAL</td>
+<td>Game-breaking; financial data corruption; security breach; RTP outside ±1%</td>
+<td>Fix within 4 hours; immediate escalation</td>
+<td>Wallet double-debit, <code>totalWin</code> mismatch, JWT bypass, RTP &gt; 98.5% or &lt; 96.5%</td>
+</tr>
+<tr>
+<td>HIGH</td>
+<td>Major feature broken; user blocked; data integrity risk; P0 AC fails</td>
+<td>Fix within 24 hours</td>
+<td>Buy Feature floor not applied, FG sequence truncated, Cascade rows overflow, 5xx on every spin</td>
+</tr>
+<tr>
+<td>MEDIUM</td>
+<td>Feature degraded but workaround available; P1 AC fails</td>
+<td>Fix within 5 business days</td>
+<td>Extra Bet cost display wrong, FG multiplier HUD shows wrong stage, visual regression mismatch</td>
+</tr>
+<tr>
+<td>LOW</td>
+<td>Minor cosmetic or usability issue; no functional impact</td>
+<td>Fix in next sprint</td>
+<td>Typo in error message, animation timing off by 50ms, minor layout shift on 320px</td>
+</tr>
+<tr>
+<td>INFORMATIONAL</td>
+<td>Observation or suggestion; no fix required</td>
+<td>Backlog</td>
+<td>Test coverage gap in helper utility, suggestion to add more boundary tests</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-183-sign-off-criteria">§18.3 Sign-Off Criteria</h3>
+<p>Production release sign-off requires all of the following approvals and evidence:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>Sign-Off Item</th>
+<th>Approver</th>
+<th>Evidence Required</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>All P0 test cases pass (100%)</td>
+<td>QA Lead</td>
+<td>CI test results report</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Code coverage ≥ 80% on domain + application</td>
+<td>QA Lead</td>
+<td>Vitest coverage HTML report</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>verify.js</code> PASS for all 4 scenarios (1M spins)</td>
+<td>Game Designer + QA Lead</td>
+<td><code>verify.js</code> output log</td>
+</tr>
+<tr>
+<td>4</td>
+<td>0 CRITICAL defects open</td>
+<td>QA Lead</td>
+<td>Defect tracker export</td>
+</tr>
+<tr>
+<td>5</td>
+<td>k6 load test SLO gate passed (P99 ≤ 500ms / ≤ 800ms FG)</td>
+<td>Engineering Lead</td>
+<td>k6 HTML report</td>
+</tr>
+<tr>
+<td>6</td>
+<td>k6 soak test passed (&lt; 0.5% error rate, 2 hours)</td>
+<td>Engineering Lead</td>
+<td>k6 soak HTML report</td>
+</tr>
+<tr>
+<td>7</td>
+<td>OWASP ZAP 0 HIGH findings</td>
+<td>Security Lead</td>
+<td>ZAP HTML report</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Visual regression baselines approved</td>
+<td>Art Director</td>
+<td>Percy dashboard screenshot approval</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Wallet reconciliation: 0 discrepancy events in soak test</td>
+<td>Engineering Lead</td>
+<td>Reconciliation job log</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>GameConfig.generated.ts</code> checksum verified</td>
+<td>Engineering Lead</td>
+<td>CI checksum step log</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="appendix-a-requirements-traceability-matrix-rtm">Appendix A: Requirements Traceability Matrix (RTM)</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>US-ID</th>
+<th>Requirement Summary</th>
+<th>TC-ID(s)</th>
+<th>Type</th>
+<th>Priority</th>
+<th>Status</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>US-SPIN-001</td>
+<td>Basic spin: P99 ≤ 500ms, 5×3 grid</td>
+<td>TC-UNIT-CASC-002, TC-INT-API-001, TC-E2E-SPIN-001; P99 latency OBJ-03 covered by §13 Load Test (k6 gate QG-07)</td>
+<td>Unit/Int/E2E/Perf</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-SPIN-001/AC-2</td>
+<td>Balance &lt; baseBet: display error, no spin</td>
+<td>TC-INT-API-004, TC-E2E-SPIN-002 (balance guard covered at integration layer by TC-INT-API-004)</td>
+<td>Int/E2E</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-SPIN-001/AC-3</td>
+<td>JWT expired/missing: HTTP 401</td>
+<td>TC-INT-API-002, TC-INT-API-003, TC-SEC-AUTH-001</td>
+<td>Int/Security</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-SPIN-001/AC-4</td>
+<td>Concurrent spin: button locked, no double-debit</td>
+<td>TC-INT-API-007, TC-E2E-SPIN-003</td>
+<td>Int/E2E</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-SPIN-001/AC-5</td>
+<td>Wild substitution in payline</td>
+<td>TC-UNIT-CASC-002</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-CASC-001/AC-1</td>
+<td>Cascade: Lightning Mark generated, rows expand</td>
+<td>TC-UNIT-CASC-001, TC-UNIT-CASC-003, TC-UNIT-CASC-004</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-CASC-001/AC-2</td>
+<td>rows=6 boundary: no further expansion</td>
+<td>TC-UNIT-CASC-006</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-CASC-001/AC-3</td>
+<td>New Main Game spin: marks cleared, rows=3</td>
+<td>TC-UNIT-CASC-008</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-CASC-001/AC-4</td>
+<td>Same payline: max payout, no double-count</td>
+<td>TC-UNIT-CASC-002</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-CASC-001/AC-5</td>
+<td>3+ cascade steps: CascadeStep records correct</td>
+<td>TC-INT-FG-001</td>
+<td>Integration</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TBSC-001/AC-1</td>
+<td>TB first hit: mark → premium symbol</td>
+<td>TC-UNIT-TB-001</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TBSC-001/AC-2</td>
+<td>TB second hit (RNG &lt; 0.40): symbol upgrade</td>
+<td>TC-UNIT-TB-002</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TBSC-001/AC-3</td>
+<td>SC with no marks: no TB trigger</td>
+<td>TC-UNIT-TB-005</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TBSC-001/AC-4</td>
+<td>P1 upgrade: stays P1 (no overflow)</td>
+<td>TC-UNIT-TB-004</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TBSC-001/AC-5</td>
+<td>TB after cascade: cascade continues if new wins</td>
+<td>TC-INT-FG-001</td>
+<td>Integration</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-COIN-001/AC-1</td>
+<td>Coin Toss at rows=6 + cascade win</td>
+<td>TC-UNIT-COIN-001, TC-UNIT-COIN-002</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-COIN-001/AC-2</td>
+<td>Coin Toss Heads: FG at ×3</td>
+<td>TC-UNIT-COIN-001, TC-INT-API-009</td>
+<td>Unit/Int</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-COIN-001/AC-3</td>
+<td>Coin Toss Tails: no FG</td>
+<td>TC-UNIT-COIN-002</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-COIN-001/AC-4</td>
+<td>Buy Feature: entryBuy=1.00, guaranteed Heads</td>
+<td>TC-UNIT-COIN-004, TC-INT-BUYF-001</td>
+<td>Unit/Int</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-COIN-001/AC-5</td>
+<td>rows&lt;6: no Coin Toss</td>
+<td>TC-UNIT-COIN-005</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-FGAM-001/AC-1</td>
+<td>FG round 1: ×3 multiplier, inherited marks</td>
+<td>TC-UNIT-FG-001, TC-INT-FG-001</td>
+<td>Unit/Int</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-FGAM-001/AC-2</td>
+<td>FG round 2 Heads: ×7 multiplier</td>
+<td>TC-UNIT-FG-001</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-FGAM-001/AC-3</td>
+<td>×77 + Heads: stays ×77</td>
+<td>TC-UNIT-FG-004</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-FGAM-001/AC-4</td>
+<td>Any FG Tails: FG ends</td>
+<td>TC-UNIT-FG-005</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-FGAM-001/AC-5</td>
+<td>Buy Feature: 5 FGSpins, multipliers [3,7,17,27,77]</td>
+<td>TC-UNIT-FG-001, TC-INT-BUYF-001</td>
+<td>Unit/Int</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-FGAM-001/AC-6</td>
+<td>FG Bonus multiplier drawn once</td>
+<td>TC-UNIT-FG-002, TC-UNIT-FG-003</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-FGAM-001/AC-7</td>
+<td>FG end at ×77 Tails: marks cleared</td>
+<td>TC-INT-FG-003</td>
+<td>Integration</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-FGREC-001/AC-1</td>
+<td>FG reconnect: Redis state restored</td>
+<td>TC-INT-API-012</td>
+<td>Integration</td>
+<td>P1</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-EXBT-001/AC-1</td>
+<td>Extra Bet: debit ×3 baseBet</td>
+<td>TC-UNIT-EXBT-001, TC-INT-API-001</td>
+<td>Unit/Int</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-EXBT-001/AC-2</td>
+<td>Extra Bet ON: natural SC preserved — no forced inject</td>
+<td>TC-UNIT-EXBT-002</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-EXBT-001/AC-3</td>
+<td>Extra Bet: SC injected if not natural</td>
+<td>TC-UNIT-EXBT-003</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-EXBT-001/AC-4</td>
+<td>EB OFF: reverts to mainGame weights, normal cost</td>
+<td>TC-UNIT-EXBT-004</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-EXBT-001/AC-5</td>
+<td>EB+BF combined cost = 300× baseBet</td>
+<td>TC-INT-BUYF-002</td>
+<td>Integration</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-BUYF-001</td>
+<td>Buy Feature: 100× cost, guaranteed Heads×5</td>
+<td>TC-UNIT-COIN-004, TC-INT-BUYF-001</td>
+<td>Unit/Int</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-BUYF-001 (floor)</td>
+<td>Buy Feature: totalWin ≥ 20× baseBet</td>
+<td>TC-UNIT-FLOOR-001, TC-INT-BUYF-003</td>
+<td>Unit/Int</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-RTPV-001</td>
+<td>RTP ±1% per scenario, 1M Monte Carlo</td>
+<td>TC via <code>verify.js</code></td>
+<td>Monte Carlo</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-CURR-001</td>
+<td>USD/TWD display from BetRangeConfig</td>
+<td>TC-UNIT-CURR-001, TC-INT-CURR-001</td>
+<td>Unit/Integration</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-APIV-001/AC-1</td>
+<td>Single-trip FG response: complete FG sequence returned in one API response</td>
+<td>TC-INT-API-010</td>
+<td>Integration</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-APIV-001/AC-2</td>
+<td>buyFG yields 5 fgSpins in response</td>
+<td>TC-INT-BUYF-001</td>
+<td>Integration</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-APIV-001/AC-3</td>
+<td>P99 ≤ 500ms (no-FG)</td>
+<td>§13 Load Test / OBJ-03</td>
+<td>Performance</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-APIV-001/AC-4</td>
+<td>JWT auth required on every spin</td>
+<td>TC-SEC-AUTH-001</td>
+<td>Security</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-APIV-001/AC-5</td>
+<td>totalWin is authoritative: server-computed value in response is the sole accounting authority</td>
+<td>TC-INT-API-001-HAPPY, TC-SEC-BET-003</td>
+<td>Integration, Security</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-NRMS-001</td>
+<td>Near Miss: toolchain-configured, no code custom</td>
+<td>TC-UNIT-PROB-001 (config integrity)</td>
+<td>Unit</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TOOL-001/AC-1</td>
+<td>Toolchain: <code>build_config.js</code> generates valid <code>engine_config.json</code></td>
+<td>TC-INT-CONFIG-001</td>
+<td>Integration</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TOOL-001/AC-2</td>
+<td>Toolchain: <code>excel_simulator.js</code> runs 1M Monte Carlo and writes results to SIMULATION/DESIGN_VIEW tabs</td>
+<td>TC-UNIT-PROB-001; CI gate QG-06</td>
+<td>Unit/CI</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TOOL-001/AC-3</td>
+<td>Toolchain: <code>verify.js</code> PASS gate validates RTP within ±0.1% for all 4 scenarios</td>
+<td>TC-INT-CONFIG-001; CI gate QG-11</td>
+<td>Integration/CI</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TOOL-001/AC-4</td>
+<td>Toolchain: SHA-256 checksum guard blocks manual edits to <code>GameConfig.generated.ts</code></td>
+<td>CI gate QG-11</td>
+<td>CI</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>US-TOOL-001/AC-5</td>
+<td>Toolchain: <code>excel_simulator.js</code> feeds DESIGN_VIEW tab without cross-scenario weight contamination</td>
+<td>TC-UNIT-PROB-001; CI gate QG-06</td>
+<td>Unit/CI</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="appendix-b-performance-test-k6-script-skeleton">Appendix B: Performance Test k6 Script Skeleton</h2>
+<p>This script is a complete, runnable k6 load test for <code>POST /v1/spin</code>. Set environment variables before running.</p>
+<pre><code class="language-javascript">// k6/spin-load-test.js
+// Usage: k6 run --env BASE_URL=https://api-staging.example.com \
+//               --env JWT_TOKEN=&lt;valid_player_jwt&gt; \
+//               --env PLAYER_ID=&lt;player-uuid&gt; \
+//               k6/spin-load-test.js
+
+import http from &#x27;k6/http&#x27;;
+import { check, sleep, group } from &#x27;k6&#x27;;
+import { Trend, Rate, Counter } from &#x27;k6/metrics&#x27;;
+
+// Custom metrics
+const spinDurationNoFG = new Trend(&#x27;spin_duration_no_fg&#x27;, true);
+const spinDurationFG = new Trend(&#x27;spin_duration_fg&#x27;, true);
+const spinErrors = new Rate(&#x27;spin_error_rate&#x27;);
+const walletDiscrepancies = new Counter(&#x27;wallet_discrepancy_count&#x27;);
+
+// k6 options
+export const options = {
+  stages: [
+    { duration: &#x27;2m&#x27;,  target: 500  },  // ramp-up
+    { duration: &#x27;10m&#x27;, target: 500  },  // steady load
+    { duration: &#x27;1m&#x27;,  target: 0    },  // ramp-down
+  ],
+  thresholds: {
+    // SLO from ARCH §1.1 / EDD
+    &#x27;spin_duration_no_fg&#x27;: [&#x27;p(50)&lt;150&#x27;, &#x27;p(95)&lt;300&#x27;, &#x27;p(99)&lt;500&#x27;],
+    &#x27;spin_duration_fg&#x27;:    [&#x27;p(99)&lt;800&#x27;],
+    &#x27;spin_error_rate&#x27;:     [&#x27;rate&lt;0.005&#x27;],  // &lt; 0.5% error rate
+    &#x27;http_req_failed&#x27;:     [&#x27;rate&lt;0.005&#x27;],
+    &#x27;wallet_discrepancy_count&#x27;: [&#x27;count==0&#x27;],
+  },
+};
+
+const BASE_URL   = __ENV.BASE_URL   || &#x27;http://localhost:3000&#x27;;
+const JWT_TOKEN  = __ENV.JWT_TOKEN  || &#x27;eyJ...&#x27;;
+const PLAYER_ID  = __ENV.PLAYER_ID  || &#x27;player-uuid&#x27;;
+
+const headers = {
+  &#x27;Content-Type&#x27;:  &#x27;application/json&#x27;,
+  &#x27;Authorization&#x27;: `Bearer ${JWT_TOKEN}`,
+};
+
+// Scenario distribution: 70% no-FG, 20% FG, 10% Buy Feature
+function chooseScenario() {
+  const r = Math.random();
+  if (r &lt; 0.70) return &#x27;no_fg&#x27;;
+  if (r &lt; 0.90) return &#x27;fg&#x27;;
+  return &#x27;buy_feature&#x27;;
+}
+
+function buildSpinPayload(scenario) {
+  const base = {
+    playerId:   PLAYER_ID,
+    betLevel:   7,         // USD $1.00 per spin
+    currency:   &#x27;USD&#x27;,
+    extraBet:   false,
+    buyFeature: false,
+    sessionId:  `session-${__VU}-${Date.now()}`,
+  };
+
+  if (scenario === &#x27;fg&#x27;) {
+    return { ...base, extraBet: true };
+  }
+  if (scenario === &#x27;buy_feature&#x27;) {
+    return { ...base, buyFeature: true };
+  }
+  return base;
+}
+
+export default function () {
+  const scenario = chooseScenario();
+  const payload  = JSON.stringify(buildSpinPayload(scenario));
+
+  group(`spin_${scenario}`, () =&gt; {
+    const res = http.post(`${BASE_URL}/v1/spin`, payload, {
+      headers,
+      tags: { type: `spin_${scenario}` },
+    });
+
+    const success = check(res, {
+      &#x27;status is 200&#x27;:            (r) =&gt; r.status === 200,
+      &#x27;response has totalWin&#x27;:    (r) =&gt; {
+        try {
+          const body = JSON.parse(r.body);
+          return body.data &amp;&amp; typeof body.data.totalWin === &#x27;number&#x27;;
+        } catch { return false; }
+      },
+      &#x27;response has sessionId&#x27;:   (r) =&gt; {
+        try {
+          return !!JSON.parse(r.body).data.sessionId;
+        } catch { return false; }
+      },
+      &#x27;no 5xx error&#x27;:             (r) =&gt; r.status &lt; 500,
+    });
+
+    spinErrors.add(!success);
+
+    // Track duration by FG type
+    if (scenario === &#x27;no_fg&#x27;) {
+      spinDurationNoFG.add(res.timings.duration);
+    } else {
+      spinDurationFG.add(res.timings.duration);
+    }
+
+    // Wallet discrepancy check: totalWin must be non-negative
+    if (res.status === 200) {
+      try {
+        const body = JSON.parse(res.body);
+        if (body.data &amp;&amp; body.data.totalWin &lt; 0) {
+          walletDiscrepancies.add(1);
+          console.error(`[DISCREPANCY] Negative totalWin: ${body.data.totalWin} sessionId: ${body.data.sessionId}`);
+        }
+      } catch (e) {
+        // parse error; logged via check failure above
+      }
+    }
+  });
+
+  // Think time: 1-3 seconds between spins (simulate real player pace)
+  sleep(1 + Math.random() * 2);
+}
+
+// Summary handler for custom metrics
+export function handleSummary(data) {
+  return {
+    &#x27;test-results/perf/k6-summary.json&#x27;: JSON.stringify(data),
+    stdout: textSummary(data, { indent: &#x27;  &#x27;, enableColors: true }),
+  };
+}
+
+// Helper: minimal text summary (inline to avoid external import)
+function textSummary(data, opts) {
+  const lines = [&#x27;=== k6 Load Test Summary ===&#x27;];
+  const { metrics } = data;
+  [&#x27;http_req_duration&#x27;, &#x27;spin_duration_no_fg&#x27;, &#x27;spin_duration_fg&#x27;].forEach(m =&gt; {
+    if (metrics[m]) {
+      const { p90, p95, p99 } = metrics[m].values;
+      lines.push(`${m}: p90=${p90.toFixed(0)}ms p95=${p95.toFixed(0)}ms p99=${p99.toFixed(0)}ms`);
+    }
+  });
+  if (metrics[&#x27;spin_error_rate&#x27;]) {
+    lines.push(`spin_error_rate: ${(metrics[&#x27;spin_error_rate&#x27;].values.rate * 100).toFixed(2)}%`);
+  }
+  if (metrics[&#x27;wallet_discrepancy_count&#x27;]) {
+    lines.push(`wallet_discrepancies: ${metrics[&#x27;wallet_discrepancy_count&#x27;].values.count}`);
+  }
+  lines.push(&#x27;============================&#x27;);
+  return lines.join(&#x27;\n&#x27;);
+}</code></pre>
+<p><strong>Smoke test variant (5 VU, 60s):</strong></p>
+<pre><code class="language-javascript">// k6/spin-smoke-test.js
+export const options = {
+  vus:      5,
+  duration: &#x27;60s&#x27;,
+  thresholds: {
+    &#x27;http_req_duration&#x27;: [&#x27;p(99)&lt;500&#x27;],
+    &#x27;http_req_failed&#x27;:   [&#x27;rate&lt;0.01&#x27;],
+  },
+};
+// Same default() function as above; import and re-use</code></pre>
+<p><strong>Soak test variant (500 VU, 2 hours):</strong></p>
+<pre><code class="language-javascript">// k6/spin-soak-test.js
+export const options = {
+  stages: [
+    { duration: &#x27;5m&#x27;,   target: 500  },   // ramp up
+    { duration: &#x27;115m&#x27;, target: 500  },   // 2-hour soak
+    { duration: &#x27;2m&#x27;,   target: 0    },   // ramp down
+  ],
+  thresholds: {
+    &#x27;spin_duration_no_fg&#x27;: [&#x27;p(99)&lt;500&#x27;],
+    &#x27;spin_error_rate&#x27;:     [&#x27;rate&lt;0.005&#x27;],
+    &#x27;wallet_discrepancy_count&#x27;: [&#x27;count==0&#x27;],
+  },
+};</code></pre>
+<p><strong>Run commands:</strong></p>
+<pre><code class="language-bash"># Smoke test
+k6 run --env BASE_URL=$STAGING_URL --env JWT_TOKEN=$TEST_JWT --env PLAYER_ID=$TEST_PLAYER \
+  k6/spin-smoke-test.js
+
+# Load test (SLO gate)
+k6 run --env BASE_URL=$STAGING_URL --env JWT_TOKEN=$TEST_JWT --env PLAYER_ID=$TEST_PLAYER \
+  k6/spin-load-test.js
+
+# Soak test
+k6 run --env BASE_URL=$STAGING_URL --env JWT_TOKEN=$TEST_JWT --env PLAYER_ID=$TEST_PLAYER \
+  k6/spin-soak-test.js
+
+# Stress test (2000 VU peak — use k6 Cloud for distributed load)
+k6 cloud k6/spin-stress-test.js</code></pre>
+<hr>
+<p><em>Test Plan v1.0 — IEEE 829-2008 compliant — Generated for Thunder Blessing Slot Game GDD.</em> <em>Upstream documents: IDEA.md, BRD.md, PRD.md, EDD.md v1.3, ARCH.md v1.7, API.md v1.0, SCHEMA.md v1.0, FRONTEND.md v1.0, AUDIO.md v1.0, ANIM.md v1.0, VDD.md v1.0, PDD.md v1.0.</em></p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>Test Plan — QA Strategy</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,3218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FRONTEND — Frontend Spec — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">FRONTEND — Frontend Spec</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link active"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>🖥️ Engineering</span>
+        <span>Source: <code>FRONTEND.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="frontendmd-frontend-technical-design-document">FRONTEND.md — Frontend Technical Design Document</h1>
+<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+<hr>
+<h2 id="h-0-document-control">§0 Document Control</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Field</th>
+<th>Content</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>DOC-ID</strong></td>
+<td>FRONTEND-THUNDERBLESSING-20260426</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>Thunder Blessing Slot Game</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>DRAFT</td>
+</tr>
+<tr>
+<td><strong>Author</strong></td>
+<td>AI Generated (gendoc D10-FRONTEND)</td>
+</tr>
+<tr>
+<td><strong>Date</strong></td>
+<td>2026-04-26</td>
+</tr>
+<tr>
+<td><strong>Upstream Documents</strong></td>
+<td>IDEA.md, BRD.md, PRD.md, PDD.md v1.0, VDD.md v1.0, EDD.md v1.3, API.md v1.0, SCHEMA.md v1.0</td>
+</tr>
+<tr>
+<td><strong>Reviewers</strong></td>
+<td>Frontend Engineer Lead, QA Lead, Art Director</td>
+</tr>
+<tr>
+<td><strong>Approver</strong></td>
+<td>Engineering Lead</td>
+</tr>
+</tbody></table></div>
+<h3 id="change-log">Change Log</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Summary</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-04-26</td>
+<td>AI Generated</td>
+<td>Initial generation covering all 12 sections</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-1-overview">§1 Overview</h2>
+<h3 id="h-11-frontend-tech-stack">1.1 Frontend Tech Stack</h3>
+<p><strong>Primary Recommendation: Cocos Creator 3.x (TypeScript)</strong></p>
+<p>Cocos Creator 3.x is the primary recommended frontend framework for Thunder Blessing. It provides:</p>
+<ul>
+<li>Native TypeScript support with full type safety</li>
+<li>Integrated Spine 2D runtime (≥ 4.1) for symbol and effect animations</li>
+<li>WebGL 2.0 rendering with fallback to WebGL 1.0</li>
+<li>Built-in scene manager, asset pipeline, and component-based architecture</li>
+<li>Web export targeting HTML5 Canvas / WebGL, optimized for browser delivery</li>
+<li>Physics-based tween system (<code>cc.tween</code>) compatible with Cocos Creator 3.x API</li>
+</ul>
+<p><strong>Alternative: PixiJS 7.x (TypeScript)</strong></p>
+<p>PixiJS 7.x is a viable alternative if the team has existing PixiJS expertise:</p>
+<ul>
+<li>WebGL 2.0 rendering via <code>@pixi/core</code></li>
+<li>Spine integration via <code>pixi-spine</code> (must target Spine Runtime 4.1)</li>
+<li>Manual scene management required (implement SceneManager as described in §2)</li>
+<li>Use <code>KawaseBlurFilter</code> from <code>@pixi/filter-kawase-blur</code> for Bloom/Glow effects (referenced in VDD §5.5)</li>
+<li><code>gsap</code> (GreenSock) or <code>@tweenjs/tween.js</code> for timeline-based animation sequences</li>
+</ul>
+<p>All architecture patterns in this document apply equally to both frameworks. Framework-specific implementation notes are marked with <code>[Cocos]</code> or <code>[PixiJS]</code> where they diverge.</p>
+<h3 id="h-12-architecture-principles">1.2 Architecture Principles</h3>
+<p>The frontend follows a strict three-layer separation:</p>
+<pre><code>┌─────────────────────────────────────────┐
+│         Presentation Layer              │
+│  (Scenes, Components, Animation Queue) │
+├─────────────────────────────────────────┤
+│         Game Logic Layer                │
+│  (State Machine, Win Calculator,       │
+│   Animation Sequencer)                 │
+├─────────────────────────────────────────┤
+│         Network Layer                   │
+│  (SpinService, SessionService,         │
+│   ConfigService, ErrorHandler)         │
+└─────────────────────────────────────────┘</code></pre>
+<p><strong>Core architectural rules:</strong></p>
+<ul>
+<li>The UI is a Pure View: it never calculates win amounts, modifies game state, or computes paylines. All authoritative values come from the backend <code>FullSpinOutcome</code> response.</li>
+<li><code>totalWin</code> displayed to the player must always equal <code>outcome.totalWin</code> from the API response. The frontend must never derive or adjust this value.</li>
+<li>The entire FG sequence (all rounds, all Cascade steps) is received in a single POST <code>/v1/spin</code> response. The client animates the full sequence by consuming the stored <code>fgRounds</code> array sequentially — no additional network requests are made during FG playback.</li>
+<li>Game state (Lightning Mark positions, FG multiplier, session status) is owned by the backend. The frontend holds it only transiently for animation playback.</li>
+</ul>
+<h3 id="h-13-target-platforms">1.3 Target Platforms</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Platform</th>
+<th>Minimum Requirement</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Web (Desktop)</td>
+<td>Chrome 90+, Firefox 88+, Safari 14+; WebGL 2.0 preferred; WebGL 1.0 fallback</td>
+</tr>
+<tr>
+<td>Mobile Web</td>
+<td>iOS Safari 14+ (iPhone SE and above); Chrome for Android 90+</td>
+</tr>
+<tr>
+<td>Screen resolutions</td>
+<td>320px – 1920px wide; portrait and landscape orientations</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-14-performance-budget">1.4 Performance Budget</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Enforcement</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Frame rate</td>
+<td>60fps sustained on desktop</td>
+<td>Drop gracefully to 30fps on mobile (reduce particles)</td>
+</tr>
+<tr>
+<td>Initial load time</td>
+<td>&lt; 5s on 4G (10 Mbps)</td>
+<td>Lazy-load audio; defer non-critical assets</td>
+</tr>
+<tr>
+<td>Memory footprint</td>
+<td>&lt; 300MB total</td>
+<td>Object pooling for symbols; single texture atlas</td>
+</tr>
+<tr>
+<td>API round-trip</td>
+<td>POST /v1/spin response received &lt; 2s P95</td>
+<td>Show loading indicator after 500ms</td>
+</tr>
+<tr>
+<td>JS bundle (gzipped)</td>
+<td>&lt; 300KB initial chunk</td>
+<td>Dynamic import for FG and Coin Toss modules</td>
+</tr>
+<tr>
+<td>Texture atlas</td>
+<td>Single 2048×2048px atlas for all symbols + UI</td>
+<td>Separate atlas for FG-exclusive assets</td>
+</tr>
+<tr>
+<td>Audio deferred</td>
+<td>All audio loaded after first user interaction</td>
+<td>Mobile audio unlock pattern (§7.4)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-2-scene-architecture">§2 Scene Architecture</h2>
+<h3 id="h-21-scene-list-and-transitions">2.1 Scene List and Transitions</h3>
+<pre><code>LoadingScene
+    │  Config loaded, assets preloaded
+    ▼
+LobbyScene  ←──────────────────────────────┐
+    │  Player selects bet, presses SPIN     │
+    ▼                                      │
+GameScene  ─── FG exits or session error ──┘
+    │
+    ▼  (Big Win / Mega Win / Jackpot / Max Win)
+ResultScene (overlay within GameScene, not a full scene transition)</code></pre>
+<p><strong>Scene transition rules:</strong></p>
+<ul>
+<li>Scenes never reference each other directly. All transitions go through <code>SceneManager</code>.</li>
+<li><code>SceneManager</code> emits typed events that scenes subscribe to; scenes do not hold references to sibling scenes.</li>
+<li>Scene transitions use cross-dissolve (opacity 0→1, 800ms) as defined in VDD §4.6.</li>
+</ul>
+<h3 id="h-22-scene-descriptions">2.2 Scene Descriptions</h3>
+<h4 id="loadingscene">LoadingScene</h4>
+<p><strong>Purpose:</strong> Bootstrap application, load configuration, and preload critical assets.</p>
+<p><strong>Entry actions:</strong></p>
+<ol>
+<li>Display loading spinner with Zeus logo on <code>--color-blue-olympus</code> background.</li>
+<li>Call <code>ConfigService.loadConfig()</code> → <code>GET /v1/config</code>.</li>
+<li>Preload critical assets: symbol idle textures, HUD atlas, background layer 0 and 1.</li>
+<li>Preload primary fonts: <code>Orbitron-Bold.woff2</code> and <code>OpenSans-SemiBold.woff2</code>.</li>
+</ol>
+<p><strong>Exit actions:</strong></p>
+<ol>
+<li>Set loading progress bar to 100%.</li>
+<li>Transition to <code>LobbyScene</code> (or directly to <code>GameScene</code> if session is active).</li>
+</ol>
+<p><strong>Asset preload manifest (LoadingScene):</strong></p>
+<pre><code class="language-typescript">const CRITICAL_ASSETS = [
+  &#x27;symbols/symbol_atlas.png&#x27;,       // All symbol idle frames
+  &#x27;ui/ui_hud_atlas.png&#x27;,            // HUD elements
+  &#x27;backgrounds/bg_main_sky.png&#x27;,    // Layer 0 background
+  &#x27;fonts/Orbitron-Bold.woff2&#x27;,
+  &#x27;fonts/OpenSans-SemiBold.woff2&#x27;,
+];</code></pre>
+<h4 id="lobbyscene">LobbyScene</h4>
+<p><strong>Purpose:</strong> Pre-game configuration UI. Player sets bet level, currency, Extra Bet toggle.</p>
+<p><strong>Entry actions:</strong></p>
+<ol>
+<li>Display balance fetched from <code>GET /v1/session</code> (or cached from login).</li>
+<li>Apply bet level limits from <code>ConfigService.getConfig()</code>.</li>
+<li>Enable/disable Buy Feature button based on <code>config.gameParameters.buyFeatureCostMultiplier &gt; 0</code>.</li>
+</ol>
+<p><strong>Exit actions:</strong></p>
+<ol>
+<li>Store selected <code>betLevel</code>, <code>extraBet</code>, <code>currency</code> in <code>GameContext</code> singleton.</li>
+<li>Transition to <code>GameScene</code>.</li>
+</ol>
+<h4 id="gamescene">GameScene</h4>
+<p><strong>Purpose:</strong> Main game loop. Hosts all game components described in §3.</p>
+<p><strong>Entry actions:</strong></p>
+<ol>
+<li>Initialize all components with config and initial state.</li>
+<li>Restore Lightning Mark positions if reconnecting during FG (from <code>GET /v1/session</code>).</li>
+<li>Set state machine to <code>IDLE</code>.</li>
+</ol>
+<p><strong>Exit actions:</strong></p>
+<ol>
+<li>Clear <code>AnimationQueue</code>.</li>
+<li>Release object pools.</li>
+</ol>
+<p><strong>Asset preload manifest (GameScene — deferred after LoadingScene completes):</strong></p>
+<pre><code class="language-typescript">const GAME_ASSETS = [
+  &#x27;symbols/symbol_wild.spine&#x27;,
+  &#x27;symbols/symbol_sc.spine&#x27;,
+  &#x27;symbols/symbol_p1.spine&#x27;,
+  &#x27;symbols/symbol_p2.spine&#x27;,
+  &#x27;symbols/symbol_p3.spine&#x27;,
+  &#x27;symbols/symbol_p4.spine&#x27;,
+  &#x27;fx/fx_cascade_explode_premium.spine&#x27;,
+  &#x27;fx/fx_lightning_mark_appear.spine&#x27;,
+  &#x27;fx/fx_thunder_blessing_hit1.spine&#x27;,
+  &#x27;fx/fx_thunder_blessing_hit2.spine&#x27;,
+  &#x27;fx/fx_coin_toss_flip.spine&#x27;,
+  &#x27;backgrounds/bg_main_temple.png&#x27;,
+];</code></pre>
+<h4 id="resultscene">ResultScene</h4>
+<p><code>ResultScene</code> is implemented as a full-screen overlay panel within <code>GameScene</code>, not a separate Cocos scene. It renders the Big Win / Mega Win / Jackpot / Max Win celebration (PDD §9.1) on top of the frozen reel state. After the celebration completes or the player taps to skip, the overlay is dismissed and the game returns to <code>IDLE</code>.</p>
+<h3 id="h-23-scenemanager-pattern">2.3 SceneManager Pattern</h3>
+<pre><code class="language-typescript">// src/scenes/SceneManager.ts
+
+type SceneId = &#x27;loading&#x27; | &#x27;lobby&#x27; | &#x27;game&#x27;;
+
+interface SceneTransition {
+  readonly from: SceneId;
+  readonly to: SceneId;
+  readonly durationMs: number;
+}
+
+class SceneManager {
+  private static instance: SceneManager;
+  private currentScene: SceneId = &#x27;loading&#x27;;
+
+  static getInstance(): SceneManager {
+    if (!SceneManager.instance) {
+      SceneManager.instance = new SceneManager();
+    }
+    return SceneManager.instance;
+  }
+
+  async transitionTo(target: SceneId, params?: Record&lt;string, unknown&gt;): Promise&lt;void&gt; {
+    // Cross-dissolve: fade out current, load next, fade in
+    await this.fadeOut(300);
+    // [Cocos] cc.director.loadScene(target)
+    // [PixiJS] swap stage children
+    await this.fadeIn(300);
+    this.currentScene = target;
+  }
+
+  // Swap background layer only (no full scene unload) — used during FG reconnect (§11.5)
+  async switchBackground(backgroundId: string, crossDissolve: boolean): Promise&lt;void&gt; {
+    if (crossDissolve) await this.fadeOut(300);
+    // [Cocos] swap background node; [PixiJS] swap background sprite
+    if (crossDissolve) await this.fadeIn(300);
+  }
+
+  private fadeOut(ms: number): Promise&lt;void&gt; { /* ... */ return Promise.resolve(); }
+  private fadeIn(ms: number): Promise&lt;void&gt; { /* ... */ return Promise.resolve(); }
+}</code></pre>
+<hr>
+<h2 id="h-3-component-architecture">§3 Component Architecture</h2>
+<p>All components follow the principle: <strong>receive data from the state machine, render it, emit events upward</strong>. Components never call the API directly.</p>
+<h3 id="h-31-reelcomponent">3.1 ReelComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Manage 5 reel strips, each containing a column of <code>SymbolComponent</code> instances.</li>
+<li>Handle cascade expansion from 3 rows to up to 6 rows, adding new rows below.</li>
+<li>Coordinate symbol fall-down animation when new symbols fill empty positions.</li>
+<li>Emit reel-stop events per reel column in sequence.</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface ReelComponent {
+  // Initialize with config-supplied reel strip data
+  initialize(config: ReelConfig): void;
+
+  // Display the initial grid from FullSpinOutcome.initialGrid
+  setInitialGrid(grid: SymbolId[][]): void;
+
+  // Animate cascade step: eliminate winning symbols, drop new symbols, expand rows
+  playCascadeStep(step: CascadeStep): Promise&lt;void&gt;;
+
+  // Expand reel height to accommodate additional rows (max 6)
+  expandToRows(newRowCount: number): Promise&lt;void&gt;;
+
+  // Reset to 3-row state at start of each new spin
+  resetToInitialRows(): void;
+
+  // Highlight winning symbol positions during win line display
+  highlightPositions(positions: Position[], highlight: boolean): void;
+
+  // Show Near Miss visual effect on specified positions
+  showNearMiss(positions: Position[]): void;
+
+  // Events
+  onReelStop: EventEmitter&lt;{ reelIndex: number }&gt;;
+  onCascadeStepComplete: EventEmitter&lt;{ stepIndex: number }&gt;;
+  onExpansionComplete: EventEmitter&lt;{ newRows: number }&gt;;
+}
+
+interface ReelConfig {
+  readonly reelStrips: SymbolId[][];  // Loaded from bundled game asset (not GET /v1/config)
+  readonly initialRows: 3;
+  readonly maxRows: 6;
+  readonly symbolSizePx: number;       // 190px at 1920×1080
+  readonly gapPx: number;              // 10px
+}</code></pre>
+<p><strong>Dependencies:</strong> <code>SymbolComponent</code> (pool), <code>AnimationQueue</code>, <code>LightningMarkComponent</code>.</p>
+<h3 id="h-32-symbolcomponent">3.2 SymbolComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Render a single symbol (W, SC, P1–P4, L1–L4) using Spine animation or static texture.</li>
+<li>Switch between animation states: <code>idle</code>, <code>win</code>, <code>special</code>.</li>
+<li>Play cascade elimination animation (shrink + particle burst).</li>
+<li>Support symbol upgrade animation for Thunder Blessing (current symbol → target symbol).</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface SymbolComponent {
+  // Assign symbol type and reset to idle state
+  setSymbol(symbolId: SymbolId): void;
+
+  // Play win animation (triggered when this symbol participates in a win line)
+  playWin(): Promise&lt;void&gt;;
+
+  // Play special animation (Thunder Blessing upgrade to this symbol)
+  playSpecial(): Promise&lt;void&gt;;
+
+  // Play elimination animation (cascade removal)
+  playEliminate(): Promise&lt;void&gt;;
+
+  // Upgrade symbol from current to targetSymbol with upgrade animation
+  upgradeToSymbol(targetSymbol: SymbolId): Promise&lt;void&gt;;
+
+  // Set visual opacity (dim non-winning symbols during win line display)
+  setOpacity(opacity: number): void;
+
+  // Pool lifecycle
+  onRecycled(): void;
+  onReused(symbolId: SymbolId): void;
+
+  readonly symbolId: SymbolId;
+  readonly position: Position;  // { row, col }
+}
+
+type SymbolId = &#x27;W&#x27; | &#x27;SC&#x27; | &#x27;P1&#x27; | &#x27;P2&#x27; | &#x27;P3&#x27; | &#x27;P4&#x27; | &#x27;L1&#x27; | &#x27;L2&#x27; | &#x27;L3&#x27; | &#x27;L4&#x27;;</code></pre>
+<p><strong>Pool size:</strong> 30 active symbols (5 cols × 6 rows max) plus 5 buffer for incoming cascade symbols = 35 total.</p>
+<p><strong>Animation durations (per VDD §3.3 and PDD §2):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Symbol</th>
+<th>Win Duration</th>
+<th>Special Duration</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Wild (W)</td>
+<td>1.2s (72 frames@60fps)</td>
+<td>2.5s</td>
+</tr>
+<tr>
+<td>Scatter (SC)</td>
+<td>1.8s (108 frames@60fps)</td>
+<td>1.5s</td>
+</tr>
+<tr>
+<td>P1 Zeus</td>
+<td>1.5s</td>
+<td>2.0s</td>
+</tr>
+<tr>
+<td>P2 Pegasus</td>
+<td>1.3s</td>
+<td>1.8s</td>
+</tr>
+<tr>
+<td>P3 Athena</td>
+<td>1.2s</td>
+<td>1.8s</td>
+</tr>
+<tr>
+<td>P4 Eagle</td>
+<td>1.0s</td>
+<td>1.5s</td>
+</tr>
+<tr>
+<td>L1–L4</td>
+<td>0.8s</td>
+<td>1.5s</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-33-lightningmarkcomponent">3.3 LightningMarkComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Track all active Lightning Mark positions on the grid (persists across cascade steps).</li>
+<li>Render gold lightning bolt overlay on each marked position (60% opacity, Additive blend mode).</li>
+<li>Animate mark appearance: <code>scale 0 → 1.2 → 1.0</code> in 0.4s with <code>ease-out-back</code>.</li>
+<li>Animate mark activation when Thunder Blessing Scatter triggers (all marks pulse, arc lines to SC).</li>
+<li>During FG: marks accumulate across rounds without clearing between spins.</li>
+<li>Clear all marks when: new Main Game spin starts (not in FG); or FG fully completes.</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface LightningMarkComponent {
+  // Add marks at positions from CascadeStep.newLightningMarks
+  addMarks(positions: Position[]): Promise&lt;void&gt;;
+
+  // Trigger activation animation (Scatter landed, marks begin to pulse)
+  playActivation(): Promise&lt;void&gt;;
+
+  // Animate all marks converting (Thunder Blessing first hit)
+  playConversion(targetSymbol: SymbolId): Promise&lt;void&gt;;
+
+  // Clear all marks (new spin in Main Game, or post-FG cleanup)
+  clearAllMarks(): void;
+
+  // Restore marks from session data (reconnect flow)
+  restoreMarks(positions: Position[]): void;
+
+  // Count of currently active marks (drives counter display)
+  readonly activeMarkCount: number;
+
+  // Events
+  onMarkAdded: EventEmitter&lt;{ position: Position }&gt;;
+  onAllMarksCleared: EventEmitter&lt;void&gt;;
+}</code></pre>
+<p><strong>Dependencies:</strong> <code>SymbolComponent</code> (z-order above symbols, below win lines).</p>
+<p><strong>Lightning mark counter display:</strong> Updates when <code>activeMarkCount</code> changes. Counter appearance thresholds (PDD §4.2):</p>
+<ul>
+<li>1–2 marks: gold, constant.</li>
+<li>3–4 marks: electric arc flicker, orange-gold.</li>
+<li>5+ marks: pulsing white-gold, expanded background glow.</li>
+</ul>
+<h3 id="h-34-thunderblessingcomponent">3.4 ThunderBlessingComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Orchestrate the two-hit Thunder Blessing upgrade sequence when <code>thunderBlessingTriggered = true</code> in <code>FullSpinOutcome</code>.</li>
+<li>First hit: all Lightning Mark positions convert to <code>upgradedSymbol</code> (from <code>thunderBlessingResult.convertedSymbol</code>).</li>
+<li>Second hit (when <code>thunderBlessingSecondHit = true</code>): all converted positions upgrade one tier higher per symbol upgrade path.</li>
+<li>Symbol upgrade path: L1/L2/L3/L4 → P4 → P3 → P2 → P1 (direct L-to-P4 with no intermediate step).</li>
+<li>Coordinate with <code>LightningMarkComponent</code> and <code>SymbolComponent</code> for visual sequence.</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface ThunderBlessingComponent {
+  // Animate full Thunder Blessing sequence from FullSpinOutcome data
+  playSequence(params: ThunderBlessingParams): Promise&lt;void&gt;;
+
+  // Events
+  onFirstHitComplete: EventEmitter&lt;{ convertedSymbol: SymbolId; positions: Position[] }&gt;;
+  onSecondHitComplete: EventEmitter&lt;{ upgradedPositions: Position[] }&gt;;
+  onSequenceComplete: EventEmitter&lt;void&gt;;
+}
+
+interface ThunderBlessingParams {
+  readonly thunderBlessingResult: ThunderBlessingResult;  // From FullSpinOutcome
+  readonly thunderBlessingFirstHit: boolean;
+  readonly thunderBlessingSecondHit: boolean;
+  readonly upgradedSymbol: &#x27;P1&#x27; | &#x27;P2&#x27; | &#x27;P3&#x27; | &#x27;P4&#x27;;
+}
+
+// Mirrors API.md §4 ThunderBlessingResult schema
+interface ThunderBlessingResult {
+  readonly marksConverted: Position[];
+  readonly convertedSymbol: &#x27;P1&#x27; | &#x27;P2&#x27; | &#x27;P3&#x27; | &#x27;P4&#x27;;
+  readonly firstHitApplied: boolean;
+  readonly secondHitApplied: boolean;
+}</code></pre>
+<p><strong>Animation sequence timing (PDD §4.3 and VDD §7.4):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Time (from trigger)</th>
+<th>Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>0.0s</td>
+<td>SC lands, electric arcs radiate from SC position</td>
+</tr>
+<tr>
+<td>0.2s</td>
+<td>All Lightning Marks pulse simultaneously, arc lines to SC</td>
+</tr>
+<tr>
+<td>0.8s</td>
+<td>All marks explode (gold flash), background white flash (0→0.9 opacity, 300ms)</td>
+</tr>
+<tr>
+<td>1.2s</td>
+<td>Marked positions shatter and reassemble as <code>convertedSymbol</code></td>
+</tr>
+<tr>
+<td>1.8s</td>
+<td>Converted symbols settle; gold glow persists 0.5s</td>
+</tr>
+<tr>
+<td>2.3s (if secondHit)</td>
+<td>Second pulse — symbols upgrade one tier per upgrade path</td>
+</tr>
+<tr>
+<td>3.0s</td>
+<td>Sequence complete, resume cascade evaluation</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-35-cointosscomponent">3.5 CoinTossComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Display full-screen coin toss overlay when <code>coinTossTriggered = true</code>.</li>
+<li>Animate 3D coin flip (Y-axis rotation, 3000–3500ms total per VDD §4.5).</li>
+<li>Display HEADS result (&quot;ZEUS SMILES!&quot; banner) or TAILS result (&quot;NOT THIS TIME&quot;).</li>
+<li>Drive FG multiplier progress bar (§6.4 of PDD) showing current stage.</li>
+<li>During FG: toss is shown AFTER each round&#x27;s cascade resolves (post-round), driven by <code>fgRounds[i].coinTossResult</code>. HEADS continues to next round; TAILS ends FG.</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface CoinTossComponent {
+  // Show Coin Toss overlay and animate flip to result
+  playToss(result: &#x27;HEADS&#x27; | &#x27;TAILS&#x27;, currentMultiplierStage: number): Promise&lt;void&gt;;
+
+  // Update the multiplier progress bar to reflect current FG stage
+  updateMultiplierProgress(stage: number): void;
+
+  // Hide the overlay
+  hide(): void;
+
+  // Events
+  onTossComplete: EventEmitter&lt;{ result: &#x27;HEADS&#x27; | &#x27;TAILS&#x27; }&gt;;
+}</code></pre>
+<p><strong>Coin flip animation stages (VDD §4.5):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Stage</th>
+<th>Duration</th>
+<th>Easing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Coin fly-in (Y: -800px → 0)</td>
+<td>500ms</td>
+<td><code>ease-out-cubic</code></td>
+</tr>
+<tr>
+<td>Accelerating spin (0° → 2520°, 7 full Y-rotations)</td>
+<td>800ms</td>
+<td><code>ease-in</code></td>
+</tr>
+<tr>
+<td>Sustained spin (random extra rotations)</td>
+<td>200–700ms (randomized)</td>
+<td><code>linear</code></td>
+</tr>
+<tr>
+<td>Decelerate to face (HEADS or TAILS)</td>
+<td>1500ms</td>
+<td><code>ease-coin-decel</code> (<code>cubic-bezier(0.05, 0.7, 0.1, 1.0)</code>)</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>3000–3500ms</strong></td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p><strong>Multiplier progress bar colors (VDD §4.8):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Stage</th>
+<th>Multiplier</th>
+<th>Heads Probability</th>
+<th>Node Color (OKLCH)</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>×3</td>
+<td>80%</td>
+<td><code>oklch(70% 0.17 142)</code> (green)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>×7</td>
+<td>68%</td>
+<td><code>oklch(80% 0.18 88)</code> (yellow)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>×17</td>
+<td>56%</td>
+<td><code>oklch(72% 0.19 55)</code> (yellow-orange)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>×27</td>
+<td>48%</td>
+<td><code>oklch(68% 0.21 40)</code> (orange-red)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>×77</td>
+<td>40%</td>
+<td><code>oklch(62% 0.22 25)</code> (deep red)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-36-freegamecomponent">3.6 FreeGameComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Display FG overlay/mode UI: FG banner, current multiplier display, spin counter.</li>
+<li>Show FG Bonus multiplier reveal animation (×1/×5/×20/×100) from <code>fgBonusMultiplier</code>.</li>
+<li>Orchestrate FG round playback from <code>fgRounds</code> array in sequence.</li>
+<li>Display FG total win summary when all rounds complete.</li>
+<li>Handle scene background switch to &quot;Sky Temple&quot; (night scene) during FG.</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface FreeGameComponent {
+  // Enter FG mode: show banner, reveal bonus multiplier, start rounds
+  enterFreeGame(params: FGEntryParams): Promise&lt;void&gt;;
+
+  // Play a single FG round (drives reel + cascade animation for that round)
+  playFGRound(round: FGRound, roundIndex: number): Promise&lt;void&gt;;
+
+  // Show FG complete summary — roll up to totalWin (authoritative server value); display totalFGWin/fgMultiplier/bonusMultiplier as informational context only
+  showFGComplete(totalFGWin: number, fgMultiplier: number, bonusMultiplier: number, totalWin: number): Promise&lt;void&gt;;
+
+  // Exit FG mode (restore main game scene)
+  exitFreeGame(): Promise&lt;void&gt;;
+
+  // Update spin counter display
+  updateSpinCounter(currentRound: number, isFinal: boolean): void;
+
+  // Restore FG state from session (used on reconnect; §8.3)
+  restoreFromSession(fgMultiplier: 3 | 7 | 17 | 27 | 77, fgRound: number): void;
+
+  // Events
+  onFGComplete: EventEmitter&lt;{ totalFGWin: number }&gt;;
+}
+
+interface FGEntryParams {
+  readonly fgBonusMultiplier: 1 | 5 | 20 | 100;  // From FullSpinOutcome.fgBonusMultiplier
+  readonly initialMultiplier: 3;
+  // Individual FG rounds are enqueued as separate FG_ROUND steps in AnimationQueue —
+  // FGEntryParams only covers the entry phase (multiplier reveal + fanfare + background switch).
+}</code></pre>
+<p><strong>FG Bonus Multiplier reveal animation (PDD §7.4):</strong></p>
+<ul>
+<li>×1: standard reveal, no fanfare.</li>
+<li>×5: moderate gold particle burst.</li>
+<li>×20: large particle burst + banner.</li>
+<li>×100: full-screen gold explosion (3000+ particles desktop, 800+ mobile), <code>×100 BONUS!</code> text with SFX.</li>
+</ul>
+<h3 id="h-37-betpanelcomponent">3.7 BetPanelComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Display and control bet level selector (betLevel 1–20 for USD, 1–320 for TWD).</li>
+<li>Control Extra Bet toggle ON/OFF (updates displayed total bet = baseBet × 3 when ON).</li>
+<li>Display Buy Feature button with cost label: <code>baseBet × config.gameParameters.buyFeatureCostMultiplier</code> (normal) or <code>× buyFeatureCostMultiplier × extraBetCostMultiplier</code> (Extra Bet ON) — always read from ConfigService, never hardcoded.</li>
+<li>Lock bet changes during spin / FG.</li>
+<li>Read all limits from <code>ConfigService</code> — never hardcode bet ranges.</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface BetPanelComponent {
+  // Initialize with config-derived bet levels and currency
+  initialize(config: BetConfig): void;
+
+  // Lock/unlock bet controls
+  setLocked(locked: boolean): void;
+
+  // Sync Extra Bet toggle state (player-driven ON/OFF)
+  setExtraBet(active: boolean): void;
+
+  // Enable or disable the Extra Bet toggle based on config (§9.3)
+  setExtraBetEnabled(enabled: boolean): void;
+
+  // Show Buy Feature button with computed cost label
+  setBuyFeatureEnabled(enabled: boolean, cost: number): void;
+
+  // Events
+  onBetLevelChanged: EventEmitter&lt;{ betLevel: number }&gt;;
+  onExtraBetToggled: EventEmitter&lt;{ active: boolean }&gt;;
+  onBuyFeatureClicked: EventEmitter&lt;void&gt;;
+  onSpinClicked: EventEmitter&lt;void&gt;;
+}
+
+interface BetConfig {
+  readonly levels: BetLevelEntry[];  // From config.betRange[currency].levels
+  readonly extraBetEnabled: boolean;
+  readonly buyFeatureEnabled: boolean;
+  readonly currency: &#x27;USD&#x27; | &#x27;TWD&#x27;;
+}</code></pre>
+<h3 id="h-38-balancecomponent">3.8 BalanceComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Display player balance from <code>FullSpinOutcome.newBalance</code> (post-spin).</li>
+<li>Display current round WIN value, rolling up from 0 to <code>totalWin</code> during cascade animation.</li>
+<li>Win roll-up algorithm: exponential decay (<code>(target - current) × 0.15</code> per frame) for 200ms–5000ms depending on win size (VDD §4.7).</li>
+<li>Large wins (≥ 20× baseBet): trigger win tier banner overlay (Big Win, Mega Win, Jackpot, Max Win).</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface BalanceComponent {
+  // Update balance display immediately (no animation)
+  setBalance(amount: number, currency: &#x27;USD&#x27; | &#x27;TWD&#x27;): void;
+
+  // Animate WIN counter rolling up from current to targetWin; durationMs defaults to auto (win-size-based)
+  animateWin(targetWin: number, durationMs?: number): Promise&lt;void&gt;;
+
+  // Reset WIN display to 0 at start of new spin
+  resetWin(): void;
+
+  // Show Big Win / Mega Win overlay based on win tier
+  showWinTier(winAmount: number, baseBet: number): Promise&lt;void&gt;;
+
+  // Events
+  onWinAnimationComplete: EventEmitter&lt;{ finalWin: number }&gt;;
+}</code></pre>
+<p><strong>Win tier thresholds (PDD §9.1):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tier</th>
+<th>Condition</th>
+<th>Duration</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Small Win</td>
+<td>0 &lt; win &lt; 5× baseBet</td>
+<td>auto</td>
+</tr>
+<tr>
+<td>Medium Win</td>
+<td>5× ≤ win &lt; 20× baseBet</td>
+<td>1.5s</td>
+</tr>
+<tr>
+<td>Big Win</td>
+<td>20× ≤ win &lt; 100× baseBet</td>
+<td>3.0s</td>
+</tr>
+<tr>
+<td>Mega Win</td>
+<td>100× ≤ win &lt; 500× baseBet</td>
+<td>4.0s</td>
+</tr>
+<tr>
+<td>Jackpot</td>
+<td>win ≥ 500× baseBet</td>
+<td>5.0s</td>
+</tr>
+<tr>
+<td>Max Win (30,000×)</td>
+<td>win at Main Game cap</td>
+<td>6.0s</td>
+</tr>
+<tr>
+<td>Max Win (90,000×)</td>
+<td>win at Extra Bet + Buy FG cap</td>
+<td>10s+</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-39-hudcomponent">3.9 HUDComponent</h3>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Render top toolbar: INFO, SOUND, LINES display, SETTINGS.</li>
+<li>Render FREE letter progress indicator (F-R-E-E) — each letter lights up on each successive cascade expansion.</li>
+<li>Update LINES count dynamically as rows expand (25 → 33 → 45 → 57, driven by <code>cascadeSequence.steps[i].rows</code>).</li>
+<li>Manage sound toggle state and call <code>AudioManager.setMuted()</code>.</li>
+<li>Open Info panel (static 57-line payline diagram).</li>
+</ul>
+<p><strong>Public interface:</strong></p>
+<pre><code class="language-typescript">interface HUDComponent {
+  // Update FREE letter progress (lit count = cascade expansion count, 0-4)
+  setFreeLetterProgress(litCount: number): void;
+
+  // Update LINES counter
+  setActiveLines(lineCount: number): void;
+
+  // Toggle sound mute state
+  setSoundMuted(muted: boolean): void;
+
+  // Show/hide loading indicator (during API call)
+  setLoading(loading: boolean): void;
+
+  // Show persistent offline banner (§8.4)
+  showOfflineBanner(message: string): void;
+
+  // Hide offline banner when connection restored (§8.4)
+  hideOfflineBanner(): void;
+
+  // Events
+  onInfoClicked: EventEmitter&lt;void&gt;;
+  onSoundToggled: EventEmitter&lt;{ muted: boolean }&gt;;
+  onSettingsClicked: EventEmitter&lt;void&gt;;
+}</code></pre>
+<p><strong>FREE letter lit rules (PDD §5.3):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Cascade Count</th>
+<th>Lit Letters</th>
+<th>Row Count</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>none</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>F</td>
+<td>4</td>
+</tr>
+<tr>
+<td>2</td>
+<td>F, R</td>
+<td>5</td>
+</tr>
+<tr>
+<td>3</td>
+<td>F, R, E</td>
+<td>6 (partial)</td>
+</tr>
+<tr>
+<td>4+</td>
+<td>F, R, E, E (all)</td>
+<td>6 (full)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-4-game-flow-state-machine">§4 Game Flow State Machine</h2>
+<h3 id="h-41-state-definitions">4.1 State Definitions</h3>
+<pre><code class="language-typescript">enum GameState {
+  IDLE             = &#x27;IDLE&#x27;,
+  SPINNING         = &#x27;SPINNING&#x27;,
+  CASCADE_RESOLVING = &#x27;CASCADE_RESOLVING&#x27;,
+  THUNDER_BLESSING = &#x27;THUNDER_BLESSING&#x27;,
+  COIN_TOSS        = &#x27;COIN_TOSS&#x27;,
+  FREE_GAME        = &#x27;FREE_GAME&#x27;,
+  RESULT_DISPLAY   = &#x27;RESULT_DISPLAY&#x27;,
+  NETWORK_ERROR    = &#x27;NETWORK_ERROR&#x27;,
+  TIMEOUT_RETRY    = &#x27;TIMEOUT_RETRY&#x27;,
+  SESSION_RECONNECT = &#x27;SESSION_RECONNECT&#x27;,
+}</code></pre>
+<h3 id="h-42-main-state-machine-transition-table">4.2 Main State Machine Transition Table</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Current State</th>
+<th>Event</th>
+<th>Next State</th>
+<th>Actions</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>IDLE</code></td>
+<td><code>SPIN_PRESSED</code></td>
+<td><code>SPINNING</code></td>
+<td>Lock UI; call <code>SpinService.spin()</code>; show loading indicator after 500ms</td>
+</tr>
+<tr>
+<td><code>SPINNING</code></td>
+<td><code>SPIN_RESPONSE_OK</code></td>
+<td><code>CASCADE_RESOLVING</code></td>
+<td>Store <code>FullSpinOutcome</code>; set initial grid; hide loading indicator</td>
+</tr>
+<tr>
+<td><code>SPINNING</code></td>
+<td><code>SPIN_RESPONSE_ERROR</code></td>
+<td><code>NETWORK_ERROR</code></td>
+<td>Unlock UI; display error</td>
+</tr>
+<tr>
+<td><code>SPINNING</code></td>
+<td><code>SPIN_TIMEOUT</code></td>
+<td><code>TIMEOUT_RETRY</code></td>
+<td>Increment retry count</td>
+</tr>
+<tr>
+<td><code>CASCADE_RESOLVING</code></td>
+<td><code>NEXT_CASCADE_STEP</code></td>
+<td><code>CASCADE_RESOLVING</code></td>
+<td><code>AnimationQueue.play(dispatcher)</code> drives each step via <code>AnimationDispatcher.dispatch()</code></td>
+</tr>
+<tr>
+<td><code>CASCADE_RESOLVING</code></td>
+<td><code>TB_TRIGGERED</code></td>
+<td><code>THUNDER_BLESSING</code></td>
+<td>After current step completes</td>
+</tr>
+<tr>
+<td><code>CASCADE_RESOLVING</code></td>
+<td><code>CASCADE_COMPLETE_COIN_TOSS</code></td>
+<td><code>COIN_TOSS</code></td>
+<td>All steps done; <code>coinTossTriggered = true</code></td>
+</tr>
+<tr>
+<td><code>CASCADE_RESOLVING</code></td>
+<td><code>CASCADE_COMPLETE_NO_WIN</code></td>
+<td><code>RESULT_DISPLAY</code></td>
+<td><code>totalWin = 0</code></td>
+</tr>
+<tr>
+<td><code>CASCADE_RESOLVING</code></td>
+<td><code>CASCADE_COMPLETE_WIN</code></td>
+<td><code>RESULT_DISPLAY</code></td>
+<td><code>totalWin &gt; 0</code>; animate win counter</td>
+</tr>
+<tr>
+<td><code>THUNDER_BLESSING</code></td>
+<td><code>TB_SEQUENCE_COMPLETE</code></td>
+<td><code>CASCADE_RESOLVING</code></td>
+<td>Resume cascade evaluation</td>
+</tr>
+<tr>
+<td><code>COIN_TOSS</code></td>
+<td><code>COIN_TOSS_HEADS_FG</code></td>
+<td><code>FREE_GAME</code></td>
+<td><code>fgTriggered = true</code></td>
+</tr>
+<tr>
+<td><code>COIN_TOSS</code></td>
+<td><code>COIN_TOSS_TAILS</code></td>
+<td><code>RESULT_DISPLAY</code></td>
+<td>FG not triggered</td>
+</tr>
+<tr>
+<td><code>FREE_GAME</code></td>
+<td><code>FG_ROUND_START</code></td>
+<td><code>FREE_GAME</code></td>
+<td>Play <code>fgRounds[currentRound]</code></td>
+</tr>
+<tr>
+<td><code>FREE_GAME</code></td>
+<td><code>FG_ROUND_COMPLETE_HEADS</code></td>
+<td><code>FREE_GAME</code></td>
+<td>Advance multiplier; start next round</td>
+</tr>
+<tr>
+<td><code>FREE_GAME</code></td>
+<td><code>FG_ROUND_COMPLETE_TAILS</code></td>
+<td><code>RESULT_DISPLAY</code></td>
+<td>FG sequence ended</td>
+</tr>
+<tr>
+<td><code>RESULT_DISPLAY</code></td>
+<td><code>RESULT_DISMISSED</code></td>
+<td><code>IDLE</code></td>
+<td>Reset grid; clear marks (if not FG); enable SPIN</td>
+</tr>
+<tr>
+<td><code>NETWORK_ERROR</code></td>
+<td><code>RETRY_CLICKED</code></td>
+<td><code>IDLE</code></td>
+<td>Reset state</td>
+</tr>
+<tr>
+<td><code>TIMEOUT_RETRY</code></td>
+<td><code>RETRY_COUNT_OK</code></td>
+<td><code>SPINNING</code></td>
+<td>Retry API call</td>
+</tr>
+<tr>
+<td><code>TIMEOUT_RETRY</code></td>
+<td><code>RETRY_COUNT_EXCEEDED</code></td>
+<td><code>NETWORK_ERROR</code></td>
+<td>Max 3 retries exhausted</td>
+</tr>
+<tr>
+<td><code>SESSION_RECONNECT</code></td>
+<td><code>SESSION_RESTORED_FG</code></td>
+<td><code>FREE_GAME</code></td>
+<td>Replay from stored FG position</td>
+</tr>
+<tr>
+<td><code>SESSION_RECONNECT</code></td>
+<td><code>SESSION_RESTORED_IDLE</code></td>
+<td><code>IDLE</code></td>
+<td>No active FG</td>
+</tr>
+<tr>
+<td><code>SESSION_RECONNECT</code></td>
+<td><code>SESSION_EXPIRED</code></td>
+<td><code>IDLE</code></td>
+<td>Show &quot;Session Expired&quot; dialog</td>
+</tr>
+<tr>
+<td>Any</td>
+<td><code>NETWORK_OFFLINE</code></td>
+<td><code>NETWORK_ERROR</code></td>
+<td>Show offline banner; disable SPIN; wait for connectivity restore</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-43-state-entry-and-exit-actions">4.3 State Entry and Exit Actions</h3>
+<h4 id="idle">IDLE</h4>
+<ul>
+<li><strong>Entry:</strong> Enable SPIN button; clear WIN display; reset FREE letter progress (if not in FG).</li>
+<li><strong>Exit:</strong> Disable SPIN button; lock bet panel.</li>
+</ul>
+<h4 id="spinning">SPINNING</h4>
+<ul>
+<li><strong>Entry:</strong> Call <code>SpinService.spin(request)</code>; start 500ms timeout before showing loading indicator.</li>
+<li><strong>Exit:</strong> Store <code>FullSpinOutcome</code> in <code>GameContext.currentOutcome</code>; build <code>AnimationQueue</code>.</li>
+</ul>
+<h4 id="cascade_resolving">CASCADE_RESOLVING</h4>
+<ul>
+<li><strong>Entry:</strong> Initialize cascade step iterator from <code>cascadeSequence.steps</code>.</li>
+<li><strong>Per-step:</strong> Dequeue next <code>CascadeStep</code> from <code>AnimationQueue</code>; play it; update LINES counter from <code>step.rows</code>; update FREE letters.</li>
+<li><strong>Exit (to THUNDER_BLESSING):</strong> Only when <code>thunderBlessingTriggered = true</code> detected in step.</li>
+<li><strong>Exit (to COIN_TOSS):</strong> When all cascade steps consumed and <code>coinTossTriggered = true</code>.</li>
+</ul>
+<h4 id="thunder_blessing">THUNDER_BLESSING</h4>
+<ul>
+<li><strong>Entry:</strong> Call <code>ThunderBlessingComponent.playSequence()</code> with <code>thunderBlessingResult</code>.</li>
+<li><strong>Exit:</strong> Return to <code>CASCADE_RESOLVING</code> to process any win lines generated by upgraded symbols.</li>
+</ul>
+<h4 id="coin_toss">COIN_TOSS</h4>
+<ul>
+<li><strong>Entry:</strong> Show <code>CoinTossComponent</code> overlay; spotlight effect.</li>
+<li><strong>Exit:</strong> Either enter <code>FREE_GAME</code> (HEADS + <code>fgTriggered = true</code>) or <code>RESULT_DISPLAY</code> (TAILS).</li>
+</ul>
+<h4 id="free_game">FREE_GAME</h4>
+<ul>
+<li><strong>Entry:</strong> Call <code>FreeGameComponent.enterFreeGame()</code> with <code>{ fgBonusMultiplier, initialMultiplier }</code>. FG rounds are handled as separate FG_ROUND animation steps in the AnimationQueue — not passed to enterFreeGame.</li>
+<li><strong>Per-round:</strong> Call <code>FreeGameComponent.playFGRound(fgRounds[i], i)</code>.</li>
+<li><strong>Exit:</strong> Call <code>FreeGameComponent.exitFreeGame()</code>; clear Lightning Marks; transition to <code>RESULT_DISPLAY</code>.</li>
+</ul>
+<h4 id="network_error">NETWORK_ERROR</h4>
+<ul>
+<li><strong>Entry:</strong> Display offline indicator UI; show error code (if <code>RATE_LIMITED</code>, show cooldown timer from <code>retryAfter</code>).</li>
+<li><strong>Exit:</strong> User dismisses error; reset to <code>IDLE</code>.</li>
+</ul>
+<h4 id="timeout_retry">TIMEOUT_RETRY</h4>
+<ul>
+<li><strong>Entry:</strong> Increment <code>retryCount</code>; wait <code>Math.pow(2, retryCount - 1)</code> seconds (1s, 2s, 4s).</li>
+<li><strong>Exit:</strong> If <code>retryCount &lt;= 3</code> retry spin; else enter <code>NETWORK_ERROR</code>.</li>
+</ul>
+<h3 id="h-44-fg-sub-state-detail">4.4 FG Sub-State Detail</h3>
+<p>During <code>FREE_GAME</code>, the internal sub-state sequence per round is:</p>
+<pre><code>FG_ENTRY (bonus multiplier reveal)
+    │
+    ▼
+FG_SPINNING (play round cascade from fgRounds[i])
+    │
+    ▼
+FG_CASCADE_RESOLVE (process CascadeSteps in fgRounds[i].cascadeSequence)
+    │
+    ▼
+FG_COIN_TOSS_POST_ROUND (show Coin Toss for completed round)
+    │
+    ├── HEADS ──► (increment stage, update multiplier display, next round → FG_SPINNING)
+    │
+    └── TAILS ──────────────────────────────► FG_RESULT (final summary)</code></pre>
+<p><strong>Key rules:</strong></p>
+<ul>
+<li>The cascade (<code>fgRounds[i].cascadeSequence</code>) always plays first — coin toss result is revealed after the cascade completes.</li>
+<li><code>fgRounds[i].multiplier</code> sets the active multiplier for that round&#x27;s win calculation display.</li>
+<li><code>fgRounds[i].roundWin</code> is the raw win (before multiplier) displayed during the round.</li>
+<li><code>fgRounds[i].coinTossResult === &#x27;TAILS&#x27;</code> terminates the FG loop after the round&#x27;s cascade has fully played.</li>
+<li>Lightning Marks from <code>lightningMarksBefore</code>/<code>lightningMarksAfter</code> track cumulative marks per round.</li>
+</ul>
+<hr>
+<h2 id="h-5-api-integration-layer">§5 API Integration Layer</h2>
+<h3 id="h-51-spinservice">5.1 SpinService</h3>
+<p><strong>Responsibility:</strong> Execute POST <code>/v1/spin</code> and return a typed <code>FullSpinOutcome</code>.</p>
+<pre><code class="language-typescript">// src/services/SpinService.ts
+
+interface SpinRequest {
+  readonly playerId: string;        // UUID from JWT sub claim
+  readonly sessionId: string | null;
+  readonly betLevel: number;
+  readonly currency: &#x27;USD&#x27; | &#x27;TWD&#x27;;
+  readonly extraBet: boolean;
+  readonly buyFeature: boolean;
+}
+
+interface SpinResponse {
+  readonly success: true;
+  readonly requestId: string;
+  readonly timestamp: string;
+  readonly data: FullSpinOutcome;
+}
+
+class SpinService {
+  private readonly BASE_URL = &#x27;/v1&#x27;;
+  private readonly TIMEOUT_MS = 10_000;
+  private tokenStore!: { getToken(): string };  // Injected at init (same pattern as ConfigService/SessionService)
+
+  async spin(request: SpinRequest): Promise&lt;FullSpinOutcome&gt; {
+    const response = await this.fetchWithTimeout(
+      `${this.BASE_URL}/spin`,
+      {
+        method: &#x27;POST&#x27;,
+        headers: {
+          &#x27;Authorization&#x27;: `Bearer ${this.tokenStore.getToken()}`,
+          &#x27;Content-Type&#x27;: &#x27;application/json&#x27;,
+        },
+        body: JSON.stringify(request),
+      },
+      this.TIMEOUT_MS,
+    );
+    if (!response.ok) {
+      throw await this.parseErrorResponse(response);
+    }
+    const json: SpinResponse = await response.json();
+    return json.data;
+  }
+
+  private async fetchWithTimeout(url: string, init: RequestInit, ms: number): Promise&lt;Response&gt; {
+    const controller = new AbortController();
+    const id = setTimeout(() =&gt; controller.abort(), ms);
+    try {
+      return await fetch(url, { ...init, signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+  }
+
+  private async parseErrorResponse(response: Response): Promise&lt;GameError&gt; {
+    const body = await response.json().catch(() =&gt; ({}));
+    return new GameError(body.code ?? &#x27;INTERNAL_ERROR&#x27;, body.message ?? &#x27;Unknown error&#x27;, response.status);
+  }
+}</code></pre>
+<h3 id="h-52-sessionservice">5.2 SessionService</h3>
+<p><strong>Responsibility:</strong> Execute <code>GET /v1/session/:sessionId</code> for reconnect flow.</p>
+<pre><code class="language-typescript">// src/services/SessionService.ts
+
+interface SessionData {
+  readonly sessionId: string;
+  readonly playerId: string;
+  readonly status: &#x27;SPINNING&#x27; | &#x27;FG_ACTIVE&#x27; | &#x27;COMPLETE&#x27;;
+  readonly fgMultiplier: 3 | 7 | 17 | 27 | 77 | null;
+  readonly fgRound: number;
+  // 0 when FG not active (status ≠ FG_ACTIVE); ≥1 when FG is active (1-indexed round in progress)
+  // i.e., fgRound=1 means round 1 is upcoming, fgRound=2 means round 2 is upcoming, etc.
+  readonly lightningMarks: LightningMarkSet;  // Persisted Lightning Mark positions
+  readonly currency: &#x27;USD&#x27; | &#x27;TWD&#x27;;
+  readonly baseBet: number;
+  readonly extraBet: boolean;
+  readonly buyFeature: boolean;
+  readonly fgBonusMultiplier: 1 | 5 | 20 | 100 | null;
+  readonly totalFGWin: number;
+  readonly floorValue: number | null;
+  readonly completedRounds: FGRound[];
+  readonly remainingMaxRounds: number;
+  readonly ttlSeconds: number;
+}
+
+class SessionService {
+  private tokenStore!: { getToken(): string };  // Injected at init (same pattern as ConfigService/SpinService)
+
+  async getSession(sessionId: string): Promise&lt;SessionData&gt; {
+    const response = await fetch(`/v1/session/${sessionId}`, {
+      headers: { &#x27;Authorization&#x27;: `Bearer ${this.tokenStore.getToken()}` },
+    });
+    if (response.status === 404) {
+      throw new GameError(&#x27;SESSION_NOT_FOUND&#x27;, &#x27;Session expired or not found&#x27;, 404);
+    }
+    if (!response.ok) {
+      throw await this.parseErrorResponse(response);
+    }
+    const json = await response.json();
+    return json.data;
+  }
+
+  private async parseErrorResponse(response: Response): Promise&lt;GameError&gt; {
+    try {
+      const json = await response.json();
+      return new GameError(json.error?.code ?? &#x27;UNKNOWN_ERROR&#x27;, json.error?.message ?? &#x27;Unknown error&#x27;, response.status);
+    } catch {
+      return new GameError(&#x27;UNKNOWN_ERROR&#x27;, &#x27;Failed to parse error response&#x27;, response.status);
+    }
+  }
+}</code></pre>
+<p><strong>Reconnect protocol:</strong></p>
+<ol>
+<li>On app resume (visibility change to <code>visible</code>), call <code>SessionService.getSession(storedSessionId)</code>.</li>
+<li>If <code>status === &#x27;FG_ACTIVE&#x27;</code>: enter <code>SESSION_RECONNECT</code> state; restore Lightning Marks from <code>lightningMarks.positions</code>; call <code>LightningMarkComponent.restoreMarks(session.lightningMarks.positions)</code>; resume FG from <code>fgRound</code> index (if <code>session.fgRound &gt;= 1</code>, FG is active from that round onward).</li>
+<li>If <code>status === &#x27;COMPLETE&#x27;</code>: return to <code>IDLE</code> state normally (spin result was already processed).</li>
+</ol>
+<p>   If <code>status === &#x27;SPINNING&#x27;</code>: the wager has been deducted but the result has not yet been delivered. Do NOT return to IDLE — enter a <code>SPIN_PENDING_RECONNECT</code> polling loop: re-query <code>GET /v1/session</code> every 2 seconds (max 10 retries) until status transitions to <code>COMPLETE</code> or <code>FG_ACTIVE</code>, then process the outcome. If status remains <code>SPINNING</code> after all retries, show a &quot;Spin result pending — please contact support&quot; dialog and prevent further spins until resolved. Returning to IDLE would silently discard a live wager.</p>
+<ol>
+<li>If <code>SESSION_NOT_FOUND</code> (404): show &quot;Session Expired&quot; dialog; return to <code>IDLE</code>.</li>
+</ol>
+<h3 id="h-53-configservice">5.3 ConfigService</h3>
+<p><strong>Responsibility:</strong> Load and cache game configuration from <code>GET /v1/config</code> at startup.</p>
+<pre><code class="language-typescript">// src/services/ConfigService.ts
+
+// Mirrors GET /v1/config response (json.data field)
+interface BetLevelEntry {
+  readonly level: number;
+  readonly baseBet: number;
+  readonly extraBetCost: number;
+  readonly buyFeatureCost: number;
+}
+
+interface BetRangeData {
+  readonly minBetLevel: number;
+  readonly maxBetLevel: number;
+  readonly levels: BetLevelEntry[];
+}
+
+interface SymbolDef {
+  readonly id: SymbolId;
+  readonly name: string;
+  readonly isWild: boolean;
+  readonly isScatter: boolean;
+  readonly tier?: &#x27;premium&#x27; | &#x27;low&#x27;;
+}
+
+interface GameConfig {
+  readonly engineVersion: string;
+  readonly betRange: {
+    readonly USD: BetRangeData;
+    readonly TWD: BetRangeData;
+  };
+  readonly gameParameters: {
+    readonly reels: number;
+    readonly initialRows: number;
+    readonly maxRows: number;
+    readonly paylines: { at3Rows: number; at4Rows: number; at5Rows: number; at6Rows: number };
+    readonly symbols: SymbolDef[];
+    readonly fgMultiplierSequence: readonly [3, 7, 17, 27, 77];
+    readonly fgBonusMultipliers: readonly [1, 5, 20, 100];
+    readonly coinTossProbabilities: {
+      stage1_x3:  number;   // 0.80 — entry (×3)
+      stage2_x7:  number;   // 0.68 — ×7
+      stage3_x17: number;   // 0.56 — ×17
+      stage4_x27: number;   // 0.48 — ×27
+      stage5_x77: number;   // 0.40 — ×77
+    };
+    readonly maxWin: {
+      readonly mainGame: number;            // 30000 (× baseBet)
+      readonly buyFeature: number;          // 90000 (× baseBet)
+      readonly extraBetBuyFeature: number;  // 90000 (× baseBet)
+    };
+    readonly buyFeatureSessionFloor: number;   // 20 (× baseBet)
+    readonly extraBetCostMultiplier: number;   // 3
+    readonly buyFeatureCostMultiplier: number; // 100
+  };
+  readonly rtpTargets: {
+    readonly mainGame:     { target: number; tolerance: number; unit: string };
+    readonly extraBet:     { target: number; tolerance: number; unit: string };
+    readonly buyFeature:   { target: number; tolerance: number; unit: string };
+    readonly ebBuyFeature: { target: number; tolerance: number; unit: string };
+  };
+}
+
+class ConfigService {
+  private static instance: ConfigService;
+  private cachedConfig: GameConfig | null = null;
+  private tokenStore!: { getToken(): string };  // Injected at init
+
+  static getInstance(): ConfigService {
+    if (!ConfigService.instance) ConfigService.instance = new ConfigService();
+    return ConfigService.instance;
+  }
+
+  async loadConfig(): Promise&lt;GameConfig&gt; {
+    if (this.cachedConfig) return this.cachedConfig;
+    const response = await fetch(&#x27;/v1/config&#x27;, {
+      headers: { &#x27;Authorization&#x27;: `Bearer ${this.tokenStore.getToken()}` },
+    });
+    if (!response.ok) throw new Error(&#x27;Failed to load game config&#x27;);
+    const json = await response.json();
+    this.cachedConfig = json.data as GameConfig;
+    return this.cachedConfig!;
+  }
+
+  getConfig(): GameConfig {
+    if (!this.cachedConfig) throw new Error(&#x27;Config not loaded&#x27;);
+    return this.cachedConfig;
+  }
+
+  // Convenience: levels for current currency (used by BetPanelComponent)
+  getBetLevels(currency: &#x27;USD&#x27; | &#x27;TWD&#x27;): BetLevelEntry[] {
+    return this.getConfig().betRange[currency].levels;
+  }
+}</code></pre>
+<p><strong>Config is loaded once at startup (LoadingScene). It is never refetched during gameplay unless the user explicitly refreshes the page.</strong></p>
+<h3 id="h-54-request-lifecycle">5.4 Request Lifecycle</h3>
+<pre><code>Player presses SPIN
+    │
+    ▼
+BetPanelComponent.onSpinClicked (emits event)
+    │
+    ▼
+GameStateMachine.handleSpinPressed()
+    ├── Lock UI (BetPanelComponent.setLocked(true))
+    ├── Set state = SPINNING
+    └── SpinService.spin(request)
+             │
+             ├── (&gt; 500ms elapsed) → show loading indicator (HUDComponent.setLoading(true))
+             │
+             ├── Success (200 OK)
+             │    └── Store outcome in GameContext
+             │         ├── HUDComponent.setLoading(false)
+             │         ├── AnimationQueue.build(outcome)
+             │         └── State transition → CASCADE_RESOLVING
+             │
+             ├── Rate Limited (429)
+             │    └── State = NETWORK_ERROR; show cooldown timer from retryAfter field
+             │
+             ├── Service Unavailable (503/504)
+             │    └── State = TIMEOUT_RETRY (max 3 retries)
+             │
+             └── Validation Error (422)
+                  └── State = NETWORK_ERROR; show user-friendly error message</code></pre>
+<h3 id="h-55-error-handling-matrix">5.5 Error Handling Matrix</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>HTTP Status</th>
+<th>Error Code</th>
+<th>Frontend Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>INSUFFICIENT_FUNDS</code></td>
+<td>Show &quot;Insufficient balance&quot; dialog; unlock UI; return to IDLE</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>INVALID_BET_LEVEL</code></td>
+<td>Should not occur if ConfigService is respected; log error; return to IDLE</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>INVALID_CURRENCY</code></td>
+<td>Should not occur; log error; return to IDLE</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>BUY_FEATURE_NOT_ALLOWED</code></td>
+<td>Show &#x27;Buy Feature unavailable at current configuration&#x27; dialog; unlock UI; transition to IDLE state</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>UNAUTHORIZED</code></td>
+<td>Trigger token refresh via Supabase SDK; retry once; else redirect to login</td>
+</tr>
+<tr>
+<td>403</td>
+<td><code>FORBIDDEN</code></td>
+<td>Show &quot;Account suspended&quot; dialog; disable SPIN permanently</td>
+</tr>
+<tr>
+<td>409</td>
+<td><code>SPIN_IN_PROGRESS</code></td>
+<td>Show brief &quot;Please wait&quot; message; do not retry automatically — wait for player to re-submit</td>
+</tr>
+<tr>
+<td>422</td>
+<td><code>VALIDATION_ERROR</code></td>
+<td>Show &quot;Feature unavailable&quot; dialog; return to IDLE</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>RATE_LIMITED</code></td>
+<td>Show cooldown timer from <code>retryAfter</code> field; auto-enable SPIN after timer</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>INTERNAL_ERROR</code></td>
+<td>Show generic error dialog; offer retry (max 3 attempts)</td>
+</tr>
+<tr>
+<td>503</td>
+<td><code>SERVICE_UNAVAILABLE</code></td>
+<td>Show &quot;Service temporarily unavailable&quot; with retry after <code>retryAfter</code> seconds</td>
+</tr>
+<tr>
+<td>504</td>
+<td><code>ENGINE_TIMEOUT</code></td>
+<td>Show &quot;Connection timeout&quot; with note &quot;Bet has been refunded&quot;; return to IDLE</td>
+</tr>
+<tr>
+<td>Network timeout</td>
+<td>—</td>
+<td>Enter <code>TIMEOUT_RETRY</code> state; exponential backoff (1s, 2s, 4s)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-6-animation-playback-engine">§6 Animation Playback Engine</h2>
+<h3 id="h-61-animationqueue">6.1 AnimationQueue</h3>
+<p>The <code>AnimationQueue</code> is the central animation sequencer. It receives the complete <code>FullSpinOutcome</code> after a successful spin response and drives all subsequent animations in the correct order. No animation is played ad-hoc — everything goes through the queue.</p>
+<pre><code class="language-typescript">// src/animation/AnimationQueue.ts
+
+type AnimationStep =
+  | { type: &#x27;CASCADE_STEP&#x27;; data: CascadeStep }
+  | { type: &#x27;THUNDER_BLESSING&#x27;; data: ThunderBlessingParams }
+  | { type: &#x27;COIN_TOSS&#x27;; data: { result: &#x27;HEADS&#x27; | &#x27;TAILS&#x27;; stage: number } }
+  | { type: &#x27;FG_ENTRY&#x27;; data: FGEntryParams }
+  | { type: &#x27;FG_ROUND&#x27;; data: { round: FGRound; index: number } }
+  | { type: &#x27;FG_COMPLETE&#x27;; data: { totalFGWin: number; fgMultiplier: number; bonusMultiplier: number; totalWin: number } }
+  | { type: &#x27;WIN_DISPLAY&#x27;; data: { totalWin: number; baseBet: number } }
+  | { type: &#x27;NEAR_MISS&#x27;; data: { positions: Position[] } };
+
+// Implemented by GameStateMachine — decouples AnimationQueue from concrete component references
+interface AnimationDispatcher {
+  dispatch(step: AnimationStep): Promise&lt;void&gt;;
+}
+
+class AnimationQueue {
+  private queue: AnimationStep[] = [];
+  private isPlaying = false;
+
+  // Number of steps remaining in queue (used in unit tests and debug HUD)
+  get length(): number { return this.queue.length; }
+
+  // Build queue from complete FullSpinOutcome
+  build(outcome: FullSpinOutcome): void {
+    this.queue = [];
+
+    // Near miss (if applicable) — plays before cascade
+    if (outcome.nearMissApplied) {
+      this.queue.push({ type: &#x27;NEAR_MISS&#x27;, data: { positions: this.getNearMissPositions(outcome) } });
+    }
+
+    // Cascade steps — split at TB triggering step if needed.
+    // CascadeStep includes thunderBlessingTriggeredAfterStep:boolean to identify split point.
+    const steps = outcome.cascadeSequence.steps;
+    let tbInserted = false;
+    for (const step of steps) {
+      this.queue.push({ type: &#x27;CASCADE_STEP&#x27;, data: step });
+      // Insert THUNDER_BLESSING immediately after the step that triggered it,
+      // so post-TB cascade steps (upgraded-symbol wins) are enqueued after TB.
+      if (!tbInserted &amp;&amp; outcome.thunderBlessingTriggered &amp;&amp; step.thunderBlessingTriggeredAfterStep) {
+        this.queue.push({
+          type: &#x27;THUNDER_BLESSING&#x27;,
+          data: {
+            thunderBlessingResult: outcome.thunderBlessingResult!,
+            thunderBlessingFirstHit: outcome.thunderBlessingFirstHit,
+            thunderBlessingSecondHit: outcome.thunderBlessingSecondHit,
+            upgradedSymbol: outcome.upgradedSymbol!,
+          },
+        });
+        tbInserted = true;
+      }
+    }
+    // Fallback: if TB triggered but no step flagged the split (shouldn&#x27;t happen), append at end
+    if (outcome.thunderBlessingTriggered &amp;&amp; !tbInserted) {
+      this.queue.push({
+        type: &#x27;THUNDER_BLESSING&#x27;,
+        data: {
+          thunderBlessingResult: outcome.thunderBlessingResult!,
+          thunderBlessingFirstHit: outcome.thunderBlessingFirstHit,
+          thunderBlessingSecondHit: outcome.thunderBlessingSecondHit,
+          upgradedSymbol: outcome.upgradedSymbol!,
+        },
+      });
+    }
+
+    // Coin Toss
+    if (outcome.coinTossTriggered) {
+      this.queue.push({
+        type: &#x27;COIN_TOSS&#x27;,
+        data: { result: outcome.coinTossResult!, stage: 1 },  // Stage 1 = ×3 entry toss
+      });
+    }
+
+    // Free Game sequence
+    if (outcome.fgTriggered) {
+      this.queue.push({
+        type: &#x27;FG_ENTRY&#x27;,
+        data: {
+          fgBonusMultiplier: outcome.fgBonusMultiplier!,
+          initialMultiplier: 3,
+        },
+      });
+      for (let i = 0; i &lt; outcome.fgRounds.length; i++) {
+        this.queue.push({ type: &#x27;FG_ROUND&#x27;, data: { round: outcome.fgRounds[i], index: i } });
+      }
+      this.queue.push({
+        type: &#x27;FG_COMPLETE&#x27;,
+        data: {
+          totalFGWin: outcome.totalFGWin!,
+          fgMultiplier: outcome.fgMultiplier!,
+          bonusMultiplier: outcome.fgBonusMultiplier!,
+          totalWin: outcome.totalWin, // authoritative roll-up target — never derive client-side
+        },
+      });
+    }
+
+    // Final win display — skip for FG outcomes since FG_COMPLETE already rolled up to outcome.totalWin
+    if (outcome.totalWin &gt; 0 &amp;&amp; !outcome.fgTriggered) {
+      this.queue.push({ type: &#x27;WIN_DISPLAY&#x27;, data: { totalWin: outcome.totalWin, baseBet: outcome.baseBet } });
+    }
+  }
+
+  async play(dispatcher: AnimationDispatcher): Promise&lt;void&gt; {
+    this.isPlaying = true;
+    try {
+      for (const step of this.queue) {
+        await dispatcher.dispatch(step);
+      }
+    } finally {
+      this.isPlaying = false;
+      this.queue = [];
+    }
+  }
+
+  clear(): void {
+    this.queue = [];
+    this.isPlaying = false;
+  }
+
+  private getNearMissPositions(outcome: FullSpinOutcome): Position[] {
+    return outcome.nearMissPositions ?? [];
+  }
+}</code></pre>
+<h3 id="h-62-cascadestep-animation-sequence">6.2 CascadeStep Animation Sequence</h3>
+<p>Each <code>CascadeStep</code> from <code>cascadeSequence.steps</code> drives the following sequential animation:</p>
+<pre><code>1. SYMBOL WIN ANIMATION (parallel, all positions in step.winLines simultaneously)
+   └── Each winning SymbolComponent.playWin() → duration varies by symbol type (0.8s–1.8s)
+
+2. WIN LINE HIGHLIGHT (concurrent with win animation)
+   └── Draw gold path lines on winning paylines
+   └── Dim non-winning symbols to opacity 0.5
+
+3. WIN COUNTER UPDATE
+   └── BalanceComponent.animateWin(step.stepWin) — rolling increment
+
+4. ELIMINATION ANIMATION (after win animation completes)
+   └── Each winning SymbolComponent.playEliminate() → 500ms
+   └── Particle burst (碎片飛散): 12–16 fragments per symbol, 400ms
+
+5. LIGHTNING MARK APPEARANCE (concurrent with elimination)
+   └── LightningMarkComponent.addMarks(step.newLightningMarks) → 400ms
+   └── Counter display updates
+
+6. REEL EXPANSION (if step.rows &gt; previous rows)
+   └── ReelComponent.expandToRows(step.rows) → 300ms frame extend
+   └── Cloud dissipation effect → 250ms
+   └── New row fade-in → 300ms
+   └── FREE letter lights up → 200ms
+
+7. NEW SYMBOL FALL (fills empty positions + any new row positions)
+   └── Staggered by column×20ms + row×30ms (VDD §4.2)
+   └── Each symbol: translateY -200px → 0 in 420ms (ease-out-bounce)
+   └── Landing bounce: scale 1.0→1.05→1.0 in 150ms</code></pre>
+<p><strong>Total typical cascade step duration:</strong> 1.5s – 2.5s depending on symbol count.</p>
+<h3 id="h-63-lightning-mark-animation">6.3 Lightning Mark Animation</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Event</th>
+<th>Animation</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Mark appears (post-elimination)</td>
+<td>Scale 0→1.2→1.0 in 400ms, ease-out-back. Gold arc particles (6–12) drift upward.</td>
+</tr>
+<tr>
+<td>Marks persist on screen</td>
+<td>Continuous low-intensity electric arc particle emission (Additive blend).</td>
+</tr>
+<tr>
+<td>Scatter lands (activation)</td>
+<td>All marks pulse simultaneously; thin arc lines from SC → each mark (Bezier curve, blue-white).</td>
+</tr>
+<tr>
+<td>SC triggers first hit</td>
+<td>All marks explode (80–120 particles each); background white flash (0→0.9 in 300ms).</td>
+</tr>
+<tr>
+<td>Marks convert to symbol</td>
+<td>Shatter animation → reassemble as <code>convertedSymbol</code> (SymbolComponent.upgradeToSymbol).</td>
+</tr>
+<tr>
+<td>FG cross-round persistence</td>
+<td>Marks from <code>fgRounds[i].lightningMarksBefore</code> restore at start of each FG round.</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-64-thunderblessing-sequence-detail">6.4 ThunderBlessing Sequence Detail</h3>
+<p>The full Thunder Blessing animation sequence is driven by <code>ThunderBlessingComponent.playSequence()</code>:</p>
+<pre><code>t=0.0s  SC symbol win animation (playWin → 1.8s)
+t=0.2s  All marks pulse (brightness 1→2→1, 300ms loop)
+        Arc lines SC → each mark (thin, blue-white, Additive)
+t=0.8s  All marks explode simultaneously
+        Background white flash (opacity 0→0.9→0, 300ms)
+        fx_thunder_blessing_hit1.spine plays on center of reel
+t=1.2s  Marked positions: current symbol shatters (playEliminate variant)
+t=1.5s  Target symbol assembles at each position (SymbolComponent.upgradeToSymbol)
+        Whole reel gold glow (filter: sepia(0.3) brightness(1.4))
+t=1.8s  Gold glow fades out
+--- if thunderBlessingSecondHit === true ---
+t=2.3s  Second pulse (white flash opacity 0→0.6→0, 300ms)
+        fx_thunder_blessing_hit2.spine plays
+        Each converted symbol upgrades one tier (upgrade path animation)
+t=3.0s  All animations settle; resume cascade evaluation</code></pre>
+<h3 id="h-65-coin-toss-animation">6.5 Coin Toss Animation</h3>
+<p>Driven by <code>CoinTossComponent.playToss(result, stage)</code>:</p>
+<ol>
+<li><strong>Stage setup (0–500ms):</strong> Backdrop darkens (opacity 0→0.7), spotlight cone appears, coin flies in from top (<code>translateY -800px→0</code>, ease-out-cubic, 500ms).</li>
+<li><strong>Spin phase (500–1300ms):</strong> Y-axis rotation accelerates (ease-in, 7 full rotations in 800ms).</li>
+<li><strong>Sustained phase (1300–2000ms):</strong> Linear spin for 200–700ms (randomized to create suspense).</li>
+<li><strong>Deceleration (2000–3500ms):</strong> Coin decelerates to face matching result (ease-coin-decel, 1500ms). HEADS face = Zeus portrait; TAILS face = lightning bolt.</li>
+<li><strong>Result (3500ms+):</strong></li>
+</ol>
+<ul>
+<li>HEADS: Gold burst particles (scale 1.0→1.3→1.0, ease-out-back, 600ms); &quot;ZEUS SMILES!&quot; banner.</li>
+<li>TAILS: Brightness 1.0→0.6 (ease-in-out-cubic, 400ms); &quot;NOT THIS TIME&quot; silver text.</li>
+</ul>
+<ol>
+<li><strong>Multiplier progress bar:</strong> On HEADS, animate progress line from current node to next node (500ms, ease-in-out-cubic).</li>
+</ol>
+<h3 id="h-66-fg-sequence-animation">6.6 FG Sequence Animation</h3>
+<p>Driven by <code>FreeGameComponent</code>:</p>
+<ol>
+<li><strong>FG Entry (cross-dissolve 800ms):</strong> Scene transitions to Sky Temple background (night, starfield particles).</li>
+<li><strong>FG Bonus Reveal (always shown):</strong> Banner from top reveals the bonus multiplier (&quot;×1 BONUS&quot;, &quot;×5 BONUS!&quot;, &quot;×20 BONUS!&quot;, &quot;×100 BONUS!&quot; etc.) before the first FG round begins. ×1 shows a standard reveal animation with no particle fanfare; higher values add proportionally larger particle bursts.</li>
+<li><strong>Per-round loop:</strong> For each <code>FGRound</code> in <code>fgRounds</code>:</li>
+</ol>
+<p>   a. Play <code>round.cascadeSequence</code> animations through <code>AnimationQueue</code> (all cascade steps, lightning marks, symbol falls, etc. — same cascade step logic as §6.2).    b. Display <code>round.roundWin</code> accumulation as cascade steps resolve.    c. Show Coin Toss: <code>CoinTossComponent.playToss(round.coinTossResult, currentStage)</code>.    d. If TAILS: break loop → proceed to FG summary.    e. If HEADS: increment stage, update multiplier display (old number explodes, new number scales in from center, 2s), continue to next round.    f. Update spin counter display.</p>
+<ol>
+<li><strong>FG Complete:</strong> Summary panel displays <code>totalFGWin</code>, <code>fgMultiplier</code>, and <code>bonusMultiplier</code> as informational context. Win roll-up animates to <code>outcome.totalWin</code> (the authoritative server value) — never compute the roll-up target client-side (§1.2 Pure View rule).</li>
+</ol>
+<p><strong>Animation time budget:</strong></p>
+<ul>
+<li>Base spin typical: ≤ 8s total (initial grid stop + cascade steps).</li>
+<li>FG sequence: ≤ 30s for 5 rounds (assuming modest cascades per round).</li>
+<li>Single FG round (no cascade): ~5s (coin toss 3.5s + grid stop 1.5s).</li>
+</ul>
+<h3 id="h-67-win-roll-up-algorithm">6.7 Win Roll-Up Algorithm</h3>
+<pre><code class="language-typescript">// src/animation/WinRollup.ts
+
+function animateWinRollup(
+  startValue: number,
+  targetValue: number,
+  onUpdate: (current: number) =&gt; void,
+  onComplete: () =&gt; void,
+): void {
+  const maxDurationMs = Math.min((targetValue - startValue) / 50, 5000);
+  const minDurationMs = 200;
+  const durationMs = Math.max(maxDurationMs, minDurationMs);
+
+  let current = startValue;
+  let startTime: number | null = null;
+
+  function frame(timestamp: number): void {
+    if (startTime === null) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    const progress = Math.min(elapsed / durationMs, 1);
+
+    // Exponential decay: each frame closes 15% of remaining gap
+    current += (targetValue - current) * 0.15;
+
+    // Clamp to target on final frame
+    if (progress &gt;= 1) current = targetValue;
+
+    onUpdate(Math.floor(current * 100) / 100);  // 2 decimal places
+
+    if (current &lt; targetValue) {
+      requestAnimationFrame(frame);
+    } else {
+      // Landing bounce: scale 1.0→1.08→1.0, 200ms, ease-out-back
+      onComplete();
+    }
+  }
+
+  requestAnimationFrame(frame);
+}</code></pre>
+<hr>
+<h2 id="h-7-audio-system">§7 Audio System</h2>
+<h3 id="h-71-audiomanager">7.1 AudioManager</h3>
+<p>Singleton responsible for all audio playback, preloading, and state management.</p>
+<pre><code class="language-typescript">// src/audio/AudioManager.ts
+
+type SoundCategory = &#x27;BGM&#x27; | &#x27;SFX&#x27;;
+type SoundId = string;  // Asset key registered via preload()
+
+interface AudioConfig {
+  readonly volume: { bgm: number; sfx: number };  // 0.0–1.0
+  readonly muted: boolean;
+}
+
+class AudioManager {
+  private static instance: AudioManager;
+  private context: AudioContext | null = null;
+  private bgmNode: AudioBufferSourceNode | null = null;
+  private sounds: Map&lt;string, AudioBuffer&gt; = new Map();
+  private muted = false;
+  private config: AudioConfig = { volume: { bgm: 1.0, sfx: 1.0 }, muted: false };
+
+  // Per-category gain nodes — BGM and SFX are routed through independent gain nodes
+  // so volume and mute can be applied per-category without disconnecting sources.
+  private gainNodes!: Record&lt;SoundCategory, GainNode&gt;;
+
+  static getInstance(): AudioManager {
+    if (!AudioManager.instance) AudioManager.instance = new AudioManager();
+    return AudioManager.instance;
+  }
+
+  // Must be called from a user gesture handler (mobile unlock)
+  async unlock(): Promise&lt;void&gt; {
+    if (this.context) return;
+    this.context = new AudioContext();
+    // Initialize per-category gain nodes after context is created
+    this.gainNodes = {
+      BGM: this.context.createGain(),
+      SFX: this.context.createGain(),
+    };
+    this.gainNodes.BGM.gain.value = this.config.volume.bgm;
+    this.gainNodes.SFX.gain.value = this.config.volume.sfx;
+    this.gainNodes.BGM.connect(this.context.destination);
+    this.gainNodes.SFX.connect(this.context.destination);
+    await this.context.resume();
+  }
+
+  async preload(soundId: string, url: string): Promise&lt;void&gt; {
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await this.context!.decodeAudioData(arrayBuffer);
+    this.sounds.set(soundId, audioBuffer);
+  }
+
+  play(soundId: string, category: SoundCategory = &#x27;SFX&#x27;, loop = false): void {
+    if (this.muted) return;
+    const buffer = this.sounds.get(soundId);
+    if (!buffer || !this.context) return;
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = loop;
+    // Route through category gain node (not directly to destination)
+    source.connect(this.gainNodes[category]);
+    // Track BGM node so setMuted() and crossfadeBGM() can control it
+    if (loop) {
+      this.bgmNode?.stop();
+      this.bgmNode = source;
+    }
+    source.start();
+  }
+
+  private async loadBuffer(soundId: SoundId): Promise&lt;AudioBuffer&gt; {
+    const cached = this.sounds.get(soundId);
+    if (cached) return cached;
+    throw new Error(`Sound not preloaded: ${soundId}. Call preload() at startup.`);
+  }
+
+  async crossfadeBGM(newSoundId: SoundId, durationMs = 1000): Promise&lt;void&gt; {
+    const ctx = this.context;
+    if (!ctx) return;  // unlock() not yet called
+    const now = ctx.currentTime;
+    const endTime = now + durationMs / 1000;
+
+    // Move old BGM to a temporary fade-out gain so gainNodes.BGM is immediately free for the new track
+    if (this.bgmNode) {
+      const fadeOutGain = ctx.createGain();
+      fadeOutGain.gain.setValueAtTime(this.gainNodes.BGM.gain.value, now);
+      fadeOutGain.gain.linearRampToValueAtTime(0, endTime);
+      this.bgmNode.disconnect(this.gainNodes.BGM);
+      this.bgmNode.connect(fadeOutGain);
+      fadeOutGain.connect(ctx.destination);
+      const dyingNode = this.bgmNode;
+      const dyingGain = fadeOutGain;
+      setTimeout(() =&gt; { dyingNode.stop(); dyingGain.disconnect(); }, durationMs + 50);
+      this.bgmNode = null;
+    }
+
+    // Route new BGM through gainNodes.BGM from the start so setMuted() stays effective
+    const buffer = await this.loadBuffer(newSoundId);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.connect(this.gainNodes.BGM);
+
+    // Ramp up via the shared BGM gain node; respect current mute state
+    this.gainNodes.BGM.gain.setValueAtTime(0, now);
+    this.gainNodes.BGM.gain.linearRampToValueAtTime(
+      this.muted ? 0 : this.config.volume.bgm,
+      endTime
+    );
+
+    source.start();
+    this.bgmNode = source;
+  }
+  // Note: A simpler implementation may hard-cut BGM between scenes where a crossfade is not aesthetically required.
+
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    // Mute/unmute all categories via their gain nodes (avoids disconnect/reconnect churn)
+    if (this.gainNodes) {
+      this.gainNodes.BGM.gain.value = muted ? 0 : this.config.volume.bgm;
+      this.gainNodes.SFX.gain.value = muted ? 0 : this.config.volume.sfx;
+    }
+  }
+}</code></pre>
+<h3 id="h-72-sound-categories-and-ids">7.2 Sound Categories and IDs</h3>
+<p><strong>Background Music (BGM):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Sound ID</th>
+<th>Trigger</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>BGM_MAIN</code></td>
+<td>GameScene entry</td>
+<td>Greek myth epic ambient, moderate intensity</td>
+</tr>
+<tr>
+<td><code>BGM_ANTICIPATION</code></td>
+<td>All 4 FREE letters lit</td>
+<td>Rising tension, drums enter</td>
+</tr>
+<tr>
+<td><code>BGM_COIN_TOSS</code></td>
+<td>Coin Toss overlay opens</td>
+<td>Suspense music, minimal</td>
+</tr>
+<tr>
+<td><code>BGM_FREE_GAME</code></td>
+<td>FG entry</td>
+<td>Victory epic theme, higher energy than BGM_MAIN</td>
+</tr>
+<tr>
+<td><code>BGM_77X</code></td>
+<td>×77 multiplier reached</td>
+<td>Maximum intensity, electronic elements added</td>
+</tr>
+</tbody></table></div>
+<p><strong>Sound Effects (SFX):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Sound ID</th>
+<th>Trigger</th>
+<th>Timing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>SFX_SPIN_START</code></td>
+<td>SPIN pressed</td>
+<td>Immediate on button press</td>
+</tr>
+<tr>
+<td><code>SFX_REEL_STOP_1</code> – <code>SFX_REEL_STOP_5</code></td>
+<td>Each reel column stops</td>
+<td>Staggered 120ms apart</td>
+</tr>
+<tr>
+<td><code>SFX_WIN_SMALL</code></td>
+<td>Small win (&lt; 5×)</td>
+<td>On WIN counter start</td>
+</tr>
+<tr>
+<td><code>SFX_WIN_MEDIUM</code></td>
+<td>Medium win (5–20×)</td>
+<td>On WIN counter start</td>
+</tr>
+<tr>
+<td><code>SFX_WIN_BIG</code></td>
+<td>Big win (20–100×)</td>
+<td>On &quot;BIG WIN&quot; banner drop</td>
+</tr>
+<tr>
+<td><code>SFX_WIN_MEGA</code></td>
+<td>Mega win (100–500×)</td>
+<td>On &quot;MEGA WIN&quot; effect</td>
+</tr>
+<tr>
+<td><code>SFX_WIN_JACKPOT</code></td>
+<td>Jackpot (500×+)</td>
+<td>On Zeus character animation</td>
+</tr>
+<tr>
+<td><code>SFX_CASCADE_EXPLODE</code></td>
+<td>Symbol eliminated</td>
+<td>Sync with elimination animation start</td>
+</tr>
+<tr>
+<td><code>SFX_CASCADE_DROP</code></td>
+<td>Symbol lands</td>
+<td>Sync with landing bounce</td>
+</tr>
+<tr>
+<td><code>SFX_REEL_EXPAND</code></td>
+<td>Row count increases</td>
+<td>Cloud dissipation start</td>
+</tr>
+<tr>
+<td><code>SFX_FREE_LETTER</code></td>
+<td>Single FREE letter lights up</td>
+<td>Letter glow peak</td>
+</tr>
+<tr>
+<td><code>SFX_LIGHTNING_MARK</code></td>
+<td>Mark appears</td>
+<td>Mark scale-in midpoint</td>
+</tr>
+<tr>
+<td><code>SFX_THUNDER_BLESSING</code></td>
+<td>First TB hit begins</td>
+<td>t=0.8s in TB sequence</td>
+</tr>
+<tr>
+<td><code>SFX_SECOND_HIT</code></td>
+<td>Second TB hit</td>
+<td>t=2.3s in TB sequence</td>
+</tr>
+<tr>
+<td><code>SFX_COIN_TOSS_START</code></td>
+<td>Coin fly-in</td>
+<td>On coin enter animation start</td>
+</tr>
+<tr>
+<td><code>SFX_COIN_TOSS_FLIP</code></td>
+<td>Coin spinning</td>
+<td>Loop during spin phase</td>
+</tr>
+<tr>
+<td><code>SFX_COIN_HEADS</code></td>
+<td>HEADS result</td>
+<td>Coin face settles at HEADS</td>
+</tr>
+<tr>
+<td><code>SFX_COIN_TAILS</code></td>
+<td>TAILS result</td>
+<td>Coin face settles at TAILS</td>
+</tr>
+<tr>
+<td><code>SFX_FG_ENTER</code></td>
+<td>FG scene transition</td>
+<td>Cross-dissolve start</td>
+</tr>
+<tr>
+<td><code>SFX_FG_MULT_UP</code></td>
+<td>FG multiplier upgrades</td>
+<td>Progress bar animation start</td>
+</tr>
+<tr>
+<td><code>SFX_FG_MULT_77</code></td>
+<td>×77 reached</td>
+<td>MAX MULTIPLIER banner</td>
+</tr>
+<tr>
+<td><code>SFX_FG_BONUS_100X</code></td>
+<td><code>fgBonusMultiplier = 100</code></td>
+<td>Full-screen effect start</td>
+</tr>
+<tr>
+<td><code>SFX_EXTRA_BET_ON</code></td>
+<td>Extra Bet toggle ON</td>
+<td>Toggle click</td>
+</tr>
+<tr>
+<td><code>SFX_BUY_FG_CONFIRM</code></td>
+<td>Buy Feature confirmed</td>
+<td>Dialog close animation</td>
+</tr>
+<tr>
+<td><code>SFX_NEAR_MISS</code></td>
+<td><code>nearMissApplied = true</code></td>
+<td>Grid stop moment</td>
+</tr>
+<tr>
+<td><code>SFX_MAX_WIN</code></td>
+<td>30,000× cap reached</td>
+<td>Zeus character animation</td>
+</tr>
+<tr>
+<td><code>SFX_MAX_WIN_LEGENDARY</code></td>
+<td>90,000× cap reached</td>
+<td>Legendary Win animation</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-73-audio-state-machine">7.3 Audio State Machine</h3>
+<p>The audio state machine mirrors the game state machine:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Game State</th>
+<th>BGM Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>IDLE</code></td>
+<td>Play/continue <code>BGM_MAIN</code></td>
+</tr>
+<tr>
+<td><code>SPINNING</code> → <code>CASCADE_RESOLVING</code></td>
+<td>Continue <code>BGM_MAIN</code></td>
+</tr>
+<tr>
+<td><code>THUNDER_BLESSING</code></td>
+<td>No BGM change; <code>SFX_THUNDER_BLESSING</code> plays</td>
+</tr>
+<tr>
+<td><code>COIN_TOSS</code></td>
+<td>Crossfade to <code>BGM_COIN_TOSS</code> (800ms)</td>
+</tr>
+<tr>
+<td><code>FREE_GAME</code> entered</td>
+<td>Crossfade to <code>BGM_FREE_GAME</code> (800ms)</td>
+</tr>
+<tr>
+<td>FG multiplier = 77</td>
+<td>Crossfade to <code>BGM_77X</code> (800ms)</td>
+</tr>
+<tr>
+<td><code>FREE_GAME</code> exits</td>
+<td>Crossfade back to <code>BGM_MAIN</code> (800ms)</td>
+</tr>
+<tr>
+<td>FREE letters all lit</td>
+<td>Crossfade to <code>BGM_ANTICIPATION</code> (300ms)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-74-mobile-audio-unlock-pattern">7.4 Mobile Audio Unlock Pattern</h3>
+<p>Mobile browsers (iOS Safari, Chrome on Android) block audio until a user gesture occurs. The unlock sequence:</p>
+<pre><code class="language-typescript">// src/audio/MobileAudioUnlock.ts
+
+class MobileAudioUnlock {
+  static setup(audioManager: AudioManager): void {
+    let unlocked = false;
+    const unlockHandler = async (): Promise&lt;void&gt; =&gt; {
+      if (unlocked) return; // prevent double invocation from touchstart + synthesized click
+      unlocked = true;
+      await audioManager.unlock();
+      // Start deferred audio preloads
+      await this.preloadAudioAssets(audioManager);
+      // Remove listeners after first interaction
+      document.removeEventListener(&#x27;touchstart&#x27;, unlockHandler);
+      document.removeEventListener(&#x27;click&#x27;, unlockHandler);
+    };
+
+    document.addEventListener(&#x27;touchstart&#x27;, unlockHandler, { once: true });
+    document.addEventListener(&#x27;click&#x27;, unlockHandler, { once: true });
+  }
+
+  private static async preloadAudioAssets(manager: AudioManager): Promise&lt;void&gt; {
+    // Load audio in priority order: BGM_MAIN first, then SFX in background
+    await manager.preload(&#x27;BGM_MAIN&#x27;, &#x27;audio/bgm_main.ogg&#x27;);
+    // Defer remaining loads without blocking gameplay
+    setTimeout(() =&gt; this.loadRemainingAudio(manager), 0);
+  }
+
+  private static loadRemainingAudio(manager: AudioManager): void {
+    // Fire-and-forget: preload SFX and secondary BGM tracks in background
+    const remaining: Array&lt;[SoundId, string]&gt; = [
+      [&#x27;BGM_FREE_GAME&#x27;, &#x27;audio/bgm_free_game.ogg&#x27;],
+      [&#x27;SFX_CASCADE&#x27;, &#x27;audio/sfx_cascade.ogg&#x27;],
+      [&#x27;SFX_WIN&#x27;, &#x27;audio/sfx_win.ogg&#x27;],
+      [&#x27;SFX_LIGHTNING&#x27;, &#x27;audio/sfx_lightning.ogg&#x27;],
+      [&#x27;SFX_COIN_TOSS&#x27;, &#x27;audio/sfx_coin_toss.ogg&#x27;],
+      [&#x27;SFX_SCATTER&#x27;, &#x27;audio/sfx_scatter.ogg&#x27;],
+    ];
+    for (const [id, url] of remaining) {
+      manager.preload(id, url).catch(() =&gt; { /* non-critical: game proceeds without pre-cached SFX */ });
+    }
+  }
+}</code></pre>
+<hr>
+<h2 id="h-8-network-resilience">§8 Network Resilience</h2>
+<h3 id="h-81-retry-policy">8.1 Retry Policy</h3>
+<pre><code class="language-typescript">// src/network/RetryPolicy.ts
+
+const RETRY_CONFIG = {
+  maxAttempts: 3,
+  backoffMs: [1000, 2000, 4000],  // Exponential backoff
+  // Only server-fault codes are retried; all 4xx client errors are non-retryable
+  nonRetryableCodes: [
+    &#x27;INSUFFICIENT_FUNDS&#x27;, &#x27;INVALID_BET_LEVEL&#x27;, &#x27;UNAUTHORIZED&#x27;, &#x27;FORBIDDEN&#x27;,
+    &#x27;VALIDATION_ERROR&#x27;, &#x27;SPIN_IN_PROGRESS&#x27;,
+    &#x27;RATE_LIMITED&#x27;,            // 429 — never retry a rate-limit directly
+    &#x27;BUY_FEATURE_NOT_ALLOWED&#x27;, // 400
+    &#x27;INVALID_CURRENCY&#x27;,        // 400
+  ],
+} as const;
+
+type NonRetryableCode = typeof RETRY_CONFIG.nonRetryableCodes[number];
+
+async function withRetry&lt;T&gt;(
+  operation: () =&gt; Promise&lt;T&gt;,
+  context: string,
+): Promise&lt;T&gt; {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt &lt; RETRY_CONFIG.maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (error instanceof GameError &amp;&amp; (RETRY_CONFIG.nonRetryableCodes as readonly string[]).includes(error.code)) {
+        throw error;  // Do not retry non-retryable errors
+      }
+      lastError = error as Error;
+      if (attempt &lt; RETRY_CONFIG.maxAttempts - 1) {
+        await delay(RETRY_CONFIG.backoffMs[attempt]);
+      }
+    }
+  }
+  throw lastError!;
+}</code></pre>
+<h3 id="h-82-request-timeout">8.2 Request Timeout</h3>
+<p>All API requests use a 10-second timeout enforced by <code>AbortController</code>:</p>
+<pre><code class="language-typescript">const SPIN_TIMEOUT_MS = 10_000;
+const CONFIG_TIMEOUT_MS = 5_000;
+const SESSION_TIMEOUT_MS = 5_000;</code></pre>
+<h3 id="h-83-reconnect-protocol">8.3 Reconnect Protocol</h3>
+<p>On page visibility change to <code>visible</code> (player returns to tab):</p>
+<pre><code class="language-typescript">document.addEventListener(&#x27;visibilitychange&#x27;, async () =&gt; {
+  if (document.visibilityState !== &#x27;visible&#x27;) return;
+
+  const sessionId = GameContext.getInstance().sessionId;
+  if (!sessionId) return;
+
+  stateMachine.transition(&#x27;APP_RESUME&#x27;);  // → SESSION_RECONNECT
+
+  try {
+    const session = await sessionService.getSession(sessionId);
+    if (session.status === &#x27;FG_ACTIVE&#x27;) {
+      await restoreFGSession(session);  // delegates to §11.5 — all 7 steps including overlay, background, multiplier bar, spin counter
+    } else if (session.status === &#x27;SPINNING&#x27;) {
+      // Wager is live — enter polling loop (see §5.2 SPIN_PENDING_RECONNECT protocol)
+      // Poll GET /v1/session every 2s (max 10 retries) until COMPLETE or FG_ACTIVE
+      let retries = 0;
+      const MAX_RETRIES = 10;
+      const poll = async (): Promise&lt;void&gt; =&gt; {
+        if (retries++ &gt;= MAX_RETRIES) {
+          showDialog(&#x27;Spin Pending&#x27;, &#x27;Your last spin result is pending. Please contact support before playing again.&#x27;);
+          stateMachine.transition(&#x27;SESSION_EXPIRED&#x27;);
+          return;
+        }
+        await new Promise(r =&gt; setTimeout(r, 2000));
+        const updated = await sessionService.getSession(sessionId);
+        if (updated.status === &#x27;COMPLETE&#x27;) {
+          stateMachine.transition(&#x27;SESSION_RESTORED_IDLE&#x27;);
+        } else if (updated.status === &#x27;FG_ACTIVE&#x27;) {
+          await restoreFGSession(updated);  // delegates to §11.5
+        } else {
+          await poll();
+        }
+      };
+      await poll();
+    } else {
+      // status === &#x27;COMPLETE&#x27;: no pending wager, return to IDLE normally
+      stateMachine.transition(&#x27;SESSION_RESTORED_IDLE&#x27;);
+    }
+  } catch (error) {
+    if (error instanceof GameError &amp;&amp; error.code === &#x27;SESSION_NOT_FOUND&#x27;) {
+      showDialog(&#x27;Session Expired&#x27;, &#x27;Your session has expired. The game will return to the main screen.&#x27;);
+    }
+    stateMachine.transition(&#x27;SESSION_EXPIRED&#x27;);
+  }
+});</code></pre>
+<h3 id="h-84-offline-indicator-ui">8.4 Offline Indicator UI</h3>
+<pre><code class="language-typescript">// hudComponent is the module-level HUDComponent instance wired up at GameScene init.
+// HUDComponent is a TypeScript interface — it cannot be called as HUDComponent.getInstance().
+// The concrete instance is stored as a module-level variable.
+let hudComponent: HUDComponent;  // assigned in GameScene.onLoad()
+
+// Monitor network connectivity
+window.addEventListener(&#x27;offline&#x27;, () =&gt; {
+  hudComponent.showOfflineBanner(&#x27;No internet connection&#x27;);
+  GameStateMachine.getInstance().transition(&#x27;NETWORK_OFFLINE&#x27;);
+});
+
+window.addEventListener(&#x27;online&#x27;, () =&gt; {
+  hudComponent.hideOfflineBanner();
+  // Attempt reconnect
+  triggerSessionReconnect();
+});</code></pre>
+<p>The offline banner displays at the top of the screen with a warning color (<code>--color-error</code>), dismissible after connectivity restores.</p>
+<hr>
+<h2 id="h-9-configuration-and-initialization">§9 Configuration and Initialization</h2>
+<h3 id="h-91-config-loading-flow">9.1 Config Loading Flow</h3>
+<pre><code>Application starts
+    │
+    ▼
+LoadingScene.onLoad()
+    │
+    ▼
+ConfigService.loadConfig()  →  GET /v1/config
+    │
+    ├── Success: store config in ConfigService cache
+    │
+    └── Failure: show &quot;Failed to load game config&quot; error; offer reload button</code></pre>
+<h3 id="h-92-bet-level-configuration">9.2 Bet Level Configuration</h3>
+<p>Bet levels are <strong>never hardcoded</strong> in the frontend. All values come from <code>GET /v1/config</code>:</p>
+<pre><code class="language-typescript">// BetLevelEntry is defined in ConfigService (mirrors GET /v1/config betRange[currency].levels)
+// { level, baseBet, extraBetCost, buyFeatureCost }</code></pre>
+<p>The <code>BetPanelComponent</code> populates its level selector from <code>ConfigService.getBetLevels(currency)</code>, which returns <code>config.betRange[currency].levels</code> for the player&#x27;s selected currency (USD or TWD).</p>
+<h3 id="h-93-extra-bet-and-buy-feature-toggles">9.3 Extra Bet and Buy Feature Toggles</h3>
+<pre><code class="language-typescript">// betPanelComponent is the module-level BetPanelComponent instance (interface, not class).
+// BetPanelComponent cannot be used as BetPanelComponent.method() — call on the concrete instance.
+const config = ConfigService.getInstance().getConfig();
+
+// Extra Bet: always available when extraBetCostMultiplier is present in gameParameters
+betPanelComponent.setExtraBetEnabled(config.gameParameters.extraBetCostMultiplier &gt; 0);
+
+// Buy Feature: always available when buyFeatureCostMultiplier is present in gameParameters
+const buyFeatureEnabled = config.gameParameters.buyFeatureCostMultiplier &gt; 0;
+if (buyFeatureEnabled) {
+  const cost = GameContext.getInstance().baseBet
+    * config.gameParameters.buyFeatureCostMultiplier
+    * (GameContext.getInstance().extraBet ? config.gameParameters.extraBetCostMultiplier : 1);
+  betPanelComponent.setBuyFeatureEnabled(true, cost);
+} else {
+  betPanelComponent.setBuyFeatureEnabled(false, 0);
+}</code></pre>
+<h3 id="h-94-reel-strip-configuration">9.4 Reel Strip Configuration</h3>
+<p>The <code>ReelComponent</code> uses reel strip data (5 arrays of symbol IDs) bundled as a game asset, <strong>not</strong> from <code>GET /v1/config</code>. The config response (<code>gameParameters.symbols</code>) provides symbol metadata (id, name, isWild, isScatter, tier) used for display purposes only. Reel strip sequences are embedded in the game asset bundle and loaded by the asset pipeline at startup.</p>
+<h3 id="h-95-paytable-configuration">9.5 Paytable Configuration</h3>
+<p>Symbol metadata from <code>config.gameParameters.symbols</code> is used only for display in the Info panel (symbol names, types). Win multipliers are never stored on the frontend — the backend computes all payout values. The frontend never uses paytable data to compute <code>payout</code> values.</p>
+<hr>
+<h2 id="h-10-performance-and-memory">§10 Performance and Memory</h2>
+<h3 id="h-101-object-pooling">10.1 Object Pooling</h3>
+<h4 id="symbolcomponent-pool">SymbolComponent Pool</h4>
+<pre><code class="language-typescript">// src/pools/SymbolPool.ts
+
+// ConcreteSymbolComponent is the engine-specific implementation of the SymbolComponent interface
+// (e.g., a Cocos Creator Node wrapper or PixiJS Sprite wrapper — engine-specific file)
+declare class ConcreteSymbolComponent implements SymbolComponent {
+  onReused(symbolId: SymbolId): void;
+  onRecycled(): void;
+  // ... remaining interface methods implemented by engine adapter
+}
+
+class SymbolPool {
+  private readonly POOL_SIZE = 35;  // 30 active + 5 buffer
+  private available: SymbolComponent[] = [];
+  private inUse: Set&lt;SymbolComponent&gt; = new Set();
+
+  acquire(symbolId: SymbolId): SymbolComponent {
+    let symbol = this.available.pop();
+    if (!symbol) {
+      // Pool exhausted — create new instance (should not happen in normal play)
+      symbol = new ConcreteSymbolComponent();
+    }
+    symbol.onReused(symbolId);
+    this.inUse.add(symbol);
+    return symbol;
+  }
+
+  release(symbol: SymbolComponent): void {
+    symbol.onRecycled();
+    this.inUse.delete(symbol);
+    this.available.push(symbol);
+  }
+
+  prewarm(): void {
+    for (let i = 0; i &lt; this.POOL_SIZE; i++) {
+      this.available.push(new ConcreteSymbolComponent());
+    }
+  }
+}</code></pre>
+<h3 id="h-102-texture-atlas-strategy">10.2 Texture Atlas Strategy</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Atlas</th>
+<th>Contents</th>
+<th>Size</th>
+<th>Usage</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>symbols_atlas.png</code></td>
+<td>All 10 symbol idle frames (W, SC, P1–P4, L1–L4) + win highlight overlays</td>
+<td>2048×2048px</td>
+<td>Loaded in LoadingScene</td>
+</tr>
+<tr>
+<td><code>ui_atlas.png</code></td>
+<td>All HUD elements, buttons, dialog frames, FREE letters</td>
+<td>2048×2048px</td>
+<td>Loaded in LoadingScene</td>
+</tr>
+<tr>
+<td><code>fx_atlas.png</code></td>
+<td>Particle sprite sheets (lightning arc, gold coin, explosion)</td>
+<td>2048×2048px</td>
+<td>Loaded in GameScene</td>
+</tr>
+<tr>
+<td><code>fg_atlas.png</code></td>
+<td>FG-exclusive UI (multiplier progress bar, coin toss overlay)</td>
+<td>1024×1024px</td>
+<td>Loaded on FG entry (lazy)</td>
+</tr>
+</tbody></table></div>
+<p>Spine animation files (<code>.spine</code> + <code>.atlas</code>) are loaded per-symbol as separate assets, not embedded in the main atlas.</p>
+<h3 id="h-103-gc-pressure-avoidance">10.3 GC Pressure Avoidance</h3>
+<p><strong>Rules enforced throughout the codebase:</strong></p>
+<ol>
+<li><strong>No per-frame object creation:</strong> <code>Position</code> objects, <code>WinLine</code> arrays, and animation interpolation values must be pre-allocated and reused.</li>
+<li><strong>Pre-allocate particle buffers:</strong> Particle system uses a fixed-size <code>Float32Array</code> for positions/velocities.</li>
+<li><strong>Animation step objects:</strong> <code>AnimationQueue</code> builds its step array once per spin and reuses pooled objects.</li>
+<li><strong>Event emitters:</strong> Use static listener arrays; do not create closure-bound lambdas inside the animation loop.</li>
+</ol>
+<pre><code class="language-typescript">// BAD: creates new object every frame
+function updateParticle(dt: number): void {
+  const velocity = { x: this.vx * dt, y: this.vy * dt };  // Allocation!
+  this.position.x += velocity.x;
+}
+
+// GOOD: reuse pre-allocated temp vector
+const tempVec = { x: 0, y: 0 };
+function updateParticle(dt: number): void {
+  tempVec.x = this.vx * dt;
+  tempVec.y = this.vy * dt;
+  this.position.x += tempVec.x;
+}</code></pre>
+<h3 id="h-104-memory-budget-by-scene">10.4 Memory Budget by Scene</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Scene</th>
+<th>Textures</th>
+<th>Spine</th>
+<th>Audio</th>
+<th>Total</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>LoadingScene</td>
+<td>5 MB</td>
+<td>—</td>
+<td>—</td>
+<td>5 MB</td>
+</tr>
+<tr>
+<td>GameScene (base)</td>
+<td>40 MB</td>
+<td>30 MB</td>
+<td>15 MB (SFX)</td>
+<td>85 MB</td>
+</tr>
+<tr>
+<td>GameScene + FG active</td>
+<td>45 MB</td>
+<td>35 MB</td>
+<td>25 MB</td>
+<td>105 MB</td>
+</tr>
+<tr>
+<td>Peak (Thunder Blessing + particles)</td>
+<td>55 MB</td>
+<td>40 MB</td>
+<td>25 MB</td>
+<td>120 MB</td>
+</tr>
+</tbody></table></div>
+<p>These budgets apply per-platform. Mobile devices reduce texture resolution by loading 1× or 2× assets instead of 3× (asset switching driven by <code>devicePixelRatio</code> and <code>navigator.deviceMemory</code>).</p>
+<h3 id="h-105-lazy-load-strategy">10.5 Lazy Load Strategy</h3>
+<p><strong>Deferred until first user interaction:</strong></p>
+<ul>
+<li>All audio assets (BGM and SFX)</li>
+<li>FG-exclusive Spine animations (<code>fx_fg_bonus_100x.spine</code>, <code>fx_coin_toss_flip.spine</code>)</li>
+<li>Big Win / Mega Win banner Spine files</li>
+</ul>
+<p><strong>Deferred until FG entry:</strong></p>
+<ul>
+<li><code>fg_atlas.png</code> (FG UI textures)</li>
+<li>FG background variants (<code>bg_freegame_sky.png</code>)</li>
+<li><code>BGM_FREE_GAME</code> and <code>BGM_77X</code> audio buffers</li>
+</ul>
+<h3 id="h-106-mobile-performance-degradation">10.6 Mobile Performance Degradation</h3>
+<p>When <code>navigator.hardwareConcurrency &lt;= 4</code> or <code>navigator.deviceMemory &lt;= 2</code>:</p>
+<ul>
+<li>Reduce particle count to mobile limits (VDD §5.4: 200 absolute; 800 FG Bonus ×100; 600 Max Win).</li>
+<li>Disable Idle animations on symbols (PDD §10.4): only Win and Special animations play.</li>
+<li>Disable background parallax layers 2–4.</li>
+<li>Load 1× texture resolution instead of 2×.</li>
+<li>Reduce Spine animation framerate to 24fps for Idle animations.</li>
+</ul>
+<hr>
+<h2 id="h-11-error-and-edge-case-handling">§11 Error and Edge Case Handling</h2>
+<h3 id="h-111-near-miss-nearmissapplied-true">11.1 Near Miss (<code>nearMissApplied = true</code>)</h3>
+<p>When <code>FullSpinOutcome.nearMissApplied</code> is <code>true</code>, the reel stop animation includes:</p>
+<ul>
+<li>A brief gold border flash (400ms) on near-miss grid positions (identified by the engine&#x27;s reel stop configuration, not computed by the client).</li>
+<li>Subtle orange-gold color highlight (<code>--color-orange-thunder</code>) on affected cell borders.</li>
+<li><code>SFX_NEAR_MISS</code> plays (0.5s suspense string sound).</li>
+<li>No text label is shown (per PDD §7.5 — &quot;ALMOST!&quot; or similar are explicitly forbidden).</li>
+<li><code>totalWin = 0</code> is still displayed normally; the near-miss is a pure visual effect.</li>
+</ul>
+<p>Near-miss is handled automatically inside <code>AnimationQueue.build()</code> — when <code>outcome.nearMissApplied</code> is <code>true</code>, a <code>NEAR_MISS</code> step is inserted at the front of the queue before any cascade steps. No separate call is needed; the game loop processes it as the first step in the normal animation sequence.</p>
+<h3 id="h-112-session-floor-sessionfloorapplied-true">11.2 Session Floor (<code>sessionFloorApplied = true</code>)</h3>
+<p>When <code>FullSpinOutcome.sessionFloorApplied = true</code> (Buy Feature spin where floor was needed):</p>
+<ul>
+<li>After all FG animations complete, display a brief &quot;BONUS WIN GUARANTEED&quot; indicator (gold ribbon banner, 1.5s auto-dismiss).</li>
+<li>The WIN counter rolls up to <code>totalWin</code> normally — no special floor-specific animation.</li>
+<li>The displayed value is always <code>outcome.totalWin</code> (the sole authority), which already incorporates the floor guarantee.</li>
+</ul>
+<h3 id="h-113-max-win-cap">11.3 Max Win Cap</h3>
+<p>Cap selection logic:</p>
+<ul>
+<li>extraBet = true AND buyFeature = true: maxWin = config.gameParameters.maxWin.extraBetBuyFeature (90,000×)</li>
+<li>buyFeature = true only: maxWin = config.gameParameters.maxWin.buyFeature (90,000×)</li>
+<li>otherwise: maxWin = config.gameParameters.maxWin.mainGame (30,000×)</li>
+</ul>
+<p>When <code>totalWin</code> equals the applicable max win cap:</p>
+<pre><code class="language-typescript">const { maxWin } = configService.getConfig().gameParameters;
+const maxWinMultiplier =
+  (outcome.extraBet &amp;&amp; outcome.buyFeature) ? maxWin.extraBetBuyFeature  // 90,000×
+  : outcome.buyFeature                     ? maxWin.buyFeature          // 90,000×
+  :                                          maxWin.mainGame;            // 30,000×
+const maxWinValue = maxWinMultiplier * outcome.baseBet;
+const isMaxWin = Math.abs(outcome.totalWin - maxWinValue) &lt; 0.01;</code></pre>
+<ul>
+<li>Trigger full Max Win celebration (PDD §9.4): Zeus character animation, rainbow color burst, 6s display.</li>
+<li>For 90,000× cap (buyFeature = true): additionally show &quot;LEGENDARY WIN&quot; overlay with Zeus + Pegasus + Athena three-character sequence (10s+ display).</li>
+<li>Player can tap to skip after 3s.</li>
+</ul>
+<h3 id="h-114-zero-win-spin">11.4 Zero-Win Spin</h3>
+<p>When <code>outcome.totalWin === 0</code> and <code>outcome.cascadeSequence.steps.length === 0</code>:</p>
+<ul>
+<li>Display initial grid with no win animations.</li>
+<li>No WIN counter animation (stays at 0).</li>
+<li>No special effects.</li>
+<li>After reel stop (~1s), return to <code>IDLE</code> immediately.</li>
+</ul>
+<p>When <code>outcome.totalWin === 0</code> but <code>cascadeSequence.steps</code> is non-empty (cascade occurred but ultimately 0 win due to no winning lines in all steps):</p>
+<ul>
+<li>Play full cascade animation sequence (symbols fall and expand) per §6.2.</li>
+<li>WIN counter remains at 0 throughout.</li>
+<li>Return to <code>IDLE</code> after last cascade step.</li>
+</ul>
+<h3 id="h-115-fg-active-on-reconnect">11.5 FG Active on Reconnect</h3>
+<p>When <code>GET /v1/session</code> returns <code>status === &#x27;FG_ACTIVE&#x27;</code>:</p>
+<pre><code class="language-typescript">// Reconstruct FG state from session data
+async function restoreFGSession(session: SessionData): Promise&lt;void&gt; {
+  // 0. Show loading overlay (PDD §7.6 loading state)
+  overlayComponent.show(&#x27;Restoring Session...&#x27;);
+
+  // 1. Switch to FG background (no cross-dissolve on reconnect)
+  await sceneManager.switchBackground(&#x27;freegame&#x27;, false);
+
+  // 2. Restore Lightning Marks
+  lightningMarkComponent.restoreMarks(session.lightningMarks.positions);
+
+  // 3. Restore FreeGameComponent internal multiplier state (active ×N banner)
+  freeGameComponent.restoreFromSession(session.fgMultiplier!, session.fgRound);
+
+  // 4. Restore multiplier progress bar to session.fgMultiplier
+  const fgMults = configService.getConfig().gameParameters.fgMultiplierSequence;
+  coinTossComponent.updateMultiplierProgress(
+    fgMults.indexOf(session.fgMultiplier!) + 1
+  );
+
+  // 5. Update spin counter to session.fgRound (already 1-indexed from API)
+  freeGameComponent.updateSpinCounter(session.fgRound, false);
+
+  // 6. Remove loading overlay and resume FG from current round
+  overlayComponent.hide();
+  stateMachine.transition(&#x27;SESSION_RESTORED_FG&#x27;);
+}</code></pre>
+<p><strong>Visual states during reconnect (PDD §7.6):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>State</th>
+<th>Visual</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Loading</td>
+<td>Spinning loading icon on FG background; &quot;Restoring Session...&quot; text (white, Open Sans 18px)</td>
+</tr>
+<tr>
+<td>Restored</td>
+<td>FG multiplier bar animates to correct position (0.5s); marks redraw; overlay disappears</td>
+</tr>
+<tr>
+<td>Expired (404)</td>
+<td>Return to Main Game background; &quot;Session Expired&quot; stone-frame dialog</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-116-buy-feature-confirmation-dialog">11.6 Buy Feature Confirmation Dialog</h3>
+<p>Before executing a <code>buyFeature = true</code> spin, show confirmation dialog (PDD §8.2):</p>
+<ul>
+<li>Display cost: <code>baseBet × config.gameParameters.buyFeatureCostMultiplier</code> (normal) or <code>baseBet × config.gameParameters.buyFeatureCostMultiplier × config.gameParameters.extraBetCostMultiplier</code> (Extra Bet ON) — always read from <code>ConfigService.getInstance().getConfig()</code>, never hardcoded.</li>
+<li>Show &quot;Win floor: 20× BET&quot; guarantee text.</li>
+<li>CONFIRM: execute spin.</li>
+<li>CANCEL: dismiss dialog, no spin.</li>
+<li>Dialog blocks background interaction (modal overlay).</li>
+</ul>
+<h3 id="h-117-concurrent-spin-guard-spin_in_progress-http-409">11.7 Concurrent Spin Guard (<code>SPIN_IN_PROGRESS</code> — HTTP 409)</h3>
+<p>If <code>SPIN_IN_PROGRESS</code> (409) is received (should not normally occur with proper UI locking):</p>
+<ul>
+<li>Show a brief &quot;Please wait&quot; message to the player.</li>
+<li>Do not retry automatically — wait for the player to re-submit the spin.</li>
+<li>Unlock the SPIN button so the player can re-submit when ready.</li>
+</ul>
+<hr>
+<h2 id="h-12-testing-approach">§12 Testing Approach</h2>
+<h3 id="h-121-unit-tests">12.1 Unit Tests</h3>
+<p><strong>State Machine:</strong></p>
+<pre><code class="language-typescript">// src/__tests__/GameStateMachine.test.ts
+
+describe(&#x27;GameStateMachine&#x27;, () =&gt; {
+  it(&#x27;transitions IDLE → SPINNING on SPIN_PRESSED&#x27;, () =&gt; {
+    const sm = new GameStateMachine();
+    sm.transition(&#x27;SPIN_PRESSED&#x27;);
+    expect(sm.currentState).toBe(GameState.SPINNING);
+  });
+
+  it(&#x27;transitions SPINNING → CASCADE_RESOLVING on valid spin response&#x27;, () =&gt; {
+    const sm = new GameStateMachine();
+    sm.setState(GameState.SPINNING);
+    sm.transition(&#x27;SPIN_RESPONSE_OK&#x27;);
+    expect(sm.currentState).toBe(GameState.CASCADE_RESOLVING);
+  });
+
+  it(&#x27;transitions TIMEOUT_RETRY → NETWORK_ERROR after 3 retries&#x27;, () =&gt; {
+    const sm = new GameStateMachine();
+    sm.setState(GameState.TIMEOUT_RETRY);
+    sm.setRetryCount(3);
+    sm.transition(&#x27;RETRY_COUNT_EXCEEDED&#x27;);
+    expect(sm.currentState).toBe(GameState.NETWORK_ERROR);
+  });
+});</code></pre>
+<p><strong>Win Calculator (display only — verifies roll-up, not authoritative win):</strong></p>
+<pre><code class="language-typescript">describe(&#x27;WinRollupAnimation&#x27;, () =&gt; {
+  it(&#x27;reaches target value exactly at completion&#x27;, async () =&gt; {
+    const frames: number[] = [];
+    await new Promise&lt;void&gt;((resolve) =&gt; {
+      animateWinRollup(0, 10.25, (v) =&gt; frames.push(v), resolve);
+    });
+    expect(frames[frames.length - 1]).toBeCloseTo(10.25, 2);
+  });
+});</code></pre>
+<p><strong>AnimationQueue:</strong></p>
+<pre><code class="language-typescript">describe(&#x27;AnimationQueue&#x27;, () =&gt; {
+  it(&#x27;builds correct step count for a FG-triggered outcome&#x27;, () =&gt; {
+    const queue = new AnimationQueue();
+    queue.build(mockFGOutcome);  // 3 cascade steps + TB + coin toss + FG entry + 3 FG rounds + FG complete (WIN_DISPLAY skipped — fgTriggered=true)
+    expect(queue.length).toBe(10);
+  });
+
+  it(&#x27;places FG_ENTRY before first FG_ROUND in queue&#x27;, async () =&gt; {
+    const queue = new AnimationQueue();
+    queue.build(mockFGOutcome);
+    const types: string[] = [];
+    const dispatcher = createMockDispatcher({
+      default: (step: AnimationStep) =&gt; types.push(step.type),
+    });
+    await queue.play(dispatcher);
+    const fgEntryIdx = types.indexOf(&#x27;FG_ENTRY&#x27;);
+    const fgRoundIdx = types.indexOf(&#x27;FG_ROUND&#x27;);
+    expect(fgEntryIdx).toBeGreaterThanOrEqual(0);
+    expect(fgRoundIdx).toBeGreaterThanOrEqual(0);
+    expect(fgEntryIdx).toBeLessThan(fgRoundIdx);
+  });
+});</code></pre>
+<h3 id="h-122-integration-tests">12.2 Integration Tests</h3>
+<p>Mock server responses → animation sequence validation:</p>
+<pre><code class="language-typescript">// src/__tests__/integration/SpinFlow.test.ts
+
+describe(&#x27;Spin flow integration&#x27;, () =&gt; {
+  it(&#x27;plays cascade steps sequentially from FullSpinOutcome&#x27;, async () =&gt; {
+    const mockOutcome = loadFixture(&#x27;cascade_3_steps.json&#x27;);
+    const playedSteps: number[] = [];
+    let stepCount = 0;
+
+    const dispatcher = createMockDispatcher({
+      &#x27;CASCADE_STEP&#x27;: () =&gt; playedSteps.push(stepCount++), // CascadeStep has no index field; track order with counter
+    });
+
+    const queue = new AnimationQueue();
+    queue.build(mockOutcome);
+    await queue.play(dispatcher);
+
+    expect(playedSteps).toEqual([0, 1, 2]);
+  });
+
+  it(&#x27;plays Thunder Blessing sequence after cascade completes&#x27;, async () =&gt; {
+    const mockOutcome = loadFixture(&#x27;thunder_blessing_triggered.json&#x27;);
+    const played: string[] = [];
+
+    const dispatcher = createMockDispatcher({
+      &#x27;CASCADE_STEP&#x27;: () =&gt; played.push(&#x27;cascade&#x27;),
+      &#x27;THUNDER_BLESSING&#x27;: () =&gt; played.push(&#x27;tb&#x27;),
+    });
+
+    const queue = new AnimationQueue();
+    queue.build(mockOutcome);
+    await queue.play(dispatcher);
+
+    const tbIndex = played.indexOf(&#x27;tb&#x27;);
+    // TB was dispatched
+    expect(tbIndex).toBeGreaterThanOrEqual(0);
+    // TB fires immediately after the triggering cascade step (mid-cascade split)
+    expect(played[tbIndex - 1]).toBe(&#x27;cascade&#x27;);
+    // All cascade steps are accounted for — some before TB, remainder may follow TB
+    expect(played.filter(e =&gt; e === &#x27;cascade&#x27;).length).toBe(mockOutcome.cascadeSequence.steps.length);
+  });
+
+  it(&#x27;plays all FG rounds in order from fgRounds array&#x27;, async () =&gt; {
+    const mockOutcome = loadFixture(&#x27;fg_3_rounds.json&#x27;);
+    const roundsPlayed: number[] = [];
+
+    const dispatcher = createMockDispatcher({
+      &#x27;FG_ROUND&#x27;: (data) =&gt; roundsPlayed.push(data.index),
+    });
+
+    const queue = new AnimationQueue();
+    queue.build(mockOutcome);
+    await queue.play(dispatcher);
+
+    expect(roundsPlayed).toEqual([0, 1, 2]);
+  });
+});</code></pre>
+<h3 id="h-123-visual-regression-tests">12.3 Visual Regression Tests</h3>
+<p>Using Playwright for screenshot-based regression across key game states:</p>
+<pre><code class="language-typescript">// src/__tests__/visual/GameStates.visual.test.ts
+
+import { test, expect } from &#x27;@playwright/test&#x27;;
+
+const BREAKPOINTS = [320, 768, 1024, 1440];
+
+for (const width of BREAKPOINTS) {
+  test.describe(`${width}px breakpoint`, () =&gt; {
+    test(&#x27;IDLE state — initial 3-row grid&#x27;, async ({ page }) =&gt; {
+      await page.setViewportSize({ width, height: Math.round(width * 9 / 16) });
+      await page.goto(&#x27;/game?state=idle&#x27;);
+      await expect(page.locator(&#x27;.reel-container&#x27;)).toBeVisible();
+      await expect(page).toHaveScreenshot(`idle-${width}.png`);
+    });
+
+    test(&#x27;FG active state — multiplier ×17 displayed&#x27;, async ({ page }) =&gt; {
+      await page.setViewportSize({ width, height: Math.round(width * 9 / 16) });
+      await page.goto(&#x27;/game?state=fg&amp;multiplier=17&#x27;);
+      await expect(page.locator(&#x27;.fg-multiplier&#x27;)).toContainText(&#x27;×17&#x27;);
+      await expect(page).toHaveScreenshot(`fg-x17-${width}.png`);
+    });
+
+    test(&#x27;Win screen — Big Win overlay&#x27;, async ({ page }) =&gt; {
+      await page.setViewportSize({ width, height: Math.round(width * 9 / 16) });
+      await page.goto(&#x27;/game?state=bigwin&amp;amount=500&#x27;);
+      await expect(page.locator(&#x27;.win-banner&#x27;)).toBeVisible();
+      await expect(page).toHaveScreenshot(`bigwin-${width}.png`);
+    });
+
+    test(&#x27;Coin Toss overlay — HEADS result&#x27;, async ({ page }) =&gt; {
+      await page.setViewportSize({ width, height: Math.round(width * 9 / 16) });
+      await page.goto(&#x27;/game?state=cointoss&amp;result=heads&#x27;);
+      await expect(page.locator(&#x27;.coin-toss-overlay&#x27;)).toBeVisible();
+      await expect(page).toHaveScreenshot(`cointoss-heads-${width}.png`);
+    });
+  });
+}</code></pre>
+<p><strong>Visual test scenarios required:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Scenario</th>
+<th>Breakpoints</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>IDLE — 3-row grid, no marks</td>
+<td>320, 768, 1024, 1440</td>
+<td>Baseline; catch layout regressions</td>
+</tr>
+<tr>
+<td>Cascade active — 6-row expanded</td>
+<td>320, 1440</td>
+<td>Verify cloud mask at bottom</td>
+</tr>
+<tr>
+<td>Lightning Marks — 5+ marks on grid</td>
+<td>1024, 1440</td>
+<td>Counter display threshold</td>
+</tr>
+<tr>
+<td>Thunder Blessing first hit</td>
+<td>1440</td>
+<td>Full-screen flash; white overlay</td>
+</tr>
+<tr>
+<td>Coin Toss — HEADS</td>
+<td>1440</td>
+<td>Multiplier bar at ×3</td>
+</tr>
+<tr>
+<td>Coin Toss — TAILS</td>
+<td>1440</td>
+<td>Dimmed coin state</td>
+</tr>
+<tr>
+<td>Free Game active — ×77 multiplier</td>
+<td>1024, 1440</td>
+<td>Pulsing red node</td>
+</tr>
+<tr>
+<td>FG Bonus ×100 reveal</td>
+<td>1440</td>
+<td>Full-screen particle state</td>
+</tr>
+<tr>
+<td>Big Win overlay</td>
+<td>320, 768, 1440</td>
+<td>Font scaling</td>
+</tr>
+<tr>
+<td>Reconnect — FG restore loading</td>
+<td>1440</td>
+<td>Loading overlay on FG bg</td>
+</tr>
+</tbody></table></div>
+<hr>
+<p><em>FRONTEND.md version 1.0 — generated from IDEA.md, BRD.md, PRD.md, PDD.md v1.0, VDD.md v1.0, EDD.md v1.3, API.md v1.0, SCHEMA.md v1.0.</em> <em>All API field names (FullSpinOutcome, CascadeStep, FGRound, ThunderBlessingResult, etc.) match API.md §3.1 and §4 exact definitions.</em> <em>All animation timing values derive from PDD §4–§7 and VDD §4 Token system.</em> <em>The frontend is a Pure View: totalWin is always outcome.totalWin; win amounts are never computed on the client.</em></p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>FRONTEND — Frontend Spec</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>

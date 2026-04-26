@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Runbook — Production Ops — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">Runbook — Production Ops</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link active"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>📟 Operations</span>
+        <span>Source: <code>runbook.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="operations-runbook-thunder-blessing-slot-game">Operations Runbook — Thunder Blessing Slot Game</h1>
+<hr>
+<h2 id="h-1-document-control">§1 Document Control</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Field</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>DOC-ID</strong></td>
+<td>RUNBOOK-THUNDERBLESSING-20260426</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>Thunder Blessing Slot Game</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td><strong>Date</strong></td>
+<td>2026-04-26</td>
+</tr>
+<tr>
+<td><strong>Owner</strong></td>
+<td>On-Call SRE / Engineering Lead</td>
+</tr>
+<tr>
+<td><strong>Scope</strong></td>
+<td>Production backend operations: deployment, incident response, common tasks, escalation</td>
+</tr>
+<tr>
+<td><strong>Upstream</strong></td>
+<td>EDD v1.3, ARCH v1.7, API v1.0, SCHEMA v1.0, FRONTEND v1.0</td>
+</tr>
+</tbody></table></div>
+<h3 id="change-log">Change Log</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Summary</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-04-26</td>
+<td>gendoc D14-runbook</td>
+<td>Initial generation</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-2-system-overview">§2 System Overview</h2>
+<h3 id="service-identity">Service Identity</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Property</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Service name</td>
+<td><code>thunder-blessing-api</code></td>
+</tr>
+<tr>
+<td>Container port</td>
+<td><code>3000</code> (HTTP; TLS terminated at Ingress)</td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>HTTPS / REST (TLS 1.3, nginx-ingress)</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>Node.js 20 LTS / TypeScript 5.4+ / Fastify 4.x</td>
+</tr>
+<tr>
+<td>API prefix</td>
+<td><code>/v1</code> (health probes at root: <code>/health</code>, <code>/ready</code>)</td>
+</tr>
+</tbody></table></div>
+<h3 id="tech-stack-summary">Tech Stack Summary</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>HTTP framework</td>
+<td>Fastify</td>
+<td>4.x</td>
+<td>Rate limit plugin (<code>@fastify/rate-limit</code>); JWT preHandler</td>
+</tr>
+<tr>
+<td>Language</td>
+<td>TypeScript</td>
+<td>5.4+</td>
+<td>Compiled; no hot reload in production</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>Supabase PostgreSQL</td>
+<td>15</td>
+<td>Managed; PgBouncer pooling (pool_size=20 per pod)</td>
+</tr>
+<tr>
+<td>Session cache</td>
+<td>Redis / Upstash</td>
+<td>7.x</td>
+<td>FG session state, concurrency locks, rate-limit counters</td>
+</tr>
+<tr>
+<td>Auth</td>
+<td>Supabase Auth (JWT RS256)</td>
+<td>—</td>
+<td>RS256 public key cached in-memory (TTL 1h)</td>
+</tr>
+<tr>
+<td>Container</td>
+<td>Docker</td>
+<td>24+</td>
+<td>Image tagged by git SHA</td>
+</tr>
+<tr>
+<td>Orchestration</td>
+<td>Kubernetes</td>
+<td>1.29+</td>
+<td>Namespace <code>thunder-prod</code></td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>OpenTelemetry + Grafana</td>
+<td>—</td>
+<td>Traces → Grafana Tempo; metrics → Prometheus</td>
+</tr>
+</tbody></table></div>
+<h3 id="external-dependencies">External Dependencies</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>System</th>
+<th>Purpose</th>
+<th>Timeout</th>
+<th>Circuit Breaker Threshold</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Supabase PostgreSQL</td>
+<td>Player wallet, spins, fg_sessions</td>
+<td>2000ms</td>
+<td>5 failures / 10s window</td>
+</tr>
+<tr>
+<td>Redis / Upstash</td>
+<td>FG session state, concurrency lock, rate limit</td>
+<td>500ms</td>
+<td>10 failures / 10s window</td>
+</tr>
+<tr>
+<td>Supabase Auth (JWT)</td>
+<td>RS256 token verification</td>
+<td>1000ms</td>
+<td>5 failures / 10s window</td>
+</tr>
+<tr>
+<td>CDN (Cloudflare / CloudFront)</td>
+<td>Static frontend assets</td>
+<td>—</td>
+<td>N/A (frontend only)</td>
+</tr>
+</tbody></table></div>
+<h3 id="environment-matrix">Environment Matrix</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Environment</th>
+<th>K8s Namespace</th>
+<th>Replicas</th>
+<th>HPA Min/Max</th>
+<th>Deploy Strategy</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Local</td>
+<td>N/A (docker-compose)</td>
+<td>1</td>
+<td>N/A</td>
+<td>N/A</td>
+<td><code>NODE_ENV=development</code>; Redis localhost:6379</td>
+</tr>
+<tr>
+<td>Development</td>
+<td><code>thunder-dev</code></td>
+<td>1</td>
+<td>N/A</td>
+<td>Rolling</td>
+<td>Auto-deploy on <code>staging</code> branch push</td>
+</tr>
+<tr>
+<td>Staging</td>
+<td><code>thunder-staging</code></td>
+<td>2</td>
+<td>2/4</td>
+<td>Blue-Green</td>
+<td>Mirror prod config</td>
+</tr>
+<tr>
+<td>Production</td>
+<td><code>thunder-prod</code></td>
+<td>3</td>
+<td>3/10</td>
+<td>Canary (5%→25%→100%)</td>
+<td>PDB minAvailable=2</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-3-health-checks-monitoring">§3 Health Checks &amp; Monitoring</h2>
+<h3 id="health-endpoints">Health Endpoints</h3>
+<h4 id="get-health-liveness-probe">GET /health — Liveness Probe</h4>
+<ul>
+<li><strong>Auth:</strong> None required</li>
+<li><strong>Expected response:</strong> HTTP 200</li>
+<li><strong>Example response:</strong></li>
+</ul>
+<p>  ``<code>json   { &quot;status&quot;: &quot;ok&quot; }   </code>``</p>
+<ul>
+<li><strong>K8s config:</strong> <code>initialDelaySeconds: 10</code>, <code>periodSeconds: 15</code>, <code>failureThreshold: 3</code> (45s before pod restart)</li>
+<li><strong>Action on failure:</strong> K8s automatically restarts the pod. If repeated restarts occur, check for config load failures (<code>fatal</code> log level) or OOM.</li>
+</ul>
+<h4 id="get-ready-readiness-probe">GET /ready — Readiness Probe</h4>
+<ul>
+<li><strong>Auth:</strong> None required</li>
+<li><strong>Expected response:</strong> HTTP 200 when both PostgreSQL and Redis are reachable</li>
+<li><strong>K8s config:</strong> <code>initialDelaySeconds: 5</code>, <code>periodSeconds: 10</code></li>
+<li><strong>Action on failure:</strong> Pod is removed from Ingress rotation. Investigate downstream connectivity (DB/Redis). Check circuit breaker state in Grafana.</li>
+</ul>
+<h3 id="key-metrics-to-watch">Key Metrics to Watch</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Metric</th>
+<th>Type</th>
+<th>Alert Threshold</th>
+<th>Severity</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>spin_duration_seconds</code> P99</td>
+<td>Histogram</td>
+<td>&gt; 500ms sustained 2 min</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td><code>spin_error_total / spin_total</code></td>
+<td>Counter ratio</td>
+<td>&gt; 0.5% sustained 1 min</td>
+<td>Critical</td>
+</tr>
+<tr>
+<td><code>circuit_breaker_state{dependency=&quot;postgresql&quot;}</code></td>
+<td>Gauge</td>
+<td>OPEN</td>
+<td>Critical</td>
+</tr>
+<tr>
+<td><code>circuit_breaker_state{dependency=&quot;redis&quot;}</code></td>
+<td>Gauge</td>
+<td>OPEN</td>
+<td>Critical</td>
+</tr>
+<tr>
+<td><code>redis_lock_failures_total</code></td>
+<td>Counter</td>
+<td>&gt; 10/min</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td><code>fg_triggered_total</code></td>
+<td>Counter</td>
+<td>anomalous spike (2× baseline)</td>
+<td>Warning</td>
+</tr>
+<tr>
+<td>Wallet discrepancy events</td>
+<td>Custom alert</td>
+<td>Any event</td>
+<td>Critical</td>
+</tr>
+<tr>
+<td>Rate limit flood</td>
+<td>Counter</td>
+<td>&gt; 1000 hits/min</td>
+<td>Warning</td>
+</tr>
+</tbody></table></div>
+<h3 id="alert-thresholds-grafana">Alert Thresholds (Grafana)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Alert Name</th>
+<th>Condition</th>
+<th>Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>HighSpinLatency</code></td>
+<td>P99 &gt; 500ms for 2 min</td>
+<td>Investigate engine bottleneck; check DB slow queries</td>
+</tr>
+<tr>
+<td><code>SpinErrorRate</code></td>
+<td>5xx rate &gt; 0.5% for 1 min</td>
+<td>PagerDuty page; triage per INC-001</td>
+</tr>
+<tr>
+<td><code>CircuitBreakerOpen</code></td>
+<td>Any dependency OPEN</td>
+<td>PagerDuty page; triage per INC-002 or INC-003</td>
+</tr>
+<tr>
+<td><code>WalletDiscrepancy</code></td>
+<td>debit != credit for any spin</td>
+<td>Freeze affected player account; page P0</td>
+</tr>
+<tr>
+<td><code>RateLimitFlood</code></td>
+<td>&gt; 1000 rate-limit hits/min</td>
+<td>Review source IP for abuse/ban</td>
+</tr>
+<tr>
+<td><code>ConfigIntegrityFailure</code></td>
+<td>CI checksum mismatch</td>
+<td>Halt deployment; escalate to Engineering Lead</td>
+</tr>
+</tbody></table></div>
+<h3 id="log-locations">Log Locations</h3>
+<p>All logs are structured JSON, correlated by <code>traceId</code> and <code>spanId</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Environment</th>
+<th>Log destination</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Production</td>
+<td>Stdout → K8s log aggregation → Grafana Loki (or equivalent)</td>
+</tr>
+<tr>
+<td>Staging</td>
+<td>Stdout → K8s log aggregation</td>
+</tr>
+<tr>
+<td>Local</td>
+<td>Stdout (docker-compose logs thunder-api)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Log levels in use:</strong></p>
+<ul>
+<li><code>debug</code> — RNG values, grid state (dev/staging only; never in production)</li>
+<li><code>info</code> — Spin start/complete, FG trigger, wallet operations</li>
+<li><code>warn</code> — Rate limit hit, circuit breaker HALF_OPEN</li>
+<li><code>error</code> — Engine errors, DB failures, unexpected exceptions</li>
+<li><code>fatal</code> — Config load failure, unrecoverable startup error</li>
+</ul>
+<p><strong>Finding a specific spin in logs:</strong></p>
+<pre><code class="language-bash"># Filter by sessionId (replace with actual value)
+kubectl logs -n thunder-prod -l app=thunder-blessing-api --since=1h | \
+  jq &#x27;select(.sessionId == &quot;sess-9e2b1a34-6f7c-4d2e-b8a1-c5d9e0f12345&quot;)&#x27;</code></pre>
+<hr>
+<h2 id="h-4-startup-shutdown-procedures">§4 Startup &amp; Shutdown Procedures</h2>
+<h3 id="required-environment-variables-at-startup">Required Environment Variables at Startup</h3>
+<p>All secrets are stored in K8s Secret <code>thunder-secrets</code> and ConfigMap <code>thunder-config</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Env Var</th>
+<th>Source</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>SUPABASE_URL</code></td>
+<td>ConfigMap <code>thunder-config</code> key <code>supabase-url</code></td>
+<td>Supabase project URL (public, non-secret)</td>
+</tr>
+<tr>
+<td><code>SUPABASE_SERVICE_KEY</code></td>
+<td>Secret <code>thunder-secrets</code> key <code>supabase-service-key</code></td>
+<td>Supabase service role key; bypasses RLS</td>
+</tr>
+<tr>
+<td><code>SUPABASE_JWT_SECRET</code></td>
+<td>Secret <code>thunder-secrets</code> key <code>supabase-jwt-secret</code></td>
+<td>RS256 public key for JWT verification</td>
+</tr>
+<tr>
+<td><code>REDIS_URL</code></td>
+<td>Secret <code>thunder-secrets</code> key <code>redis-url</code></td>
+<td>Redis / Upstash connection string (TLS)</td>
+</tr>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td>Secret <code>thunder-secrets</code> key <code>database-url</code></td>
+<td>PostgreSQL connection string (TLS)</td>
+</tr>
+<tr>
+<td><code>NODE_ENV</code></td>
+<td>Pod spec env</td>
+<td><code>production</code> in prod; <code>development</code> locally</td>
+</tr>
+<tr>
+<td><code>OTEL_TRACES_SAMPLER</code></td>
+<td>Pod spec env</td>
+<td><code>parentbased_traceidratio</code></td>
+</tr>
+<tr>
+<td><code>OTEL_TRACES_SAMPLER_ARG</code></td>
+<td>Pod spec env</td>
+<td><code>0.05</code> (5% normal traffic sampling)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Critical startup validation:</strong> At startup, the service calls <code>assertValidGameConfig(config)</code> and <code>assertValidBetRangeConfig(betConfig)</code>. If either fails, the process exits with a <code>fatal</code> log and K8s restarts the pod. Repeated restarts with <code>CONFIG_VALIDATION_FAILED</code> indicate a broken <code>GameConfig.generated.ts</code> — roll back to the previous Docker image.</p>
+<h3 id="service-startup-sequence">Service Startup Sequence</h3>
+<p>Dependencies must be ready before the API begins serving traffic:</p>
+<ol>
+<li><strong>Supabase PostgreSQL</strong> — must accept connections (readiness probe checks this)</li>
+<li><strong>Redis / Upstash</strong> — must accept connections (readiness probe checks this)</li>
+<li><strong>thunder-blessing-api pods</strong> — start after readiness probe passes</li>
+</ol>
+<pre><code class="language-bash"># Verify K8s pod readiness in production
+kubectl get pods -n thunder-prod -l app=thunder-blessing-api
+
+# Expected output: all pods in Running state with READY 1/1
+# NAME                                    READY   STATUS    RESTARTS   AGE
+# thunder-blessing-api-5d8f9b74c-abc12   1/1     Running   0          2h
+# thunder-blessing-api-5d8f9b74c-def34   1/1     Running   0          2h
+# thunder-blessing-api-5d8f9b74c-ghi56   1/1     Running   0          2h</code></pre>
+<h3 id="graceful-shutdown-sequence">Graceful Shutdown Sequence</h3>
+<p>On <code>SIGTERM</code> (K8s rolling update or manual drain):</p>
+<ol>
+<li>Fastify stops accepting new connections (<code>server.close()</code>)</li>
+<li>In-flight requests complete (up to 30s drain window)</li>
+<li>All Redis concurrency locks are released (<code>DEL session:{sessionId}:lock</code>)</li>
+<li>Database connections are closed cleanly</li>
+<li>Process exits with code 0</li>
+</ol>
+<p>K8s <code>terminationGracePeriodSeconds</code> should be set to at least 35s to accommodate the 30s drain window.</p>
+<pre><code class="language-bash"># Gracefully drain a specific pod (before manual maintenance)
+kubectl drain &lt;node-name&gt; --namespace thunder-prod --ignore-daemonsets --delete-emptydir-data
+
+# Force-delete a stuck pod (last resort; active sessions will lose lock — 10s TTL auto-recovers)
+kubectl delete pod &lt;pod-name&gt; -n thunder-prod --grace-period=0 --force</code></pre>
+<hr>
+<h2 id="h-5-deployment-procedures">§5 Deployment Procedures</h2>
+<h3 id="rolling-deploy-steps-production-canary">Rolling Deploy Steps (Production Canary)</h3>
+<p>Production uses a Canary strategy: 5% → 25% → 100% with automated rollback if error rate exceeds 1%.</p>
+<ol>
+<li>Ensure all CI/CD quality gates have passed:</li>
+</ol>
+<ul>
+<li>TypeScript compilation: 0 errors</li>
+<li>Unit test coverage: ≥ 80%</li>
+<li>SAST scan: no CRITICAL findings</li>
+<li><code>verify.js</code> 4-scenario RTP: all PASS</li>
+<li><code>GameConfig.generated.ts</code> checksum: no diff</li>
+<li>Docker image scan: no CRITICAL CVEs</li>
+</ul>
+<ol>
+<li>Tag the Docker image with the git SHA:</li>
+</ol>
+<p>   ``<code>bash    docker build -t thunder-blessing-api:&lt;git-sha&gt; .    docker push &lt;registry&gt;/thunder-blessing-api:&lt;git-sha&gt;    </code>``</p>
+<ol>
+<li>Apply the new image to the production deployment:</li>
+</ol>
+<p>   ``<code>bash    kubectl set image deployment/thunder-blessing-api \      api=&lt;registry&gt;/thunder-blessing-api:&lt;git-sha&gt; \      -n thunder-prod    </code>``</p>
+<ol>
+<li>Monitor the rollout:</li>
+</ol>
+<p>   ``<code>bash    kubectl rollout status deployment/thunder-blessing-api -n thunder-prod --timeout=5m    </code>``</p>
+<ol>
+<li>Watch the canary error rate in Grafana. If <code>spin_error_total / spin_total</code> exceeds 1% within 5 minutes, trigger rollback (step below).</li>
+</ol>
+<ol>
+<li>After 100% traffic shifted, run post-deploy smoke tests (see §5.4).</li>
+</ol>
+<h3 id="rollback-procedure">Rollback Procedure</h3>
+<pre><code class="language-bash"># Immediate rollback to the previous revision
+kubectl rollout undo deployment/thunder-blessing-api -n thunder-prod
+
+# Verify rollback in progress
+kubectl rollout status deployment/thunder-blessing-api -n thunder-prod
+
+# Verify running image after rollback
+kubectl get deployment thunder-blessing-api -n thunder-prod \
+  -o jsonpath=&#x27;{.spec.template.spec.containers[0].image}&#x27;</code></pre>
+<h3 id="database-migration-steps">Database Migration Steps</h3>
+<p>Migrations must run <strong>before</strong> deploying the new API version.</p>
+<ol>
+<li>Run migrations in a non-transactional context for <code>CREATE INDEX CONCURRENTLY</code> steps:</li>
+</ol>
+<p>   ``<code>bash    supabase db push --project-ref &lt;project-ref&gt;    # For CONCURRENTLY indexes, run separately:    supabase db execute --no-transaction -c &quot;CREATE INDEX CONCURRENTLY IF NOT EXISTS ...&quot;    </code>``</p>
+<ol>
+<li>Verify migration success:</li>
+</ol>
+<p>   ``<code>sql    -- Connect to Supabase SQL editor or psql    SELECT * FROM schema_migrations ORDER BY inserted_at DESC LIMIT 5;    </code>``</p>
+<ol>
+<li>Confirm all tables exist and constraints are valid:</li>
+</ol>
+<p>   ``<code>sql    SELECT tablename FROM pg_tables WHERE schemaname = &#x27;public&#x27;    ORDER BY tablename;    -- Expected: fg_sessions, game_config_versions, players, spins, wallet_transactions    </code>``</p>
+<ol>
+<li>Deploy the new API version after migrations are confirmed.</li>
+</ol>
+<h3 id="post-deploy-smoke-test-checklist">Post-Deploy Smoke Test Checklist</h3>
+<p>Run these checks immediately after a production deploy:</p>
+<pre><code class="language-bash"># 1. Liveness probe
+curl -sf https://api.yourdomain.com/health
+# Expected: {&quot;status&quot;:&quot;ok&quot;}  HTTP 200
+
+# 2. Readiness probe (DB + Redis connectivity)
+curl -sf https://api.yourdomain.com/ready
+# Expected: HTTP 200
+
+# 3. Config endpoint (valid JWT required)
+curl -sf https://api.yourdomain.com/v1/config \
+  -H &quot;Authorization: Bearer &lt;valid-player-jwt&gt;&quot;
+# Expected: HTTP 200 with bet range and currency config JSON
+
+# 4. Spin endpoint (use a test player account; betLevel 1 USD)
+curl -sf -X POST https://api.yourdomain.com/v1/spin \
+  -H &quot;Authorization: Bearer &lt;test-player-jwt&gt;&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;playerId&quot;:&quot;&lt;test-player-uuid&gt;&quot;,&quot;betLevel&quot;:1,&quot;extraBet&quot;:false,&quot;buyFeature&quot;:false,&quot;currency&quot;:&quot;USD&quot;}&#x27; \
+  | jq &#x27;{success, totalWin: .data.totalWin, spinId: .data.spinId}&#x27;
+# Expected: HTTP 200, success: true, totalWin &gt;= 0, spinId present
+
+# 5. Verify spin log persisted
+# In Supabase SQL editor:
+# SELECT id, total_win, created_at FROM spins WHERE player_id = &#x27;&lt;test-player-uuid&gt;&#x27;
+# ORDER BY created_at DESC LIMIT 1;</code></pre>
+<p>All five checks must pass before declaring the deploy successful.</p>
+<hr>
+<h2 id="h-6-incident-response-playbooks">§6 Incident Response Playbooks</h2>
+<h3 id="inc-001-high-error-rate-5xx-1-sustained-5-min">INC-001: High Error Rate (5xx &gt; 1% sustained 5 min)</h3>
+<p><strong>Trigger:</strong> <code>spin_error_total / spin_total</code> &gt; 1% for 5 consecutive minutes. PagerDuty alert fires.</p>
+<p><strong>Investigation steps:</strong></p>
+<ol>
+<li>Check Grafana dashboard for which error codes are spiking:</li>
+</ol>
+<p>   ``<code>bash    # In Grafana: query spin_error_total by error_code label    # Common codes: INTERNAL_ERROR (500), ENGINE_TIMEOUT (504), SERVICE_UNAVAILABLE (503)    </code>``</p>
+<ol>
+<li>Check circuit breaker state:</li>
+</ol>
+<p>   ``<code>bash    # Grafana: circuit_breaker_state metric — is PostgreSQL or Redis OPEN?    </code>``</p>
+<ol>
+<li>Check recent pod logs for stack traces:</li>
+</ol>
+<p>   ``<code>bash    kubectl logs -n thunder-prod -l app=thunder-blessing-api --since=10m | \      jq &#x27;select(.level == &quot;error&quot; or .level == &quot;fatal&quot;)&#x27;    </code>``</p>
+<ol>
+<li>Check if it&#x27;s a config issue (recent deploy?):</li>
+</ol>
+<p>   ``<code>bash    kubectl rollout history deployment/thunder-blessing-api -n thunder-prod    </code>``</p>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>If caused by a bad deploy: rollback immediately (§5.2).</li>
+<li>If <code>SERVICE_UNAVAILABLE</code> (503): circuit breaker is open; follow INC-002 or INC-003.</li>
+<li>If <code>ENGINE_TIMEOUT</code> (504) spikes: check if DB is slow (high query latency in Supabase dashboard); scale pods if CPU-bound.</li>
+<li>If <code>INTERNAL_ERROR</code> (500): examine stack trace in logs; may require code fix.</li>
+</ul>
+<p><strong>Escalation:</strong> If not resolved within 15 minutes, escalate to Engineering Lead. Severity P1.</p>
+<hr>
+<h3 id="inc-002-database-connection-failure-postgresql-unreachable">INC-002: Database Connection Failure (PostgreSQL unreachable)</h3>
+<p><strong>Trigger:</strong> Circuit breaker for <code>postgresql</code> enters OPEN state. <code>SERVICE_UNAVAILABLE</code> (503) responses spike. The <code>spins</code>, <code>players</code>, <code>fg_sessions</code>, <code>wallet_transactions</code> tables are unreachable.</p>
+<p><strong>Investigation steps:</strong></p>
+<ol>
+<li>Check Supabase dashboard for PostgreSQL status at https://supabase.com/dashboard.</li>
+<li>Test direct connectivity from a pod:</li>
+</ol>
+<p>   ``<code>bash    kubectl exec -n thunder-prod -it &lt;any-api-pod&gt; -- \      node -e &quot;const { createClient } = require(&#x27;@supabase/supabase-js&#x27;); \        const c = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY); \        c.from(&#x27;players&#x27;).select(&#x27;id&#x27;).limit(1).then(console.log);&quot;    </code>``</p>
+<ol>
+<li>Check connection pool exhaustion:</li>
+</ol>
+<p>   ``<code>sql    -- Run in Supabase SQL editor    SELECT count(<em>), state FROM pg_stat_activity GROUP BY state;    -- If count(</em>) WHERE state=&#x27;idle in transaction&#x27; is high, lock contention is likely    </code>``</p>
+<ol>
+<li>Check for long-running queries blocking connections:</li>
+</ol>
+<p>   ``<code>sql    SELECT pid, now() - query_start AS duration, query, state    FROM pg_stat_activity    WHERE state != &#x27;idle&#x27;    ORDER BY duration DESC    LIMIT 10;    </code>``</p>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>If Supabase is degraded: wait for managed service recovery; escalate to Supabase support.</li>
+<li>If connection pool exhausted: <code>SELECT pg_terminate_backend(pid)</code> on <code>idle in transaction</code> sessions.</li>
+<li>If a long-running query is blocking: <code>SELECT pg_cancel_backend(pid)</code> on the blocking query.</li>
+<li>Circuit breaker auto-recovers after 30s probe succeeds.</li>
+</ul>
+<p><strong>Escalation:</strong> P0 if service is fully down. Page Engineering Lead and CTO.</p>
+<hr>
+<h3 id="inc-003-redis-session-loss-session_not_found-spike">INC-003: Redis Session Loss (SESSION_NOT_FOUND spike)</h3>
+<p><strong>Trigger:</strong> <code>SESSION_NOT_FOUND</code> (404) error code spikes on <code>GET /v1/session/:sessionId</code>. FG sessions are being lost mid-sequence. Players report losing their Free Game progress.</p>
+<p><strong>Investigation steps:</strong></p>
+<ol>
+<li>Check Redis / Upstash status at https://upstash.com/dashboard.</li>
+<li>Check circuit breaker state for Redis in Grafana (<code>circuit_breaker_state{dependency=&quot;redis&quot;}</code>).</li>
+<li>Inspect the Redis key directly:</li>
+</ol>
+<p>   ``<code>bash    # Connect to Redis (use REDIS_URL from K8s secret)    redis-cli -u $REDIS_URL    # Look up a specific session    HGETALL session:&lt;sessionId&gt;:state    # Check TTL remaining    TTL session:&lt;sessionId&gt;:state    </code>``</p>
+<ol>
+<li>Check if sessions are expiring prematurely. Default TTL is 300s (5 minutes). If TTL is much shorter, the TTL renewal on FG round completion may be broken.</li>
+</ol>
+<p>   Note: SCHEMA.md §4.1 documents 1800s but API contract defines 300s — use 300s as the operative value for session expiry incidents.</p>
+<ol>
+<li>Check PostgreSQL <code>fg_sessions</code> for the durable fallback:</li>
+</ol>
+<p>   ``<code>sql    SELECT id, status, fg_round, total_fg_win, expires_at    FROM fg_sessions    WHERE player_id = &#x27;&lt;affected-player-uuid&gt;&#x27;    ORDER BY created_at DESC LIMIT 5;    </code>``</p>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>If Redis is down: circuit breaker opens; new spins return 503. Existing in-flight FG sessions cannot complete until Redis recovers.</li>
+<li>If TTL renewal is broken: deploy fix; affected sessions must be manually expired (see §7.3).</li>
+<li>If a player&#x27;s FG session exists in <code>fg_sessions</code> but not Redis, it can be manually reconstructed:</li>
+</ul>
+<p>  ``<code>sql   SELECT completed_rounds, lightning_marks, fg_multiplier, total_fg_win, floor_value   FROM fg_sessions WHERE player_id = &#x27;&lt;player-uuid&gt;&#x27; AND status = &#x27;ACTIVE&#x27;;   </code>``   Then re-seed Redis using the admin tooling (contact Engineering Lead).</p>
+<p><strong>Escalation:</strong> P1. Page Engineering Lead within 15 minutes if session loss is confirmed.</p>
+<hr>
+<h3 id="inc-004-rng-service-unavailable">INC-004: RNG Service Unavailable</h3>
+<p><strong>Context:</strong> The Thunder Blessing engine uses Node.js&#x27;s built-in <code>Math.random()</code> (or a seeded PRNG from <code>GameConfig.generated.ts</code> toolchain). There is no separate external RNG service. If the game engine itself is unavailable (process crash), incidents manifest as pod restarts or <code>INTERNAL_ERROR</code> (500) responses.</p>
+<p><strong>Trigger:</strong> Repeated pod restarts with <code>fatal</code> log entries indicating <code>CONFIG_VALIDATION_FAILED</code> or engine initialization failure.</p>
+<p><strong>Investigation steps:</strong></p>
+<ol>
+<li>Check pod restart count:</li>
+</ol>
+<p>   ``<code>bash    kubectl get pods -n thunder-prod -l app=thunder-blessing-api    # Look for high RESTARTS count    </code>``</p>
+<ol>
+<li>Examine pod crash logs:</li>
+</ol>
+<p>   ``<code>bash    kubectl logs -n thunder-prod &lt;crashing-pod-name&gt; --previous | \      jq &#x27;select(.level == &quot;fatal&quot;)&#x27;    </code>``</p>
+<ol>
+<li>Verify <code>GameConfig.generated.ts</code> integrity — a manual edit or corrupted deploy breaks startup validation:</li>
+</ol>
+<p>   ``<code>bash    kubectl exec -n thunder-prod -it &lt;any-running-pod&gt; -- \      node -e &quot;const config = require(&#x27;./src/config/GameConfig.generated.ts&#x27;); console.log(&#x27;OK&#x27;);&quot;    </code>``</p>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>If <code>GameConfig.generated.ts</code> is corrupted: roll back to the previous Docker image (§5.2).</li>
+<li>If pod is OOM: increase memory limit in the Deployment spec (default limit: 512Mi).</li>
+<li>Never manually edit <code>GameConfig.generated.ts</code>. It must only be regenerated via the toolchain (<code>verify.js</code> → <code>engine_generator.js</code>).</li>
+</ul>
+<p><strong>Escalation:</strong> P1 if more than one pod is failing. P0 if all pods are failing.</p>
+<hr>
+<h3 id="inc-005-balance-discrepancy-alert">INC-005: Balance Discrepancy Alert</h3>
+<p><strong>Trigger:</strong> Grafana alert <code>WalletDiscrepancy</code> — a <code>wallet_transactions</code> row with <code>tx_type = &#x27;DEBIT&#x27;</code> has no corresponding <code>CREDIT</code> or <code>COMPENSATE</code> entry within 60 seconds, or <code>outcome.totalWin</code> differs from the credited amount.</p>
+<p><strong>Critical rule:</strong> <code>outcome.totalWin</code> in <code>spins.outcome_json</code> is the <strong>sole</strong> accounting authority. The wallet credit must exactly equal <code>outcome.totalWin</code>. Never use <code>session.roundWin</code> or per-cascade step sums.</p>
+<p><strong>Investigation steps:</strong></p>
+<ol>
+<li>Find the mismatched transaction:</li>
+</ol>
+<p>   ``<code>sql    -- Find DEBITs without a matching CREDIT within 60s    SELECT wt.id, wt.player_id, wt.amount, wt.created_at, wt.spin_id    FROM wallet_transactions wt    WHERE wt.tx_type = &#x27;DEBIT&#x27;      AND NOT EXISTS (        SELECT 1 FROM wallet_transactions wt2        WHERE wt2.player_id = wt.player_id          AND wt2.spin_id = wt.spin_id          AND wt2.tx_type IN (&#x27;CREDIT&#x27;, &#x27;COMPENSATE&#x27;, &#x27;CREDIT_BUY_FEATURE_FLOOR&#x27;)          AND wt2.created_at &lt;= wt.created_at + INTERVAL &#x27;60 seconds&#x27;      )    ORDER BY wt.created_at DESC LIMIT 10;    </code>``</p>
+<ol>
+<li>Check the corresponding spin outcome:</li>
+</ol>
+<p>   ``<code>sql    SELECT id, total_win, outcome_json-&gt;&gt;&#x27;totalWin&#x27; AS json_total_win, engine_version, created_at    FROM spins    WHERE id = &#x27;&lt;spin-id-from-above&gt;&#x27;;    </code>``</p>
+<ol>
+<li>Check if an async reconciliation job ran:</li>
+</ol>
+<p>   ``<code>sql    SELECT * FROM wallet_transactions    WHERE player_id = &#x27;&lt;player-uuid&gt;&#x27;      AND tx_type = &#x27;COMPENSATE&#x27;    ORDER BY created_at DESC LIMIT 5;    </code>``</p>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>If player was not credited and no compensation is pending: issue a manual <code>COMPENSATE</code> credit equal to the debited amount. Use the <code>service_role</code> via Supabase dashboard or the admin API.</li>
+<li>Suspend the affected player&#x27;s account from further spins until the discrepancy is resolved (<code>UPDATE players SET is_suspended = TRUE WHERE id = &#x27;&lt;player-uuid&gt;&#x27;</code>).</li>
+<li>File an incident report and review the engine version involved.</li>
+</ul>
+<p><strong>Escalation:</strong> P0 immediately. Page Engineering Lead and CTO. Do not resolve without compliance review.</p>
+<hr>
+<h3 id="inc-006-rate-limiting-false-positives-rate_limited-for-legitimate-traffic">INC-006: Rate Limiting False Positives (RATE_LIMITED for legitimate traffic)</h3>
+<p><strong>Trigger:</strong> Legitimate players report <code>RATE_LIMITED</code> (HTTP 429) responses despite not exceeding 5 req/s. <code>redis_lock_failures_total</code> or <code>spin_error_total{error_code=&quot;RATE_LIMITED&quot;}</code> spikes unexpectedly.</p>
+<p><strong>Investigation steps:</strong></p>
+<ol>
+<li>Confirm the rate limit key in use — it should be the JWT <code>sub</code> claim (player UUID), not a shared IP:</li>
+</ol>
+<p>   ``<code>bash    # Check Fastify rate-limit plugin config in pod    kubectl exec -n thunder-prod -it &lt;pod-name&gt; -- \      node -e &quot;console.log(process.env.RATE_LIMIT_KEY_GENERATOR || &#x27;default: jwt.sub&#x27;)&quot;    </code>``</p>
+<ol>
+<li>Check if multiple players share an IP behind a NAT (mobile networks):</li>
+</ol>
+<ul>
+<li>If the <code>keyGenerator</code> has fallen back to IP (JWT verification failed), one NAT IP hitting the limit affects all players behind it.</li>
+<li>Check logs for <code>warn</code> entries with <code>event: &quot;rate_limit_key_fallback_to_ip&quot;</code>.</li>
+</ul>
+<ol>
+<li>Check Redis rate-limit counters:</li>
+</ol>
+<p>   ``<code>bash    redis-cli -u $REDIS_URL    # Rate limit keys follow pattern: player:{player-uuid}:ratelimit    KEYS player:*:ratelimit    TTL player:{player-uuid}:ratelimit    </code>``</p>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>If the JWT key extractor is broken (falling back to IP): deploy a fix for <code>keyGenerator</code>.</li>
+<li>If a legitimate player has hit the limit due to a client retry loop: wait for the 1-second window to expire, or flush the key:</li>
+</ul>
+<p>  ``<code>bash   redis-cli -u $REDIS_URL DEL player:{player-uuid}:ratelimit   </code>``</p>
+<ul>
+<li>If the rate limit is genuinely too restrictive for the traffic pattern, adjust <code>RATE_LIMIT_MAX</code> env var and redeploy.</li>
+</ul>
+<p><strong>Escalation:</strong> P2. Notify Engineering Lead if widespread.</p>
+<hr>
+<h2 id="h-7-common-operational-tasks">§7 Common Operational Tasks</h2>
+<h3 id="h-71-check-a-players-active-fg-session-redis-key-lookup">7.1 Check a Player&#x27;s Active FG Session (Redis Key Lookup)</h3>
+<pre><code class="language-bash"># Connect to Redis
+redis-cli -u $REDIS_URL
+
+# Retrieve all fields of a session hash
+HGETALL session:&lt;sessionId&gt;:state
+
+# Example output fields:
+# playerId          &lt;player-uuid&gt;
+# status            FG_ACTIVE
+# baseBet           1.00
+# fgRound           2
+# fgMultiplier      7
+# fgBonusMultiplier 1
+# totalFGWin        0.00
+# lightningMarks    [{&quot;r&quot;:1,&quot;c&quot;:2},{&quot;r&quot;:3,&quot;c&quot;:4}]
+# floorValue        20.00
+# lockToken         &lt;uuid&gt;
+# lockedAt          1745713200000
+
+# Check TTL remaining
+TTL session:&lt;sessionId&gt;:state
+
+# Check if a concurrency lock is held
+EXISTS session:&lt;sessionId&gt;:lock
+GET session:&lt;sessionId&gt;:lock    # returns lockToken if held</code></pre>
+<h3 id="h-72-inspect-a-spin-result-db-query">7.2 Inspect a Spin Result (DB Query)</h3>
+<pre><code class="language-sql">-- Look up a spin by session_id
+SELECT
+    id,
+    player_id,
+    session_id,
+    base_bet,
+    total_bet,
+    total_win,
+    fg_triggered,
+    fg_multiplier,
+    bonus_multiplier,
+    session_floor_applied,
+    session_floor_value,
+    coin_toss_result,
+    thunder_blessing_triggered,
+    engine_version,
+    created_at
+FROM spins
+WHERE session_id = &#x27;&lt;session-id&gt;&#x27;
+ORDER BY created_at DESC
+LIMIT 5;
+
+-- Retrieve full outcome JSON for forensic replay
+SELECT outcome_json
+FROM spins
+WHERE id = &#x27;&lt;spin-uuid&gt;&#x27;;
+
+-- Check wallet transactions for a specific spin
+SELECT tx_type, amount, balance_before, balance_after, created_at
+FROM wallet_transactions
+WHERE spin_id = &#x27;&lt;spin-uuid&gt;&#x27;
+ORDER BY created_at;</code></pre>
+<h3 id="h-73-manually-expire-a-stuck-session">7.3 Manually Expire a Stuck Session</h3>
+<p>Use this when a session is stuck in <code>FG_ACTIVE</code> or <code>SPINNING</code> state and the player cannot initiate new spins (concurrency lock is held).</p>
+<pre><code class="language-bash"># Step 1: Force-release the Redis concurrency lock
+redis-cli -u $REDIS_URL DEL session:&lt;sessionId&gt;:lock
+
+# Step 2: Force-delete the session state hash
+redis-cli -u $REDIS_URL DEL session:&lt;sessionId&gt;:state
+
+# Step 3: Mark the PostgreSQL fg_sessions row as EXPIRED
+# (if the session has a db row)</code></pre>
+<pre><code class="language-sql">UPDATE fg_sessions
+SET status = &#x27;EXPIRED&#x27;, updated_at = NOW()
+WHERE player_id = &#x27;&lt;player-uuid&gt;&#x27;
+  AND status IN (&#x27;PENDING&#x27;, &#x27;ACTIVE&#x27;);</code></pre>
+<pre><code class="language-bash"># Step 4: Verify no lock remains
+redis-cli -u $REDIS_URL EXISTS session:&lt;sessionId&gt;:lock
+# Expected: 0 (integer)</code></pre>
+<p><strong>Warning:</strong> If the player had an active FG sequence, they will lose their FG progress. Check <code>fg_sessions.total_fg_win</code> and issue a manual <code>COMPENSATE</code> credit if the player was mid-session with accumulated winnings.</p>
+<h3 id="h-74-rotate-jwt-signing-keys">7.4 Rotate JWT Signing Keys</h3>
+<p>JWT signing is managed by Supabase Auth. The backend holds only the RS256 <strong>public</strong> key for verification.</p>
+<ol>
+<li>In Supabase Auth dashboard, initiate a JWT secret rotation. Supabase provides a rolling period during which both old and new keys are valid.</li>
+<li>Update the K8s secret with the new public key:</li>
+</ol>
+<p>   ``<code>bash    kubectl create secret generic thunder-secrets \      --from-literal=supabase-jwt-secret=&quot;&lt;new-rs256-public-key&gt;&quot; \      --dry-run=client -o yaml | kubectl apply -f - -n thunder-prod    </code>``    ⚠️  In-memory cache: The application caches the RS256 public key with a 1-hour TTL. During emergency rotation (key compromise), trigger a rolling restart immediately after updating the secret so all pods reload the new key. Until the rolling restart completes, existing pods continue verifying tokens against the cached old key.</p>
+<ol>
+<li>Trigger a rolling restart so all pods pick up the new secret:</li>
+</ol>
+<p>   ``<code>bash    kubectl rollout restart deployment/thunder-blessing-api -n thunder-prod    </code>``</p>
+<ol>
+<li>Verify the new pods start successfully and the readiness probe passes:</li>
+</ol>
+<p>   ``<code>bash    kubectl rollout status deployment/thunder-blessing-api -n thunder-prod    </code>``</p>
+<ol>
+<li>The in-memory JWT public key cache (TTL 1h) will also auto-refresh on next expiry.</li>
+</ol>
+<h3 id="h-75-adjust-bet-levels-in-config">7.5 Adjust Bet Levels in Config</h3>
+<p>Bet levels are defined in <code>BetRangeConfig.generated.ts</code>, which is generated by the Excel toolchain. <strong>Never edit this file manually.</strong></p>
+<p>To change bet level ranges:</p>
+<ol>
+<li>Edit <code>Thunder_Config.xlsx</code> BET_RANGE tab with the new <code>minBetLevel</code> / <code>maxBetLevel</code> values.</li>
+</ol>
+<ul>
+<li>TWD <code>maxBetLevel</code> must not exceed <strong>320</strong>.</li>
+</ul>
+<ol>
+<li>Run the full toolchain:</li>
+</ol>
+<p>   ``<code>bash    node build_config.js           # emit engine_config.json    node excel_simulator.js        # 1M Monte Carlo simulation    node verify.js                 # MUST PASS all 4 scenarios before proceeding    node engine_generator.js       # generates BetRangeConfig.generated.ts    </code>``</p>
+<ol>
+<li>Commit the generated files; CI will validate the checksum guard.</li>
+<li>Deploy via the normal pipeline.</li>
+</ol>
+<hr>
+<h2 id="h-8-backup-recovery">§8 Backup &amp; Recovery</h2>
+<h3 id="database-backup-schedule">Database Backup Schedule</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Data Store</th>
+<th>Backup Type</th>
+<th>Frequency</th>
+<th>Retention</th>
+<th>Location</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Supabase PostgreSQL</td>
+<td>Automated daily backup</td>
+<td>Daily (Supabase Pro)</td>
+<td>30 days</td>
+<td>Supabase managed storage</td>
+</tr>
+<tr>
+<td>Supabase PostgreSQL</td>
+<td>Point-in-time recovery (PITR)</td>
+<td>Continuous (5-minute granularity)</td>
+<td>7 days</td>
+<td>Supabase managed</td>
+</tr>
+<tr>
+<td><code>GameConfig.generated.ts</code></td>
+<td>Git history</td>
+<td>Every toolchain run</td>
+<td>Indefinite</td>
+<td>GitHub repository</td>
+</tr>
+<tr>
+<td><code>Thunder_Config.xlsx</code></td>
+<td>Manual / CI artifact</td>
+<td>Every operator edit</td>
+<td>Indefinite</td>
+<td>Repository / CI artifacts</td>
+</tr>
+</tbody></table></div>
+<h3 id="redis-persistence-strategy">Redis Persistence Strategy</h3>
+<ul>
+<li><strong>RDB snapshots:</strong> Every 5 minutes (Upstash Standard managed)</li>
+<li><strong>AOF persistence:</strong> Enabled on Upstash Standard tier</li>
+</ul>
+<p><strong>Recovery scenario:</strong> If Redis is fully lost, all in-flight FG sessions become <code>SESSION_NOT_FOUND</code>. Active sessions can be partially reconstructed from <code>fg_sessions</code> PostgreSQL table (which is the durable fallback). Players mid-FG sequence should be manually compensated (see INC-003).</p>
+<h3 id="recovery-time-objectives">Recovery Time Objectives</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Scenario</th>
+<th>RTO</th>
+<th>RPO</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Single pod failure</td>
+<td>&lt; 30s (K8s self-heals)</td>
+<td>0 (stateless)</td>
+</tr>
+<tr>
+<td>Full cluster failure</td>
+<td>30 minutes</td>
+<td>5 minutes (PostgreSQL PITR)</td>
+</tr>
+<tr>
+<td>PostgreSQL failure</td>
+<td>30 minutes</td>
+<td>5 minutes (PITR granularity)</td>
+</tr>
+<tr>
+<td>Redis failure</td>
+<td>~5 minutes (Upstash recovery)</td>
+<td>Up to 5 minutes of session state</td>
+</tr>
+<tr>
+<td>Full data recovery (worst case)</td>
+<td>30 minutes</td>
+<td>5 minutes</td>
+</tr>
+</tbody></table></div>
+<h3 id="restore-procedure">Restore Procedure</h3>
+<pre><code class="language-bash"># PostgreSQL PITR restore (via Supabase dashboard)
+# 1. Go to Supabase dashboard → Project settings → Database → Point-in-time recovery
+# 2. Select target timestamp (must be within 7-day window)
+# 3. Confirm restore; Supabase provisions a new instance
+# 4. Update DATABASE_URL K8s secret with the new connection string
+# 5. Rolling restart: kubectl rollout restart deployment/thunder-blessing-api -n thunder-prod</code></pre>
+<hr>
+<h2 id="h-9-security-operations">§9 Security Operations</h2>
+<h3 id="h-91-jwt-key-rotation-procedure">9.1 JWT Key Rotation Procedure</h3>
+<p>See §7.4 for the full step-by-step procedure. Rotation schedule: when notified by Supabase Auth or on-demand after a suspected key compromise.</p>
+<p><strong>Emergency rotation (key compromise suspected):</strong></p>
+<ol>
+<li>Immediately rotate the JWT secret in Supabase Auth dashboard (this invalidates all existing tokens).</li>
+<li>Update the K8s secret and force a rolling restart (§7.4 steps 2–4).</li>
+<li>All active player sessions will require re-login. Inform customer support.</li>
+</ol>
+<h3 id="h-92-cors-allowlist-update">9.2 CORS Allowlist Update</h3>
+<p>The CORS allowed origins are configured via the <code>CORS_ALLOWED_ORIGINS</code> environment variable.</p>
+<pre><code class="language-bash"># Update the ConfigMap or add a new env var to the Deployment
+kubectl set env deployment/thunder-blessing-api \
+  CORS_ALLOWED_ORIGINS=&quot;https://game.yourdomain.com,https://staging.game.yourdomain.com&quot; \
+  -n thunder-prod
+
+# Rolling restart to apply
+kubectl rollout restart deployment/thunder-blessing-api -n thunder-prod</code></pre>
+<p>In development only: <code>Access-Control-Allow-Origin: *</code>. This must never appear in production.</p>
+<h3 id="h-93-rate-limit-threshold-adjustment">9.3 Rate Limit Threshold Adjustment</h3>
+<p>The rate limit is configured via <code>@fastify/rate-limit</code> plugin settings. Currently: 5 req/s per player, sliding window, Redis-backed.</p>
+<p>To adjust:</p>
+<ol>
+<li>Update the <code>max</code> and/or <code>timeWindow</code> values in <code>src/interface/routes/spin.route.ts</code> (or the rate-limit plugin registration in the Fastify server bootstrap).</li>
+<li>Deploy via normal pipeline.</li>
+<li>Redis rate-limit counters use keys with pattern <code>player:{playerId}:ratelimit</code> with a 1-second TTL — they expire automatically.</li>
+</ol>
+<p><strong>Aggressive auth-failure lockout:</strong> After 10 consecutive JWT failures from the same IP in 60s, the IP is more aggressively rate-limited. Threshold configurable via <code>RATE_LIMIT_AUTH_FAIL_MAX</code> env var.</p>
+<h3 id="h-94-secret-rotation-schedule">9.4 Secret Rotation Schedule</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Secret</th>
+<th>K8s Secret Name</th>
+<th>Key</th>
+<th>Rotation Frequency</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>SUPABASE_SERVICE_KEY</code></td>
+<td><code>thunder-secrets</code></td>
+<td><code>supabase-service-key</code></td>
+<td>90 days</td>
+</tr>
+<tr>
+<td><code>SUPABASE_JWT_SECRET</code></td>
+<td><code>thunder-secrets</code></td>
+<td><code>supabase-jwt-secret</code></td>
+<td>On key rotation event</td>
+</tr>
+<tr>
+<td><code>REDIS_URL</code></td>
+<td><code>thunder-secrets</code></td>
+<td><code>redis-url</code></td>
+<td>On credential change</td>
+</tr>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td><code>thunder-secrets</code></td>
+<td><code>database-url</code></td>
+<td>90 days</td>
+</tr>
+</tbody></table></div>
+<p>After updating any K8s secret, always trigger a rolling restart:</p>
+<pre><code class="language-bash">kubectl rollout restart deployment/thunder-blessing-api -n thunder-prod</code></pre>
+<hr>
+<h2 id="h-10-escalation-matrix">§10 Escalation Matrix</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Severity</th>
+<th>Definition</th>
+<th>Initial Response</th>
+<th>Escalation Path</th>
+<th>Response SLA</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>P0</strong></td>
+<td>Service fully down; all players blocked; data integrity breach</td>
+<td>On-call SRE immediately paged</td>
+<td>SRE → Engineering Lead → CTO → (if data loss) Legal/Compliance</td>
+<td>5 min acknowledge; 30 min RTO</td>
+</tr>
+<tr>
+<td><strong>P1</strong></td>
+<td>Partial outage; FG sessions lost; wallet discrepancy; &gt;1% error rate sustained</td>
+<td>On-call SRE paged</td>
+<td>SRE → Engineering Lead</td>
+<td>15 min acknowledge; 60 min resolution target</td>
+</tr>
+<tr>
+<td><strong>P2</strong></td>
+<td>Performance degradation (P99 latency elevated); elevated rate-limit hits; non-critical feature broken</td>
+<td>On-call SRE notified (non-page)</td>
+<td>SRE → Engineering Lead (if not resolved in 1h)</td>
+<td>30 min acknowledge; next business day resolution</td>
+</tr>
+<tr>
+<td><strong>P3</strong></td>
+<td>Cosmetic defect; minor UX issue; non-blocking bug</td>
+<td>Standard Jira ticket</td>
+<td>Engineering backlog</td>
+<td>Next sprint</td>
+</tr>
+</tbody></table></div>
+<h3 id="escalation-contacts">Escalation Contacts</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Role</th>
+<th>Contact Method</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>On-call SRE</td>
+<td>PagerDuty rotation</td>
+<td>First point of contact for all P0/P1 alerts</td>
+</tr>
+<tr>
+<td>Engineering Lead</td>
+<td>PagerDuty (P0/P1) / Slack (P2)</td>
+<td>Owns architectural decisions and code fixes</td>
+</tr>
+<tr>
+<td>CTO</td>
+<td>Direct message / phone (P0 only)</td>
+<td>Final escalation for data integrity or service-down events</td>
+</tr>
+<tr>
+<td>Supabase Support</td>
+<td>https://supabase.com/support</td>
+<td>For managed DB / Auth service issues</td>
+</tr>
+<tr>
+<td>Upstash Support</td>
+<td>https://upstash.com/support</td>
+<td>For Redis service issues</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-11-runbook-change-log">§11 Runbook Change Log</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Summary</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-04-26</td>
+<td>gendoc D14-runbook</td>
+<td>Initial generation from EDD v1.3, ARCH v1.7, API v1.0, SCHEMA v1.0, FRONTEND v1.0</td>
+</tr>
+</tbody></table></div>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>Runbook — Production Ops</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>

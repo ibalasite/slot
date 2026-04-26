@@ -1,0 +1,4184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARCH — Architecture — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">ARCH — Architecture</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link active"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>🏗️ Engineering</span>
+        <span>Source: <code>ARCH.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="arch-architecture-design-document">ARCH — Architecture Design Document</h1>
+<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+<hr>
+<h2 id="h-0-document-control">§0 Document Control</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Field</th>
+<th>Content</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>DOC-ID</strong></td>
+<td>ARCH-THUNDERBLESSING-20260426</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>Thunder Blessing Slot Game</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>DRAFT</td>
+</tr>
+<tr>
+<td><strong>Author</strong></td>
+<td>AI Generated (gendoc-gen agent)</td>
+</tr>
+<tr>
+<td><strong>Date</strong></td>
+<td>2026-04-26</td>
+</tr>
+<tr>
+<td><strong>Upstream EDD</strong></td>
+<td><a href="EDD.md">EDD.md</a></td>
+</tr>
+<tr>
+<td><strong>Upstream PDD</strong></td>
+<td><a href="PDD.md">PDD.md</a></td>
+</tr>
+<tr>
+<td><strong>Upstream PRD</strong></td>
+<td><a href="PRD.md">PRD.md</a></td>
+</tr>
+<tr>
+<td><strong>Reviewers</strong></td>
+<td>Engineering Lead, QA Lead, Security Lead</td>
+</tr>
+<tr>
+<td><strong>Approver</strong></td>
+<td>CTO</td>
+</tr>
+</tbody></table></div>
+<h3 id="change-log">Change Log</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Summary</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-04-26</td>
+<td>AI Generated</td>
+<td>Initial generation covering all 16 sections</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-26</td>
+<td>gendoc review</td>
+<td>R1 fixes: APP→INFRA arrow labeled; ADR-007/008/009 full entries added; ADR numbering note; FinOps multi-scale projections; frontend version clarified. Note: EDD §1.1 states layer order as &quot;Domain←Application←Infrastructure←Interface&quot; — this is a typo in EDD. Correct order (confirmed here and in ARCH §2) is Domain←Application←Adapters←Infrastructure (Infrastructure is outermost). EDD §1.1 should be corrected in next EDD update.</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-26</td>
+<td>gendoc review</td>
+<td>R2 fixes: ADR §1.2 titles corrected (ADR-005=verify.js hard gate, ADR-006=totalWin accounting authority, ADR-009=Excel as sole probability source); duplicate ADR-009 replaced with distinct Excel-as-source ADR; Partial Failure Compensation table added to §6; xlsx added to §11 tech stack; CDN section added to §13.</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-04-26</td>
+<td>gendoc review</td>
+<td>R3 fixes: C4 L2 INFRA→SupaDB labeled &quot;SQL / TLS :5432&quot;, INFRA→RedisDB labeled &quot;Redis Protocol / TLS :6379&quot;; CDN node (Cloudflare/CloudFront) added to C4 L1 System Context with Player→CDN→TB_Frontend static asset path.</td>
+</tr>
+<tr>
+<td>v1.4</td>
+<td>2026-04-26</td>
+<td>gendoc review</td>
+<td>R4 fixes: §5.1/§15 D-02/F-03/ADR-003 corrected — wallet IS debited before engine; engine timeout requires compensating credit per §6; C4 L3 HC and DTOS nodes connected (Client→HC, GC→DTOS); BetRangeConfig.generated.ts node added to C4 L3 with GC→BCF arrow; §11 frontend version placeholder standardized; EDD §2.1 synchronized with CDN node addition.</td>
+</tr>
+<tr>
+<td>v1.5</td>
+<td>2026-04-26</td>
+<td>gendoc review</td>
+<td>R5 fixes: C4 L3 AC (authController future node) removed (orphaned); GSU→ISC arrow added (Redis primary for GET /v1/session); §9.2 NetworkPolicy egress adds port 4317 (OTLP gRPC); §9.2 monitoring namespace label corrected to kubernetes.io/metadata.name:monitoring; EDD §1.1 layer order corrected (Adapters←Infrastructure).</td>
+</tr>
+<tr>
+<td>v1.6</td>
+<td>2026-04-26</td>
+<td>gendoc review</td>
+<td>R7 fix: ADR-003 and ADR-005 Options Considered tables added (single-trip vs multi-trip vs WebSocket for ADR-003; hard gate vs ungated vs manual vs post-generation for ADR-005).</td>
+</tr>
+<tr>
+<td>v1.7</td>
+<td>2026-04-26</td>
+<td>gendoc review</td>
+<td>R8 fix: ADR-006 Options Considered table added (totalWin vs roundWin vs cascade stepWin vs per-round credit).</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li>Architecture Goals</li>
+</ol>
+<ul>
+<li>1.1 Quality Attribute Requirements (QAR)</li>
+<li>1.2 Architecture Decision Record (ADR) Index</li>
+</ul>
+<ol>
+<li>Architecture Pattern Selection</li>
+<li>System Component Diagram</li>
+</ol>
+<ul>
+<li>3.1 C4 Model — System Context (L1)</li>
+<li>3.2 C4 Model — Container (L2)</li>
+<li>3.3 C4 Model — Component (L3)</li>
+<li>3.4 Data Flow Diagram</li>
+</ul>
+<ol>
+<li>Service Boundaries</li>
+<li>Communication Patterns</li>
+</ol>
+<ul>
+<li>5.1 Sync / Async Communication Matrix</li>
+<li>5.2 API Gateway &amp; Circuit Breaker</li>
+<li>5.3 Event-Driven Communication</li>
+</ul>
+<ol>
+<li>Data Layering</li>
+<li>High Availability Design</li>
+<li>Disaster Recovery (DR)</li>
+<li>Security Architecture</li>
+</ol>
+<ul>
+<li>9.1 Defense in Depth</li>
+<li>9.2 Zero-Trust Network Policy</li>
+<li>9.3 Secret Rotation Strategy</li>
+<li>9.4 Network Architecture</li>
+<li>9.5 Compliance Mapping</li>
+</ul>
+<ol>
+<li>Scalability Strategy</li>
+</ol>
+<ul>
+<li>10.1 Horizontal Auto-Scaling</li>
+<li>10.2 Scalability Ceiling Analysis</li>
+</ul>
+<ol>
+<li>Technology Stack Overview</li>
+<li>Observability Architecture</li>
+<li>External Dependency Map</li>
+<li>Architecture Decision Records (Full)</li>
+<li>Architecture Review Checklist</li>
+<li>FinOps Cost Optimization</li>
+</ol>
+<hr>
+<h2 id="h-1-architecture-goals">§1 Architecture Goals</h2>
+<h3 id="h-11-quality-attribute-requirements-qar">§1.1 Quality Attribute Requirements (QAR)</h3>
+<p>Inherited from EDD §9.1 SLO/SLI table and PRD §7 NFRs:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Quality Attribute</th>
+<th>Target</th>
+<th>Measurement Method</th>
+<th>Priority</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Availability</td>
+<td>≥ 99.5% successful responses / total requests</td>
+<td>Grafana Uptime SLO dashboard, synthetic probe</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Base Spin Latency</td>
+<td>P99 ≤ 500ms end-to-end (no FG)</td>
+<td>Prometheus <code>spin_duration_seconds</code> histogram</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FG Sequence Latency</td>
+<td>P99 ≤ 800ms end-to-end (full FG sequence)</td>
+<td>Prometheus <code>spin_duration_seconds{fg_triggered=&quot;true&quot;}</code></td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Error Rate</td>
+<td>&lt; 0.5% (5xx / total requests)</td>
+<td><code>spin_error_total / spin_total</code> counter ratio</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Wallet Accuracy</td>
+<td>0 debit/credit discrepancy events per day</td>
+<td>Audit reconciliation job</td>
+<td>P0 (Compliance)</td>
+</tr>
+<tr>
+<td>Throughput</td>
+<td>100 RPS peak (9× headroom with 3 replicas)</td>
+<td>k6 load test</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>Scalability</td>
+<td>HPA min 3 → max 10 replicas, PDB minAvailable=2</td>
+<td>K8s HPA + PDB verification</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>Zero-trust; RS256 JWT; Rate limit 5 req/s per player</td>
+<td>Penetration test, SAST (semgrep/CodeQL)</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>Trace coverage &gt; 95% on error paths; 5% sampling on normal traffic</td>
+<td>OpenTelemetry + Grafana Tempo</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>Config Integrity</td>
+<td>0 CI build failures from manual config edits</td>
+<td>SHA-256 checksum guard in CI</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>RTP Accuracy</td>
+<td>100M Monte Carlo simulation; all 4 scenarios within ±1%</td>
+<td>verify.js pass gate</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Single-Trip API</td>
+<td>≤ 1 HTTP round-trip per complete spin (including all FG rounds)</td>
+<td>Integration test assertion</td>
+<td>P0</td>
+</tr>
+</tbody></table></div>
+<p><strong>Constraints:</strong></p>
+<ul>
+<li>Budget: Supabase Pro + Upstash Standard + K8s 3-node cluster (target ~$400–600 USD/month)</li>
+<li>Regulatory: B2B gambling compliance; RTP auditable via <code>verify.js</code> output; Max win caps enforced (30,000× main; 90,000× EB+BuyFG)</li>
+<li>Existing system: No legacy integration; greenfield deployment</li>
+<li>Team preference: TypeScript/Node.js + Fastify; Clean Architecture as mandated by EDD §3.1</li>
+</ul>
+<hr>
+<h3 id="h-12-architecture-decision-record-adr-index">§1.2 Architecture Decision Record (ADR) Index</h3>
+<p>The following architecture decisions have been recorded and tracked. Full ADR entries appear in §14.</p>
+<blockquote><p><strong>ADR numbering note</strong>: ARCH ADR IDs are independent from EDD ADR IDs. EDD §3.2 covers toolchain and game-engine level decisions (EDD-ADR-001 through EDD-ADR-008); ARCH ADRs cover system-level architecture decisions. Cross-reference by title, not by number.</p></blockquote>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>ADR-ID</th>
+<th>Decision Title</th>
+<th>Status</th>
+<th>Date</th>
+<th>Scope</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>ADR-001</td>
+<td>Fastify over Express as HTTP framework</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>API Layer</td>
+</tr>
+<tr>
+<td>ADR-002</td>
+<td>Clean Architecture (Domain←Application←Adapters←Infrastructure)</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>Full system</td>
+</tr>
+<tr>
+<td>ADR-003</td>
+<td>Single-trip POST /spin returns complete FullSpinOutcome</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>API design</td>
+</tr>
+<tr>
+<td>ADR-004</td>
+<td>Redis for FG session state (not PostgreSQL)</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>Data layer</td>
+</tr>
+<tr>
+<td>ADR-005</td>
+<td>verify.js as hard gate before engine_generator.js</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>Toolchain</td>
+</tr>
+<tr>
+<td>ADR-006</td>
+<td>outcome.totalWin as sole accounting authority (wallet credit)</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>Domain</td>
+</tr>
+<tr>
+<td>ADR-007</td>
+<td>Supabase PostgreSQL + RLS for wallet/audit persistence</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>Data layer</td>
+</tr>
+<tr>
+<td>ADR-008</td>
+<td>Kubernetes Canary deploy for production, Blue-Green for staging</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>Deployment</td>
+</tr>
+<tr>
+<td>ADR-009</td>
+<td>Excel (Thunder_Config.xlsx) as sole probability configuration source</td>
+<td>Accepted</td>
+<td>2026-04-26</td>
+<td>Toolchain</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>New decisions must first be drafted as ADR proposals and reviewed before this index is updated.</p></blockquote>
+<hr>
+<h2 id="h-2-architecture-pattern-selection">§2 Architecture Pattern Selection</h2>
+<p><strong>Selected Architecture:</strong> Clean Architecture (Robert Martin, 2017) — Modular Backend Monolith with clear layer boundaries.</p>
+<p><strong>Rationale:</strong></p>
+<ol>
+<li><strong>Dependency Rule enforcement</strong>: Domain layer has zero external dependencies. All probability logic, game rules, and business invariants are testable in isolation without DB or Redis.</li>
+<li><strong>Single Source of Truth for game config</strong>: The toolchain (Excel → <code>GameConfig.generated.ts</code>) can be tested independently of the API or persistence layers.</li>
+<li><strong>Testability first</strong>: Slot engine math must be verified by 1M Monte Carlo simulations. A pure domain layer (no framework coupling) enables fast, deterministic unit tests.</li>
+<li><strong>Auditability</strong>: Clean separation between <code>outcome.totalWin</code> (domain authority) and <code>session.roundWin</code> (UI counter) prevents accounting errors.</li>
+</ol>
+<p><strong>Rejected Alternatives:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Alternative</th>
+<th>Rejection Reason</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>NestJS</td>
+<td>Over-engineered for a pure REST API; decorator magic obscures dependency graph; adds ~30% startup overhead</td>
+</tr>
+<tr>
+<td>MVC (Express/Fastify without layers)</td>
+<td>Domain and infrastructure coupling makes engine unit testing impossible without mocking DB</td>
+</tr>
+<tr>
+<td>Microservices</td>
+<td>Team size and current RPS do not justify operational overhead; monolith is extractable via Strangler Fig if needed</td>
+</tr>
+<tr>
+<td>Event Sourcing full CQRS</td>
+<td>Overkill for single-game backend; CascadeSequence immutable value objects provide sufficient audit trail</td>
+</tr>
+</tbody></table></div>
+<p><strong>Architecture Evolution Path:</strong></p>
+<pre><code>Phase 1 (Current, &lt;100 RPS): Clean Architecture Modular Monolith
+  → 3 K8s replicas, Supabase Pro, Upstash Standard
+Phase 2 (100–500 RPS): Read Replica + PgBouncer + Redis Cluster
+  → Split GameConfig read paths; add CDN for static config
+Phase 3 (500–2000 RPS): Extract FreeGame Orchestrator + Wallet as separate services
+  → CQRS for spin_logs read path; separate analytics service
+Phase 4 (&gt;2000 RPS): Multi-region Active-Passive + Event Sourcing for audit log</code></pre>
+<hr>
+<h3 id="interface-definition-convention">Interface Definition Convention</h3>
+<p>All Service and Repository abstractions are defined as TypeScript interfaces in <code>src/domain/ports/</code> or <code>src/domain/interfaces/</code>. Concrete implementations live in <code>src/infrastructure/</code> or <code>src/adapters/</code>, and are injected via DI container at startup.</p>
+<p><strong>Naming conventions:</strong></p>
+<ul>
+<li>Domain interfaces: <code>I&lt;Entity&gt;Repository</code>, <code>I&lt;Entity&gt;Cache</code>, <code>I&lt;Provider&gt;Provider</code></li>
+<li>Domain services: <code>&lt;Name&gt;Engine</code>, <code>&lt;Name&gt;Handler</code>, <code>&lt;Name&gt;Evaluator</code>, <code>&lt;Name&gt;Orchestrator</code></li>
+<li>Application use cases: <code>&lt;Action&gt;&lt;Entity&gt;UseCase</code></li>
+<li>Infrastructure adapters: <code>Supabase&lt;Entity&gt;Repository</code>, <code>Redis&lt;Entity&gt;Cache</code>, <code>&lt;Provider&gt;&lt;Entity&gt;Adapter</code></li>
+</ul>
+<p><strong>Interface examples (TypeScript):</strong></p>
+<pre><code class="language-typescript">// src/domain/ports/IWalletRepository.ts
+export interface IWalletRepository {
+  getBalance(playerId: string, currency: &quot;USD&quot; | &quot;TWD&quot;): Promise&lt;number&gt;;
+  debit(playerId: string, amount: number, currency: &quot;USD&quot; | &quot;TWD&quot;): Promise&lt;void&gt;;
+  credit(playerId: string, amount: number, currency: &quot;USD&quot; | &quot;TWD&quot;): Promise&lt;void&gt;;
+}
+
+// src/domain/ports/ISessionCache.ts
+export interface ISessionCache {
+  get(sessionId: string): Promise&lt;SpinSession | null&gt;;
+  set(sessionId: string, session: SpinSession, ttlSeconds?: number): Promise&lt;void&gt;;
+  del(sessionId: string): Promise&lt;void&gt;;
+  acquireLock(sessionId: string): Promise&lt;boolean&gt;;
+  releaseLock(sessionId: string): Promise&lt;void&gt;;
+}
+
+// src/domain/ports/ISessionRepository.ts
+export interface ISessionRepository {
+  findById(sessionId: string): Promise&lt;SpinSession | null&gt;;
+  save(session: SpinSession): Promise&lt;void&gt;;
+}
+
+// src/domain/interfaces/IProbabilityCore.ts
+export interface IProbabilityCore {
+  spin(request: SpinRequest): FullSpinOutcome;
+  generateGrid(weights: SymbolWeight[], extraBet: boolean): Grid;
+}</code></pre>
+<p><strong>Dependency direction (Clean Architecture):</strong></p>
+<pre><code>Domain Layer  ←  Application Layer  ←  Adapters / Interface Layer  ←  Infrastructure Layer
+(no deps)        (depends on Domain)    (depends on Application)        (implements ports)</code></pre>
+<p>Prohibited: Infrastructure calling Application; Adapters calling Domain directly (only via Application); Domain importing any npm package.</p>
+<hr>
+<h2 id="h-3-system-component-diagram">§3 System Component Diagram</h2>
+<h3 id="component-inventory-all-prd-p0-features-covered">Component Inventory (All PRD P0 Features Covered)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Component</th>
+<th>Layer</th>
+<th>Responsibility</th>
+<th>PRD Feature</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>SlotEngine</code></td>
+<td>Domain</td>
+<td>Top-level spin orchestration; calls all sub-engines</td>
+<td>Base spin (P0)</td>
+</tr>
+<tr>
+<td><code>CascadeEngine</code></td>
+<td>Domain</td>
+<td>Chain elimination, Lightning Mark generation, row expansion</td>
+<td>Cascade + Lightning Mark (P0)</td>
+</tr>
+<tr>
+<td><code>ThunderBlessingHandler</code></td>
+<td>Domain</td>
+<td>SC + mark first/second hit upgrade logic</td>
+<td>Thunder Blessing Scatter (P0)</td>
+</tr>
+<tr>
+<td><code>CoinTossEvaluator</code></td>
+<td>Domain</td>
+<td>Stage-aware RNG-based Heads/Tails (coinProbs[stage])</td>
+<td>Coin Toss (P0)</td>
+</tr>
+<tr>
+<td><code>FreeGameOrchestrator</code></td>
+<td>Domain</td>
+<td>FG multiplier sequence ×3→×7→×17→×27→×77, bonus draw</td>
+<td>Free Game (P0)</td>
+</tr>
+<tr>
+<td><code>NearMissSelector</code></td>
+<td>Domain</td>
+<td>Config-driven near-miss grid adjustment</td>
+<td>Near Miss (P0)</td>
+</tr>
+<tr>
+<td><code>IWalletRepository</code></td>
+<td>Domain/Port</td>
+<td>Wallet debit/credit interface</td>
+<td>Wallet (P0)</td>
+</tr>
+<tr>
+<td><code>ISessionCache</code></td>
+<td>Domain/Port</td>
+<td>FG session state + concurrency lock interface</td>
+<td>Session (P0)</td>
+</tr>
+<tr>
+<td><code>ISessionRepository</code></td>
+<td>Domain/Port</td>
+<td>Session persistence interface</td>
+<td>Session (P0)</td>
+</tr>
+<tr>
+<td><code>SpinUseCase</code></td>
+<td>Application</td>
+<td>Orchestrates wallet debit/credit + spin + floor guard</td>
+<td>Base spin, Extra Bet (P0)</td>
+</tr>
+<tr>
+<td><code>BuyFeatureUseCase</code></td>
+<td>Application</td>
+<td>Guaranteed Heads×5, session floor ≥ 20× baseBet</td>
+<td>Buy Feature (P0)</td>
+</tr>
+<tr>
+<td><code>GetSessionStateUseCase</code></td>
+<td>Application</td>
+<td>FG session restore for reconnect</td>
+<td>FG reconnect (P0)</td>
+</tr>
+<tr>
+<td><code>SessionFloorGuard</code></td>
+<td>Application</td>
+<td>Enforces Buy Feature totalWin ≥ 20× baseBet at session end</td>
+<td>Buy Feature floor (P0)</td>
+</tr>
+<tr>
+<td><code>ConcurrencyLockGuard</code></td>
+<td>Application</td>
+<td>Redis NX lock; returns 409 on concurrent spin</td>
+<td>Concurrency (P0)</td>
+</tr>
+<tr>
+<td><code>JwtAuthGuard</code></td>
+<td>Interface</td>
+<td>RS256 JWT verification Fastify preHandler</td>
+<td>JWT auth (P0)</td>
+</tr>
+<tr>
+<td><code>gameController</code></td>
+<td>Interface</td>
+<td>Fastify route handlers: POST /v1/spin, GET /v1/session/:id</td>
+<td>API (P0)</td>
+</tr>
+<tr>
+<td><code>healthController</code></td>
+<td>Interface</td>
+<td>GET /health, GET /ready liveness/readiness</td>
+<td>K8s health (P0)</td>
+</tr>
+<tr>
+<td><code>DomainErrorMapper</code></td>
+<td>Interface</td>
+<td>Translates Domain errors → HTTP 4xx/5xx + error codes</td>
+<td>Error handling (P0)</td>
+</tr>
+<tr>
+<td><code>SupabaseWalletRepository</code></td>
+<td>Infrastructure</td>
+<td>PostgreSQL wallet CRUD; implements IWalletRepository</td>
+<td>Wallet persistence (P0)</td>
+</tr>
+<tr>
+<td><code>SupabaseSessionRepository</code></td>
+<td>Infrastructure</td>
+<td>PostgreSQL FG session persistence</td>
+<td>Session persistence (P0)</td>
+</tr>
+<tr>
+<td><code>RedisSessionCache</code> / <code>UpstashCacheAdapter</code></td>
+<td>Infrastructure</td>
+<td>Redis FG session state + concurrency lock</td>
+<td>Session cache (P0)</td>
+</tr>
+<tr>
+<td><code>GameConfig.generated.ts</code></td>
+<td>Config (generated)</td>
+<td>All probability params from Excel toolchain</td>
+<td>RTP config (P0)</td>
+</tr>
+<tr>
+<td><code>BetRangeConfig.generated.ts</code></td>
+<td>Config (generated)</td>
+<td>USD/TWD bet ranges (TWD maxLevel=320)</td>
+<td>Currency (P0)</td>
+</tr>
+<tr>
+<td><code>build_config.js</code></td>
+<td>Toolchain</td>
+<td>Parses Thunder_Config.xlsx, emits engine_config.json</td>
+<td>Toolchain (P0)</td>
+</tr>
+<tr>
+<td><code>excel_simulator.js</code></td>
+<td>Toolchain</td>
+<td>1M Monte Carlo simulations per scenario</td>
+<td>RTP validation (P0)</td>
+</tr>
+<tr>
+<td><code>verify.js</code></td>
+<td>Toolchain</td>
+<td>Hard gate: 4-scenario RTP ±1% check</td>
+<td>RTP gate (P0)</td>
+</tr>
+<tr>
+<td><code>engine_generator.js</code></td>
+<td>Toolchain</td>
+<td>Generates GameConfig.generated.ts from verified config</td>
+<td>Config codegen (P0)</td>
+</tr>
+</tbody></table></div>
+<h3 id="layered-design-clean-architecture">Layered Design (Clean Architecture)</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│  Interface / Adapter Layer                                          │
+│  Fastify routes (gameController, authController, healthController)  │
+│  JwtAuthGuard · DomainErrorMapper · SpinRequest DTO · Response DTO │
+│  → Input validation, routing; NO business logic                     │
+├─────────────────────────────────────────────────────────────────────┤
+│  Application Layer (Use Cases &amp; Guards)                             │
+│  SpinUseCase · BuyFeatureUseCase · GetSessionStateUseCase           │
+│  SessionFloorGuard · ConcurrencyLockGuard                           │
+│  → Orchestrates domain services; owns transaction boundary           │
+├─────────────────────────────────────────────────────────────────────┤
+│  Domain Layer (Pure TypeScript, zero external deps)                 │
+│  SlotEngine · CascadeEngine · ThunderBlessingHandler                │
+│  CoinTossEvaluator · FreeGameOrchestrator · NearMissSelector        │
+│  Entities: Grid, SpinEntity, FreeGameSession, FGRound               │
+│  Value Objects: CascadeStep, CascadeSequence, LightningMarkSet      │
+│  Ports: IWalletRepository · ISessionCache · ISessionRepository      │
+│  → All game math, business invariants; immutable value objects       │
+├─────────────────────────────────────────────────────────────────────┤
+│  Infrastructure Layer (Adapters implementing Domain Ports)          │
+│  SupabaseWalletRepository · SupabaseSessionRepository               │
+│  IoRedisAdapter / UpstashCacheAdapter · SupabaseAuthAdapter         │
+│  → Concrete I/O; substitutable for testing                          │
+└─────────────────────────────────────────────────────────────────────┘
+
+Dependency arrows: Interface → Application → Domain ← Infrastructure (inverted)
+                   Infrastructure implements Domain Ports (Dependency Inversion)
+
+Prohibited: Domain → Infrastructure (direct)
+Prohibited: Application → Infrastructure (direct; always via Port interface)
+Prohibited: Controller → Domain (must go through Application Use Cases)</code></pre>
+<h3 id="domain-model">Domain Model</h3>
+<pre><code>Grid (Value Object)
+  cells: Symbol[][]     — immutable 5×N grid
+  rows: number          — 3 to 6
+  cols: number          — always 5
+  withCell(row, col, symbol): Grid   — returns new Grid
+  withRows(rows): Grid               — returns new Grid
+
+CascadeStep (Value Object)
+  index: number
+  grid: Grid
+  winLines: WinLine[]
+  stepWin: number
+  newLightningMarks: Position[]
+  rows: number
+
+CascadeSequence (Value Object)
+  steps: CascadeStep[]
+  totalWin: number
+  finalGrid: Grid
+  finalRows: number
+  lightningMarks: LightningMarkSet
+
+LightningMarkSet (Value Object)
+  positions: Position[]
+  count: number
+  — accumulated across Cascade steps; cleared on new Main Game spin; persists in FG
+
+FreeGameSession (Entity)
+  sessionId: string
+  rounds: FGRound[]
+  currentMultiplier: number      — 3 | 7 | 17 | 27 | 77
+  totalFGWin: number
+  bonusMultiplier: number        — 1 | 5 | 20 | 100
+  lightningMarks: LightningMarkSet
+  isComplete(): boolean
+
+SpinEntity (Entity)
+  sessionId: string
+  playerId: string
+  baseBet: number
+  totalWin: number               — SOLE ACCOUNTING AUTHORITY
+  cascadeSequence: CascadeSequence
+
+PlayerWallet (Entity)
+  playerId: string
+  currency: &quot;USD&quot; | &quot;TWD&quot;
+  balance: number                — always read from DB (never cached)
+
+GameConfig (Value Object — generated)
+  symbols: SymbolDefinition[]    — 4-scenario independent weight sets
+  paylines: Payline[]            — 25 initial → 57 at 6 rows
+  coinToss: CoinTossConfig       — coinProbs: [0.80, 0.68, 0.56, 0.48, 0.40]
+  fgMultipliers: number[]        — [3, 7, 17, 27, 77]
+  fgBonusWeights: FGBonusWeight[]
+  nearMiss: NearMissConfig
+  maxWinMain: number             — 30_000 × baseBet
+  maxWinEBBuyFG: number          — 90_000 × baseBet</code></pre>
+<hr>
+<h3 id="h-31-c4-l1-system-context-diagram">§3.1 C4 L1 — System Context Diagram</h3>
+<div class="mermaid-wrap"><div class="mermaid">graph TD
+    Player[&quot;Player\n(Browser / Native App)&quot;]
+    Operator[&quot;Game Designer / Operator\n(Probability config owner)&quot;]
+
+    CDN[&quot;CDN\n(Cloudflare / CloudFront)\nStatic asset cache\nDDoS mitigation&quot;]
+    TB_Backend[&quot;Thunder Blessing Backend\nFastify REST API + SlotEngine\nSpin logic · Wallet · Session&quot;]
+    TB_Frontend[&quot;Thunder Blessing Frontend\nCocos Creator / PixiJS\nDisplay layer · Animation · totalWin&quot;]
+
+    Supabase_DB[&quot;Supabase PostgreSQL\n(External)\nPlayer wallet · spin_logs\nfg_sessions · RLS enforced&quot;]
+    Redis[&quot;Redis / Upstash\n(External)\nFG session state\nLightning Mark cache\nConcurrency lock&quot;]
+    Supabase_Auth[&quot;Supabase Auth (JWT RS256)\n(External)\nPlayer identity verification&quot;]
+    Excel_Toolchain[&quot;Excel + slot-engine Toolchain\n(External process)\nThunder_Config.xlsx\n→ GameConfig.generated.ts&quot;]
+
+    Player --&gt;|&quot;Static assets\nHTTPS&quot;| CDN
+    CDN --&gt;|&quot;Cache miss / origin pull\nHTTPS&quot;| TB_Frontend
+    Player --&gt;|&quot;Plays game\nHTTPS / WebSocket&quot;| TB_Frontend
+    TB_Frontend --&gt;|&quot;POST /v1/spin\nGET /v1/session/:id\nREST / HTTPS&quot;| TB_Backend
+    TB_Backend --&gt;|&quot;Read/write wallet\nand spin_logs\nSQL / Supabase Client&quot;| Supabase_DB
+    TB_Backend --&gt;|&quot;Read/write FG\nsession state\nRedis Protocol&quot;| Redis
+    TB_Backend --&gt;|&quot;Validate JWT\nRS256 public key\nHTTPS&quot;| Supabase_Auth
+    Operator --&gt;|&quot;Edits probability\nparameters\nExcel UI&quot;| Excel_Toolchain
+    Excel_Toolchain --&gt;|&quot;Deploys\nGameConfig.generated.ts\nFile / CI pipeline&quot;| TB_Backend</div></div>
+<hr>
+<h3 id="h-32-c4-l2-container-diagram">§3.2 C4 L2 — Container Diagram</h3>
+<div class="mermaid-wrap"><div class="mermaid">graph TD
+    Player[&quot;Player&quot;]
+    Operator[&quot;Game Designer&quot;]
+
+    subgraph Backend[&quot;Thunder Blessing Backend (Node.js 20 / Fastify 4)&quot;]
+        API[&quot;Interface Layer\nFastify Routes\nJwtAuthGuard · DTOs\nDomainErrorMapper&quot;]
+        APP[&quot;Application Layer\nSpinUseCase\nBuyFeatureUseCase\nGetSessionStateUseCase\nSessionFloorGuard\nConcurrencyLockGuard&quot;]
+        DOMAIN[&quot;Domain Layer\nSlotEngine · CascadeEngine\nThunderBlessingHandler\nCoinTossEvaluator\nFreeGameOrchestrator\nNearMissSelector\nDomain Ports (interfaces)&quot;]
+        INFRA[&quot;Infrastructure Layer\nSupabaseWalletRepository\nSupabaseSessionRepository\nRedisSessionCache / UpstashCacheAdapter\nSupabaseAuthAdapter&quot;]
+        CONFIG[&quot;Config Module (read-only)\nGameConfig.generated.ts\nBetRangeConfig.generated.ts&quot;]
+    end
+
+    subgraph Toolchain[&quot;slot-engine Toolchain (build-time only)&quot;]
+        XLSX[&quot;Thunder_Config.xlsx\nDATA · COIN_TOSS · EXTRA_BET\nBUY_FEATURE · NEAR_MISS · BET_RANGE&quot;]
+        BUILD[&quot;build_config.js\nParses Excel → engine_config.json&quot;]
+        SIM[&quot;excel_simulator.js\n1M Monte Carlo per scenario\n→ SIMULATION + DESIGN_VIEW tabs&quot;]
+        VERIFY[&quot;verify.js\n4-scenario RTP ±1% hard gate\nMust PASS before generation&quot;]
+        GEN[&quot;engine_generator.js\nGenerates GameConfig.generated.ts\nBetRangeConfig.generated.ts&quot;]
+    end
+
+    SupaDB[(&quot;Supabase PostgreSQL 15\nplayers · wallets\nwallet_transactions\nspin_logs · fg_sessions&quot;)]
+    RedisDB[(&quot;Redis / Upstash 7\nsession:{sessionId} Hash TTL=300s\nlock:{sessionId} String TTL=10s&quot;)]
+    SupaAuth[&quot;Supabase Auth\nRS256 JWT\nAccess TTL=3600s\nRefresh TTL=604800s&quot;]
+
+    Player --&gt;|&quot;POST /v1/spin\nGET /v1/session/:id&quot;| API
+    Operator --&gt;|&quot;Excel edit&quot;| XLSX
+    API --&gt; APP
+    APP --&gt; DOMAIN
+    APP --&gt;|&quot;via Domain Port interfaces&quot;| INFRA
+    DOMAIN --&gt; CONFIG
+    INFRA --&gt;|&quot;SQL / TLS :5432&quot;| SupaDB
+    INFRA --&gt;|&quot;Redis Protocol / TLS :6379&quot;| RedisDB
+    API --&gt;|&quot;JWT verify&quot;| SupaAuth
+    XLSX --&gt; BUILD
+    BUILD --&gt; SIM
+    SIM --&gt; VERIFY
+    VERIFY --&gt;|&quot;PASS only&quot;| GEN
+    GEN --&gt; CONFIG</div></div>
+<hr>
+<h3 id="h-33-c4-l3-component-diagram-backend-internal">§3.3 C4 L3 — Component Diagram (Backend Internal)</h3>
+<div class="mermaid-wrap"><div class="mermaid">graph TD
+    Client[&quot;Client (Frontend)&quot;]
+
+    subgraph Interface[&quot;Interface Layer&quot;]
+        GC[&quot;gameController\nPOST /v1/spin\nGET /v1/session/:id\nGET /v1/config&quot;]
+        HC[&quot;healthController\nGET /health\nGET /ready&quot;]
+        JWG[&quot;JwtAuthGuard\nFastify preHandler\nRS256 verify&quot;]
+        EM[&quot;DomainErrorMapper\nDomain → HTTP error codes&quot;]
+        DTOS[&quot;SpinRequest DTO\nSpinResponse DTO&quot;]
+    end
+
+    subgraph Application[&quot;Application Layer&quot;]
+        SU[&quot;SpinUseCase\nexecute(SpinRequest)\n→ FullSpinOutcome&quot;]
+        BU[&quot;BuyFeatureUseCase\nexecute(BuyRequest)\nGuaranteed Heads×5&quot;]
+        GSU[&quot;GetSessionStateUseCase\nexecute(sessionId)\n→ SpinSession&quot;]
+        SFG[&quot;SessionFloorGuard\napplyFloor(session, baseBet)\n→ max(win, 20×baseBet)&quot;]
+        CLG[&quot;ConcurrencyLockGuard\nacquire/release Redis NX lock&quot;]
+    end
+
+    subgraph Domain[&quot;Domain Layer&quot;]
+        SE[&quot;SlotEngine\nspin(request)\n→ FullSpinOutcome&quot;]
+        CE[&quot;CascadeEngine\nrunCascade(grid)\n→ CascadeSequence&quot;]
+        TBH[&quot;ThunderBlessingHandler\nevaluate(grid, marks, hasScatter)\napplyFirstHit / applySecondHit&quot;]
+        CTE[&quot;CoinTossEvaluator\nevaluate(rng, config, stage)\n→ Heads | Tails&quot;]
+        FGO[&quot;FreeGameOrchestrator\nrunSequence(fgSession)\ndrawBonusMultiplier()&quot;]
+        NMS[&quot;NearMissSelector\nselect(grid, config)&quot;]
+        IWR[(&quot;IWalletRepository\n(port interface)&quot;)]
+        ISC[(&quot;ISessionCache\n(port interface)&quot;)]
+        ISR[(&quot;ISessionRepository\n(port interface)&quot;)]
+        GCF[&quot;GameConfig.generated.ts\n(read at startup)&quot;]
+        BCF[&quot;BetRangeConfig.generated.ts\n(read at startup)\nUSD/TWD bet levels&quot;]
+    end
+
+    subgraph Infrastructure[&quot;Infrastructure Layer&quot;]
+        SWR[&quot;SupabaseWalletRepository\ngetBalance · debit · credit\nPostgreSQL FOR UPDATE&quot;]
+        SSPG[&quot;SupabaseSessionRepository\nfindById · save\nPostgreSQL fg_sessions&quot;]
+        RSC[&quot;UpstashCacheAdapter / IoRedisAdapter\nget · set · del · acquireLock\nTTL 300s session / 10s lock&quot;]
+        SAA[&quot;SupabaseAuthAdapter\nverifyJWT(token)\n→ PlayerClaims&quot;]
+    end
+
+    Client --&gt;|&quot;HTTPS&quot;| GC
+    Client --&gt;|&quot;HTTPS no-auth&quot;| HC
+    GC --&gt; JWG
+    GC --&gt; DTOS
+    GC --&gt; SU
+    GC --&gt; BU
+    GC --&gt; GSU
+    GC --&gt; EM
+    JWG --&gt; SAA
+    SU --&gt; SE
+    SU --&gt; SFG
+    SU --&gt; CLG
+    SU --&gt; IWR
+    SU --&gt; ISC
+    BU --&gt; SU
+    GSU --&gt; ISC
+    GSU --&gt; ISR
+    SE --&gt; CE
+    SE --&gt; TBH
+    SE --&gt; CTE
+    SE --&gt; FGO
+    SE --&gt; NMS
+    SE --&gt; GCF
+    GC --&gt; BCF
+    IWR -.-&gt;|implements| SWR
+    ISR -.-&gt;|implements| SSPG
+    ISC -.-&gt;|implements| RSC</div></div>
+<hr>
+<h3 id="h-34-data-flow-diagram">§3.4 Data Flow Diagram</h3>
+<h4 id="write-path-spin-request-sequence">Write Path — Spin Request Sequence</h4>
+<div class="mermaid-wrap"><div class="mermaid">sequenceDiagram
+    participant C as Client (Frontend)
+    participant F as Fastify Router
+    participant J as JwtAuthGuard
+    participant SU as SpinUseCase
+    participant CLG as ConcurrencyLockGuard
+    participant WR as SupabaseWalletRepository
+    participant SE as SlotEngine
+    participant CE as CascadeEngine
+    participant FGO as FreeGameOrchestrator
+    participant RC as UpstashCacheAdapter
+    participant DB as Supabase PostgreSQL
+    participant AL as AuditLogger (spin_logs)
+
+    C-&gt;&gt;F: POST /v1/spin {playerId, betLevel, extraBet, buyFeature, currency}
+    Note over F: TLS 1.3 terminated at Ingress
+    F-&gt;&gt;J: verify(Authorization: Bearer &lt;token&gt;)
+    J--&gt;&gt;F: PlayerClaims {sub, role, exp}
+
+    F-&gt;&gt;SU: execute(SpinRequest)
+    SU-&gt;&gt;CLG: acquire(sessionId) → Redis NX EX 10
+    CLG--&gt;&gt;SU: lock token (or 409 if held)
+
+    SU-&gt;&gt;WR: getBalance(playerId, currency)
+    WR-&gt;&gt;DB: SELECT balance FOR UPDATE
+    DB--&gt;&gt;WR: balance
+    WR--&gt;&gt;SU: balance
+
+    Note over SU: Validate balance &gt;= cost
+    SU-&gt;&gt;WR: debit(playerId, cost, currency)
+    WR-&gt;&gt;DB: UPDATE wallets SET balance -= cost
+    DB--&gt;&gt;WR: OK
+    WR-&gt;&gt;DB: INSERT wallet_transactions (DEBIT)
+
+    SU-&gt;&gt;SE: spin(SpinRequest)
+    SE-&gt;&gt;SE: generateGrid(config, extraBet)
+    SE-&gt;&gt;CE: runCascade(grid, config)
+    CE--&gt;&gt;SE: CascadeSequence {steps, totalWin, lightningMarks}
+
+    Note over SE: If rows=6 AND cascade win → CoinToss
+    SE--&gt;&gt;SU: FullSpinOutcome {totalWin, fgTriggered, ...}
+
+    alt FG triggered
+        SE-&gt;&gt;RC: set(sessionId, FGSession{marks, multiplier})
+        SE-&gt;&gt;FGO: runSequence(fgSession, config)
+        FGO--&gt;&gt;SE: FGSequenceResult {totalFGWin, bonusMultiplier}
+    end
+
+    SU-&gt;&gt;WR: credit(playerId, totalWin, currency)
+    WR-&gt;&gt;DB: UPDATE wallets SET balance += totalWin
+    WR-&gt;&gt;DB: INSERT wallet_transactions (CREDIT)
+    WR-&gt;&gt;DB: INSERT spin_logs {outcome JSONB, totalWin}
+    DB--&gt;&gt;WR: OK
+
+    SU-&gt;&gt;CLG: release(sessionId, lockToken)
+    CLG-&gt;&gt;RC: DEL session:lock
+
+    SU--&gt;&gt;F: FullSpinOutcome
+    F--&gt;&gt;C: 200 OK {success: true, data: FullSpinOutcome}
+    F-&gt;&gt;AL: emit SpinCompleted event → spin_logs row</div></div>
+<h4 id="pii-sensitive-data-flow-table">PII Sensitive Data Flow Table</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>PII Data Type</th>
+<th>Flow Path</th>
+<th>Storage Location</th>
+<th>Masking Rule</th>
+<th>Access Control</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Player email</td>
+<td>Supabase Auth → <code>players.email</code></td>
+<td>PostgreSQL (AES-256 at rest)</td>
+<td>Log: <code>e***@domain.com</code> (mask local-part)</td>
+<td>RLS: player reads own row; service_role full access</td>
+</tr>
+<tr>
+<td>Player UUID (<code>playerId</code>)</td>
+<td>All layers — non-PII identifier</td>
+<td>All tables as FK</td>
+<td>No masking needed (UUID only)</td>
+<td>JWT <code>sub</code> claim enforcement</td>
+</tr>
+<tr>
+<td><code>totalWin</code> (financial)</td>
+<td>SpinUseCase → wallet_transactions → spin_logs</td>
+<td>PostgreSQL</td>
+<td>Never logged to debug level in production</td>
+<td>service_role only for direct DB access</td>
+</tr>
+<tr>
+<td>Spin outcome JSONB</td>
+<td>SlotEngine → spin_logs.outcome</td>
+<td>PostgreSQL JSONB</td>
+<td><code>rngSeed</code> field masked/excluded in logs</td>
+<td>service_role + operator role only</td>
+</tr>
+<tr>
+<td>JWT Access Token</td>
+<td>Client → API → Supabase Auth</td>
+<td>Never stored</td>
+<td>Token not logged; only claims logged</td>
+<td>Supabase Auth RS256 key pair</td>
+</tr>
+<tr>
+<td>FG session state</td>
+<td>SpinUseCase → Redis hash</td>
+<td>Redis / Upstash (TLS in-transit)</td>
+<td>Redis key <code>session:{sessionId}</code> — no plaintext PII</td>
+<td>Redis ACL; internal network only</td>
+</tr>
+</tbody></table></div>
+<p><strong>Masking Rules:</strong></p>
+<ul>
+<li>All email addresses in structured logs: replace local-part with <code>e***</code> before <code>@</code></li>
+<li><code>rngSeed</code> values: excluded from production logs (<code>LOG_RNG_VALUES=false</code> default)</li>
+<li>Balance values: logged only at <code>info</code> level with explicit field name <code>balance</code> (no accidental embedding in stack traces)</li>
+</ul>
+<hr>
+<h2 id="h-4-service-boundaries">§4 Service Boundaries</h2>
+<h3 id="bounded-context-map-from-edd-34">Bounded Context Map (from EDD §3.4)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Bounded Context</th>
+<th>Responsibility</th>
+<th>Key Aggregates</th>
+<th>Owns Tables</th>
+<th>External API</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Spin</strong></td>
+<td>Reel spin, grid generation, payline evaluation, outcome computation</td>
+<td><code>SpinRound</code>, <code>Grid</code>, <code>Payline</code></td>
+<td><code>spin_logs</code></td>
+<td><code>POST /v1/spin</code></td>
+</tr>
+<tr>
+<td><strong>Cascade</strong></td>
+<td>Chain elimination, Lightning Mark tracking, row expansion to 6</td>
+<td><code>CascadeSequence</code>, <code>CascadeStep</code>, <code>LightningMarkSet</code></td>
+<td>(in-memory, serialized to <code>spin_logs.outcome</code>)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>FreeGame</strong></td>
+<td>Multiplier sequence ×3→×7→×17→×27→×77, FG round orchestration, bonus multiplier draw</td>
+<td><code>FreeGameSession</code>, <code>FGRound</code>, <code>FGBonusMultiplier</code></td>
+<td><code>fg_sessions</code> (PostgreSQL) + Redis hash</td>
+<td><code>GET /v1/session/:id</code></td>
+</tr>
+<tr>
+<td><strong>Wallet</strong></td>
+<td>Debit baseBet, credit totalWin, balance query; ACID transactions with <code>FOR UPDATE</code></td>
+<td><code>PlayerWallet</code>, <code>WalletTransaction</code></td>
+<td><code>wallets</code>, <code>wallet_transactions</code></td>
+<td><code>GET /v1/config</code> (bet ranges)</td>
+</tr>
+<tr>
+<td><strong>Session</strong></td>
+<td>In-flight state, floor guard, concurrency lock; TTL-based Redis</td>
+<td><code>SpinSession</code>, <code>SessionFloor</code></td>
+<td>Redis only (TTL 300s)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Config</strong></td>
+<td>Game parameters from Excel toolchain; bet ranges per currency</td>
+<td><code>GameConfig</code>, <code>BetRangeConfig</code></td>
+<td><code>GameConfig.generated.ts</code> (file)</td>
+<td><code>GET /v1/config</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="anti-corruption-layer-acl">Anti-Corruption Layer (ACL)</h3>
+<p>The only external system requiring translation is <strong>Supabase Auth</strong> (JWT claims → internal <code>PlayerClaims</code>):</p>
+<pre><code class="language-typescript">// src/adapters/repositories/SupabaseAuthAdapter.ts
+export class SupabaseAuthAdapter implements IAuthProvider {
+  async verifyJWT(token: string): Promise&lt;PlayerClaims&gt; {
+    const { data, error } = await this.supabase.auth.getUser(token);
+    if (error) throw new UnauthorizedError(&quot;Invalid or expired JWT&quot;);
+    return {
+      playerId: data.user.id,          // maps JWT `sub` → internal playerId
+      role: data.user.role ?? &quot;player&quot;,
+      expiresAt: data.user.aud,
+    };
+  }
+}</code></pre>
+<h3 id="endpoint-attribution">Endpoint Attribution</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Bounded Context</th>
+<th>Use Case</th>
+<th>Auth</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>/v1/spin</code></td>
+<td>POST</td>
+<td>Spin + Cascade + FreeGame + Wallet + Session</td>
+<td><code>SpinUseCase</code> (or <code>BuyFeatureUseCase</code>)</td>
+<td>JWT Bearer required</td>
+</tr>
+<tr>
+<td><code>/v1/session/:sessionId</code></td>
+<td>GET</td>
+<td>FreeGame + Session</td>
+<td><code>GetSessionStateUseCase</code></td>
+<td>JWT Bearer required (own session only)</td>
+</tr>
+<tr>
+<td><code>/v1/config</code></td>
+<td>GET</td>
+<td>Config + Wallet</td>
+<td>Direct config read</td>
+<td>JWT Bearer required</td>
+</tr>
+<tr>
+<td><code>/health</code></td>
+<td>GET</td>
+<td>—</td>
+<td>Liveness probe</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>/ready</code></td>
+<td>GET</td>
+<td>—</td>
+<td>Readiness (DB + Redis)</td>
+<td>None</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-5-communication-patterns">§5 Communication Patterns</h2>
+<h3 id="h-51-sync-async-communication-matrix">§5.1 Sync / Async Communication Matrix</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>From → To</th>
+<th>Pattern</th>
+<th>Protocol</th>
+<th>Timeout</th>
+<th>Retry</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Frontend → Fastify API</td>
+<td>Synchronous</td>
+<td>HTTPS REST (TLS 1.3)</td>
+<td>30s client-side</td>
+<td>3× exponential backoff (client)</td>
+<td>JWT Bearer; single-trip response</td>
+</tr>
+<tr>
+<td>Fastify → SpinUseCase</td>
+<td>In-process call</td>
+<td>TypeScript function call</td>
+<td>Engine timeout 2000ms</td>
+<td>No retry (wallet IS debited before engine; timeout → 504 + compensating credit per §6)</td>
+<td>ConcurrencyLock guards re-entry</td>
+</tr>
+<tr>
+<td>SpinUseCase → SupabaseWalletRepository</td>
+<td>Synchronous</td>
+<td>Supabase JS Client / TCP</td>
+<td>2000ms</td>
+<td>No retry on debit (idempotency risk); 3× on read</td>
+<td>PostgreSQL FOR UPDATE</td>
+</tr>
+<tr>
+<td>SpinUseCase → UpstashCacheAdapter</td>
+<td>Synchronous</td>
+<td>Redis Protocol / TLS</td>
+<td>500ms</td>
+<td>2× for read; no retry on lock acquire</td>
+<td>NX for lock; EX 10s TTL</td>
+</tr>
+<tr>
+<td>API → Supabase Auth</td>
+<td>Synchronous</td>
+<td>HTTPS</td>
+<td>1000ms</td>
+<td>No retry (fail fast with 401)</td>
+<td>RS256 public key cached 1h</td>
+</tr>
+<tr>
+<td>worker → Supabase DB</td>
+<td>Synchronous (batch)</td>
+<td>Supabase JS Client</td>
+<td>60s</td>
+<td>3× linear backoff</td>
+<td>RTP report archive</td>
+</tr>
+<tr>
+<td>CI Toolchain (build-time)</td>
+<td>Sequential pipeline</td>
+<td>Node.js subprocess</td>
+<td>30min (1M sim)</td>
+<td>No retry; fail fast</td>
+<td>verify.js PASS gates engine_generator.js</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-52-api-gateway-circuit-breaker">§5.2 API Gateway &amp; Circuit Breaker</h3>
+<p><strong>API Gateway:</strong> Kubernetes Ingress (nginx-ingress) with Fastify rate limiting plugin (<code>fastify-rate-limit</code>). No external API Gateway product required at current scale.</p>
+<p><strong>Fastify route configuration:</strong></p>
+<pre><code class="language-typescript">// Rate limiting: 5 req/s per player (keyed by JWT sub)
+await app.register(import(&quot;@fastify/rate-limit&quot;), {
+  max: 5,
+  timeWindow: &quot;1 second&quot;,
+  keyGenerator: (req) =&gt; req.jwtClaims?.playerId ?? req.ip,
+  errorResponseBuilder: () =&gt; ({
+    success: false,
+    code: &quot;RATE_LIMITED&quot;,
+    message: &quot;Too many requests. Max 5 per second per player.&quot;,
+    retryAfter: 1,
+  }),
+});
+
+// JWT auth as preHandler on all /v1/* routes
+app.addHook(&quot;preHandler&quot;, jwtAuthGuard.verify);</code></pre>
+<p><strong>Circuit Breaker configuration (from EDD §10.2):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Dependency</th>
+<th>State machine</th>
+<th>Timeout</th>
+<th>Open threshold</th>
+<th>Half-Open probe</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Supabase PostgreSQL</td>
+<td>CLOSED → OPEN (5 failures / 10s) → HALF_OPEN (30s)</td>
+<td>2000ms</td>
+<td>5 consecutive failures</td>
+<td>1 probe request</td>
+</tr>
+<tr>
+<td>Redis / Upstash</td>
+<td>CLOSED → OPEN (10 failures / 10s) → HALF_OPEN (30s)</td>
+<td>500ms</td>
+<td>10 consecutive failures</td>
+<td>1 probe request</td>
+</tr>
+<tr>
+<td>Supabase Auth (JWT)</td>
+<td>CLOSED → OPEN (5 failures / 10s) → HALF_OPEN (30s)</td>
+<td>1000ms</td>
+<td>5 consecutive failures</td>
+<td>1 probe request</td>
+</tr>
+</tbody></table></div>
+<pre><code>Circuit Breaker State Machine:
+
+CLOSED ──(error rate &gt; threshold in window)──► OPEN
+          ◄──(probe request succeeds)──── HALF-OPEN ◄──(timeout elapsed)── OPEN
+
+On OPEN state: return HTTP 503 with Retry-After header; no spin attempted (lock not acquired → wallet not yet debited)</code></pre>
+<p><strong>Retry policy (non-wallet operations only):</strong></p>
+<pre><code>Max retries: 2 (read operations only; write operations never retried)
+Backoff: exponential, initial 100ms, max 2000ms
+Jitter: ±20% (prevents thundering herd on Redis recovery)
+No retry for: 400, 401, 403, 404, 409, 429 (client errors)</code></pre>
+<h3 id="h-53-event-driven-communication">§5.3 Event-Driven Communication</h3>
+<p>This system is <strong>not event-driven</strong> at the infrastructure level. Domain Events (EDD §4.2) are in-process only, used for:</p>
+<ul>
+<li>Audit logging (<code>SpinCompleted</code> → write to <code>spin_logs</code>)</li>
+<li>Metric emission (<code>FGRoundStarted</code> → increment Prometheus counter)</li>
+<li>Worker processes consume Redis Streams (future) for RTP archival</li>
+</ul>
+<p><strong>In-process domain events (current):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Event</th>
+<th>Publisher</th>
+<th>Subscriber</th>
+<th>In-process handler</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>SpinStarted</code></td>
+<td><code>SpinUseCase</code></td>
+<td><code>AuditLogger</code>, <code>ConcurrencyLock</code></td>
+<td>Synchronous side-effect</td>
+</tr>
+<tr>
+<td><code>SpinCompleted</code></td>
+<td><code>SpinUseCase</code></td>
+<td><code>WalletRepository</code>, <code>AuditLogger</code></td>
+<td>Synchronous write to spin_logs</td>
+</tr>
+<tr>
+<td><code>FGRoundStarted</code></td>
+<td><code>FreeGameOrchestrator</code></td>
+<td>Prometheus counter</td>
+<td>Metric emission</td>
+</tr>
+<tr>
+<td><code>WalletCredited</code></td>
+<td><code>SupabaseWalletRepository</code></td>
+<td><code>AuditLogger</code></td>
+<td>spin_logs credit record</td>
+</tr>
+<tr>
+<td><code>SessionFloorApplied</code></td>
+<td><code>SessionFloorGuard</code></td>
+<td><code>WalletAccumulator</code></td>
+<td>Adjusts totalWin before credit</td>
+</tr>
+</tbody></table></div>
+<p><strong>Future async path (Phase 3):</strong> Redis Streams or NATS for spin_log archival, RTP analytics, anomaly detection.</p>
+<hr>
+<h2 id="h-6-data-layering">§6 Data Layering</h2>
+<h3 id="layered-data-architecture">Layered Data Architecture</h3>
+<pre><code>┌────────────────────────────────────────────────────────┐
+│  Application Layer (Use Cases)                         │
+│  ● All DB access via IWalletRepository / ISessionCache  │
+│  ● Never imports Supabase client directly               │
+│  ● Player balance: always read from DB (never cached)   │
+├────────────────────────────────────────────────────────┤
+│  Repository / Cache Layer                              │
+│  ● SupabaseWalletRepository: all wallet CRUD           │
+│  ● SupabaseSessionRepository: fg_sessions persistence  │
+│  ● UpstashCacheAdapter: FG session Redis hash (TTL 300s)│
+│  ● Concurrency lock: Redis NX String (TTL 10s)         │
+├────────────────────────────────────────────────────────┤
+│  Primary Database (Supabase PostgreSQL 15)             │
+│  ● All writes: wallets, wallet_transactions, spin_logs  │
+│  ● Strong consistency (FOR UPDATE on wallet debit)     │
+│  ● PITR: 5-minute granularity (Supabase Pro)           │
+│  ● RLS: players read own rows only                     │
+├────────────────────────────────────────────────────────┤
+│  Cache Layer (Redis / Upstash 7)                       │
+│  ● FG session state: session:{id} Hash, TTL 300s       │
+│  ● Concurrency lock: session:{id}:lock String, TTL 10s │
+│  ● GameConfig: in-memory (loaded at startup, immutable) │
+│  ● JWT public key: in-memory cache, TTL 1h             │
+│  ● Player balance: NOT cached (financial accuracy)     │
+├────────────────────────────────────────────────────────┤
+│  Config Layer (Read-only, startup-loaded)              │
+│  ● GameConfig.generated.ts: all probability params     │
+│  ● BetRangeConfig.generated.ts: USD/TWD bet levels     │
+│  ● Validated at startup; fatal crash if invalid        │
+└────────────────────────────────────────────────────────┘
+
+Data Consistency:
+  Wallet transactions: ACID (PostgreSQL FOR UPDATE + transaction block)
+  FG session state: Eventually consistent via Redis + PostgreSQL fg_sessions
+  GameConfig: Immutable until next toolchain deploy (CI-gated)
+  Player balance: Always strong-consistent (read primary, never cache)</code></pre>
+<h3 id="error-translation-strategy">Error Translation Strategy</h3>
+<p><strong>Layer-by-layer error transformation:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Layer</th>
+<th>Error Type</th>
+<th>Translation</th>
+<th>HTTP Code</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Domain</td>
+<td><code>InsufficientBalanceError</code></td>
+<td>→ <code>INSUFFICIENT_FUNDS</code></td>
+<td>400</td>
+</tr>
+<tr>
+<td>Domain</td>
+<td><code>InvalidBetLevelError</code></td>
+<td>→ <code>INVALID_BET_LEVEL</code></td>
+<td>400</td>
+</tr>
+<tr>
+<td>Domain</td>
+<td><code>InvalidCurrencyError</code></td>
+<td>→ <code>INVALID_CURRENCY</code></td>
+<td>400</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td>Redis lock NX fail</td>
+<td>→ <code>SpinInProgressError</code></td>
+<td>409</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td>Supabase auth error</td>
+<td>→ <code>UnauthorizedError</code></td>
+<td>401</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td>Player account suspended</td>
+<td>→ <code>ForbiddenError</code></td>
+<td>403</td>
+</tr>
+<tr>
+<td>Application</td>
+<td>Rate limiter exceeded</td>
+<td>→ <code>RATE_LIMITED</code></td>
+<td>429</td>
+</tr>
+<tr>
+<td>Application</td>
+<td>Engine timeout &gt;2000ms</td>
+<td>→ <code>ENGINE_TIMEOUT</code></td>
+<td>504</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td>Unexpected DB/Redis error</td>
+<td>→ <code>INTERNAL_ERROR</code></td>
+<td>500</td>
+</tr>
+<tr>
+<td>Interface</td>
+<td><code>DomainErrorMapper.map(err)</code></td>
+<td>Translates → <code>ErrorResponse</code></td>
+<td>varies</td>
+</tr>
+</tbody></table></div>
+<p><strong>Error Response Envelope (consistent across all endpoints):</strong></p>
+<pre><code class="language-typescript">interface ErrorResponse {
+  success: false;
+  code: &quot;INSUFFICIENT_FUNDS&quot; | &quot;INVALID_BET_LEVEL&quot; | &quot;INVALID_CURRENCY&quot;
+      | &quot;UNAUTHORIZED&quot; | &quot;FORBIDDEN&quot; | &quot;SPIN_IN_PROGRESS&quot;
+      | &quot;RATE_LIMITED&quot; | &quot;ENGINE_TIMEOUT&quot; | &quot;INTERNAL_ERROR&quot;;
+  message: string;        // human-readable; never exposes raw DB error
+  requestId: string;      // UUID for log correlation
+  timestamp: string;      // ISO 8601
+}</code></pre>
+<h3 id="partial-failure-compensation-debit-spin-credit">Partial Failure Compensation (Debit → Spin → Credit)</h3>
+<p>The spin flow is: <strong>acquire lock → debit wallet → run engine → credit wallet → release lock → log spin</strong>. If credit fails after a successful debit, the player is financially harmed. Compensation strategy:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Failure Point</th>
+<th>Detection</th>
+<th>Compensation</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Lock acquire fails</td>
+<td>Redis NX returns 0</td>
+<td>409 SPIN_IN_PROGRESS; no debit</td>
+</tr>
+<tr>
+<td>Debit fails</td>
+<td>DB transaction rollback</td>
+<td>400/500; no spin; no credit needed</td>
+</tr>
+<tr>
+<td>Engine throws / times out</td>
+<td>Exception caught in SpinUseCase</td>
+<td><strong>Compensating credit</strong> issued immediately for the debited amount via <code>WalletRepository.credit(playerId, debitedAmount, &quot;spin_abort_refund&quot;)</code>. A <code>spin_abort</code> entry is written to <code>spin_logs</code>.</td>
+</tr>
+<tr>
+<td>Credit fails after engine success</td>
+<td>Exception in credit step</td>
+<td>Retry credit up to 3× (exponential backoff 50ms/100ms/200ms). If all retries fail: record <code>unresolved_debit</code> event in <code>wallet_transactions</code>; trigger <strong>async reconciliation job</strong> (runs every 5 minutes) that detects <code>wallet_transactions</code> rows with type=&quot;debit&quot; not matched by a corresponding &quot;credit&quot;/&quot;refund&quot; within 60s, and issues compensating credits. On-call PagerDuty alert triggered.</td>
+</tr>
+<tr>
+<td>Lock release fails</td>
+<td>Redis DEL fails</td>
+<td>Acceptable — lock TTL=10s auto-expiry; no player impact</td>
+</tr>
+<tr>
+<td>Spin log write fails</td>
+<td>Supabase write error</td>
+<td>Non-fatal; log to structured logging; retry async; does NOT fail the spin response (player already credited)</td>
+</tr>
+</tbody></table></div>
+<blockquote><p><strong>Invariant</strong>: A player must never lose funds due to a server-side failure. Compensation always errs on the side of crediting the player.</p></blockquote>
+<hr>
+<h2 id="h-7-high-availability-design">§7 High Availability Design</h2>
+<p><strong>Strategy: Active-Passive with K8s HPA + PDB</strong></p>
+<p>The backend is stateless (all state in Redis + PostgreSQL). K8s runs 3 identical API pod replicas across at least 2 AZs. Redis (Upstash) and PostgreSQL (Supabase Pro) are managed services with their own multi-AZ HA.</p>
+<h3 id="replica-configuration">Replica Configuration</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Service</th>
+<th>Min Replicas</th>
+<th>Max Replicas</th>
+<th>Pod Disruption Budget</th>
+<th>Deploy Strategy</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>thunder-blessing-api</code> (prod)</td>
+<td>3</td>
+<td>10</td>
+<td><code>minAvailable: 2</code></td>
+<td>Canary (5% → 25% → 100%)</td>
+</tr>
+<tr>
+<td><code>thunder-blessing-api</code> (staging)</td>
+<td>2</td>
+<td>4</td>
+<td><code>minAvailable: 1</code></td>
+<td>Blue-Green</td>
+</tr>
+<tr>
+<td><code>thunder-blessing-api</code> (dev)</td>
+<td>1</td>
+<td>1</td>
+<td>—</td>
+<td>Rolling</td>
+</tr>
+</tbody></table></div>
+<h3 id="hpa-configuration">HPA Configuration</h3>
+<pre><code class="language-yaml"># Production HPA
+minReplicas: 3
+maxReplicas: 10
+metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70   # scale-out at 70% CPU
+scaleDown:
+  stabilizationWindowSeconds: 300   # 5-min cool-down prevents flapping
+  policies:
+    - type: Pods
+      value: 1
+      periodSeconds: 60</code></pre>
+<h3 id="health-checks">Health Checks</h3>
+<pre><code class="language-yaml">livenessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  failureThreshold: 3        # 45s before pod restart
+
+readinessProbe:
+  httpGet:
+    path: /ready             # checks DB + Redis connectivity
+    port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 2        # removed from LB after 20s</code></pre>
+<h3 id="graceful-shutdown-sigterm">Graceful Shutdown (SIGTERM)</h3>
+<ol>
+<li>Stop accepting new connections (<code>fastify.close()</code>)</li>
+<li>Wait for in-flight requests (up to 30s)</li>
+<li>Release all Redis session locks</li>
+<li>Close PostgreSQL connection pool</li>
+<li>Exit with code 0</li>
+</ol>
+<h3 id="cross-az-spread">Cross-AZ Spread</h3>
+<pre><code class="language-yaml">topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: thunder-blessing-api</code></pre>
+<hr>
+<h2 id="h-8-disaster-recovery-dr">§8 Disaster Recovery (DR)</h2>
+<h3 id="rto-rpo-targets-from-edd-101">RTO / RPO Targets (from EDD §10.1)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Rationale</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>RTO</strong> (Recovery Time Objective)</td>
+<td><strong>30 minutes</strong></td>
+<td>B2B slot game; 30-min outage acceptable; covered by Supabase Pro SLA</td>
+</tr>
+<tr>
+<td><strong>RPO</strong> (Recovery Point Objective)</td>
+<td><strong>5 minutes</strong></td>
+<td>Supabase PITR 5-minute granularity; Upstash AOF + 5-min RDB snapshots</td>
+</tr>
+</tbody></table></div>
+<h3 id="backup-strategy">Backup Strategy</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Data Type</th>
+<th>Backup Method</th>
+<th>Frequency</th>
+<th>Retention</th>
+<th>Storage</th>
+<th>Restore Test</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>PostgreSQL (wallets, spin_logs, fg_sessions)</td>
+<td>Supabase Pro automated backup + PITR</td>
+<td>Continuous (PITR) + daily full</td>
+<td>30 days</td>
+<td>Supabase managed (same region)</td>
+<td>Monthly restore drill</td>
+</tr>
+<tr>
+<td>Redis / Upstash (FG session state)</td>
+<td>Upstash AOF persistence + RDB snapshots</td>
+<td>Every 5 minutes</td>
+<td>1 day</td>
+<td>Upstash managed</td>
+<td>Weekly key recovery test</td>
+</tr>
+<tr>
+<td><code>GameConfig.generated.ts</code></td>
+<td>Git commit history</td>
+<td>On each toolchain run</td>
+<td>Indefinite</td>
+<td>GitHub repo</td>
+<td>CI checksum verification</td>
+</tr>
+<tr>
+<td>K8s manifests + Helm charts</td>
+<td>GitOps (GitHub)</td>
+<td>On each change</td>
+<td>Indefinite</td>
+<td>GitHub repo</td>
+<td>Quarterly DR drill</td>
+</tr>
+<tr>
+<td>Environment secrets</td>
+<td>K8s Secret + manual record in Vault</td>
+<td>On rotation</td>
+<td>Per rotation policy</td>
+<td>Vault / K8s etcd (encrypted)</td>
+<td>On rotation</td>
+</tr>
+</tbody></table></div>
+<h3 id="failover-plan">Failover Plan</h3>
+<pre><code>Scenario 1: API Pod crash / OOM
+  Detection: K8s liveness probe fails after 45s (3 × 15s)
+  Recovery: K8s auto-restarts pod; PDB ensures minAvailable=2 during rolling restart
+  Expected RTO: &lt; 2 minutes
+
+Scenario 2: Full AZ outage
+  Detection: ALB health checks remove unhealthy targets automatically
+  Recovery: K8s reschedules pods to healthy AZ; HPA scales up
+  Expected RTO: 5–10 minutes
+
+Scenario 3: Supabase PostgreSQL outage
+  Detection: Circuit breaker opens after 5 failures in 10s
+  Recovery: Circuit breaker HALF-OPEN after 30s; retry against Supabase (managed HA)
+  Expected RTO: 30 minutes (Supabase Pro RTO SLA)
+
+Scenario 4: Redis / Upstash outage
+  Detection: Circuit breaker opens after 10 failures in 10s
+  Recovery: FG sessions are also persisted in PostgreSQL fg_sessions; restore from DB
+             New spins return 503 with Retry-After until Redis recovers
+  Expected RTO: &lt; 10 minutes (Upstash HA)
+
+Scenario 5: Full region outage (catastrophic)
+  Detection: External synthetic monitoring (Grafana Cloud probe)
+  Recovery: Manual failover to read replica promoted as primary; DNS update
+  Expected RTO: 25–30 minutes (within RTO target)
+  Expected RPO: 5 minutes (PITR granularity)</code></pre>
+<h3 id="dr-drill-schedule">DR Drill Schedule</h3>
+<ul>
+<li><strong>Frequency:</strong> Quarterly</li>
+<li><strong>Scope:</strong> Single-AZ pod eviction simulation + wallet reconciliation verification</li>
+<li><strong>Owner:</strong> Engineering Lead</li>
+<li><strong>Runbook:</strong> <code>infra/runbooks/dr-drill.md</code> (in repository)</li>
+</ul>
+<hr>
+<h2 id="h-9-security-architecture">§9 Security Architecture</h2>
+<h3 id="h-91-defense-in-depth">§9.1 Defense in Depth</h3>
+<div class="mermaid-wrap"><div class="mermaid">graph TD
+    Internet[&quot;Internet / Players&quot;]
+
+    WAF[&quot;K8s Ingress + nginx\nTLS 1.3 termination\nHTTPS-only (HSTS)\nDDoS basic rate limiting&quot;]
+
+    API_GW[&quot;Fastify API Layer\nJWT RS256 verification\nRate limit 5 req/s per player\nInput schema validation (Zod/JSON Schema)\nCORS policy&quot;]
+
+    App[&quot;Application Layer\nConcurrency lock (Redis NX)\nBusiness rule enforcement\nMax win cap (30,000× / 90,000×)\nSession floor guard&quot;]
+
+    Domain[&quot;Domain Layer\nImmutable value objects\nPure math (no I/O)\nverify.js-validated config\nNo user-controlled URLs&quot;]
+
+    DB[&quot;Data Layer\nSupabase RLS (row-level security)\nPostgreSQL FOR UPDATE on wallet\nAES-256 at rest (Supabase managed)\nWAL + PITR backup&quot;]
+
+    Config[&quot;Config Integrity\nGameConfig.generated.ts SHA-256 CI guard\nK8s Secrets (not env vars in code)\nNo secrets in git&quot;]
+
+    Internet --&gt; WAF
+    WAF --&gt; API_GW
+    API_GW --&gt; App
+    App --&gt; Domain
+    Domain --&gt; DB
+    DB --&gt; Config</div></div>
+<p><strong>Defense layers:</strong></p>
+<ol>
+<li><strong>Network</strong>: TLS 1.3 at ingress; HTTPS-only; Strict-Transport-Security header</li>
+<li><strong>Authentication</strong>: RS256 JWT; every <code>/v1/*</code> request requires valid token; <code>exp</code> claim validated</li>
+<li><strong>Authorization</strong>: Supabase RLS (players read only own rows); role-based endpoint matrix</li>
+<li><strong>Rate limiting</strong>: 5 req/s per player (Redis token bucket); 429 with <code>Retry-After: 1</code></li>
+<li><strong>Input validation</strong>: JSON Schema validation on all request bodies before reaching Use Cases</li>
+<li><strong>Concurrency</strong>: Redis NX lock prevents double-spin race condition</li>
+<li><strong>Wallet atomicity</strong>: PostgreSQL <code>FOR UPDATE</code> + transaction block; debit before engine spin</li>
+<li><strong>Audit</strong>: Immutable <code>spin_logs</code> + <code>wallet_transactions</code>; RLS prevents player modification</li>
+<li><strong>Config integrity</strong>: CI SHA-256 checksum guard on <code>GameConfig.generated.ts</code></li>
+</ol>
+<h3 id="h-92-zero-trust-network-policy">§9.2 Zero-Trust Network Policy</h3>
+<p><strong>Principle:</strong> Never trust, always verify. No implicit trust based on network location.</p>
+<p><strong>Kubernetes NetworkPolicy:</strong></p>
+<pre><code class="language-yaml"># API pods only accept traffic from Ingress controller
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: thunder-api-ingress
+  namespace: thunder-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: thunder-blessing-api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9090    # Prometheus metrics scrape only
+  egress:
+    - to: []            # allow all egress (Supabase + Upstash external endpoints + OTEL Collector)
+      ports:
+        - port: 443     # HTTPS to Supabase + Upstash
+        - port: 6379    # Redis protocol (TLS via Upstash)
+        - port: 5432    # PostgreSQL via Supabase (TLS)
+        - port: 4317    # OTLP gRPC to OpenTelemetry Collector</code></pre>
+<p><strong>Service-to-service authentication matrix:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Caller</th>
+<th>Target</th>
+<th>Auth Method</th>
+<th>Permitted Operations</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Frontend (Player)</td>
+<td><code>/v1/spin</code>, <code>/v1/session/:id</code></td>
+<td>JWT RS256 Bearer</td>
+<td>POST spin, GET own session</td>
+</tr>
+<tr>
+<td>Frontend (Player)</td>
+<td><code>/v1/config</code></td>
+<td>JWT RS256 Bearer</td>
+<td>GET bet ranges</td>
+</tr>
+<tr>
+<td>Frontend (Operator)</td>
+<td><code>/v1/admin/stats</code> (future)</td>
+<td>JWT RS256 Bearer (role=operator)</td>
+<td>GET aggregate stats</td>
+</tr>
+<tr>
+<td>API pods</td>
+<td>Supabase PostgreSQL</td>
+<td><code>SUPABASE_SERVICE_KEY</code> (K8s Secret)</td>
+<td>Full access via service_role</td>
+</tr>
+<tr>
+<td>API pods</td>
+<td>Upstash Redis</td>
+<td><code>REDIS_URL</code> (K8s Secret, TLS)</td>
+<td>Session state + lock ops</td>
+</tr>
+<tr>
+<td>API pods</td>
+<td>Supabase Auth</td>
+<td><code>SUPABASE_JWT_SECRET</code> (public key, K8s Secret)</td>
+<td>JWT verification</td>
+</tr>
+<tr>
+<td>External</td>
+<td>Any service subnet</td>
+<td>Blocked by NetworkPolicy</td>
+<td>None</td>
+</tr>
+</tbody></table></div>
+<p><strong>RBAC role matrix (EDD §8.1):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Role</th>
+<th><code>POST /v1/spin</code></th>
+<th><code>GET /v1/session/:id</code></th>
+<th><code>GET /v1/config</code></th>
+<th><code>GET /health</code></th>
+<th><code>GET /v1/admin/stats</code></th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>player</code></td>
+<td>✅</td>
+<td>✅ (own only, RLS)</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><code>operator</code></td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>service_role</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-93-secret-rotation-strategy">§9.3 Secret Rotation Strategy</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Secret</th>
+<th>Storage</th>
+<th>Rotation Frequency</th>
+<th>Rotation Method</th>
+<th>Alert Lead Time</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>SUPABASE_SERVICE_KEY</code></td>
+<td>K8s Secret <code>thunder-secrets</code></td>
+<td>Every 90 days</td>
+<td>Manual rotation; update K8s Secret + redeploy</td>
+<td>14 days before expiry</td>
+</tr>
+<tr>
+<td><code>SUPABASE_JWT_SECRET</code> (RS256 public key)</td>
+<td>K8s Secret <code>thunder-secrets</code></td>
+<td>On Supabase key rotation</td>
+<td>Supabase triggers rotation; update K8s Secret</td>
+<td>Immediate Grafana alert</td>
+</tr>
+<tr>
+<td><code>REDIS_URL</code> (Upstash connection string)</td>
+<td>K8s Secret <code>thunder-secrets</code></td>
+<td>On credential change</td>
+<td>Manual via Upstash console; update K8s Secret</td>
+<td>On any credential event</td>
+</tr>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td>K8s Secret <code>thunder-secrets</code></td>
+<td>Every 90 days</td>
+<td>Supabase Pro connection string rotation</td>
+<td>14 days before expiry</td>
+</tr>
+<tr>
+<td>JWT Access Token (player)</td>
+<td>Never stored server-side</td>
+<td>TTL 3600s (auto-expiry)</td>
+<td>Supabase Auto</td>
+<td>—</td>
+</tr>
+<tr>
+<td>JWT Refresh Token (player)</td>
+<td>Supabase Auth only</td>
+<td>TTL 604800s (7 days); single-use rotate</td>
+<td>Supabase Auto</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p><strong>Emergency rotation procedure:</strong></p>
+<ol>
+<li>Suspected leak → immediately notify Security Lead</li>
+<li>Rotate affected K8s Secret within 4 hours</li>
+<li>Review all access logs in Supabase + Redis for anomalous patterns</li>
+<li>Write Incident Report within 24 hours</li>
+</ol>
+<p><strong>RBAC for K8s Secrets:</strong> Only <code>thunder-api</code> ServiceAccount can read from <code>thunder-secrets</code>. No other pods or ServiceAccounts in <code>thunder-prod</code> namespace may access the secret.</p>
+<h3 id="h-94-network-architecture">§9.4 Network Architecture</h3>
+<h4 id="vpc-topology">VPC Topology</h4>
+<div class="mermaid-wrap"><div class="mermaid">graph TD
+    Internet[&quot;Internet\n(Players + Operators)&quot;]
+
+    subgraph VPC[&quot;Cloud VPC: 10.0.0.0/16&quot;]
+        subgraph PublicSubnet[&quot;Public Subnet 10.0.1.0/24 (DMZ)&quot;]
+            ALB[&quot;Application Load Balancer\nHTTPS :443 → :3000\nTLS 1.3 termination&quot;]
+            NAT[&quot;NAT Gateway\nEgress for API pods&quot;]
+            Bastion[&quot;Bastion Host\nSSH :22 (Ops IP only)\nMFA required&quot;]
+        end
+
+        subgraph AppSubnet[&quot;Private App Subnet 10.0.2.0/24&quot;]
+            Pod1[&quot;thunder-api pod 1\nAZ-a&quot;]
+            Pod2[&quot;thunder-api pod 2\nAZ-b&quot;]
+            Pod3[&quot;thunder-api pod 3\nAZ-a&quot;]
+            HPA_PDB[&quot;HPA min=3 max=10\nPDB minAvailable=2&quot;]
+        end
+
+        subgraph DataSubnet[&quot;Isolated Data Subnet (Managed Services)&quot;]
+            SupaDB[&quot;Supabase PostgreSQL\nMulti-AZ (Supabase Pro)\nPGBouncer pool size=20&quot;]
+            SupaAuth[&quot;Supabase Auth\nRS256 JWT service&quot;]
+        end
+
+        subgraph CacheLayer[&quot;Cache (External SaaS)&quot;]
+            Upstash[&quot;Upstash Redis\nTLS :6379\nAOF + RDB snapshots&quot;]
+        end
+    end
+
+    OTEL[&quot;OpenTelemetry Collector&quot;]
+    Grafana[&quot;Grafana + Tempo + Loki\n(monitoring namespace)&quot;]
+
+    Internet --&gt;|&quot;HTTPS :443&quot;| ALB
+    ALB --&gt;|&quot;:3000&quot;| Pod1
+    ALB --&gt;|&quot;:3000&quot;| Pod2
+    ALB --&gt;|&quot;:3000&quot;| Pod3
+    HPA_PDB -.-&gt;|governs| Pod1
+    HPA_PDB -.-&gt;|governs| Pod2
+    HPA_PDB -.-&gt;|governs| Pod3
+    Pod1 --&gt;|&quot;SQL / TLS :5432&quot;| SupaDB
+    Pod2 --&gt;|&quot;SQL / TLS :5432&quot;| SupaDB
+    Pod3 --&gt;|&quot;SQL / TLS :5432&quot;| SupaDB
+    Pod1 --&gt;|&quot;JWT verify HTTPS :443&quot;| SupaAuth
+    Pod2 --&gt;|&quot;JWT verify HTTPS :443&quot;| SupaAuth
+    Pod3 --&gt;|&quot;JWT verify HTTPS :443&quot;| SupaAuth
+    Pod1 --&gt;|&quot;Redis TLS :6379&quot;| Upstash
+    Pod2 --&gt;|&quot;Redis TLS :6379&quot;| Upstash
+    Pod3 --&gt;|&quot;Redis TLS :6379&quot;| Upstash
+    Pod1 --&gt;|&quot;OTLP gRPC :4317&quot;| OTEL
+    Pod2 --&gt;|&quot;OTLP gRPC :4317&quot;| OTEL
+    Pod3 --&gt;|&quot;OTLP gRPC :4317&quot;| OTEL
+    OTEL --&gt; Grafana
+    Bastion --&gt;|&quot;SSH :22 (internal)&quot;| Pod1
+    Pod1 --&gt;|&quot;Egress via&quot;| NAT
+    NAT --&gt;|&quot;HTTPS :443&quot;| Internet</div></div>
+<h4 id="security-group-rules">Security Group Rules</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Resource</th>
+<th>Inbound Allowed</th>
+<th>Outbound Allowed</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>ALB (Load Balancer)</td>
+<td><code>0.0.0.0/0 :443</code></td>
+<td>App Subnet <code>:3000</code></td>
+<td>Public HTTPS ingress only</td>
+</tr>
+<tr>
+<td>API Pods</td>
+<td>ALB SG <code>:3000</code>, monitoring NS <code>:9090</code></td>
+<td>Data Subnet <code>:5432</code>, Cache <code>:6379</code>, NAT <code>:443</code></td>
+<td>No direct internet inbound</td>
+</tr>
+<tr>
+<td>Supabase PostgreSQL</td>
+<td>App Subnet <code>:5432</code></td>
+<td>—</td>
+<td>Managed; SG controlled by Supabase</td>
+</tr>
+<tr>
+<td>Upstash Redis</td>
+<td>App Subnet <code>:6379</code> (TLS)</td>
+<td>—</td>
+<td>External SaaS; TLS enforced by Upstash</td>
+</tr>
+<tr>
+<td>Bastion</td>
+<td>Ops IP range <code>:22</code></td>
+<td>App Subnet <code>:22</code></td>
+<td>MFA required; no prod DB direct access</td>
+</tr>
+</tbody></table></div>
+<h4 id="availability-zone-configuration">Availability Zone Configuration</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>AZ</th>
+<th>Components</th>
+<th>Role</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>AZ-a</td>
+<td>ALB, Pod-1, Pod-3, NAT Gateway</td>
+<td>Primary</td>
+</tr>
+<tr>
+<td>AZ-b</td>
+<td>ALB, Pod-2, Bastion</td>
+<td>Secondary (failover)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-95-compliance-architecture-mapping">§9.5 Compliance Architecture Mapping</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Regulation / Standard</th>
+<th>Affected Components</th>
+<th>Data Type</th>
+<th>Technical Measures</th>
+<th>Audit Log</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Gambling Compliance (B2B)</strong></td>
+<td><code>SlotEngine</code>, <code>verify.js</code>, <code>spin_logs</code></td>
+<td>RTP, max win cap, bet levels</td>
+<td><code>verify.js</code> 4-scenario ±1% gate; <code>enforceMaxWin()</code> in domain; <code>spin_logs.outcome</code> JSONB immutable</td>
+<td><code>spin_logs</code> (immutable); <code>wallet_transactions</code></td>
+</tr>
+<tr>
+<td><strong>Financial Data (wallet)</strong></td>
+<td><code>SupabaseWalletRepository</code>, <code>wallets</code>, <code>wallet_transactions</code></td>
+<td>Balance, transaction amounts</td>
+<td>PostgreSQL FOR UPDATE + ACID; AES-256 at rest; no balance caching</td>
+<td><code>wallet_transactions</code> with <code>balance_before</code> / <code>balance_after</code></td>
+</tr>
+<tr>
+<td><strong>Player PII</strong></td>
+<td><code>players</code>, <code>spin_logs</code>, logs</td>
+<td>email, playerId</td>
+<td>RLS restricts player to own rows; logs mask email; <code>spin_logs</code> accessible only by service_role</td>
+<td><code>spin_logs</code> + Grafana structured logs (1-year retention)</td>
+</tr>
+<tr>
+<td><strong>Config Integrity (compliance)</strong></td>
+<td><code>GameConfig.generated.ts</code>, CI pipeline</td>
+<td>Probability params, max win</td>
+<td>CI SHA-256 checksum guard; <code>ENFORCE_MAX_WIN_CAP=true</code> feature flag (must not disable)</td>
+<td>GitHub commit history + CI artifact</td>
+</tr>
+<tr>
+<td><strong>OWASP Top 10</strong></td>
+<td>All API endpoints</td>
+<td>All user input</td>
+<td>See EDD §8.2 (A01–A10 mitigations)</td>
+<td>OpenTelemetry traces; Grafana error alerts</td>
+</tr>
+</tbody></table></div>
+<p><strong>Compliance Zones:</strong></p>
+<pre><code>[Gambling Compliance Zone] — spin_logs, verify.js, SlotEngine, max win enforcement
+[Financial Zone]           — wallets, wallet_transactions, SupabaseWalletRepository
+[PII Zone]                 — players table, email masking in logs, Supabase Auth
+[Internal Zone]            — Application layer, Domain layer, Redis session state
+[Public Zone]              — /health, /ready (no auth), /v1/config (JWT required)</code></pre>
+<hr>
+<h2 id="h-10-scalability-strategy">§10 Scalability Strategy</h2>
+<h3 id="h-101-horizontal-auto-scaling">§10.1 Horizontal Auto-Scaling</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Bottleneck</th>
+<th>Scale Method</th>
+<th>Scale-Out Trigger</th>
+<th>Scale-In Trigger</th>
+<th>Cool-Down</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>API pods</td>
+<td>K8s HPA</td>
+<td>CPU &gt; 70% sustained</td>
+<td>CPU &lt; 40% for 5min</td>
+<td>Scale-out: 60s</td>
+</tr>
+<tr>
+<td>API pods (secondary)</td>
+<td>K8s HPA custom metric</td>
+<td>RPS &gt; 30 per pod</td>
+<td>RPS &lt; 15 per pod for 5min</td>
+<td>Scale-in: 300s</td>
+</tr>
+<tr>
+<td>PostgreSQL reads</td>
+<td>Supabase Pro connection pool</td>
+<td>Pool utilization &gt; 80% (20 conn/replica)</td>
+<td>—</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Upstash Standard (10K req/s)</td>
+<td>Approaching 8K req/s</td>
+<td>—</td>
+<td>Manual upgrade to Upstash Pro</td>
+</tr>
+</tbody></table></div>
+<p><strong>Vertical scaling:</strong> Not applicable to stateless API pods. PostgreSQL and Redis are managed services with their own vertical scaling paths (Supabase Pro → Enterprise; Upstash Standard → Pro).</p>
+<h3 id="h-102-scalability-ceiling-analysis">§10.2 Scalability Ceiling Analysis</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Bottleneck Point</th>
+<th>Current Ceiling</th>
+<th>Symptoms at Ceiling</th>
+<th>Mitigation Strategy</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>PostgreSQL connection pool</strong></td>
+<td>20 connections × 3 replicas = 60 total; Supabase Pro: 1,000 via PgBouncer</td>
+<td>Connection wait &gt; 500ms; P99 latency spike</td>
+<td>Add PgBouncer external pooler; increase pool size; add read replica for spin_log queries</td>
+</tr>
+<tr>
+<td><strong>Redis / Upstash concurrency</strong></td>
+<td>Upstash Standard: 10,000 req/s total</td>
+<td>Redis timeout 500ms circuit breaker opens</td>
+<td>Upgrade to Upstash Pro (no limit); or Redis Cluster sharding by sessionId prefix</td>
+</tr>
+<tr>
+<td><strong>API pod CPU (Node.js single-thread)</strong></td>
+<td>~300 RPS per pod (I/O-bound); 3 pods = 900 RPS headroom</td>
+<td>P99 &gt; 500ms; HPA hits max=10 = 3,000 RPS ceiling</td>
+<td>Profile SlotEngine hot path; consider worker_threads for CascadeEngine; vertical scale pod CPU limit</td>
+</tr>
+<tr>
+<td><strong>GameConfig in-memory parse time</strong></td>
+<td>Config loaded once at startup; O(1) after startup</td>
+<td>Slow pod cold start (&gt;10s) if config is large</td>
+<td>Pre-validate config in CI; lazy load large payline arrays</td>
+</tr>
+<tr>
+<td><strong>spin_logs table growth</strong></td>
+<td>JSONB <code>outcome</code> field averages 2KB per spin; at 100 RPS = 720MB/hour</td>
+<td>Query slow scan on large spin_logs; VACUUM overhead</td>
+<td>Partition <code>spin_logs</code> by <code>created_at</code> month; archive to cold storage after 90 days</td>
+</tr>
+<tr>
+<td><strong>Kubernetes node capacity</strong></td>
+<td>3 nodes × 4 vCPU → max ~12 pods at current resource limits</td>
+<td>Pod pending (insufficient node resources)</td>
+<td>Node auto-provisioner; increase node pool size; or use spot nodes for HPA surge</td>
+</tr>
+</tbody></table></div>
+<p><strong>4-Phase Architecture Evolution Roadmap:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Trigger</th>
+<th>Architecture Change</th>
+<th>Estimated Timeline</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Phase 1 (Current)</strong></td>
+<td>&lt; 100 RPS peak</td>
+<td>Clean Architecture Monolith; 3 K8s pods; Supabase Pro; Upstash Standard</td>
+<td>Launch → 6 months</td>
+</tr>
+<tr>
+<td><strong>Phase 2</strong></td>
+<td>100–500 RPS sustained; spin_logs &gt; 50M rows</td>
+<td>Add Supabase read replica; <code>spin_logs</code> table partitioning by month; external PgBouncer; Redis Cluster (3 shards)</td>
+<td>6–18 months</td>
+</tr>
+<tr>
+<td><strong>Phase 3</strong></td>
+<td>500–2000 RPS; team &gt; 8 engineers</td>
+<td>Extract <code>FreeGameOrchestrator</code> + <code>WalletService</code> as independent K8s deployments; CQRS for spin_log analytics; dedicated analytics Postgres schema</td>
+<td>18–36 months</td>
+</tr>
+<tr>
+<td><strong>Phase 4</strong></td>
+<td>&gt; 2000 RPS; multi-market expansion</td>
+<td>Multi-region Active-Passive (primary + DR region); Event Sourcing for audit log; Kafka for real-time RTP anomaly detection; CDN for static GameConfig delivery</td>
+<td>36+ months</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-11-technology-stack-overview">§11 Technology Stack Overview</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+<th>Purpose</th>
+<th>License</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td>Node.js</td>
+<td>20 LTS</td>
+<td>Server runtime; event-loop I/O</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>Language</td>
+<td>TypeScript</td>
+<td>5.4+</td>
+<td>Type-safe development across all layers</td>
+<td>Apache 2.0</td>
+</tr>
+<tr>
+<td>HTTP Framework</td>
+<td>Fastify</td>
+<td>4.x</td>
+<td>REST API; native TypeScript types; 30–50% faster than Express</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>Supabase PostgreSQL</td>
+<td>15</td>
+<td>Wallet, spin_logs, fg_sessions; Row-Level Security</td>
+<td>PostgreSQL License</td>
+</tr>
+<tr>
+<td>Cache</td>
+<td>Redis / Upstash</td>
+<td>7.x</td>
+<td>FG session state; concurrency lock; TTL-based eviction</td>
+<td>Redis BSL / Upstash SaaS</td>
+</tr>
+<tr>
+<td>Redis Client</td>
+<td>IoRedis / Upstash SDK</td>
+<td>latest</td>
+<td>Typed Redis operations; TLS</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>Auth</td>
+<td>Supabase Auth (JWT RS256)</td>
+<td>—</td>
+<td>Player identity; RS256 keypair; Access TTL 3600s; Refresh TTL 604800s</td>
+<td>Supabase OSS</td>
+</tr>
+<tr>
+<td>DB Client</td>
+<td>Supabase JS Client</td>
+<td>2.x</td>
+<td>Type-safe PostgreSQL queries; RLS transparent</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>Testing (Unit/Integration)</td>
+<td>Vitest + Supertest</td>
+<td>latest</td>
+<td>Unit tests (domain); integration tests (API + DB)</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>Excel Parsing</td>
+<td>exceljs</td>
+<td>latest</td>
+<td>Thunder_Config.xlsx tab parsing in build_config.js</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>Excel Parsing (alt)</td>
+<td>xlsx (SheetJS)</td>
+<td>latest</td>
+<td>Used alongside exceljs for binary .xlsx format compatibility in build_config.js</td>
+<td>Apache-2.0</td>
+</tr>
+<tr>
+<td>DI Container</td>
+<td>tsyringe (or manual factory)</td>
+<td>latest</td>
+<td>Constructor injection; Domain receives only interfaces</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>Container</td>
+<td>Docker</td>
+<td>24+</td>
+<td>Containerization; multi-stage build</td>
+<td>Apache 2.0</td>
+</tr>
+<tr>
+<td>Orchestration</td>
+<td>Kubernetes</td>
+<td>1.29+</td>
+<td>Production deployment; HPA, PDB, NetworkPolicy</td>
+<td>Apache 2.0</td>
+</tr>
+<tr>
+<td>CI/CD</td>
+<td>GitHub Actions</td>
+<td>—</td>
+<td>Lint → Test → Toolchain → Docker Build → Deploy</td>
+<td>GitHub</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>OpenTelemetry + Grafana</td>
+<td>latest</td>
+<td>Metrics (Prometheus) + Traces (Tempo) + Logs (Loki)</td>
+<td>Apache 2.0</td>
+</tr>
+<tr>
+<td>SAST</td>
+<td>semgrep + CodeQL</td>
+<td>—</td>
+<td>Security scan; blocks on CRITICAL findings</td>
+<td>Various OSS</td>
+</tr>
+<tr>
+<td>Ingress</td>
+<td>nginx-ingress</td>
+<td>latest</td>
+<td>K8s Ingress; TLS termination; HTTPS-only</td>
+<td>Apache 2.0</td>
+</tr>
+<tr>
+<td>Secret Manager</td>
+<td>Kubernetes Secrets (etcd encrypted)</td>
+<td>—</td>
+<td>SUPABASE_SERVICE_KEY, REDIS_URL, DATABASE_URL, SUPABASE_JWT_SECRET</td>
+<td>K8s Apache 2.0</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>Cocos Creator 3.x / PixiJS 7.x</td>
+<td>TBD — confirmed at frontend milestone (target Q3 2026)</td>
+<td>Display layer; Pure View; never calculates win</td>
+<td>Various</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-12-observability-architecture">§12 Observability Architecture</h2>
+<h3 id="three-pillar-overview">Three-Pillar Overview</h3>
+<pre><code>                    ┌────────────────────────────────────────────────┐
+                    │           Observability Platform                │
+  ┌─────────┐       ├───────────────┬──────────────┬─────────────────┤
+  │ API Pods│──────►│  Logs (Loki)  │Metrics(Prom) │Traces (Tempo)   │
+  └─────────┘       │  JSON Lines   │Histogram+    │OpenTelemetry    │
+                    │  stdout →     │Counter+Gauge │OTLP gRPC :4317  │
+                    │  Fluent Bit   │/metrics      │Head sampling 5% │
+                    └──────┬────────┴──────┬───────┴────────┬────────┘
+                           │               │                │
+                    ┌──────▼────────────────▼────────────────▼────────┐
+                    │                   Grafana                        │
+                    │  Dashboards · Alerting · Explore · On-call       │
+                    └─────────────────────────────────────────────────┘</code></pre>
+<h3 id="h-121-structured-logging">§12.1 Structured Logging</h3>
+<p><strong>Log format (JSON Lines to stdout → Fluent Bit → Loki):</strong></p>
+<pre><code class="language-json">{
+  &quot;level&quot;: &quot;info&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:00.000Z&quot;,
+  &quot;service&quot;: &quot;thunder-blessing-api&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;traceId&quot;: &quot;4bf92f3577b34da6a3ce929d0e0e4736&quot;,
+  &quot;spanId&quot;: &quot;00f067aa0ba902b7&quot;,
+  &quot;playerId&quot;: &quot;player-42&quot;,
+  &quot;sessionId&quot;: &quot;sess-abc&quot;,
+  &quot;requestId&quot;: &quot;uuid-v4&quot;,
+  &quot;event&quot;: &quot;spin.completed&quot;,
+  &quot;totalWin&quot;: 4500,
+  &quot;fgTriggered&quot;: true,
+  &quot;fgMultiplier&quot;: 17,
+  &quot;durationMs&quot;: 287,
+  &quot;scenario&quot;: &quot;MAIN&quot;
+}</code></pre>
+<p><strong>Log levels:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Level</th>
+<th>Usage</th>
+<th>Production enabled</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>fatal</code></td>
+<td>Config load failure, unrecoverable startup</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>Engine errors, DB failures, unexpected exceptions</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>warn</code></td>
+<td>Rate limit hit, circuit breaker HALF_OPEN</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>info</code></td>
+<td>Spin start/complete, FG trigger, wallet operations</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>debug</code></td>
+<td>RNG values, grid state — dev/staging ONLY</td>
+<td>❌ (prod)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Log retention policy:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Level</th>
+<th>Hot (Loki)</th>
+<th>Cold (Object Storage)</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>fatal</code> / <code>error</code></td>
+<td>30 days</td>
+<td>1 year</td>
+</tr>
+<tr>
+<td><code>warn</code></td>
+<td>14 days</td>
+<td>90 days</td>
+</tr>
+<tr>
+<td><code>info</code></td>
+<td>7 days</td>
+<td>30 days</td>
+</tr>
+<tr>
+<td><code>debug</code></td>
+<td>3 days (staging only)</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-122-metrics-prometheus">§12.2 Metrics (Prometheus)</h3>
+<p>Key metrics exposed at <code>/metrics</code> (Prometheus format):</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Metric</th>
+<th>Type</th>
+<th>Labels</th>
+<th>SLO Alert</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>spin_duration_seconds</code></td>
+<td>Histogram</td>
+<td><code>scenario</code>, <code>fg_triggered</code>, <code>env</code></td>
+<td>P99 &gt; 500ms → Warning</td>
+</tr>
+<tr>
+<td><code>spin_total</code></td>
+<td>Counter</td>
+<td><code>scenario</code>, <code>result</code> (success/error)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>spin_error_total</code></td>
+<td>Counter</td>
+<td><code>error_code</code>, <code>scenario</code></td>
+<td>&gt; 0.5% of spins → Critical</td>
+</tr>
+<tr>
+<td><code>fg_triggered_total</code></td>
+<td>Counter</td>
+<td><code>multiplier</code>, <code>scenario</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>wallet_debit_total</code></td>
+<td>Counter</td>
+<td><code>currency</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>wallet_credit_total</code></td>
+<td>Counter</td>
+<td><code>currency</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>redis_lock_failures_total</code></td>
+<td>Counter</td>
+<td><code>namespace</code></td>
+<td>&gt; 10/min → Warning</td>
+</tr>
+<tr>
+<td><code>circuit_breaker_state</code></td>
+<td>Gauge</td>
+<td><code>dependency</code> (supabase/redis/auth)</td>
+<td>OPEN state → Critical</td>
+</tr>
+<tr>
+<td><code>active_fg_sessions</code></td>
+<td>Gauge</td>
+<td><code>env</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>rng_spin_count_total</code></td>
+<td>Counter</td>
+<td><code>scenario</code></td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p><strong>Grafana dashboards:</strong></p>
+<ul>
+<li><code>Thunder Blessing - Spin SLO</code>: spin latency P50/P95/P99 per scenario; error rate; FG trigger rate</li>
+<li><code>Thunder Blessing - Wallet</code>: debit/credit volume; balance accuracy reconciliation</li>
+<li><code>Thunder Blessing - Infrastructure</code>: Pod CPU/Memory; Redis memory; DB connection pool utilization</li>
+</ul>
+<h3 id="h-123-distributed-tracing-opentelemetry-grafana-tempo">§12.3 Distributed Tracing (OpenTelemetry → Grafana Tempo)</h3>
+<p><strong>Sampling strategy:</strong></p>
+<ul>
+<li>5% of normal traffic (head-based random sampling)</li>
+<li>100% for all error traces (4xx/5xx or <code>error</code> span attribute)</li>
+<li>100% for traces with latency &gt; 500ms (Tempo tail-based sampler)</li>
+</ul>
+<p><strong>Span naming convention (<code>{service}.{operation}</code>):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Span Name</th>
+<th>Component</th>
+<th>Key Attributes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>http.server</code></td>
+<td>Fastify route</td>
+<td><code>http.method</code>, <code>http.route</code>, <code>http.status_code</code></td>
+</tr>
+<tr>
+<td><code>spin.usecase</code></td>
+<td><code>SpinUseCase.execute</code></td>
+<td><code>playerId</code>, <code>sessionId</code>, <code>scenario</code></td>
+</tr>
+<tr>
+<td><code>engine.spin</code></td>
+<td><code>SlotEngine.spin</code></td>
+<td><code>extraBet</code>, <code>buyFeature</code>, <code>fgTriggered</code></td>
+</tr>
+<tr>
+<td><code>cascade.run</code></td>
+<td><code>CascadeEngine.runCascade</code></td>
+<td><code>depth</code>, <code>lightningMarkCount</code></td>
+</tr>
+<tr>
+<td><code>fg.sequence</code></td>
+<td><code>FreeGameOrchestrator.runSequence</code></td>
+<td><code>multiplier</code>, <code>bonusMultiplier</code></td>
+</tr>
+<tr>
+<td><code>db.wallet.debit</code></td>
+<td><code>SupabaseWalletRepository.debit</code></td>
+<td><code>amount</code>, <code>currency</code></td>
+</tr>
+<tr>
+<td><code>db.wallet.credit</code></td>
+<td><code>SupabaseWalletRepository.credit</code></td>
+<td><code>amount</code>, <code>currency</code>, <code>totalWin</code></td>
+</tr>
+<tr>
+<td><code>redis.lock.acquire</code></td>
+<td><code>ConcurrencyLockGuard.acquire</code></td>
+<td><code>sessionId</code>, <code>success</code></td>
+</tr>
+<tr>
+<td><code>redis.session.set</code></td>
+<td><code>UpstashCacheAdapter.set</code></td>
+<td><code>sessionId</code>, <code>ttl</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-124-alerting-rules">§12.4 Alerting Rules</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Alert</th>
+<th>Condition</th>
+<th>Duration</th>
+<th>Severity</th>
+<th>Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>High Spin Latency</td>
+<td>P99 <code>spin_duration_seconds</code> &gt; 500ms</td>
+<td>2 min</td>
+<td>Warning</td>
+<td>Investigate engine + DB</td>
+</tr>
+<tr>
+<td>Spin Error Rate</td>
+<td><code>spin_error_total / spin_total</code> &gt; 0.5%</td>
+<td>1 min</td>
+<td>Critical</td>
+<td>PagerDuty on-call</td>
+</tr>
+<tr>
+<td>Circuit Breaker Open</td>
+<td><code>circuit_breaker_state{dependency}</code> = 1</td>
+<td>30s</td>
+<td>Critical</td>
+<td>PagerDuty on-call</td>
+</tr>
+<tr>
+<td>Wallet Discrepancy</td>
+<td>Debit != Credit for any spin in audit</td>
+<td>Any</td>
+<td>Critical</td>
+<td>Freeze player account; Incident</td>
+</tr>
+<tr>
+<td>Rate Limit Flood</td>
+<td>&gt; 1,000 <code>429</code> responses/min</td>
+<td>1 min</td>
+<td>Warning</td>
+<td>Review for ban</td>
+</tr>
+<tr>
+<td>Config Integrity Failure</td>
+<td>CI checksum mismatch</td>
+<td>Immediate</td>
+<td>Critical</td>
+<td>Halt deployment pipeline</td>
+</tr>
+<tr>
+<td>Redis Lock Failures</td>
+<td><code>redis_lock_failures_total</code> &gt; 10/min</td>
+<td>1 min</td>
+<td>Warning</td>
+<td>Check Redis connectivity</td>
+</tr>
+<tr>
+<td>Pod CrashLooping</td>
+<td>CrashLoopBackOff count &gt; 3</td>
+<td>10 min</td>
+<td>P2</td>
+<td>Slack #alerts</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-13-external-dependency-map">§13 External Dependency Map</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Service</th>
+<th>Version / API</th>
+<th>Purpose</th>
+<th>Provider SLA</th>
+<th>Our Fallback</th>
+<th>Owner</th>
+<th>Rotation / Expiry</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Supabase PostgreSQL</td>
+<td>15 (Pro tier)</td>
+<td>Player wallet, spin_logs, fg_sessions, RLS</td>
+<td>Supabase Pro 99.9% uptime</td>
+<td>Circuit breaker → 503; PITR restore within 30min</td>
+<td>Engineering Lead</td>
+<td>DB credentials every 90 days</td>
+</tr>
+<tr>
+<td>Supabase Auth</td>
+<td>RS256 JWT</td>
+<td>Player identity verification</td>
+<td>Supabase Pro 99.9%</td>
+<td>JWT public key cached 1h; fail-open after 3 Auth failures (deny all to be safe)</td>
+<td>Engineering Lead</td>
+<td>Key rotation on Supabase schedule</td>
+</tr>
+<tr>
+<td>Upstash Redis</td>
+<td>7 (Standard tier, 10K req/s)</td>
+<td>FG session state; concurrency lock; rate limiting</td>
+<td>Upstash 99.99%</td>
+<td>Circuit breaker; fallback to PostgreSQL fg_sessions for session restore</td>
+<td>Engineering Lead</td>
+<td>Connection string on credential change</td>
+</tr>
+<tr>
+<td>Kubernetes (Cloud)</td>
+<td>1.29+</td>
+<td>Container orchestration</td>
+<td>Cloud provider 99.9%</td>
+<td>Multi-AZ pod scheduling; K8s self-healing</td>
+<td>Platform Team</td>
+<td>—</td>
+</tr>
+<tr>
+<td>GitHub Actions</td>
+<td>—</td>
+<td>CI/CD pipeline; toolchain execution</td>
+<td>GitHub 99.9%</td>
+<td>Manual Docker build + deploy runbook</td>
+<td>Engineering Lead</td>
+<td>—</td>
+</tr>
+<tr>
+<td>OpenTelemetry Collector</td>
+<td>latest</td>
+<td>Telemetry aggregation</td>
+<td>Self-managed (K8s pod)</td>
+<td>Logs still go to stdout; traces lost until recovery</td>
+<td>Platform Team</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Grafana Cloud / Self-hosted</td>
+<td>latest</td>
+<td>Dashboards, alerting, on-call</td>
+<td>Self-managed</td>
+<td>PagerDuty direct alerts if Grafana down</td>
+<td>Platform Team</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Excel / exceljs</td>
+<td>—</td>
+<td>Thunder_Config.xlsx parsing (build-time only)</td>
+<td>N/A (local tool)</td>
+<td>Manual JSON editing of engine_config.json (emergency only, forbidden in prod)</td>
+<td>Game Designer</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p><strong>Dependency risk matrix:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Risk Level</th>
+<th>Dependencies</th>
+<th>Impact if Down</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Critical (P0)</td>
+<td>Supabase PostgreSQL, Upstash Redis</td>
+<td>Core spin flow broken; wallet cannot debit/credit</td>
+</tr>
+<tr>
+<td>High (P1)</td>
+<td>Supabase Auth</td>
+<td>All player authentication fails; no new spins possible</td>
+</tr>
+<tr>
+<td>Medium (P2)</td>
+<td>GitHub Actions, OpenTelemetry</td>
+<td>CI pipeline halts; observability blind; no new deployments</td>
+</tr>
+<tr>
+<td>Low (P3)</td>
+<td>Grafana dashboards</td>
+<td>Alert visibility reduced; PagerDuty still works independently</td>
+</tr>
+</tbody></table></div>
+<h3 id="frontend-static-asset-delivery-cdn">Frontend Static Asset Delivery (CDN)</h3>
+<p>The Cocos Creator / PixiJS frontend produces large static assets (game sprites, audio files, animation JSON, WebAssembly binaries). These must be delivered via CDN to minimize load times for players globally.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Concern</th>
+<th>Phase 1 Solution</th>
+<th>Phase 2+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>CDN Origin</strong></td>
+<td>S3-compatible object storage (e.g., GCS, AWS S3) or GitHub Releases</td>
+<td>Same; multi-region replication</td>
+</tr>
+<tr>
+<td><strong>CDN Provider</strong></td>
+<td>Cloudflare (free tier for Phase 1) or CloudFront</td>
+<td>Cloudflare Pro / CloudFront with origin shield</td>
+</tr>
+<tr>
+<td><strong>Cache Strategy</strong></td>
+<td>Immutable assets: <code>Cache-Control: max-age=31536000, immutable</code> (content-hash filenames from build tooling). Index/manifest: <code>max-age=60, must-revalidate</code></td>
+<td>Same + edge cache warming on deploy</td>
+</tr>
+<tr>
+<td><strong>Cache Invalidation</strong></td>
+<td>CI deploy step runs <code>cloudflare-purge</code> or CDN invalidation API for manifest files. Immutable hashed assets never need explicit purge.</td>
+<td>Automated via CI/CD</td>
+</tr>
+<tr>
+<td><strong>Asset Types</strong></td>
+<td>Sprites (PNG/WebP), audio (OGG/MP3), animation JSON, WASM</td>
+<td>Same</td>
+</tr>
+<tr>
+<td><strong>Security</strong></td>
+<td>Hotlink protection (Referer header check); rate limiting on CDN edge</td>
+<td>Signed URLs for private assets</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>Phase 1 minimal statement: Static assets served from S3 + Cloudflare CDN; invalidated per release via CI deploy step. Content-hash filenames ensure cache correctness without purge for game assets.</p></blockquote>
+<hr>
+<h2 id="h-14-architecture-decision-records-full">§14 Architecture Decision Records (Full)</h2>
+<h3 id="adr-001-fastify-over-express-as-http-framework">ADR-001: Fastify over Express as HTTP Framework</h3>
+<pre><code>ADR-ID: ADR-001
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, Backend Engineers</code></pre>
+<p><strong>Context:</strong></p>
+<p>The Thunder Blessing backend requires a high-performance HTTP framework for TypeScript/Node.js. The primary API endpoint <code>POST /v1/spin</code> must achieve P99 ≤ 500ms including all game logic, two DB operations (debit + credit), and a Redis lock acquire/release. The framework&#x27;s overhead directly impacts this budget.</p>
+<p><strong>Options Considered:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Option</th>
+<th>Throughput</th>
+<th>TypeScript Support</th>
+<th>Schema Validation</th>
+<th>Decision</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Fastify 4.x</td>
+<td>75,000 req/s (benchmark)</td>
+<td>Native types, decorators</td>
+<td>JSON Schema (fast-json-stringify)</td>
+<td><strong>Selected</strong></td>
+</tr>
+<tr>
+<td>Express 5.x</td>
+<td>50,000 req/s</td>
+<td>Community @types</td>
+<td>Manual (express-validator)</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>NestJS</td>
+<td>40,000 req/s</td>
+<td>First-class</td>
+<td>Built-in (class-validator)</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Hono</td>
+<td>90,000 req/s</td>
+<td>Good</td>
+<td>Manual or zod</td>
+<td>Not evaluated at decision time</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p>Adopt Fastify 4.x. The 30–50% throughput advantage over Express directly extends our latency budget for game logic. Native TypeScript types and built-in JSON schema validation reduce boilerplate. <code>fastify-rate-limit</code> integrates with Redis for per-player rate limiting without additional middleware.</p>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: Lower framework overhead; native schema validation; Fastify preHandler for JWT auth is idiomatic</li>
+<li>Positive: <code>fastify-rate-limit</code> with Redis store is a first-class plugin</li>
+<li>Negative: Smaller ecosystem than Express; some Express middleware requires wrapping</li>
+<li>Negative: Fastify&#x27;s plugin system (lifecycle hooks) has a learning curve; team needs onboarding</li>
+<li>Risk: Major Fastify version upgrades (v4 → v5) may require API surface changes</li>
+</ul>
+<hr>
+<h3 id="adr-002-clean-architecture-with-dependency-inversion">ADR-002: Clean Architecture with Dependency Inversion</h3>
+<pre><code>ADR-ID: ADR-002
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, CTO</code></pre>
+<p><strong>Context:</strong></p>
+<p>The slot game domain contains complex probability math (CascadeEngine, ThunderBlessingHandler, CoinTossEvaluator) that must be unit-tested in isolation with 100% deterministic outcomes. Additionally, <code>verify.js</code> must simulate 1M spins without spinning up a database. A layered architecture that keeps the Domain layer free of infrastructure dependencies is required.</p>
+<p><strong>Options Considered:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Option</th>
+<th>Domain isolation</th>
+<th>Testability</th>
+<th>Complexity</th>
+<th>Fit</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Clean Architecture</td>
+<td>Full (zero external deps in Domain)</td>
+<td>Excellent</td>
+<td>Medium</td>
+<td><strong>Selected</strong></td>
+</tr>
+<tr>
+<td>MVC (Controller→Service→Repository)</td>
+<td>Partial (Service imports ORM)</td>
+<td>Good</td>
+<td>Low</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Anemic Domain Model</td>
+<td>None (logic in Services)</td>
+<td>Poor (too much mocking)</td>
+<td>Low</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Hexagonal / Ports &amp; Adapters</td>
+<td>Full</td>
+<td>Excellent</td>
+<td>Medium</td>
+<td>Equivalent (subset of Clean Arch terminology)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p>Adopt Clean Architecture with strict Dependency Rule: Domain ← Application ← Adapters ← Infrastructure. All game math classes (<code>SlotEngine</code>, <code>CascadeEngine</code>, etc.) depend only on TypeScript primitives and generated config. Port interfaces (<code>IWalletRepository</code>, <code>ISessionCache</code>) defined in Domain; implemented in Infrastructure.</p>
+<p><strong>Migration path (if team grows):</strong></p>
+<p>Extract bounded contexts as independent K8s deployments using Strangler Fig pattern. Clean Architecture module boundaries already map to service extraction points.</p>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: <code>SlotEngine.spin()</code> is unit-testable with zero mocks needed (pure function given config + RNG)</li>
+<li>Positive: <code>verify.js</code> can run 1M simulations without any database or Redis dependency</li>
+<li>Positive: Infrastructure can be swapped (e.g., IoRedis → Upstash) without touching Domain</li>
+<li>Negative: More boilerplate (port interfaces, adapters, DI wiring) than a simple MVC</li>
+<li>Negative: DI container setup at startup requires care to avoid circular dependencies</li>
+<li>Decision trigger for re-evaluation: If team reaches 15+ engineers, consider explicit service extraction</li>
+</ul>
+<hr>
+<h3 id="adr-003-single-trip-post-spin-returns-complete-fullspinoutcome">ADR-003: Single-Trip POST /spin Returns Complete FullSpinOutcome</h3>
+<pre><code>ADR-ID: ADR-003
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, Game Designer</code></pre>
+<p><strong>Context:</strong></p>
+<p>A Free Game sequence can include up to 5 Coin Toss rounds (×3→×7→×17→×27→×77). A multi-trip API would require the client to send 5 separate POST requests during an FG session, creating:</p>
+<ul>
+<li>Reconnect risk (player loses FG session if network drops between rounds)</li>
+<li>Latency accumulation (5 × network RTT ≈ 5 × 50–200ms = 250–1000ms extra)</li>
+<li>State management complexity on both client and server</li>
+</ul>
+<p><strong>Options Considered:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Option</th>
+<th>Reconnect Safety</th>
+<th>Latency</th>
+<th>State Complexity</th>
+<th>Payload Size</th>
+<th>Decision</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Single-trip: server computes full FG in one response</td>
+<td>High — atomic outcome; Redis session enables recovery</td>
+<td>P99 ≤ 800ms for ≤5 FG rounds</td>
+<td>Low — Pure View client</td>
+<td>50–100KB (5 FG rounds)</td>
+<td><strong>Selected</strong></td>
+</tr>
+<tr>
+<td>Multi-trip: client polls POST /spin per FG round</td>
+<td>Low — network drop mid-FG loses session</td>
+<td>5 RTT × 50–200ms = 250–1000ms extra</td>
+<td>High — client must manage FG state machine</td>
+<td>&lt; 10KB per trip</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>WebSocket streaming per FG round</td>
+<td>Medium — WebSocket drop recoverable</td>
+<td>Lowest per-message latency</td>
+<td>High — requires WS infra + reconnect protocol</td>
+<td>N/A</td>
+<td>Rejected (over-engineering for ≤5 rounds)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p><code>POST /v1/spin</code> computes all FG rounds, all Coin Toss results, and the final <code>totalWin</code> server-side and returns the complete <code>FullSpinOutcome</code> in a single HTTP response. Redis session state tracks <code>fgRound</code>, <code>lightningMarks</code>, <code>fgMultiplier</code> during the computation (all in-process) and is cleared on response.</p>
+<p>For reconnect recovery, <code>GET /v1/session/:sessionId</code> returns the in-progress FG session state from Redis (TTL 300s); client uses this to restore visual state from the last completed round.</p>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: Eliminates reconnect risk during FG; single atomic outcome</li>
+<li>Positive: Frontend is a Pure View; never holds game state; simply plays animation sequence from the returned <code>fgRounds[]</code> array</li>
+<li>Positive: P99 ≤ 800ms budget covers up to 5 FG rounds within one response</li>
+<li>Negative: P99 ≤ 800ms is harder to guarantee for deep FG sequences; requires engine optimization</li>
+<li>Negative: Large response payload (5 FG rounds with full grid state) ≈ 50–100KB; acceptable for game context</li>
+<li>Risk: If engine processing exceeds 2000ms, returns 504; wallet debit has already occurred and requires compensating credit (see §6 Partial Failure Compensation — engine failure path)</li>
+</ul>
+<hr>
+<h3 id="adr-004-redis-for-fg-session-state">ADR-004: Redis for FG Session State</h3>
+<pre><code>ADR-ID: ADR-004
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead</code></pre>
+<p><strong>Context:</strong></p>
+<p>FG session state (<code>fgRound</code>, <code>fgMultiplier</code>, <code>lightningMarks</code>, <code>floorValue</code>) must be stored externally so that:</p>
+<ol>
+<li>Any of the 3 API pod replicas can continue a session (stateless pods)</li>
+<li>Concurrency lock prevents two simultaneous spins for the same player</li>
+<li>TTL-based auto-expiry (300s) prevents orphaned sessions</li>
+</ol>
+<p><strong>Options:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Option</th>
+<th>Latency</th>
+<th>TTL support</th>
+<th>Atomic ops (NX lock)</th>
+<th>Decision</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Redis / Upstash</td>
+<td>&lt; 1ms</td>
+<td>Native TTL</td>
+<td>NX for lock</td>
+<td><strong>Selected</strong></td>
+</tr>
+<tr>
+<td>PostgreSQL session table</td>
+<td>5–20ms</td>
+<td>No native TTL (cron needed)</td>
+<td>Advisory lock</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>In-memory (single pod)</td>
+<td>0ms</td>
+<td>Manual cleanup</td>
+<td>N/A</td>
+<td>Rejected (not stateless)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p>Use Redis Hash <code>session:{sessionId}</code> with TTL=300s (auto-renewed per FG round) for FG session state. Use Redis String <code>session:{sessionId}:lock</code> NX EX 10 for concurrency lock. Persist snapshot to PostgreSQL <code>fg_sessions</code> table on session completion for audit.</p>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: Sub-millisecond session reads; atomic NX lock; Upstash Standard supports 10K req/s (100× current peak)</li>
+<li>Positive: TTL-based expiry eliminates orphaned session cleanup overhead</li>
+<li>Negative: Redis data loss (Upstash outage) requires fallback to <code>fg_sessions</code> PostgreSQL table for session recovery; adds complexity</li>
+<li>Negative: Upstash Standard has 10K req/s ceiling; requires upgrade to Upstash Pro at &gt; 2,000 concurrent players</li>
+</ul>
+<hr>
+<h3 id="adr-005-verifyjs-hard-gate-before-engine_generatorjs">ADR-005: verify.js Hard Gate Before engine_generator.js</h3>
+<pre><code>ADR-ID: ADR-005
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, Game Designer, Compliance</code></pre>
+<p><strong>Context:</strong></p>
+<p>RTP misconfiguration is a compliance risk. If <code>engine_generator.js</code> runs before <code>verify.js</code> validates all 4 scenarios, a broken config could reach production, causing incorrect payouts and regulatory violations.</p>
+<p><strong>Options Considered:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Option</th>
+<th>Compliance Risk</th>
+<th>CI Complexity</th>
+<th>Developer UX</th>
+<th>Decision</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>verify.js hard gate (exit 1 on fail)</td>
+<td>None — broken config cannot reach generation</td>
+<td>Low — single <code>node verify.js &amp;&amp; node engine_generator.js</code> step</td>
+<td>Clear fail fast with per-scenario RTP report</td>
+<td><strong>Selected</strong></td>
+</tr>
+<tr>
+<td>Ungated pipeline (verify.js runs but doesn&#x27;t block)</td>
+<td>High — misconfigured params can generate broken GameConfig</td>
+<td>Low</td>
+<td>Silent; developer may not notice verify failure</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Manual review gate (human sign-off)</td>
+<td>Medium — depends on reviewer diligence</td>
+<td>High — adds PR approval step</td>
+<td>Slow; not reproducible</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Post-generation check (verify after engine_generator.js)</td>
+<td>High — broken code already generated before check</td>
+<td>Low</td>
+<td>Confusing; generated file must be discarded</td>
+<td>Rejected</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p><code>verify.js</code> must exit code 0 before <code>engine_generator.js</code> is allowed to run. The CI pipeline enforces this ordering. <code>verify.js</code> checks all 4 scenarios (Main, EB, BuyFG, EB+BuyFG) for:</p>
+<ul>
+<li><code>|actual_RTP - target_RTP| ≤ 0.01</code> (±1%)</li>
+<li><code>max_win_observed ≤ max_win_cap_configured</code></li>
+<li>Buy Feature floor applied correctly in all BuyFG simulations</li>
+</ul>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: No broken probability config can reach production; RTP is auditable by external compliance teams</li>
+<li>Positive: CI build fails loudly on RTP violation; forces Game Designer to fix Excel params before generation</li>
+<li>Negative: 1M simulation takes ~5–30 minutes in CI; slows toolchain execution</li>
+<li>Negative: CI must run Node.js environment for Excel parsing (adds complexity vs. pure Docker-based CI)</li>
+</ul>
+<hr>
+<h3 id="adr-006-outcometotalwin-as-sole-accounting-authority">ADR-006: outcome.totalWin as Sole Accounting Authority</h3>
+<pre><code>ADR-ID: ADR-006
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, Compliance</code></pre>
+<p><strong>Context:</strong></p>
+<p>The Cascade sequence accumulates <code>stepWin</code> across multiple cascade steps. Additionally, FG rounds accumulate <code>fgWin × fgMultiplier × bonusMultiplier</code>. The UI displays a rolling <code>session.roundWin</code> counter for animation. There is a risk of:</p>
+<ul>
+<li>Double-counting: UI summing cascade steps and also showing <code>totalWin</code></li>
+<li>Under-crediting: Crediting <code>session.roundWin</code> instead of <code>outcome.totalWin</code> (may differ due to floor guard)</li>
+<li>Over-crediting: <code>session.roundWin</code> not capped at <code>maxWin</code></li>
+</ul>
+<p><strong>Options Considered:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Option</th>
+<th>Double-count Risk</th>
+<th>MaxWin Cap</th>
+<th>Floor Guard Compatibility</th>
+<th>Decision</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>outcome.totalWin</code> (SlotEngine output, post-cap)</td>
+<td>None — single computation path</td>
+<td>Applied before setting totalWin</td>
+<td>Fully compatible (SessionFloorGuard reads totalWin)</td>
+<td><strong>Selected</strong></td>
+</tr>
+<tr>
+<td><code>session.roundWin</code> (UI animation counter)</td>
+<td>High — accumulates across FG rounds without cap</td>
+<td>Not applied</td>
+<td>Incompatible — roundWin bypasses enforceMaxWin()</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Sum of cascade <code>stepWin</code> values</td>
+<td>High — Cascade steps summed multiple times across FG rounds</td>
+<td>Not applied</td>
+<td>Incompatible</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Per-round credit (credit after each FG round)</td>
+<td>Low but complex</td>
+<td>Must be re-applied per round</td>
+<td>Complex — floor guard applies at session end only</td>
+<td>Rejected (violates single-trip design)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p><code>outcome.totalWin</code> returned by <code>SlotEngine.spin()</code> is the ONLY value ever passed to <code>WalletRepository.credit()</code>. <code>session.roundWin</code> is a UI-only animation counter, never used for wallet operations. <code>enforceMaxWin()</code> is called inside the domain before <code>totalWin</code> is set in <code>FullSpinOutcome</code>.</p>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: Single source of truth; eliminates all classes of accounting discrepancy</li>
+<li>Positive: <code>ENFORCE_MAX_WIN_CAP</code> feature flag (must remain <code>true</code> in production) provides compliance-auditable cap</li>
+<li>Negative: Frontend must be designed to use <code>fgRounds[].win</code> arrays only for animation; <code>totalWin</code> is the settled amount</li>
+<li>Risk: Frontend bug (using roundWin for display vs. totalWin for credit) must be caught in integration tests</li>
+</ul>
+<hr>
+<h3 id="adr-007-supabase-postgresql-rls-for-wallet-and-audit-persistence">ADR-007: Supabase PostgreSQL + RLS for Wallet and Audit Persistence</h3>
+<pre><code>ADR-ID: ADR-007
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, CTO</code></pre>
+<p><strong>Context:</strong></p>
+<p>The Thunder Blessing backend requires a managed PostgreSQL service with Row Level Security (RLS) to enforce per-player data isolation at the database level. Wallet operations (<code>wallet_transactions</code>) and spin audit logs (<code>spin_logs</code>) contain sensitive financial data that must never be accessible across player boundaries, even if application-level auth fails.</p>
+<p><strong>Options Considered:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Option</th>
+<th>RLS Support</th>
+<th>Managed</th>
+<th>PITR</th>
+<th>Decision</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Supabase PostgreSQL</td>
+<td>Native RLS (policy-based)</td>
+<td>Yes</td>
+<td>Yes (Pro tier)</td>
+<td><strong>Selected</strong></td>
+</tr>
+<tr>
+<td>PlanetScale (MySQL)</td>
+<td>Schema-level only</td>
+<td>Yes</td>
+<td>Limited</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Self-hosted PostgreSQL (K8s)</td>
+<td>Native RLS</td>
+<td>No</td>
+<td>Manual setup</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>AWS RDS PostgreSQL</td>
+<td>Native RLS</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>More expensive; no Auth/JWT bundling</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p>Adopt Supabase PostgreSQL Pro tier. Native RLS policies enforce <code>auth.uid() = player_id</code> at the DB level — even a compromised application token cannot read another player&#x27;s wallet rows. Supabase Pro includes PITR (5-minute granularity), satisfying the RPO=5min target without custom backup tooling.</p>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: Defense-in-depth for financial data; RLS catches application auth bypasses</li>
+<li>Positive: PITR out-of-the-box satisfies RPO requirement without custom backup scripts</li>
+<li>Negative: Supabase vendor lock-in; migration to self-hosted PostgreSQL requires RLS policy migration</li>
+<li>Negative: Supabase Pro costs $25/month; free tier insufficient for PITR and compute</li>
+<li>Risk: Supabase service outage → circuit breaker must open and return 503 within 10s</li>
+</ul>
+<hr>
+<h3 id="adr-008-kubernetes-canary-deploy-for-production-blue-green-for-staging">ADR-008: Kubernetes Canary Deploy for Production, Blue-Green for Staging</h3>
+<pre><code>ADR-ID: ADR-008
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, DevOps Lead</code></pre>
+<p><strong>Context:</strong></p>
+<p>The Thunder Blessing backend handles real-money wagering. A bad deploy to production can cause incorrect win calculations, accounting errors, or complete downtime — all with direct financial impact. The deployment strategy must minimize blast radius while still enabling rapid iteration.</p>
+<p><strong>Options Considered:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Strategy</th>
+<th>Risk Level</th>
+<th>Rollback Speed</th>
+<th>Production Cost</th>
+<th>Decision</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Big Bang (replace all)</td>
+<td>High</td>
+<td>Minutes (manual)</td>
+<td>Low</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Blue-Green</td>
+<td>Medium</td>
+<td>Seconds (switch LB)</td>
+<td>2× node cost</td>
+<td>Production: Rejected (cost); Staging: <strong>Selected</strong></td>
+</tr>
+<tr>
+<td>Canary (5%→25%→100%)</td>
+<td>Low</td>
+<td>Seconds (route 0% to new)</td>
+<td>~10% extra</td>
+<td>Production: <strong>Selected</strong></td>
+</tr>
+<tr>
+<td>Rolling (default K8s)</td>
+<td>Medium</td>
+<td>Minutes</td>
+<td>Minimal</td>
+<td>Dev: Selected</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p>Production uses Canary with automated rollback: route 5% traffic to new pods; promote to 25% after 5 minutes with error rate &lt;0.5%; promote to 100% after 5 more minutes. Automated rollback if <code>spin_error_total &gt; 0.5%</code> for 2 minutes at any canary stage. Staging uses Blue-Green for full integration testing before production cut. Dev uses Rolling for simplicity.</p>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: Canary limits bad deploy blast radius to 5% of players</li>
+<li>Positive: Automated rollback on error rate threshold prevents manual intervention lag</li>
+<li>Negative: Requires flagger/Argo Rollouts or equivalent for Canary traffic splitting</li>
+<li>Negative: Canary deploys extend total deploy time by ~15 minutes vs rolling</li>
+<li>Risk: Canary controller failure → deploy stalls at 5%; requires runbook for manual override</li>
+</ul>
+<hr>
+<h3 id="adr-009-excel-thunder_configxlsx-as-sole-probability-configuration-source">ADR-009: Excel (Thunder_Config.xlsx) as Sole Probability Configuration Source</h3>
+<pre><code>ADR-ID: ADR-009
+Status: Accepted
+Date: 2026-04-26
+Deciders: Engineering Lead, Game Designer</code></pre>
+<p><strong>Context:</strong></p>
+<p>The Thunder Blessing slot game has hundreds of configurable probability parameters: symbol weights per reel per scenario, payline definitions, FG multiplier weights, Coin Toss probabilities per stage, Near Miss configuration, and extra bet adjustments. These must all target RTP=97.5% across four independent scenarios. Game designers need to adjust parameters iteratively (sometimes 50+ changes per tuning session) without touching TypeScript source code. The configuration must be version-controlled and auditable.</p>
+<p><strong>Options Considered:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Option</th>
+<th>Designer-Friendly</th>
+<th>Version Control</th>
+<th>Type Safety</th>
+<th>Decision</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Excel DATA tab (single source)</td>
+<td>Yes (native UI)</td>
+<td>Git (binary)</td>
+<td>Generated TypeScript</td>
+<td><strong>Selected</strong></td>
+</tr>
+<tr>
+<td>JSON files in git</td>
+<td>No (text editing)</td>
+<td>Yes (text diff)</td>
+<td>Manual types</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Admin UI + DB</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Dynamic, no compile-time checks</td>
+<td>Rejected — adds infra complexity</td>
+</tr>
+<tr>
+<td>YAML files</td>
+<td>No (complex structure)</td>
+<td>Yes (text diff)</td>
+<td>Manual types</td>
+<td>Rejected</td>
+</tr>
+</tbody></table></div>
+<p><strong>Decision:</strong></p>
+<p><code>Thunder_Config.xlsx</code> DATA tab is the single source of truth for all probability parameters. No parameter may be hand-coded in TypeScript. The toolchain (build_config.js → excel_simulator.js → verify.js → engine_generator.js) enforces that any Excel edit must pass 1M Monte Carlo simulation and 4-scenario RTP verification before generating TypeScript. <code>GameConfig.generated.ts</code> must never be modified manually.</p>
+<p><strong>Consequences:</strong></p>
+<ul>
+<li>Positive: Game designers work in a familiar tool; no coding required for parameter tuning</li>
+<li>Positive: Toolchain acts as a compile-time type system for probability parameters</li>
+<li>Positive: Single file to audit for compliance and regulatory inspection</li>
+<li>Negative: Excel binary format produces unreadable git diffs; changes require explicit toolchain re-run</li>
+<li>Negative: Requires all team members to run the full toolchain locally; cannot edit config during CI</li>
+<li>Risk: Excel corruption or format change requires toolchain recovery procedure</li>
+</ul>
+<hr>
+<h2 id="h-15-architecture-review-checklist">§15 Architecture Review Checklist</h2>
+<blockquote><p>Use for PR merges, major architectural changes, and quarterly architecture reviews. Each item: ✅ Pass / ❌ Fail / ➖ N/A. Fill in reviewer and date.</p></blockquote>
+<h3 id="security-s">Security (S)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>NFR Item</th>
+<th>Verification Method</th>
+<th>Status</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>S-01</td>
+<td>All external ingress via TLS 1.3; HTTPS-only enforced (HSTS header)</td>
+<td>nginx-ingress config audit; curl --head check</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>S-02</td>
+<td>JWT RS256 authentication on all <code>/v1/*</code> endpoints; Fastify preHandler tested</td>
+<td>Unit test <code>JwtAuthGuard</code>; integration test 401 response</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>S-03</td>
+<td>Supabase RLS policies: players read own rows only; service_role for write</td>
+<td>Supabase RLS policy review; SQL test with different UIDs</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>S-04</td>
+<td>All secrets in K8s Secret <code>thunder-secrets</code>; no plaintext in code or git</td>
+<td><code>git grep -i &quot;supabase_service_key&quot;</code> returns empty; K8s Secret audit</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>S-05</td>
+<td>Secret rotation schedule defined; K8s Secret update + redeploy process</td>
+<td>Rotation calendar in §9.3; runbook in <code>infra/runbooks/</code></td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>S-06</td>
+<td>K8s NetworkPolicy: API pods only accept from ingress-nginx + monitoring NS</td>
+<td><code>kubectl get networkpolicy -n thunder-prod</code></td>
+<td>✅ Designed</td>
+</tr>
+</tbody></table></div>
+<h3 id="scalability-sc">Scalability (SC)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>NFR Item</th>
+<th>Verification Method</th>
+<th>Status</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>SC-01</td>
+<td>HPA min=3 max=10; CPU trigger 70%; PDB minAvailable=2</td>
+<td><code>kubectl get hpa,pdb -n thunder-prod</code>; load test with k6</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>SC-02</td>
+<td>PostgreSQL connection pool: PgBouncer 20 conn/replica; Supabase Pro 1,000 total</td>
+<td>pgbouncer stats during load test</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>SC-03</td>
+<td>Single points of failure identified: Redis, Supabase PostgreSQL; circuit breakers implemented</td>
+<td>Circuit breaker open state → 503 Retry-After response</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>SC-04</td>
+<td>Pod resource requests/limits set (CPU 250m/1000m; Memory 256Mi/512Mi)</td>
+<td><code>kubectl describe pod</code> resource section</td>
+<td>✅ Designed</td>
+</tr>
+</tbody></table></div>
+<h3 id="observability-o">Observability (O)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>NFR Item</th>
+<th>Verification Method</th>
+<th>Status</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>O-01</td>
+<td>All services output structured JSON logs with <code>traceId</code>, <code>playerId</code>, <code>sessionId</code></td>
+<td>Log sample in staging; <code>jq</code> parse validation</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>O-02</td>
+<td>Key SLI metrics (<code>spin_duration_seconds</code>, <code>spin_error_total</code>) exposed on <code>/metrics</code></td>
+<td>Prometheus scrape check; Grafana dashboard exists</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>O-03</td>
+<td>Distributed traces: 5% normal sampling; 100% error traces; Grafana Tempo configured</td>
+<td>Tempo query for recent error traces</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>O-04</td>
+<td>P1 alerts configured: high latency, spin error rate, circuit breaker OPEN, wallet discrepancy</td>
+<td>Grafana alert rules review; PagerDuty routing</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>O-05</td>
+<td><code>/health</code> (liveness) and <code>/ready</code> (readiness with DB+Redis check) implemented</td>
+<td><code>curl /health</code> → 200 <code>{&quot;status&quot;:&quot;ok&quot;}</code>; <code>curl /ready</code> → 200</td>
+<td>✅ Designed</td>
+</tr>
+</tbody></table></div>
+<h3 id="data-integrity-d">Data Integrity (D)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>NFR Item</th>
+<th>Verification Method</th>
+<th>Status</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>D-01</td>
+<td>DB schema managed via Supabase migrations (SQL files in <code>supabase/migrations/</code>)</td>
+<td><code>supabase db diff</code> before deploy; migration history table</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>D-02</td>
+<td>Wallet atomicity: PostgreSQL <code>FOR UPDATE</code> + transaction block; debit before engine spin; engine timeout → 504 + async compensating credit (see §6)</td>
+<td>Integration test: simulate engine timeout → verify compensating credit applied within 30s</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>D-03</td>
+<td><code>outcome.totalWin</code> is the sole wallet credit source; <code>session.roundWin</code> never passed to wallet</td>
+<td>Code review: `grep -r &quot;credit&quot; src/</td>
+<td>grep -v totalWin` returns empty</td>
+</tr>
+<tr>
+<td>D-04</td>
+<td>PITR backup (5-min granularity, Supabase Pro); Redis AOF+RDB; RPO=5min validated in DR drill</td>
+<td>Quarterly DR drill; restore test from PITR snapshot</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>D-05</td>
+<td>PII masking in logs: email → <code>e***@domain.com</code>; rngSeed excluded from prod logs</td>
+<td>Log sample check in staging; <code>LOG_RNG_VALUES=false</code> in prod ConfigMap</td>
+<td>✅ Designed</td>
+</tr>
+</tbody></table></div>
+<h3 id="failure-modes-f">Failure Modes (F)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>NFR Item</th>
+<th>Verification Method</th>
+<th>Status</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>F-01</td>
+<td>Circuit breaker on Supabase DB (5 failures/10s), Redis (10 failures/10s), Auth (5 failures/10s)</td>
+<td>Chaos test: kill Redis pod → verify circuit opens; 503 returned</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>F-02</td>
+<td>FG session fallback: Redis TTL expires → GET /session/:id returns 404 → player restarts</td>
+<td>Integration test: expire Redis key; verify 404 response</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>F-03</td>
+<td>Request timeout: engine &gt; 2000ms → 504; wallet IS debited before engine call; compensating credit issued via async reconciliation job (see §6 Partial Failure Compensation — engine failure path)</td>
+<td>Load test with artificially slow engine; verify compensating credit in wallet_transactions</td>
+<td>✅ Designed</td>
+</tr>
+</tbody></table></div>
+<h3 id="architecture-governance-g">Architecture Governance (G)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>NFR Item</th>
+<th>Verification Method</th>
+<th>Status</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>G-01</td>
+<td>ADR-001 through ADR-009 documented with Context/Decision/Consequences</td>
+<td>This document §14</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>G-02</td>
+<td><code>POST /v1/spin</code> versioned under <code>/v1/</code>; deprecation path defined for future <code>/v2/</code></td>
+<td>API version in path; no breaking changes without new version</td>
+<td>✅ Designed</td>
+</tr>
+<tr>
+<td>G-03</td>
+<td>All external dependencies listed in §13 with SLA and fallback</td>
+<td>§13 External Dependency Map complete</td>
+<td>✅</td>
+</tr>
+</tbody></table></div>
+<p><strong>Review Record:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Review Date</th>
+<th>Reviewer</th>
+<th>Result</th>
+<th>Failed Items</th>
+<th>Next Review</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>2026-04-26</td>
+<td>Engineering Lead (initial draft)</td>
+<td>Conditional Pass (DRAFT)</td>
+<td>None critical</td>
+<td>2026-07-26 (Q3 review)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-16-finops-cost-optimization">§16 FinOps Cost Optimization</h2>
+<h3 id="h-161-cost-visibility-framework">§16.1 Cost Visibility Framework</h3>
+<div class="mermaid-wrap"><div class="mermaid">graph LR
+    subgraph &quot;FinOps Maturity Phases&quot;
+        I[&quot;📊 Inform\nCost allocation\nby environment/service&quot;]
+        O[&quot;⚙️ Optimize\nRight-sizing\nReserved capacity&quot;]
+        A[&quot;🔄 Operate\nBudget alerts\nMonthly review&quot;]
+    end
+    I --&gt; O --&gt; A</div></div>
+<h3 id="h-162-cost-allocation-tag-strategy">§16.2 Cost Allocation Tag Strategy</h3>
+<p>Every cloud resource must include these tags:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tag Key</th>
+<th>Values</th>
+<th>Enforcement</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>Environment</code></td>
+<td><code>prod</code>, <code>staging</code>, <code>dev</code></td>
+<td>K8s namespace label propagated to cloud billing</td>
+</tr>
+<tr>
+<td><code>Service</code></td>
+<td><code>thunder-api</code>, <code>thunder-worker</code>, <code>thunder-toolchain</code></td>
+<td>K8s pod label <code>app=</code></td>
+</tr>
+<tr>
+<td><code>Team</code></td>
+<td><code>game-backend</code></td>
+<td>K8s label in all manifests</td>
+</tr>
+<tr>
+<td><code>CostCenter</code></td>
+<td><code>GAME-001</code></td>
+<td>Required on all provisioned cloud resources</td>
+</tr>
+<tr>
+<td><code>ManagedBy</code></td>
+<td><code>terraform</code> / <code>helm</code> / <code>manual</code></td>
+<td>IaC tag for audit</td>
+</tr>
+</tbody></table></div>
+<p><strong>Kubernetes label enforcement:</strong></p>
+<pre><code class="language-yaml"># All Deployment manifests must include these labels
+labels:
+  app: thunder-blessing-api
+  environment: prod
+  team: game-backend
+  cost-center: GAME-001</code></pre>
+<h3 id="h-163-estimated-monthly-cost-baseline">§16.3 Estimated Monthly Cost Baseline</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Resource</th>
+<th>Tier</th>
+<th>Estimated Monthly Cost (USD)</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Supabase PostgreSQL</td>
+<td>Pro</td>
+<td>$25/month</td>
+<td>Dedicated compute, PITR, 8GB storage</td>
+</tr>
+<tr>
+<td>Upstash Redis</td>
+<td>Standard</td>
+<td>$20/month</td>
+<td>10K req/s, 1GB max, AOF persistence</td>
+</tr>
+<tr>
+<td>Kubernetes (cloud nodes)</td>
+<td>3× 2vCPU/4GB</td>
+<td>$120–180/month</td>
+<td>Cloud provider dependent (e.g., GKE n2-standard-2)</td>
+</tr>
+<tr>
+<td>Supabase Auth</td>
+<td>Included in Pro</td>
+<td>$0 (bundled)</td>
+<td>JWT, user management</td>
+</tr>
+<tr>
+<td>Load Balancer (Ingress)</td>
+<td>Cloud managed</td>
+<td>$20–30/month</td>
+<td>Static IP + LB hours</td>
+</tr>
+<tr>
+<td>OpenTelemetry + Grafana</td>
+<td>Grafana Cloud Free tier</td>
+<td>$0–50/month</td>
+<td>10K series free; upgrade if exceeded</td>
+</tr>
+<tr>
+<td>GitHub Actions</td>
+<td>Free (2,000 min/month) or Team plan</td>
+<td>$0–20/month</td>
+<td>CI pipeline; 30-min toolchain run</td>
+</tr>
+<tr>
+<td>Docker Registry</td>
+<td>GitHub Container Registry</td>
+<td>$0 (public repo)</td>
+<td>Private: $4/user/month</td>
+</tr>
+<tr>
+<td><strong>Total Estimated (Production)</strong></td>
+<td></td>
+<td><strong>~$185–325/month</strong></td>
+<td>Scales with player volume</td>
+</tr>
+</tbody></table></div>
+<p><strong>Development + Staging overhead:</strong> ~$50–80/month additional (Supabase Free + Upstash Hobby + shared K8s namespace).</p>
+<h4 id="multi-scale-cost-projections">Multi-Scale Cost Projections</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Scale</th>
+<th>RPS Range</th>
+<th>Architecture Phase</th>
+<th>Est. Monthly Cost (USD)</th>
+<th>Key Driver</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Phase 1 — Current (Small)</td>
+<td>&lt; 100 RPS</td>
+<td>Modular Monolith; 3 K8s pods</td>
+<td>$185–325/month</td>
+<td>K8s nodes ($120-180) + Supabase Pro ($25)</td>
+</tr>
+<tr>
+<td>Phase 2 — Growth (Medium)</td>
+<td>100–500 RPS</td>
+<td>Read replica + Redis Cluster; 5–8 pods + PgBouncer</td>
+<td>$600–900/month</td>
+<td>+Read replica ($50) +Redis Cluster ($80) +extra nodes ($200-400)</td>
+</tr>
+<tr>
+<td>Phase 3 — Scale (Large)</td>
+<td>500–2,000 RPS</td>
+<td>Domain-split Microservices; dedicated K8s node pools; Supabase custom</td>
+<td>$2,000–4,000/month</td>
+<td>Multiple DB clusters + extra K8s node pools + observability stack</td>
+</tr>
+<tr>
+<td>Phase 4 — Hyper-scale</td>
+<td>&gt; 2,000 RPS</td>
+<td>CQRS + Event Sourcing; global multi-region</td>
+<td>$8,000+/month</td>
+<td>Multi-region data replication + CDN + edge compute</td>
+</tr>
+</tbody></table></div>
+<p><strong>Cost optimization opportunities:</strong></p>
+<ul>
+<li>Use Spot/Preemptible K8s nodes for dev/staging (60–80% discount)</li>
+<li>Schedule dev environment shutdown during off-hours (weekends): saves ~$60/month</li>
+<li>Supabase Free tier sufficient for dev (upgrade only when integration tests require PITR)</li>
+<li>Upstash Hobby tier for dev/staging (free up to 10,000 req/day)</li>
+</ul>
+<h3 id="h-164-kubernetes-cost-optimization">§16.4 Kubernetes Cost Optimization</h3>
+<pre><code class="language-yaml"># All pods must have resource requests + limits (prevents overprovisioning)
+resources:
+  requests:
+    cpu: &quot;250m&quot;      # based on P95 CPU usage measurement
+    memory: &quot;256Mi&quot;  # based on heap + V8 overhead measurement
+  limits:
+    cpu: &quot;1000m&quot;     # allow burst for FG sequence computation
+    memory: &quot;512Mi&quot;  # OOM kill rather than unbounded growth
+
+# HPA prevents wasted idle replicas
+minReplicas: 3     # minimum for HA; PDB requires 2 available
+maxReplicas: 10    # hard cap to prevent budget explosion on traffic spike</code></pre>
+<p><strong>Monthly FinOps review scope:</strong></p>
+<ul>
+<li>Actual vs. budget variance (flag if &gt; ±10%)</li>
+<li>Top 3 cost drivers this month</li>
+<li>Pod resource utilization vs. requests (identify overprovisioned pods)</li>
+<li>Upstash bandwidth and request count trends</li>
+</ul>
+<h3 id="h-165-budget-alerts-and-governance">§16.5 Budget Alerts and Governance</h3>
+<pre><code class="language-yaml"># Cloud Budget configuration (example: GCP Budgets or AWS Budgets)
+budget:
+  name: thunder-blessing-monthly-prod
+  amount: 400 USD
+  timeUnit: MONTHLY
+  alerts:
+    - threshold: 80%     # $320 spent → Slack #finops alert to Engineering Lead
+      channels: [slack-finops]
+    - threshold: 100%    # $400 spent → Email VP Engineering + PagerDuty notification
+      channels: [email-vp-eng, pagerduty]
+    - threshold: 120%    # $480 spent → Emergency: disable non-critical features
+      channels: [email-cto, pagerduty-critical]
+      action: disable_dev_staging_autoscaling</code></pre>
+<p><strong>Monthly FinOps Review Agenda:</strong></p>
+<ol>
+<li>Actual cost vs. $400 budget; explain variance &gt; ±10%</li>
+<li>Top 5 cost drivers (by resource/namespace)</li>
+<li>Validated savings from previous month&#x27;s optimizations</li>
+<li>Next month cost forecast (based on player growth projections)</li>
+<li>New feature cost impact assessment (any new K8s workloads, DB table growth)</li>
+</ol>
+<p><strong>New feature cost template:</strong></p>
+<pre><code class="language-markdown">## Feature: Buy Feature Flow — Cost Impact Assessment
+
+| Resource | Quantity | Unit Cost | Monthly Cost |
+|----------|---------|-----------|-------------|
+| Extra Redis ops (BuyFG session) | +5% Redis req increase | $20 × 5% | ~$1/month |
+| spin_logs JSONB growth (larger BuyFG outcome) | +15% row size | $25 × 5% | ~$1.25/month |
+| Supabase compute (longer spin computation) | +10% CPU for BuyFG | $180 × 2% | ~$3.60/month |
+| **Total incremental** | | | **~$5.85/month** |</code></pre>
+<hr>
+<p><em>ARCH document version 1.0 — Generated from IDEA.md, BRD.md, PRD.md, PDD.md, VDD.md, EDD.md, and reference codebase at <code>/Users/tobala/projects/thunder-blessing-slot</code>.</em></p>
+<p><em>All technical decisions are consistent with EDD v1.0 §1.1 (Key constraints), §3.2 (ADRs), §3.3 (Technology Stack), §9 (Security), §10 (Performance), §13 (Kubernetes).</em></p>
+<p><em>Next architecture review scheduled: 2026-07-26 (Q3 2026).</em></p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>ARCH — Architecture</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thunder Blessing Slot Game — GDD Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:    #0f1117;
+      --bg-secondary:  #161b27;
+      --bg-tertiary:   #1e2535;
+      --bg-card:       #1a2032;
+      --border:        #2a3347;
+      --text-primary:  #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:    #64748b;
+      --accent:        #f6ad55;
+      --accent-dim:    #c27d30;
+      --accent-glow:   rgba(246,173,85,0.15);
+      --green:         #4ade80;
+      --blue:          #60a5fa;
+      --purple:        #a78bfa;
+      --red:           #f87171;
+      --sidebar-width: 260px;
+      --header-height: 60px;
+      --font-sans:     'Inter', system-ui, sans-serif;
+      --font-mono:     'JetBrains Mono', 'Fira Code', monospace;
+      --radius:        8px;
+      --radius-lg:     12px;
+      --shadow:        0 4px 24px rgba(0,0,0,0.4);
+      --duration-fast: 150ms;
+      --ease-out:      cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-logo .bolt {
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    .header-tagline {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+    }
+
+    .header-badges {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .badge-draft   { background: rgba(246,173,85,0.15); color: var(--accent); border: 1px solid rgba(246,173,85,0.3); }
+    .badge-v1      { background: rgba(96,165,250,0.12); color: var(--blue);   border: 1px solid rgba(96,165,250,0.3); }
+    .badge-status  { background: rgba(74,222,128,0.12); color: var(--green);  border: 1px solid rgba(74,222,128,0.3); }
+
+    /* hamburger */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    .hamburger-icon { width: 22px; height: 22px; }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section { margin-bottom: 4px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-section-label:first-child { padding-top: 4px; }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.875rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    .nav-link .doc-icon {
+      font-size: 0.85rem;
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .nav-link .doc-label { flex: 1; }
+
+    .nav-link .doc-tag {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 960px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      margin-bottom: 48px;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .hero-title span { color: var(--accent); }
+
+    .hero-desc {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin-bottom: 24px;
+      line-height: 1.75;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ── SECTION HEADINGS ── */
+    .section-heading {
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin: 40px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-heading::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* ── CARDS ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .doc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all var(--duration-fast) var(--ease-out);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .doc-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity var(--duration-fast);
+    }
+
+    .doc-card:hover {
+      border-color: var(--accent-dim);
+      background: var(--bg-tertiary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow), 0 0 0 1px var(--accent-dim);
+    }
+
+    .doc-card:hover::before { opacity: 1; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .card-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+    }
+
+    .card-tag {
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(246,173,85,0.1);
+      color: var(--accent);
+      border: 1px solid rgba(246,173,85,0.2);
+      font-weight: 600;
+      font-family: var(--font-sans);
+      align-self: flex-start;
+    }
+
+    .card-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .card-arrow {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: auto;
+      transition: color var(--duration-fast);
+    }
+
+    .doc-card:hover .card-arrow { color: var(--accent); }
+
+    /* ── SPEC TABLE ── */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+    }
+
+    .spec-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .spec-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.6);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .spec-table td:first-child {
+      color: var(--text-primary);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .spec-table tr:last-child td { border-bottom: none; }
+    .spec-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .val-accent { color: var(--accent); font-weight: 600; font-family: var(--font-mono); font-size: 0.8rem; }
+    .val-green  { color: var(--green);  font-weight: 600; }
+    .val-blue   { color: var(--blue);   font-weight: 600; font-family: var(--font-mono); font-size: 0.8rem; }
+
+    /* ── PIPELINE ── */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .pipeline-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .pipeline-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+    }
+
+    .pipeline-content { flex: 1; }
+
+    .pipeline-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .pipeline-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .pipeline-status {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .status-done     { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+    .status-wip      { background: rgba(246,173,85,0.12); color: var(--accent); border: 1px solid rgba(246,173,85,0.3); }
+    .status-pending  { background: rgba(100,116,139,0.12); color: var(--text-muted); border: 1px solid rgba(100,116,139,0.3); }
+
+    /* ── MERMAID ── */
+    .mermaid-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 24px 0;
+      overflow-x: auto;
+    }
+
+    /* ── FOOTER ── */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 40px rgba(0,0,0,0.6);
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 28px 20px;
+      }
+
+      .site-footer {
+        margin-left: 0;
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+
+      .menu-toggle { display: flex; }
+
+      .header-tagline { display: none; }
+
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero-title { font-size: 1.6rem; }
+      .hero-meta  { flex-direction: column; }
+    }
+
+    /* Overlay for mobile sidebar */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+      backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active { display: block; }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg class="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">
+      <span class="bolt">⚡</span>
+      Thunder Blessing
+    </a>
+    <span class="header-tagline">GDD Documentation Suite</span>
+    <div class="header-badges">
+      <span class="badge badge-v1">v1.0</span>
+      <span class="badge badge-draft">DRAFT</span>
+      <span class="badge badge-status">97.5% RTP</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- LAYOUT -->
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+
+      <div class="nav-section">
+        <div class="nav-section-label">Business</div>
+        <a href="BRD.html" class="nav-link">
+          <span class="doc-icon">📋</span>
+          <span class="doc-label">BRD</span>
+          <span class="doc-tag">Business</span>
+        </a>
+        <a href="PRD.html" class="nav-link">
+          <span class="doc-icon">📝</span>
+          <span class="doc-label">PRD</span>
+          <span class="doc-tag">Product</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Design</div>
+        <a href="PDD.html" class="nav-link">
+          <span class="doc-icon">🎨</span>
+          <span class="doc-label">PDD</span>
+          <span class="doc-tag">Visual</span>
+        </a>
+        <a href="VDD.html" class="nav-link">
+          <span class="doc-icon">🎬</span>
+          <span class="doc-label">VDD</span>
+          <span class="doc-tag">Video</span>
+        </a>
+        <a href="ANIM.html" class="nav-link">
+          <span class="doc-icon">✨</span>
+          <span class="doc-label">ANIM</span>
+          <span class="doc-tag">Animation</span>
+        </a>
+        <a href="AUDIO.html" class="nav-link">
+          <span class="doc-icon">🔊</span>
+          <span class="doc-label">AUDIO</span>
+          <span class="doc-tag">Sound</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Engineering</div>
+        <a href="EDD.html" class="nav-link">
+          <span class="doc-icon">⚙️</span>
+          <span class="doc-label">EDD</span>
+          <span class="doc-tag">Engine</span>
+        </a>
+        <a href="ARCH.html" class="nav-link">
+          <span class="doc-icon">🏗️</span>
+          <span class="doc-label">ARCH</span>
+          <span class="doc-tag">Architecture</span>
+        </a>
+        <a href="api.html" class="nav-link active">
+          <span class="doc-icon">🔌</span>
+          <span class="doc-label">API</span>
+          <span class="doc-tag">REST</span>
+        </a>
+        <a href="SCHEMA.html" class="nav-link">
+          <span class="doc-icon">🗄️</span>
+          <span class="doc-label">SCHEMA</span>
+          <span class="doc-tag">DB</span>
+        </a>
+        <a href="FRONTEND.html" class="nav-link">
+          <span class="doc-icon">🖥️</span>
+          <span class="doc-label">FRONTEND</span>
+          <span class="doc-tag">UI</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Testing</div>
+        <a href="test-plan.html" class="nav-link">
+          <span class="doc-icon">🧪</span>
+          <span class="doc-label">Test Plan</span>
+          <span class="doc-tag">QA</span>
+        </a>
+        <a href="RTM.html" class="nav-link">
+          <span class="doc-icon">📊</span>
+          <span class="doc-label">RTM</span>
+          <span class="doc-tag">Traceability</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Operations</div>
+        <a href="runbook.html" class="nav-link">
+          <span class="doc-icon">📟</span>
+          <span class="doc-label">Runbook</span>
+          <span class="doc-tag">Ops</span>
+        </a>
+        <a href="LOCAL_DEPLOY.html" class="nav-link">
+          <span class="doc-icon">🚀</span>
+          <span class="doc-label">Local Deploy</span>
+          <span class="doc-tag">DevEx</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main" id="main">
+
+      <!-- HERO -->
+      <section class="hero" aria-labelledby="hero-heading">
+        <p class="hero-eyebrow">⚡ Thunder Blessing — GDD Suite</p>
+        <h1 class="hero-title" id="hero-heading">
+          Greek Mythology Slot<br/>
+          <span>Engineering Documentation</span>
+        </h1>
+        <p class="hero-desc">
+          Thunder Blessing is a high-volatility Greek-mythology slot featuring Cascade expanding reels
+          (up to 5×6), Lightning Mark chain elimination, and a ×77 Free Game multiplier unlocked via
+          Coin Toss. This documentation suite covers the complete GDD pipeline from business requirements
+          through production runbook — every spec is designed to be directly executable by engineering and QA.
+        </p>
+        <div class="hero-meta">
+          <span class="badge badge-v1">v1.0</span>
+          <span class="badge badge-draft">DRAFT — 2026-04-26</span>
+          <span class="badge badge-status">RTP 97.5%</span>
+          <span class="badge" style="background:rgba(167,139,250,0.12);color:var(--purple);border:1px solid rgba(167,139,250,0.3);">Max 30,000×</span>
+        </div>
+      </section>
+
+      <!-- GAME MECHANICS -->
+      <h2 class="section-heading" id="mechanics">Game Mechanics Summary</h2>
+
+      <table class="spec-table" aria-label="Core game mechanics">
+        <thead>
+          <tr>
+            <th>Mechanic</th>
+            <th>Specification</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Reel Layout</td>       <td>3×5 base → expands to 6×5 (up to 57 paylines) on winning Cascade</td></tr>
+          <tr><td>Symbol Set</td>        <td>4 Premium (P1–P4) + 4 Low (L1–L4) + Wild (W) + Scatter (SC) + Lightning (⚡)</td></tr>
+          <tr><td>Cascade Mechanic</td>  <td>Winning symbols removed; new symbols fall; reel adds 1 row per cascade step</td></tr>
+          <tr><td>Lightning Marks</td>   <td>Accumulated from cascade wins; Scatter detonation converts all marked cells to highest-payout symbol on grid</td></tr>
+          <tr><td>Coin Toss</td>         <td>Triggered at Free Game entry; sequence ×3 → ×7 → ×17 → ×27 → ×77 selects FG multiplier</td></tr>
+          <tr><td>Free Game (FG)</td>    <td>10 spins minimum; Heads outcomes extend FG; Extra Bet guarantees Scatter on next FG spin</td></tr>
+          <tr><td>Extra Bet</td>         <td>Cost ×3 baseBet; guarantees Scatter appearance in main grid</td></tr>
+          <tr><td>Buy Feature</td>       <td>Cost ×100 baseBet; triggers Heads×5 FG sequence immediately; session floor ≥ 20× baseBet</td></tr>
+          <tr><td>RTP Scenarios</td>     <td class="val-accent">Base 97.5% | ExtraBet 97.5% | BuyFG 97.5% | ExtraBet+BuyFG 97.5%</td></tr>
+          <tr><td>Max Win (Main)</td>    <td class="val-accent">30,000× baseBet</td></tr>
+          <tr><td>Max Win (Buy FG)</td>  <td class="val-accent">90,000× baseBet (Extra Bet + Buy FG combined)</td></tr>
+          <tr><td>Volatility</td>        <td>Medium-High</td></tr>
+          <tr><td>Currency</td>          <td>USD ($0.10–$10.00 baseBet) | TWD (TWD 3–60 baseBet)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- TECH STACK -->
+      <h2 class="section-heading" id="tech">Technology Stack</h2>
+
+      <table class="spec-table" aria-label="Technology stack">
+        <thead>
+          <tr><th>Layer</th><th>Technology</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Frontend</td>    <td class="val-blue">Cocos Creator / PixiJS</td> <td>Canvas renderer; responsive layout</td></tr>
+          <tr><td>Backend API</td> <td class="val-blue">TypeScript + Fastify</td>   <td>Clean Architecture; single-trip spin endpoint</td></tr>
+          <tr><td>Game Engine</td> <td class="val-blue">slot-engine (internal)</td> <td>Excel-driven probability toolchain; verify.js gate</td></tr>
+          <tr><td>Database</td>    <td class="val-blue">PostgreSQL (Supabase)</td>  <td>Audit log + player sessions</td></tr>
+          <tr><td>Cache</td>       <td class="val-blue">Redis</td>                  <td>Session state; rate limiting; spin lock (NX)</td></tr>
+          <tr><td>Auth</td>        <td class="val-blue">Supabase Auth (RS256 JWT)</td> <td>3600s access token; 7-day refresh</td></tr>
+          <tr><td>Infrastructure</td> <td class="val-blue">Kubernetes + nginx-ingress</td> <td>TLS 1.3; HSTS; circuit breakers</td></tr>
+          <tr><td>CDN</td>         <td class="val-blue">Cloudflare / CloudFront</td> <td>Static assets; edge caching</td></tr>
+          <tr><td>Probability Source</td> <td class="val-blue">Excel + BetRangeConfig.generated.ts</td> <td>No manual param editing allowed</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SYSTEM ARCHITECTURE DIAGRAM -->
+      <h2 class="section-heading" id="architecture">System Architecture Overview</h2>
+
+      <div class="mermaid-container">
+        <div class="mermaid">
+graph TB
+  subgraph Client["Client Layer"]
+    FE["🖥️ Frontend<br/>(Cocos/PixiJS)"]
+    CDN["🌐 CDN<br/>(Cloudflare)"]
+  end
+
+  subgraph API["API Layer"]
+    GW["🔀 nginx-ingress<br/>(TLS 1.3)"]
+    SVC["⚡ Fastify<br/>Game Service"]
+    AUTH["🔐 JwtAuthGuard<br/>(RS256)"]
+  end
+
+  subgraph Engine["Engine Layer"]
+    SE["🎰 slot-engine<br/>(TypeScript)"]
+    VERIFY["✅ verify.js<br/>(RTP gate)"]
+  end
+
+  subgraph Data["Data Layer"]
+    PG[("🗄️ PostgreSQL<br/>(Supabase)")]
+    REDIS[("⚡ Redis<br/>Sessions")]
+  end
+
+  FE --> CDN
+  FE --> GW
+  GW --> AUTH
+  AUTH --> SVC
+  SVC --> SE
+  SE --> VERIFY
+  SVC --> PG
+  SVC --> REDIS
+
+  style Client fill:#1a2032,stroke:#2a3347,color:#e2e8f0
+  style API    fill:#1a2032,stroke:#2a3347,color:#e2e8f0
+  style Engine fill:#1a2032,stroke:#2a3347,color:#e2e8f0
+  style Data   fill:#1a2032,stroke:#2a3347,color:#e2e8f0
+        </div>
+      </div>
+
+      <!-- GDD PIPELINE STATUS -->
+      <h2 class="section-heading" id="pipeline">GDD Pipeline Status</h2>
+
+      <div class="pipeline" role="list">
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D01</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">BRD — Business Requirements Document</div>
+            <div class="pipeline-desc">Game concept, market positioning, RTP targets, max win, stakeholder matrix</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D02</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">PRD — Product Requirements Document</div>
+            <div class="pipeline-desc">User stories, functional requirements, AC matrix, out-of-scope definitions</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D03</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">PDD — Product Design Document</div>
+            <div class="pipeline-desc">Symbol art direction, UI layout specs, color palette, typography system</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D04</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">VDD — Video Design Document</div>
+            <div class="pipeline-desc">Cinematic intro, promotional video specs, social media assets</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D05</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">EDD — Engine Design Document</div>
+            <div class="pipeline-desc">Core game engine logic, probability math, FullSpinOutcome schema, RNG specification</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D06</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">ARCH — Architecture Document</div>
+            <div class="pipeline-desc">C4 model (L1–L3), ADRs, Clean Architecture layer diagram, infrastructure topology</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D07</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">SCHEMA — Database Schema</div>
+            <div class="pipeline-desc">PostgreSQL DDL, Redis key schema, index strategy, RLS policy definitions</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D08</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">API — REST API Reference</div>
+            <div class="pipeline-desc">3 endpoints: POST /v1/spin, GET /v1/session/:id, GET /v1/config — full schema + error codes</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D09</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">FRONTEND — Frontend Specification</div>
+            <div class="pipeline-desc">Component tree, animation timing, state machine, canvas layout spec</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D10</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">AUDIO — Audio Design Document</div>
+            <div class="pipeline-desc">SFX inventory, music loop spec, state-based audio triggers, bus routing</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D11</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">ANIM — Animation Specification</div>
+            <div class="pipeline-desc">Timeline specs for cascade, lightning, coin toss, free game animations</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D12</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">Test Plan — QA Strategy</div>
+            <div class="pipeline-desc">Unit tests, 1M Monte Carlo simulation, RTP verification, four-scenario coverage</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D13</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">RTM — Requirements Traceability Matrix</div>
+            <div class="pipeline-desc">End-to-end traceability from BRD requirements to test cases</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D14</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">Runbook — Production Operations</div>
+            <div class="pipeline-desc">Incident response playbooks, monitoring alerts, on-call escalation, RTP drift procedures</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D15</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">LOCAL_DEPLOY — Local Development Setup</div>
+            <div class="pipeline-desc">Docker Compose setup, environment variables, seed data, end-to-end local verification</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+        <div class="pipeline-item" role="listitem">
+          <div class="pipeline-number">D19</div>
+          <div class="pipeline-content">
+            <div class="pipeline-title">HTML — Static Documentation Site</div>
+            <div class="pipeline-desc">This documentation hub; auto-generated pages from all Markdown source files</div>
+          </div>
+          <span class="pipeline-status status-done">DONE</span>
+        </div>
+      </div>
+
+      <!-- DOCUMENT CATEGORIES -->
+      <h2 class="section-heading" id="docs">Browse Documentation</h2>
+
+      <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px;">Business &amp; Product</h3>
+      <div class="card-grid">
+        <a href="BRD.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">📋</span>
+            <div>
+              <div class="card-title">BRD.md</div>
+              <span class="card-tag">Business</span>
+            </div>
+          </div>
+          <p class="card-desc">Business requirements, market positioning, competitive advantages, RTP targets and max win specifications.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="PRD.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">📝</span>
+            <div>
+              <div class="card-title">PRD.md</div>
+              <span class="card-tag">Product</span>
+            </div>
+          </div>
+          <p class="card-desc">Product requirements, user stories, acceptance criteria, functional specifications and out-of-scope definitions.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+      </div>
+
+      <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:20px 0 12px;">Design</h3>
+      <div class="card-grid">
+        <a href="PDD.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🎨</span>
+            <div>
+              <div class="card-title">PDD.md</div>
+              <span class="card-tag">Visual Design</span>
+            </div>
+          </div>
+          <p class="card-desc">Symbol art direction, color palette, typography, UI layout specifications and visual hierarchy.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="VDD.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🎬</span>
+            <div>
+              <div class="card-title">VDD.md</div>
+              <span class="card-tag">Video Design</span>
+            </div>
+          </div>
+          <p class="card-desc">Cinematic intro sequences, promotional video specs, social media asset requirements.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="ANIM.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">✨</span>
+            <div>
+              <div class="card-title">ANIM.md</div>
+              <span class="card-tag">Animation</span>
+            </div>
+          </div>
+          <p class="card-desc">Animation timelines for cascade, lightning mark, coin toss, and free game sequences with frame-accurate specs.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="AUDIO.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🔊</span>
+            <div>
+              <div class="card-title">AUDIO.md</div>
+              <span class="card-tag">Sound Design</span>
+            </div>
+          </div>
+          <p class="card-desc">SFX inventory, music loop specifications, state-based audio trigger matrix, and audio bus routing.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+      </div>
+
+      <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:20px 0 12px;">Engineering</h3>
+      <div class="card-grid">
+        <a href="EDD.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">⚙️</span>
+            <div>
+              <div class="card-title">EDD.md</div>
+              <span class="card-tag">Engine</span>
+            </div>
+          </div>
+          <p class="card-desc">Core game engine logic, probability mathematics, RNG specification and FullSpinOutcome data schema.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="ARCH.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🏗️</span>
+            <div>
+              <div class="card-title">ARCH.md</div>
+              <span class="card-tag">Architecture</span>
+            </div>
+          </div>
+          <p class="card-desc">C4 model (L1–L3), Clean Architecture layers, ADRs, infrastructure topology, and partial failure handling.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="api.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🔌</span>
+            <div>
+              <div class="card-title">API.md</div>
+              <span class="card-tag">REST API</span>
+            </div>
+          </div>
+          <p class="card-desc">Full REST API reference: 3 endpoints, request/response schemas, auth flow, rate limits, and error codes.</p>
+          <span class="card-arrow">→ Open reference</span>
+        </a>
+        <a href="SCHEMA.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🗄️</span>
+            <div>
+              <div class="card-title">SCHEMA.md</div>
+              <span class="card-tag">Database</span>
+            </div>
+          </div>
+          <p class="card-desc">PostgreSQL DDL, Redis key schema, index strategy, Row Level Security policies, and migration notes.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="FRONTEND.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🖥️</span>
+            <div>
+              <div class="card-title">FRONTEND.md</div>
+              <span class="card-tag">UI Spec</span>
+            </div>
+          </div>
+          <p class="card-desc">Component tree, state machine, canvas layout spec, animation integration and responsive behavior.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+      </div>
+
+      <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:20px 0 12px;">Testing &amp; Operations</h3>
+      <div class="card-grid">
+        <a href="test-plan.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🧪</span>
+            <div>
+              <div class="card-title">test-plan.md</div>
+              <span class="card-tag">QA</span>
+            </div>
+          </div>
+          <p class="card-desc">Unit tests, 1M Monte Carlo simulation strategy, RTP verification matrix and four-scenario coverage plan.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="RTM.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">📊</span>
+            <div>
+              <div class="card-title">RTM.md</div>
+              <span class="card-tag">Traceability</span>
+            </div>
+          </div>
+          <p class="card-desc">Requirements Traceability Matrix — end-to-end mapping from BRD requirements through test case execution.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="runbook.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">📟</span>
+            <div>
+              <div class="card-title">runbook.md</div>
+              <span class="card-tag">Operations</span>
+            </div>
+          </div>
+          <p class="card-desc">Production runbook: incident response playbooks, monitoring alerts, on-call escalation, RTP drift procedures.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+        <a href="LOCAL_DEPLOY.html" class="doc-card">
+          <div class="card-header">
+            <span class="card-icon">🚀</span>
+            <div>
+              <div class="card-title">LOCAL_DEPLOY.md</div>
+              <span class="card-tag">DevEx</span>
+            </div>
+          </div>
+          <p class="card-desc">Docker Compose setup, environment variables, seed data, and step-by-step local development verification.</p>
+          <span class="card-arrow">→ Open document</span>
+        </a>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>v1.0 · 2026-04-26 · Status: DRAFT</span>
+    <span>RTP <span class="footer-accent">97.5%</span> · Max Win <span class="footer-accent">30,000×</span></span>
+  </footer>
+
+  <script>
+    // Sidebar toggle for mobile
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    // Init mermaid
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:       '#1a2032',
+        primaryColor:     '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor: '#e2e8f0',
+        lineColor:        '#f6ad55',
+        secondaryColor:   '#161b27',
+        tertiaryColor:    '#0f1117',
+        edgeLabelBackground: '#1a2032',
+        clusterBkg:       '#1a2032',
+        titleColor:       '#f6ad55',
+      }
+    });
+
+    // Mark active nav link based on page
+    (function() {
+      const path = window.location.pathname.split('/').pop() || 'index.html';
+      document.querySelectorAll('.nav-link').forEach(a => {
+        if (a.getAttribute('href') === path) {
+          a.classList.add('active');
+        } else {
+          a.classList.remove('active');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

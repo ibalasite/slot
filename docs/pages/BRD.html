@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRD — Business Requirements — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">BRD — Business Requirements</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link active"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>📋 Business</span>
+        <span>Source: <code>BRD.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="brd-thunder-blessing-slot-gdd">BRD — Thunder Blessing Slot GDD</h1>
+<blockquote><p>版本：1.0 | 狀態：DRAFT | 日期：2026-04-26</p></blockquote>
+<hr>
+<h2 id="h-0-elevator-pitch">§0 Elevator Pitch</h2>
+<p>Thunder Blessing 是一款希臘神話主題的高爆發老虎機，以「滾輪持續擴展 × 符號鍊式消除 × 閃電能量蓄積」為核心遊戲循環。每次獲獎觸發 Cascade 連鎖消除並擴展滾輪列數（最多 5×6），累積的閃電標記一旦被 Scatter 引爆，即可將整版標記格轉換為同一高賠符號，最終透過 Coin Toss 翻幣決定是否進入最高 ×77 倍率的 Free Game。</p>
+<p><strong>商業價值</strong>：RTP 97.5% 搭配中高波動設計，使單次 session 爆發天花板達 30,000× baseBet（Extra Bet + Buy FG 最高可達 90,000×），兼顧主流玩家留存率與高價值玩家追求峰值的需求，適合部署於競爭激烈的線上博弈平台。本 GDD 套件設計成「工程可執行」等級，所有規格即文件即程式，前後端與 QA 均可 100% 按文件交付。</p>
+<hr>
+<h2 id="h-1-商業背景與目標">§1 商業背景與目標</h2>
+<h3 id="商業定位">商業定位</h3>
+<ul>
+<li><strong>波動等級</strong>：中高波動（Medium-High Volatility）</li>
+<li><strong>目標 RTP</strong>：97.5%（四情境獨立驗收）</li>
+<li><strong>最大獎金</strong>：30,000× baseBet（Main Game）；90,000× baseBet（Extra Bet + Buy FG）</li>
+<li><strong>遊戲類型</strong>：Cascade + Expanding Reels Slot，含 Coin Toss 及 Free Game 機制</li>
+</ul>
+<h3 id="目標市場">目標市場</h3>
+<ul>
+<li>線上博弈平台（B2B 遊戲供應商模式）</li>
+<li>幣種支援：USD（$0.25～$10.00）、TWD（TWD10～TWD320）</li>
+<li>前端技術：Cocos Creator 或 PixiJS</li>
+<li>後端技術：TypeScript / Fastify / Clean Architecture</li>
+</ul>
+<h3 id="競爭優勢">競爭優勢</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>差異化要素</th>
+<th>說明</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Cascade 擴展滾輪</td>
+<td>獲獎後自動擴展至 5×6 + 57 條連線，持續累積獎金</td>
+</tr>
+<tr>
+<td>雷霆 Scatter 引爆機制</td>
+<td>閃電標記 × Scatter 雙擊制，整版符號升階，爆發上限極高</td>
+</tr>
+<tr>
+<td>×77 Free Game 倍率</td>
+<td>Coin Toss 倍率序列 ×3→×7→×17→×27→×77，稀有峰值極具話題性</td>
+</tr>
+<tr>
+<td>工程可執行 GDD</td>
+<td>Excel 驅動工具鏈，禁止人工調參，RTP 透明可驗收</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-2-利害關係人">§2 利害關係人</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>角色</th>
+<th>關心重點</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>遊戲企劃</td>
+<td>機率平衡完整性、四情境 RTP 各自通過 verify.js、機制邊界條件正確性</td>
+</tr>
+<tr>
+<td>後端工程師</td>
+<td>slot-engine 工具鏈整合、API 設計（單次 spin 回傳完整 FG 序列）、Supabase / Redis 架構</td>
+</tr>
+<tr>
+<td>前端工程師</td>
+<td>動畫流程時序、UI 規格（Cascade 擴展動畫、閃電標記特效、Coin Toss 動畫）、幣種顯示</td>
+</tr>
+<tr>
+<td>QA 工程師</td>
+<td>驗收標準（unit test + 100 萬次 Monte Carlo 模擬）、四情境 RTP 各在 ±1% 容許範圍內</td>
+</tr>
+<tr>
+<td>營運 / 合規</td>
+<td>RTP 透明（verify.js 輸出可稽核）、最大獎金上限明確（30,000×）、幣種合規顯示</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-3-核心功能需求business-requirements">§3 核心功能需求（Business Requirements）</h2>
+<h3 id="br-01-基礎滾輪系統">BR-01 基礎滾輪系統</h3>
+<ul>
+<li>5 滾輪 × 3 列（初始），每輪 SPIN 開始時重置為 3 列</li>
+<li>初始連線數：25 條；最大連線數：57 條（6 列時）</li>
+<li>連線判定：從最左滾輪往右，同一連線只計最高獎金，不重複計算</li>
+<li>Wild（W）可代替除 SC 外所有符號</li>
+<li>符號升級路徑（雷霆祝福第二擊）：L1/L2/L3/L4 → P4（所有 L 級符號一步直升 P4，不經中間階）→ P3 → P2 → P1（最高，不再升）</li>
+</ul>
+<h3 id="br-02-cascade-連鎖消除">BR-02 Cascade 連鎖消除</h3>
+<ul>
+<li>觸發條件：本次判定有中獎連線</li>
+<li>流程：</li>
+</ul>
+<p>  1. 在中獎符號位置生成閃電標記（Lightning Mark）   2. 消除中獎符號，上方符號下落填補空位   3. 若目前 rows &lt; MAX_ROWS（6），則 rows + 1，連線數對應增加   4. 新符號從滾輪頂端落下，補足新增列   5. 重新判定全部連線，如再次中獎則循環本流程   6. 直至無獲獎連線為止</p>
+<ul>
+<li>閃電標記在普通遊戲中每次新 SPIN 開始前清除；Free Game 中整局累積不清除</li>
+</ul>
+<h3 id="br-03-閃電標記-雷霆祝福-scatterthunder-blessing">BR-03 閃電標記 + 雷霆祝福 Scatter（Thunder Blessing）</h3>
+<ul>
+<li>觸發條件：盤面存在閃電標記 AND 本次新符號中有 Scatter 落下</li>
+<li><strong>第一擊</strong>：將盤面所有閃電標記格的符號，統一替換為同一種隨機高賠符號，重新計算全盤連線與獎金</li>
+<li><strong>第二擊</strong>（機率 40%，<code>tbSecondHit: 0.4</code>）：將第一擊後標記格的符號再升一級（依升級路徑），重新計算全盤連線與獎金</li>
+<li>雷霆祝福觸發後，Cascade 流程繼續（若有新獲獎則繼續消除擴展）</li>
+</ul>
+<h3 id="br-04-coin-toss-硬幣翻轉">BR-04 Coin Toss 硬幣翻轉</h3>
+<ul>
+<li>觸發條件（Main Game）：滾輪已達 MAX_ROWS（6 列）且本次 Cascade 再次成功，以 <code>mgFgTriggerProb</code>（0.009624）判定是否進入 Coin Toss</li>
+<li>觸發條件（Buy FG 模擬情境）：<code>fgTriggerProb</code>（0.009081）作為 Buy FG 符號池設計的參考參數，用於 Monte Carlo 模擬，<strong>不用於</strong> Buy Feature 入場判定</li>
+<li>Buy Feature 入場：完全繞過 <code>fgTriggerProb</code> / <code>mgFgTriggerProb</code>，直接進入 Coin Toss（保證 Heads × 5）</li>
+<li><strong>Heads（正面）</strong>：進入 Free Game，初始倍率 ×3</li>
+<li><strong>Tails（反面）</strong>：本輪 SPIN 結束，不進入 FG</li>
+<li>進入 FG 的 Coin Toss Heads 機率：Main Game = 0.80；Buy Feature = 1.00（保證）</li>
+</ul>
+<h3 id="br-05-free-game-免費遊戲">BR-05 Free Game 免費遊戲</h3>
+<ul>
+<li><strong>進入倍率</strong>：×3（首次 Coin Toss Heads 後）</li>
+<li><strong>倍率升級序列</strong>：每局 FG Spin <strong>開始前</strong>翻一次 Coin Toss（第一次 Heads 已在 BR-04 觸發 FG 時完成，此後每輪 FG Spin 前翻一次）</li>
+<li>Heads → 倍率升一級（×3 → ×7 → ×17 → ×27 → ×77）</li>
+<li>×77 為最高倍率，達到後維持不再升</li>
+<li>Tails → FG 當輪結束（保留當前倍率至 FG 結束）</li>
+<li>達到 ×77 後，每局 FG Spin 開始前仍翻一次 Coin Toss（機率 coinProbs[4] = 0.40）；Tails 即結束整場 FG，允許連續多局 ×77 FGSpin</li>
+<li><strong>Coin Toss Heads 機率序列（各回合）</strong>：[0.80, 0.68, 0.56, 0.48, 0.40]（對應倍率階段）</li>
+<li>整個 FG 期間閃電標記跨 Spin 累積不清除，FG 全部結束後才清除</li>
+<li><strong>FG 總獎金額外乘數</strong>：進入 FG 時由 FG Bonus 表隨機抽取乘數（×1/×5/×20/×100），套用於整局 FG 總獎金（見 §4.5）</li>
+<li><strong>Buy Free Game 特例</strong>：5 回合 Coin Toss 均保證 Heads，不受 <code>fgTriggerProb</code> 限制</li>
+</ul>
+<h3 id="br-06-extra-bet額外投注">BR-06 Extra Bet（額外投注）</h3>
+<ul>
+<li>開啟條件：玩家主動切換 Extra Bet ON</li>
+<li><strong>費用</strong>：投注額 × 3（<code>extraBetMult: 3</code>）</li>
+<li><strong>效果</strong>：保證每次 Spin 至少出現 1 個 Scatter（SC）</li>
+<li>關閉時：Scatter 依正常機率隨機出現</li>
+<li>Extra Bet 使用獨立符號權重表（<code>extraBet</code> 權重組）</li>
+</ul>
+<h3 id="br-07-buy-feature購買功能">BR-07 Buy Feature（購買功能）</h3>
+<ul>
+<li><strong>費用</strong>：100× baseBet（Extra Bet 開啟時：300× baseBet）</li>
+<li><code>buyCostMult: 100</code>，Extra Bet 疊加時再乘以 <code>extraBetMult: 3</code></li>
+<li><strong>效果</strong>：直接進入 Coin Toss 流程，5 回合均保證 Heads（<code>entryBuy: 1.0</code>）</li>
+<li><strong>保底機制</strong>：整場 session totalWin ≥ 20× baseBet（<code>buyFGMinWin: 20</code>）；Extra Bet ON 時保底為 20 × baseBet × extraBetMult（3）= 60× baseBet</li>
+<li>Buy Feature 使用獨立符號權重表（<code>buyFG</code> 權重組）</li>
+</ul>
+<h3 id="br-08-near-miss視覺張力機制">BR-08 Near Miss（視覺張力機制）</h3>
+<ul>
+<li><strong>定義</strong>：接近中獎但實際獲獎為 0 的特殊符號排列，在 Excel DATA tab 中獨立設計</li>
+<li><strong>效果</strong>：純視覺特效，不計入 RTP，不產生任何 win，用於增加遊戲緊張感</li>
+<li><strong>工具鏈</strong>：Near Miss 配置由 <code>build_config.js</code> 自動寫入 ENG_TOOLS tab 及 DESIGN_VIEW tab；<code>engine_generator.js</code> 生成對應的 <code>GameConfig.generated.ts</code> 欄位</li>
+<li><strong>實作限制</strong>：Near Miss 邏輯只在 Excel 定義，遊戲引擎只讀取生成後的 GameConfig，禁止在程式碼中客製 Near Miss 排列</li>
+</ul>
+<hr>
+<h2 id="h-4-機率設計需求">§4 機率設計需求</h2>
+<h3 id="h-41-目標-rtp">§4.1 目標 RTP</h3>
+<ul>
+<li><strong>整體目標 RTP</strong>：97.5%</li>
+<li>各情境 target RTP 各自設計為 100%，整體產品設計目標 RTP 為 97.5%（四情境獨立平衡，非合併後正規化）</li>
+</ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>情境</th>
+<th>模式</th>
+<th>Extra Bet</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Main Game</td>
+<td>Off</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Main Game</td>
+<td>On</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Free Game</td>
+<td>Off</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Buy Free Game</td>
+<td>On</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>⚠️ EDD §2 將情境 3 標記為「Buy Free Game Off」，正確名稱應為「Free Game（Buy FG Off）」，使用 <code>freeGame</code> 符號權重組，EDD §2 待同步修正。</p></blockquote>
+<h3 id="h-42-賠率表paytable">§4.2 賠率表（Paytable）</h3>
+<blockquote><p>獎金 = 總投注額 × 賠率倍數（Free Game 時再乘以 FG 倍率） 所有模式共用同一張賠率表</p></blockquote>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>符號</th>
+<th>說明</th>
+<th>3 連線</th>
+<th>4 連線</th>
+<th>5 連線</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>W</td>
+<td>Wild（百搭）</td>
+<td>×0.17</td>
+<td>×0.43</td>
+<td>×1.17</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Zeus（宙斯）</td>
+<td>×0.17</td>
+<td>×0.43</td>
+<td>×1.17</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Pegasus（天馬）</td>
+<td>×0.11</td>
+<td>×0.27</td>
+<td>×0.67</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Athena（雅典娜）</td>
+<td>×0.09</td>
+<td>×0.23</td>
+<td>×0.67</td>
+</tr>
+<tr>
+<td>P4</td>
+<td>Eagle（雄鷹）</td>
+<td>×0.07</td>
+<td>×0.17</td>
+<td>×0.57</td>
+</tr>
+<tr>
+<td>L1</td>
+<td>Z</td>
+<td>×0.03</td>
+<td>×0.07</td>
+<td>×0.17</td>
+</tr>
+<tr>
+<td>L2</td>
+<td>E</td>
+<td>×0.03</td>
+<td>×0.07</td>
+<td>×0.17</td>
+</tr>
+<tr>
+<td>L3</td>
+<td>U</td>
+<td>×0.02</td>
+<td>×0.05</td>
+<td>×0.13</td>
+</tr>
+<tr>
+<td>L4</td>
+<td>S</td>
+<td>×0.02</td>
+<td>×0.05</td>
+<td>×0.13</td>
+</tr>
+<tr>
+<td>SC</td>
+<td>Thunder Blessing Scatter</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>SC 無直接賠率，觸發雷霆祝福特效   1～2 個同符號不計分，3 個起計</p></blockquote>
+<h3 id="h-43-符號權重四情境">§4.3 符號權重（四情境）</h3>
+<blockquote><p>來源：<code>engine_config.json</code> → <code>weights</code></p></blockquote>
+<h4 id="情境-1main-gameextra-bet-off">情境 1：Main Game（Extra Bet Off）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>符號</th>
+<th>權重</th>
+<th>合計</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>W</td>
+<td>3</td>
+<td></td>
+</tr>
+<tr>
+<td>SC</td>
+<td>2</td>
+<td></td>
+</tr>
+<tr>
+<td>P1</td>
+<td>6</td>
+<td></td>
+</tr>
+<tr>
+<td>P2</td>
+<td>7</td>
+<td></td>
+</tr>
+<tr>
+<td>P3</td>
+<td>8</td>
+<td></td>
+</tr>
+<tr>
+<td>P4</td>
+<td>10</td>
+<td></td>
+</tr>
+<tr>
+<td>L1</td>
+<td>13</td>
+<td></td>
+</tr>
+<tr>
+<td>L2</td>
+<td>13</td>
+<td></td>
+</tr>
+<tr>
+<td>L3</td>
+<td>14</td>
+<td></td>
+</tr>
+<tr>
+<td>L4</td>
+<td>14</td>
+<td><strong>合計 90</strong></td>
+</tr>
+</tbody></table></div>
+<h4 id="情境-2main-gameextra-bet-on">情境 2：Main Game（Extra Bet On）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>符號</th>
+<th>權重</th>
+<th>合計</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>W</td>
+<td>4</td>
+<td></td>
+</tr>
+<tr>
+<td>SC</td>
+<td>7</td>
+<td></td>
+</tr>
+<tr>
+<td>P1</td>
+<td>7</td>
+<td></td>
+</tr>
+<tr>
+<td>P2</td>
+<td>8</td>
+<td></td>
+</tr>
+<tr>
+<td>P3</td>
+<td>8</td>
+<td></td>
+</tr>
+<tr>
+<td>P4</td>
+<td>9</td>
+<td></td>
+</tr>
+<tr>
+<td>L1</td>
+<td>10</td>
+<td></td>
+</tr>
+<tr>
+<td>L2</td>
+<td>11</td>
+<td></td>
+</tr>
+<tr>
+<td>L3</td>
+<td>13</td>
+<td></td>
+</tr>
+<tr>
+<td>L4</td>
+<td>13</td>
+<td><strong>合計 90</strong></td>
+</tr>
+</tbody></table></div>
+<h4 id="情境-3free-gamebuy-fg-off">情境 3：Free Game（Buy FG Off）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>符號</th>
+<th>權重</th>
+<th>合計</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>W</td>
+<td>4</td>
+<td></td>
+</tr>
+<tr>
+<td>SC</td>
+<td>6</td>
+<td></td>
+</tr>
+<tr>
+<td>P1</td>
+<td>9</td>
+<td></td>
+</tr>
+<tr>
+<td>P2</td>
+<td>10</td>
+<td></td>
+</tr>
+<tr>
+<td>P3</td>
+<td>11</td>
+<td></td>
+</tr>
+<tr>
+<td>P4</td>
+<td>12</td>
+<td></td>
+</tr>
+<tr>
+<td>L1</td>
+<td>9</td>
+<td></td>
+</tr>
+<tr>
+<td>L2</td>
+<td>9</td>
+<td></td>
+</tr>
+<tr>
+<td>L3</td>
+<td>10</td>
+<td></td>
+</tr>
+<tr>
+<td>L4</td>
+<td>10</td>
+<td><strong>合計 90</strong></td>
+</tr>
+</tbody></table></div>
+<h4 id="情境-4buy-free-gamebuy-fg-on">情境 4：Buy Free Game（Buy FG On）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>符號</th>
+<th>權重</th>
+<th>合計</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>W</td>
+<td>2</td>
+<td></td>
+</tr>
+<tr>
+<td>SC</td>
+<td>4</td>
+<td></td>
+</tr>
+<tr>
+<td>P1</td>
+<td>2</td>
+<td></td>
+</tr>
+<tr>
+<td>P2</td>
+<td>3</td>
+<td></td>
+</tr>
+<tr>
+<td>P3</td>
+<td>3</td>
+<td></td>
+</tr>
+<tr>
+<td>P4</td>
+<td>6</td>
+<td></td>
+</tr>
+<tr>
+<td>L1</td>
+<td>14</td>
+<td></td>
+</tr>
+<tr>
+<td>L2</td>
+<td>14</td>
+<td></td>
+</tr>
+<tr>
+<td>L3</td>
+<td>19</td>
+<td></td>
+</tr>
+<tr>
+<td>L4</td>
+<td>23</td>
+<td><strong>合計 90</strong></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-44-fg-倍率序列與-coin-toss-機率">§4.4 FG 倍率序列與 Coin Toss 機率</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>倍率階段</th>
+<th>FG 倍數</th>
+<th>Coin Toss Heads 機率</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>第 1 次 Heads（進入 FG）</td>
+<td>×3</td>
+<td>0.80（Main）/ 1.00（Buy）</td>
+</tr>
+<tr>
+<td>第 2 次 Heads</td>
+<td>×7</td>
+<td>0.68</td>
+</tr>
+<tr>
+<td>第 3 次 Heads</td>
+<td>×17</td>
+<td>0.56</td>
+</tr>
+<tr>
+<td>第 4 次 Heads</td>
+<td>×27</td>
+<td>0.48</td>
+</tr>
+<tr>
+<td>第 5 次+ Heads</td>
+<td>×77（維持）</td>
+<td>0.40</td>
+</tr>
+</tbody></table></div>
+<blockquote><p><code>fgMults: [3, 7, 17, 27, 77]</code>   <code>coinProbs: [0.80, 0.68, 0.56, 0.48, 0.40]</code>   <code>entryMain: 0.80</code>，<code>entryBuy: 1.00</code>   ⚠️ <strong>coinProbs[0]（0.80）即為 entryMain，是 BR-04 入場 Coin Toss 的機率</strong>，與 entryMain 數值相同且角色相同。   入場 Heads 後，×3 FGSpin <strong>無條件開始</strong>（不再需要額外 toss）。   coinProbs[1..4]（0.68 / 0.56 / 0.48 / 0.40）分別對應每局 FGSpin <strong>開始前</strong>的倍率升級 Coin Toss（×7 / ×17 / ×27 / ×77 升階門檻）。</p></blockquote>
+<h3 id="h-45-fg-bonus-額外倍數">§4.5 FG Bonus 額外倍數</h3>
+<blockquote><p>進入 Free Game 時，由 FG Bonus 表額外抽取一個乘數，套用於整局 FG 總獎金</p></blockquote>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>額外倍數</th>
+<th>權重</th>
+<th>合計</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>×1</td>
+<td>900</td>
+<td></td>
+</tr>
+<tr>
+<td>×5</td>
+<td>80</td>
+<td></td>
+</tr>
+<tr>
+<td>×20</td>
+<td>15</td>
+<td></td>
+</tr>
+<tr>
+<td>×100</td>
+<td>5</td>
+<td><strong>合計 1000</strong></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-46-特殊機率參數">§4.6 特殊機率參數</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>參數</th>
+<th>值</th>
+<th>說明</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>fgTriggerProb</code></td>
+<td>0.009081</td>
+<td>Buy FG 情境符號池設計用（Monte Carlo 模擬參考值）；Buy Feature 入場不受此限制</td>
+</tr>
+<tr>
+<td><code>mgFgTriggerProb</code></td>
+<td>0.009624</td>
+<td>Main Game FG 觸發機率</td>
+</tr>
+<tr>
+<td><code>tbSecondHit</code></td>
+<td>0.40</td>
+<td>雷霆祝福第二擊觸發機率</td>
+</tr>
+<tr>
+<td><code>extraBetMult</code></td>
+<td>3</td>
+<td>Extra Bet 投注倍數</td>
+</tr>
+<tr>
+<td><code>buyCostMult</code></td>
+<td>100</td>
+<td>Buy Feature 費用倍數（× baseBet）</td>
+</tr>
+<tr>
+<td><code>buyFGMinWin</code></td>
+<td>20</td>
+<td>Buy Feature 保底最低獲獎（× baseBet）</td>
+</tr>
+<tr>
+<td><code>PAYTABLE_SCALE</code></td>
+<td>3.622</td>
+<td>賠率表縮放係數（僅工具鏈內部使用）</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-5-slot-engine-工具鏈需求">§5 slot-engine 工具鏈需求</h2>
+<h3 id="h-51-工具鏈流程">§5.1 工具鏈流程</h3>
+<pre><code>Excel DATA tab（唯一參數來源）
+    │
+    ▼
+build_config.js
+    │
+    ├──► engine_config.json（機率參數）
+    └──► ENG_TOOLS tab（驗收指標）
+            │
+            ▼
+        excel_simulator.js（100 萬次 Monte Carlo 模擬）
+            │
+            ▼
+        verify.js（RTP 驗收，四情境各 ±1% 容許）
+            │  ← ⚠️ 必須通過 verify.js，才可繼續執行下方步驟
+            ▼
+        engine_generator.js
+            │
+            ▼
+        GameConfig.generated.ts（禁止手動修改）</code></pre>
+<p><strong>工具鏈黃金法則</strong>：Excel DATA tab 是唯一合法的參數定義來源。所有機率邏輯、RTP 設計、保底規則，只在 Excel 中定義。</p>
+<blockquote><p>⚠️ 步驟順序以本圖為準：slot-engine-EDD.md §8.2 的步驟列表中，engine_generator.js 排在 verify.js 之前（即先生成再驗收）。本 BRD 採更嚴格的 gating 要求（verify.js 通過後才執行 engine_generator.js），EDD §8.2 待同步修正。</p></blockquote>
+<h3 id="h-52-禁止行為non-negotiable">§5.2 禁止行為（Non-Negotiable）</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>禁止事項</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>禁止在程式碼中加入 payout scale 乘數（<code>PAYTABLE_SCALE</code> 僅限工具鏈內部計算使用）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>禁止 retry loop 保底（即禁止在遊戲執行期以重試循環強制達到目標 RTP；保底的機率設計只在 Excel 定義；session 級別的底線邏輯由 SlotEngine 實作，不視為 retry loop）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>禁止 UI 層做任何 win 計算或修改（UI 只顯示引擎回傳的 <code>totalWin</code>）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>禁止手動修改 <code>GameConfig.generated.ts</code>（需修改請從 Excel 重新執行 <code>engine_generator.js</code>）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>禁止跨情境混用符號權重（四情境各自獨立，絕對不可混用）</td>
+</tr>
+<tr>
+<td>6</td>
+<td>禁止以 <code>session.roundWin</code> 作為入帳或最終顯示依據（<code>session.roundWin</code> 是動畫顯示計數器；入帳唯一依據為引擎輸出 <code>outcome.totalWin</code>）</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-53-bet-range-規格">§5.3 Bet Range 規格</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>幣種</th>
+<th>最小投注</th>
+<th>最大投注</th>
+<th>步進</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>USD</td>
+<td>$0.25</td>
+<td>$10.00</td>
+<td>$0.25</td>
+</tr>
+<tr>
+<td>TWD</td>
+<td>TWD 10</td>
+<td>TWD 320</td>
+<td>TWD 10</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>幣種投注範圍從 <code>BetRangeConfig.generated.ts</code> 讀取，<strong>禁止硬編碼</strong>。   ⚠️ TWD 上限以 <code>engine_config.json</code>（<code>maxLevel: 320</code>）為準；若 slot-engine-EDD.md 中出現 TWD 300 的描述，以本文件（TWD 320）為準，EDD 待同步修正。</p></blockquote>
+<hr>
+<h2 id="h-6-架構需求">§6 架構需求</h2>
+<h3 id="h-61-後端架構">§6.1 後端架構</h3>
+<ul>
+<li><strong>語言 / 框架</strong>：TypeScript / Node.js / Fastify</li>
+<li><strong>架構模式</strong>：Clean Architecture（Domain → Application → Infrastructure 三層）</li>
+<li><strong>資料庫</strong>：Supabase PostgreSQL（玩家錢包、spin 日誌、session 狀態）</li>
+<li><strong>快取</strong>：Redis / Upstash（spin session 狀態，用於 FG 多回合狀態保持）</li>
+<li><strong>認證</strong>：Supabase Auth（JWT 驗證，每次 spin request 必須驗證）</li>
+</ul>
+<h3 id="h-62-api-設計原則">§6.2 API 設計原則</h3>
+<ul>
+<li><strong>單次 spin request / response</strong>：回傳完整 FG 序列，不做多次來回（≤ 1 次 API 往返）</li>
+<li>FG 最多 5 回合（Coin Toss 序列），所有結果在單一 response 中回傳</li>
+<li>錢包入帳依據：引擎 <code>totalWin</code>（唯一權威值），UI 不得自行計算或修改</li>
+</ul>
+<h3 id="h-63-狀態管理">§6.3 狀態管理</h3>
+<ul>
+<li>閃電標記位置、FG 倍率、FG 剩餘回合等 session 狀態，由後端 Redis 維護</li>
+<li>前端不持有任何遊戲狀態（Pure View 原則）</li>
+</ul>
+<hr>
+<h2 id="h-7-非功能需求">§7 非功能需求</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>需求類別</th>
+<th>規格</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>最大獎金上限（Main Game）</td>
+<td>30,000× baseBet</td>
+</tr>
+<tr>
+<td>最大獎金上限（Extra Bet + Buy FG）</td>
+<td>90,000× baseBet</td>
+</tr>
+<tr>
+<td>RTP 驗收標準</td>
+<td>100 萬次 Monte Carlo 模擬，四情境各 ±1% 容許範圍</td>
+</tr>
+<tr>
+<td>Buy Feature 保底</td>
+<td>session totalWin ≥ 20× baseBet</td>
+</tr>
+<tr>
+<td>幣種支援</td>
+<td>USD / TWD（從 <code>BetRangeConfig.generated.ts</code> 讀取，禁止硬編碼）</td>
+</tr>
+<tr>
+<td>錢包入帳唯一權威</td>
+<td>引擎回傳之 <code>totalWin</code>，UI 顯示值不得作為入帳依據</td>
+</tr>
+<tr>
+<td>前端框架</td>
+<td>Cocos Creator 或 PixiJS（待定）</td>
+</tr>
+<tr>
+<td>API 往返次數上限</td>
+<td>每次完整 spin（含 FG 全序列）≤ 1 次 HTTP 往返</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-8-成功指標kpi">§8 成功指標（KPI）</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>指標</th>
+<th>驗收標準</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>KPI-01</td>
+<td>RTP 97.5%</td>
+<td>四情境各自通過 <code>verify.js</code>（±1% 容許範圍）</td>
+</tr>
+<tr>
+<td>KPI-02</td>
+<td>最大獎金可達性</td>
+<td>模擬結果中 30,000× baseBet 峰值可觸發</td>
+</tr>
+<tr>
+<td>KPI-03</td>
+<td>Cascade 連鎖消除正確率</td>
+<td>Unit test 100% 通過（含邊界：6 列上限、閃電標記跨步驟追蹤）</td>
+</tr>
+<tr>
+<td>KPI-04</td>
+<td>Buy Feature 保底</td>
+<td>整場 session totalWin ≥ 20× baseBet（session 級別保底）</td>
+</tr>
+<tr>
+<td>KPI-05</td>
+<td>API 往返效率</td>
+<td>單次 spin response 包含完整 FG 序列，≤ 1 次 API 往返</td>
+</tr>
+<tr>
+<td>KPI-06</td>
+<td>工具鏈自動化</td>
+<td>Excel 修改後，依 §5.1 流程：<code>build_config.js</code> → <code>excel_simulator.js</code> → <code>verify.js</code>（通過後）→ <code>engine_generator.js</code>，即可重新生成 <code>GameConfig.generated.ts</code>，無需人工介入</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-9-範圍界定in-out-scope">§9 範圍界定（In / Out Scope）</h2>
+<h3 id="in-scope">In Scope</h3>
+<ul>
+<li>GDD 全套文件（IDEA / BRD / PRD / EDD / ARCH / API / SCHEMA / FRONTEND / AUDIO / ANIM / BDD）</li>
+<li>機率設計驗收（四情境 100 萬次 Monte Carlo 模擬 + <code>verify.js</code> 通過）</li>
+<li>slot-engine 工具鏈完整規格（Excel → TypeScript 生成流程）</li>
+<li>後端 API 設計與實作（Fastify + Supabase + Redis）</li>
+<li>前端遊戲邏輯實作（Cocos Creator 或 PixiJS）</li>
+<li>幣種支援（USD / TWD）</li>
+<li>Buy Feature 與 Extra Bet 完整機制</li>
+<li>Near Miss 視覺機制規格（BR-08）</li>
+<li>所有機制的 Unit Test 與 E2E 驗收</li>
+</ul>
+<h3 id="out-scope">Out Scope</h3>
+<ul>
+<li>實際前端視覺資產製作（美術圖檔、音效製作等）</li>
+<li>真實金流系統整合（Payment Gateway、真實錢包對接）</li>
+<li>實體合規申請（RNG 認證、監管機構送審）</li>
+<li>多語系本地化（i18n）</li>
+<li>行動裝置原生 App 打包</li>
+</ul>
+<hr>
+<p><em>BRD 版本 1.0 — 基於 IDEA.md、GDD_Thunder_Blessing_Slot.md、Probability_Design.md、slot-engine-EDD.md 及 engine_config.json 整合生成。</em></p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>BRD — Business Requirements</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>

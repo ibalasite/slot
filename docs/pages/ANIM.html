@@ -1,0 +1,3145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ANIM — Animation Spec — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">ANIM — Animation Spec</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link active"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>✨ Design</span>
+        <span>Source: <code>ANIM.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="animmd-animation-effects-design-document">ANIM.md — Animation Effects Design Document</h1>
+<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+<hr>
+<h2 id="h-0-document-control">§0 Document Control</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Field</th>
+<th>Content</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>DOC-ID</strong></td>
+<td>ANIM-THUNDERBLESSING-20260426</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>Thunder Blessing Slot Game</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>DRAFT</td>
+</tr>
+<tr>
+<td><strong>Author</strong></td>
+<td>AI Generated (gendoc D10c-ANIM)</td>
+</tr>
+<tr>
+<td><strong>Date</strong></td>
+<td>2026-04-26</td>
+</tr>
+<tr>
+<td><strong>Upstream Documents</strong></td>
+<td>FRONTEND.md v1.0, VDD.md v1.0, AUDIO.md v1.0, EDD.md v1.3, PRD.md v0.1</td>
+</tr>
+<tr>
+<td><strong>Reviewers</strong></td>
+<td>Animation Lead, Frontend Engineer Lead, Art Director, QA Lead</td>
+</tr>
+<tr>
+<td><strong>Approver</strong></td>
+<td>Art Director, Engineering Lead</td>
+</tr>
+</tbody></table></div>
+<h3 id="change-log">Change Log</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Summary</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-04-26</td>
+<td>AI Generated</td>
+<td>Initial generation covering all 12 sections</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-1-animation-design-overview">§1 Animation Design Overview</h2>
+<h3 id="h-11-thematic-direction">1.1 Thematic Direction</h3>
+<p>Thunder Blessing is anchored in Greek mythology: the domain of Zeus, divine lightning, and the ascending power of the cascade chain. All animation must reinforce three emotional registers that mirror the audio design:</p>
+<ol>
+<li><strong>Divine Authority</strong> — Symbols carry weight and gravitas. Premium symbols (P1 Zeus, P2 Pegasus) carry slow, majestic idle cycles that convey a sense of divine residence on the reel. Win animations for premium tiers feel like receiving a blessing, not a mechanical payout.</li>
+</ol>
+<ol>
+<li><strong>Electric Tension</strong> — Lightning Marks are the game&#x27;s core suspense mechanic. Their accumulation must be visually legible and emotionally charged. Each new mark arrival is felt. Persistent marks create ambient visual noise that escalates the player&#x27;s sense of impending thunder. The color threshold system (gold dim → orange arc → pulsing white-gold, per VDD §5.1 and FRONTEND.md §3.3) must be reflected in animation intensity, not only in color.</li>
+</ol>
+<ol>
+<li><strong>Cascading Triumph</strong> — Each cascade step is a reward loop. The symbol explosion, new row reveal, and refill drop must each feel satisfying independently while collectively building momentum. The FREE letter progression is the cascade&#x27;s visual spine — its lighting must feel earned.</li>
+</ol>
+<p><strong>Color anchors (from VDD §1.1):</strong></p>
+<ul>
+<li>Primary gold: <code>--color-gold-primary</code> <code>oklch(75% 0.14 80)</code> — frames, win lines</li>
+<li>Bright gold: <code>--color-gold-bright</code> <code>oklch(85% 0.17 88)</code> — win numbers, mark highlights</li>
+<li>Divine gold: <code>--color-gold-divine</code> <code>oklch(91% 0.14 88)</code> — Wild outer glow, max-intensity moments</li>
+<li>Deep blue: <code>--color-blue-olympus</code> <code>oklch(22% 0.06 250)</code> — main background</li>
+<li>Arc white: <code>--color-arc-white</code> <code>oklch(96% 0.02 230)</code> — electric arc particles, Scatter outer light</li>
+</ul>
+<p><strong>Symbol tier system (from VDD §3.2):</strong> Wild and Scatter carry full Bloom (radius 16px, 4 iterations), P1/P2 carry medium Bloom (radius 10px), P3/P4 carry light Bloom (radius 6px), L1–L4 have no Bloom. Win animation intensity scales with this hierarchy.</p>
+<p><strong>Animation philosophy:</strong> Every animation must specify a trigger, duration, easing curve, particle count or sprite frame count, and SFX sync point. No animation description is complete without all five elements. Ambiguous terms such as &quot;impressive&quot; or &quot;flashy&quot; are not accepted.</p>
+<h3 id="h-12-animation-categories">1.2 Animation Categories</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Category</th>
+<th>Tag Prefix</th>
+<th>Description</th>
+<th>Priority Tier</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Reel Animations</td>
+<td><code>REEL_</code></td>
+<td>Spin start, spin loop, reel stop per column, near miss twitch</td>
+<td>1 (Critical)</td>
+</tr>
+<tr>
+<td>Symbol Animations</td>
+<td><code>SYM_</code></td>
+<td>Per-symbol idle, win, special, and elimination animations</td>
+<td>1 (Critical)</td>
+</tr>
+<tr>
+<td>Cascade Animations</td>
+<td><code>CASC_</code></td>
+<td>Symbol explosion, drop refill, row expansion</td>
+<td>1 (Critical)</td>
+</tr>
+<tr>
+<td>Lightning Mark Animations</td>
+<td><code>MARK_</code></td>
+<td>Mark appear, persist, pulse, explode</td>
+<td>1 (Critical)</td>
+</tr>
+<tr>
+<td>Thunder Blessing Sequence</td>
+<td><code>TB_</code></td>
+<td>Full TB sequence: activation → hit1 → upgrade → hit2 → settle</td>
+<td>1 (Critical)</td>
+</tr>
+<tr>
+<td>Coin Toss Animations</td>
+<td><code>COIN_</code></td>
+<td>Fly-in, flip loop, result reveal, multiplier progress</td>
+<td>2 (High)</td>
+</tr>
+<tr>
+<td>Free Game Animations</td>
+<td><code>FG_</code></td>
+<td>Entry fanfare, bonus reveal, round HUD, multiplier advance, complete</td>
+<td>2 (High)</td>
+</tr>
+<tr>
+<td>Win Display Animations</td>
+<td><code>WIN_</code></td>
+<td>WIN counter roll-up, tier overlays, max win celebration</td>
+<td>2 (High)</td>
+</tr>
+<tr>
+<td>UI/HUD Animations</td>
+<td><code>UI_</code></td>
+<td>Balance counter, bet panel, spin button, extra bet, buy feature</td>
+<td>3 (Standard)</td>
+</tr>
+<tr>
+<td>Particle Systems</td>
+<td><code>PS_</code></td>
+<td>All particle emitters across all states</td>
+<td>1–2 (per context)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-13-technical-constraints">1.3 Technical Constraints</h3>
+<p><strong>Custom easing tokens (CSS <code>transition-timing-function</code> values):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Token</th>
+<th><code>cubic-bezier()</code> value</th>
+<th>Character</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>--ease-out-cubic</code></td>
+<td><code>cubic-bezier(0.33, 1, 0.68, 1)</code></td>
+<td>Smooth deceleration — most UI transitions</td>
+</tr>
+<tr>
+<td><code>--ease-in-out-cubic</code></td>
+<td><code>cubic-bezier(0.65, 0, 0.35, 1)</code></td>
+<td>Symmetrical acceleration/deceleration; also used for FG multiplier progress bars</td>
+</tr>
+<tr>
+<td><code>ease-in-cubic</code> (inline only — no CSS custom property)</td>
+<td><code>cubic-bezier(0.32, 0, 0.67, 0)</code></td>
+<td>Smooth acceleration — near-miss twitch; used as inline value not a CSS variable</td>
+</tr>
+<tr>
+<td><code>--ease-out-back</code></td>
+<td><code>cubic-bezier(0.34, 1.56, 0.64, 1)</code></td>
+<td>Overshoot settle — symbol landings, banners</td>
+</tr>
+<tr>
+<td><code>--ease-out-expo</code></td>
+<td><code>cubic-bezier(0.16, 1, 0.3, 1)</code></td>
+<td>Sharp deceleration — flash effects, bursts</td>
+</tr>
+<tr>
+<td><code>--ease-coin-decel</code></td>
+<td><code>cubic-bezier(0.05, 0.7, 0.1, 1.0)</code></td>
+<td>Coin toss deceleration — slow-start heavy settle</td>
+</tr>
+<tr>
+<td><code>ease-out-bounce</code></td>
+<td>JS custom (not CSS cubic-bezier)</td>
+<td>See VDD §4.1 for implementation — used for symbol drop</td>
+</tr>
+</tbody></table></div>
+<p>All <code>--ease-*</code> tokens are CSS custom properties defined in the global animation stylesheet (VDD §4.1). <code>ease-in-cubic</code> and <code>ease-out-bounce</code> are inline shorthand only — no corresponding CSS custom property is defined.</p>
+<p><strong>AnimationQueue architecture (from FRONTEND.md §6.1):</strong></p>
+<ul>
+<li>The <code>AnimationQueue</code> is the single sequencer for all animation. No animation is played ad hoc; every visual event is triggered by <code>AnimationDispatcher.dispatch(step)</code>.</li>
+<li>Steps execute strictly in queue order — sequential <code>await</code> per step.</li>
+<li>Animations within a single step that are specified as <code>[PARALLEL]</code> in this document may begin concurrently within that step. Cross-step parallelism is not permitted unless explicitly tagged.</li>
+<li>The queue is built once from <code>FullSpinOutcome</code> after a successful spin response and drained to completion before the next spin is permitted.</li>
+</ul>
+<p><strong>Frame rate targets:</strong></p>
+<ul>
+<li>Desktop (WebGL 2.0): 60fps sustained. No frame drops exceeding 5ms (per VDD §10.2).</li>
+<li>Mobile (iOS Safari 14+, Chrome Android 90+): 30fps sustained during worst-case Cascade eliminate + parallax. Particle counts halved; Spine idle fps reduced to 12fps (from VDD §3.3).</li>
+</ul>
+<p><strong>Particle budget (from VDD §5.4):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Scene</th>
+<th>Desktop Limit</th>
+<th>Mobile Limit</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Idle (all marks)</td>
+<td>120</td>
+<td>60</td>
+</tr>
+<tr>
+<td>Cascade eliminate (single step)</td>
+<td>200</td>
+<td>100</td>
+</tr>
+<tr>
+<td>Thunder Blessing explosion</td>
+<td>480</td>
+<td>240</td>
+</tr>
+<tr>
+<td>Big Win / Mega Win</td>
+<td>300</td>
+<td>150</td>
+</tr>
+<tr>
+<td>FG Bonus ×100 (3s burst exception)</td>
+<td>3,000</td>
+<td>800</td>
+</tr>
+<tr>
+<td>MAX WIN 30,000× coin rain (2s burst exception)</td>
+<td>2,000</td>
+<td>600</td>
+</tr>
+<tr>
+<td>MAX WIN 90,000× coin rain (3s burst exception)</td>
+<td>3,000</td>
+<td>600</td>
+</tr>
+<tr>
+<td><strong>Absolute instantaneous limit (all other states)</strong></td>
+<td><strong>500</strong></td>
+<td><strong>200</strong></td>
+</tr>
+</tbody></table></div>
+<p>Overflow strategy: old particles fade out early (preemptive recycle). New particle generation is never blocked.</p>
+<p><strong>Shader availability:</strong></p>
+<ul>
+<li>Bloom/Glow: <code>KawaseBlurFilter</code> (PixiJS) or <code>BloomEffect</code> (Cocos Creator). Parameters per VDD §5.5.</li>
+<li>Lightning arc: custom Bezier curve renderer, 2px stroke, <code>Additive</code> blend, <code>--color-arc-white</code>.</li>
+<li>Additive blend mode: all particle systems use Additive unless otherwise noted.</li>
+<li>Screen blend mode: Bloom layer only.</li>
+</ul>
+<p><strong>Memory constraints:</strong></p>
+<ul>
+<li>Symbol pool: 35 <code>SymbolComponent</code> instances maximum (30 active + 5 cascade buffer, per FRONTEND.md §3.2).</li>
+<li>Single 2048×2048px texture atlas for all symbols and UI (per FRONTEND.md §1.4).</li>
+<li>Spine atlas per symbol: max 2048×2048px, <code>premultipliedAlpha</code> enabled (per VDD §3.3).</li>
+<li>Particle sprite sheets: PNG-32, pngquant quality 88, max 256KB (per VDD §9.2).</li>
+</ul>
+<h3 id="h-14-animation-coordinate-system">1.4 Animation Coordinate System</h3>
+<p>The reel grid uses a column-row addressing scheme where column indices are 1–5 (left to right) and row indices are 1–3 in the base state, expanding to 1–4, 1–5, or 1–6 during cascade expansion. Row 1 is the top row; row 6 is the bottom row.</p>
+<p><strong>Reference pixel coordinates (1920×1080 baseline, from VDD §6.1):</strong></p>
+<ul>
+<li>Reel container origin: X=460px, Y=80px.</li>
+<li>Cell pitch (horizontal): 200px (190px renderable + 10px gap).</li>
+<li>Cell pitch (vertical): 200px (190px renderable + 10px gap).</li>
+<li>Cell center formula: <code>X_center = 460 + (col − 1) × 200 + 100</code>, <code>Y_center = 80 + (row − 1) × 200 + 100</code>.</li>
+</ul>
+<p><strong>Example cell centers (1920×1080):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Position</th>
+<th>X center</th>
+<th>Y center</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Col 1, Row 1</td>
+<td>560px</td>
+<td>180px</td>
+</tr>
+<tr>
+<td>Col 3, Row 2</td>
+<td>960px</td>
+<td>380px</td>
+</tr>
+<tr>
+<td>Col 5, Row 3</td>
+<td>1360px</td>
+<td>580px</td>
+</tr>
+<tr>
+<td>Col 5, Row 6 (max)</td>
+<td>1360px</td>
+<td>1180px</td>
+</tr>
+</tbody></table></div>
+<p><strong>Viewport adaptation (1080p):</strong> At 1920×1080, the 6-row grid extends to Y_center = 80 + (6−1)×200 + 100 = 1180px, exceeding the 1080px viewport height. The reel container applies uniform <code>scaleY</code> to compress all rows within the visible area when <code>rowCount &gt; 3</code>; scale factor = <code>(viewport_height − 80) / (rowCount × 200)</code>. For example, at rowCount=6 on a 1080px canvas: scale = (1080 − 80) / (6 × 200) = 1000/1200 ≈ 0.833. Verify the authoritative canvas dimensions against VDD §6.1 before implementing — VDD §6.1 defines the reel artboard height which may exceed 1080px to accommodate the full 6-row grid without scaling.</p>
+<p><strong>Particle spawn points:</strong> Particles emitted from symbol elimination spawn at the cell center of the eliminated symbol. Particles emitted from Lightning Mark appearances spawn at the cell center of the marked cell. Arc line emitters for Thunder Blessing spawn along a Bezier path from the Scatter symbol cell center to each marked cell center.</p>
+<hr>
+<h2 id="h-2-reel-symbol-animations">§2 Reel &amp; Symbol Animations</h2>
+<h3 id="h-21-reel-spin-animation">2.1 Reel Spin Animation</h3>
+<p><strong>Trigger:</strong> <code>SPIN_PRESSED</code> event; <code>AnimationDispatcher.dispatch({ type: &#x27;REEL_SPIN&#x27; })</code> begins immediately.</p>
+<h4 id="spin-start">Spin Start</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Trigger</td>
+<td><code>SFX_SPIN_START</code> fires at t=0ms (immediate on SPIN press)</td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>200ms</td>
+</tr>
+<tr>
+<td>Effect</td>
+<td>Reel strip blurs upward: <code>translateY</code> acceleration curve from 0 to target loop velocity</td>
+</tr>
+<tr>
+<td>Easing</td>
+<td><code>ease-in</code> (cubic-bezier matching native acceleration)</td>
+</tr>
+<tr>
+<td>Symbol opacity during blur</td>
+<td>Fade to 0.3 over 200ms (<code>linear</code>) to convey speed</td>
+</tr>
+</tbody></table></div>
+<h4 id="spin-loop-constant-velocity">Spin Loop (Constant Velocity)</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Duration</td>
+<td>Until <code>FullSpinOutcome</code> received (variable; loading indicator shown after 500ms per FRONTEND.md §4.2)</td>
+</tr>
+<tr>
+<td>Effect</td>
+<td>Continuous <code>translateY</code> scroll of the reel strip at constant velocity</td>
+</tr>
+<tr>
+<td>Scroll speed</td>
+<td>1200px/s (6 symbols per second at 200px pitch)</td>
+</tr>
+<tr>
+<td>Symbol rendering</td>
+<td>Blurred sprites (motion-blur shader or pre-blurred atlas frame)</td>
+</tr>
+</tbody></table></div>
+<h4 id="reel-stop-per-column-staggered">Reel Stop (Per Column, Staggered)</h4>
+<p>Reels stop in column order 1→5 with a 120ms stagger between each column, matching <code>SFX_REEL_STOP_1</code> through <code>SFX_REEL_STOP_5</code> (AUDIO.md §3.2).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Column</th>
+<th>Stop Delay from col 1</th>
+<th>SFX Sync</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0ms</td>
+<td><code>SFX_REEL_STOP_1</code> at t=0ms</td>
+</tr>
+<tr>
+<td>2</td>
+<td>120ms</td>
+<td><code>SFX_REEL_STOP_2</code> at t=120ms</td>
+</tr>
+<tr>
+<td>3</td>
+<td>240ms</td>
+<td><code>SFX_REEL_STOP_3</code> at t=240ms</td>
+</tr>
+<tr>
+<td>4</td>
+<td>360ms</td>
+<td><code>SFX_REEL_STOP_4</code> at t=360ms</td>
+</tr>
+<tr>
+<td>5</td>
+<td>480ms</td>
+<td><code>SFX_REEL_STOP_5</code> at t=480ms</td>
+</tr>
+</tbody></table></div>
+<p><strong>Deceleration curve per reel stop:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Decelerate</td>
+<td>300ms</td>
+<td><code>ease-out-expo</code> (<code>cubic-bezier(0.16, 1, 0.3, 1)</code>)</td>
+<td>Reel slows from loop velocity to 0</td>
+</tr>
+<tr>
+<td>Overshoot bounce</td>
+<td>80ms</td>
+<td><code>ease-out-back</code> (<code>cubic-bezier(0.34, 1.56, 0.64, 1)</code>)</td>
+<td>Strip overshoots target by 8px, snaps back</td>
+</tr>
+<tr>
+<td>Settle</td>
+<td>40ms</td>
+<td><code>linear</code></td>
+<td>Holds final position</td>
+</tr>
+</tbody></table></div>
+<p><strong>Symbol opacity restoration:</strong> Symbol opacity animates from 0.3 → 1.0 over 150ms (<code>ease-out-cubic</code>) starting at deceleration onset, so symbols are readable on stop.</p>
+<p><strong>SFX duration note:</strong> <code>SFX_REEL_STOP_N</code> duration is 200ms each. The deceleration animation (300ms) overlaps the SFX tail — the audible &quot;thud&quot; at t=0ms of each SFX coincides with the onset of the deceleration curve for that column.</p>
+<h4 id="near-miss-twitch">Near Miss Twitch</h4>
+<p><strong>Condition:</strong> <code>outcome.nearMissApplied = true</code> (from <code>FullSpinOutcome</code>). <strong>Trigger:</strong> Applied to the final reel (column 5) after its stop animation completes.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Animation</td>
+<td><code>translateY</code>: 0 → +12px → 0 (strip nudges down then snaps back, implying the winning symbol &quot;almost&quot; aligned)</td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>200ms total: 100ms ease-out, 100ms ease-in back</td>
+</tr>
+<tr>
+<td>Easing</td>
+<td><code>ease-out-cubic</code> (down), <code>ease-in-cubic</code> (return)</td>
+</tr>
+<tr>
+<td>SFX Sync</td>
+<td><code>SFX_NEAR_MISS</code> fires at grid-stop moment (t=0ms of NEAR_MISS AQ step, before CASCADE_STEP)</td>
+</tr>
+<tr>
+<td>Particle</td>
+<td>None — purely positional</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-22-symbol-idle-animations">2.2 Symbol Idle Animations</h3>
+<p>All idle animations are Spine 2D looping sequences at 24fps on desktop, 12fps on mobile. Idle plays continuously while the symbol is visible and not in a win or special state.</p>
+<p><strong>Wild (Divine Lightning) — <code>symbol_wild.spine</code> <code>idle</code>:</strong></p>
+<ul>
+<li>Duration: 4.0s loop (96 frames @ 24fps)</li>
+<li>Effect: Pulsing gold-white outer glow (<code>--color-gold-divine</code>, Bloom radius 16px) cycling from 80% → 120% → 80% brightness over 2.0s; lightning arc micro-sparks (<code>PS_WILD_IDLE_ARC</code> — see §8.1; 2–4 particles per second, Additive, <code>--color-arc-white</code>, 0.4s lifetime) drift upward from the lightning bolt prop.</li>
+<li><code>scale</code>: 1.0 → 1.02 → 1.0 breathing cycle (4.0s, <code>ease-in-out-cubic</code>).</li>
+</ul>
+<p><strong>Scatter (SC) — <code>symbol_sc.spine</code> <code>idle</code>:</strong></p>
+<ul>
+<li>Duration: 3.0s loop (72 frames @ 24fps)</li>
+<li>Effect: Rotating blue-white electric arc ring around the symbol perimeter (<code>PS_SC_IDLE_ARC</code> — see §8.1; 3–6 arc particles per second, Additive, <code>--color-sym-scatter-arc</code>). Outer glow pulses at 0.8× the Wild intensity (Bloom radius 14px, cycling 0.8s period).</li>
+<li><code>scale</code>: 1.0 constant (no breathing; SC is defined by arcs, not breathing).</li>
+</ul>
+<p><strong>P1 Zeus — <code>symbol_p1.spine</code> <code>idle</code>:</strong></p>
+<ul>
+<li>Duration: 4.0s loop.</li>
+<li>Effect: Subtle empire-gold shimmer on armor (brightness 1.0 → 1.15 → 1.0, 2.0s period). Lightning bolt accessory glows with a dim pulse (Bloom radius 6px, 0.5 intensity). No particles.</li>
+</ul>
+<p><strong>P2 Pegasus — <code>symbol_p2.spine</code> <code>idle</code>:</strong></p>
+<ul>
+<li>Duration: 3.5s loop.</li>
+<li>Effect: Wing feathers carry a slow rise-and-fall animation (bone rotation ±3°, 2.5s period). Purple-gold ambient shimmer on feathers (brightness 1.0 → 1.08 → 1.0). No particles.</li>
+</ul>
+<p><strong>P3 Athena — <code>symbol_p3.spine</code> <code>idle</code>:</strong></p>
+<ul>
+<li>Duration: 4.0s loop.</li>
+<li>Effect: Helmet plume sway (bone rotation ±2°, 3.0s period). Shield carries a very faint silver-blue glint cycle. No particles.</li>
+</ul>
+<p><strong>P4 Eagle — <code>symbol_p4.spine</code> <code>idle</code>:</strong></p>
+<ul>
+<li>Duration: 3.0s loop.</li>
+<li>Effect: Subtle wing-tip flicker (bone rotation ±4°, 1.5s period). Amber eye glow pulse (brightness 1.0 → 1.12 → 1.0, 2.0s). No particles.</li>
+</ul>
+<p><strong>L1–L4 (Z, E, U, S letters):</strong></p>
+<ul>
+<li>Static texture rendering. No Spine animation on idle.</li>
+<li>Low-intensity drop shadow only (<code>drop-shadow(0 1px 4px rgba(0,0,0,0.5))</code>).</li>
+<li>Mobile: same (no idle penalty for low symbols).</li>
+</ul>
+<h3 id="h-23-symbol-win-animation">2.3 Symbol Win Animation</h3>
+<p>Win animations play when a symbol participates in a winning payline during a <code>CASCADE_STEP</code>. All winning symbols in a step play their win animation simultaneously (<code>[PARALLEL]</code>). Non-winning symbols dim to opacity 0.5 (brightness 0.6, saturate 0.4 — from VDD §7.1) concurrently.</p>
+<p><strong>Win line highlight:</strong></p>
+<ul>
+<li>All cells in the winning payline light up with a gold path line (2px stroke, <code>--color-gold-primary</code>).</li>
+<li>Win flash keyframe cycle (0.8s per cycle, repeating for the duration of the win animation, from VDD §7.1):</li>
+<li>0%: opacity 1.0, brightness 1.0</li>
+<li>30%: opacity 1.0, brightness 1.8</li>
+<li>50%: opacity 0.7, brightness 0.8</li>
+<li>70%: opacity 1.0, brightness 1.6</li>
+<li>100%: opacity 1.0, brightness 1.0</li>
+</ul>
+<p><strong>Per-symbol win animation durations (from VDD §3.3 and FRONTEND.md §3.2):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Symbol</th>
+<th>Win Duration</th>
+<th>Frame Count @ 60fps</th>
+<th>Bloom Intensity</th>
+<th>SFX Sync</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Wild (W)</td>
+<td>1200ms</td>
+<td>72 frames</td>
+<td>1.2 (full)</td>
+<td><code>SFX_WIN</code> at t=0ms; tier SFX per step win ratio</td>
+</tr>
+<tr>
+<td>Scatter (SC)</td>
+<td>1800ms</td>
+<td>108 frames</td>
+<td>1.2 (full)</td>
+<td><code>SFX_SCATTER_WIN</code> at t=0ms layered over <code>SFX_WIN</code></td>
+</tr>
+<tr>
+<td>P1 Zeus</td>
+<td>1500ms</td>
+<td>90 frames</td>
+<td>0.8 (high)</td>
+<td><code>SFX_WIN</code> at t=0ms</td>
+</tr>
+<tr>
+<td>P2 Pegasus</td>
+<td>1300ms</td>
+<td>78 frames</td>
+<td>0.8 (high)</td>
+<td><code>SFX_WIN</code> at t=0ms</td>
+</tr>
+<tr>
+<td>P3 Athena</td>
+<td>1200ms</td>
+<td>72 frames</td>
+<td>0.5 (mid)</td>
+<td><code>SFX_WIN</code> at t=0ms</td>
+</tr>
+<tr>
+<td>P4 Eagle</td>
+<td>1000ms</td>
+<td>60 frames</td>
+<td>0.5 (mid)</td>
+<td><code>SFX_WIN</code> at t=0ms</td>
+</tr>
+<tr>
+<td>L1–L4</td>
+<td>800ms</td>
+<td>48 frames</td>
+<td>0.2 (low)</td>
+<td><code>SFX_WIN</code> at t=0ms</td>
+</tr>
+</tbody></table></div>
+<p><strong>Win animation content (Spine <code>win</code> state):</strong></p>
+<ul>
+<li>Wild: lightning bolt slams down from above, arc radiance expands outward from symbol. Scale 1.0 → 1.25 → 1.0 at peak (peak at 600ms, settle by 1200ms).</li>
+<li>Scatter: electric ring pulses outward (max radius 2× symbol size), inner orb brightens to white.</li>
+<li>P1 Zeus: raises hand/bolt; gold aura expands radially (Bloom layer blooms to full).</li>
+<li>P2 Pegasus: wing-spread at maximum extension, gold-purple shimmer radiates outward.</li>
+<li>P3 Athena: shield flash + spear raise; silver-blue light pulse.</li>
+<li>P4 Eagle: wings spread; amber glow burst from eyes.</li>
+<li>L1–L4: letter brightens to <code>--color-gold-bright</code> from its base color, slight scale 1.0 → 1.1 → 1.0.</li>
+</ul>
+<p><strong>SFX to win tier mapping (fired at WIN counter start, t=0ms):</strong></p>
+<ul>
+<li>Step win &lt; 5× baseBet: <code>SFX_WIN_SMALL</code> (600ms)</li>
+<li>5× baseBet ≤ step win &lt; 20× baseBet: <code>SFX_WIN_MEDIUM</code> (900ms)</li>
+<li>Step win ≥ 20× baseBet: no tier SFX here — cumulative <code>totalWin</code> evaluation is reserved for the <code>WIN_DISPLAY</code> step (AUDIO.md §5.8, which defines the WIN_DISPLAY tier SFX). AUDIO.md §5.2 documents the ≥20× deferral rule itself; §5.8 is the destination where the deferred evaluation fires.</li>
+</ul>
+<h3 id="h-24-reel-expansion-animation">2.4 Reel Expansion Animation</h3>
+<p>Triggered when <code>step.rows &gt; previousRows</code> within a <code>CASCADE_STEP</code>. Expansion adds one row at a time (3→4, 4→5, 5→6). Maximum expansion: 6 rows total.</p>
+<p><strong>Expansion sequence (total ~850ms, from VDD §4.4):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+<th>SFX Sync</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Frame height extension</td>
+<td>300ms</td>
+<td><code>--ease-out-cubic</code></td>
+<td>Reel container <code>scaleY</code> expands to accommodate new row (+200px); existing rows compress momentarily then relax</td>
+<td><code>SFX_REEL_EXPAND</code> at t=0ms</td>
+</tr>
+<tr>
+<td>Cloud dissipation</td>
+<td>250ms (delay 50ms)</td>
+<td><code>linear</code></td>
+<td>Cloud/mist layer over the new row area fades out (<code>opacity</code> 1.0 → 0.0)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>New row fade-in</td>
+<td>300ms (delay 200ms)</td>
+<td><code>linear</code></td>
+<td>New row symbols appear at opacity 0 → 1.0</td>
+<td>—</td>
+</tr>
+<tr>
+<td>FREE letter illuminate</td>
+<td>200ms (delay 100ms)</td>
+<td><code>--ease-out-cubic</code></td>
+<td>Corresponding FREE letter brightens (see §3.4)</td>
+<td><code>SFX_FREE_LETTER</code> concurrent with expansion</td>
+</tr>
+</tbody></table></div>
+<p><strong>Total visual impact window:</strong> 0ms–850ms from expansion trigger.</p>
+<p><strong>Row index assignment:</strong> The new row is always added below the current bottom row. Row indices renumber from top; the existing top 3 rows remain rows 1–3, and the new row becomes row 4 (or 5, or 6).</p>
+<p><strong>Cell reveal stagger:</strong> New row cells appear column by column with a 40ms stagger (col 1 → col 2 → col 3 → col 4 → col 5) for a sweeping reveal effect.</p>
+<hr>
+<h2 id="h-3-cascade-chain-animations">§3 Cascade Chain Animations</h2>
+<h3 id="h-31-symbol-explosion-cascade-eliminate">3.1 Symbol Explosion (Cascade Eliminate)</h3>
+<p><strong>Trigger:</strong> After all symbol win animations complete within a <code>CASCADE_STEP</code>. Elimination begins for all winning symbols simultaneously (<code>[PARALLEL]</code>).</p>
+<p><strong>Standard elimination (L1–L4, P3–P4):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Symbol shrink</td>
+<td>200ms</td>
+<td><code>ease-in</code></td>
+<td><code>scale</code>: 1.0 → 0.0</td>
+</tr>
+<tr>
+<td>Fragment scatter</td>
+<td>400ms</td>
+<td><code>ease-out</code></td>
+<td>12–14 particles per symbol; <code>translateX/Y</code>: 0 → ±80px (randomized vector); <code>--color-sym-lN</code> or <code>--color-sym-pN</code> tint; Additive blend</td>
+</tr>
+<tr>
+<td>Fragment fade</td>
+<td>300ms (delay 100ms from scatter start)</td>
+<td><code>linear</code></td>
+<td><code>opacity</code>: 1.0 → 0.0</td>
+</tr>
+<tr>
+<td>Cell clear</td>
+<td>80ms</td>
+<td><code>linear</code></td>
+<td>Cell <code>opacity</code>: 1.0 → 0.0</td>
+</tr>
+</tbody></table></div>
+<p><strong>Premium elimination (Wild, Scatter, P1–P2):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Symbol shrink</td>
+<td>200ms</td>
+<td><code>ease-in</code></td>
+<td><code>scale</code>: 1.0 → 0.0</td>
+</tr>
+<tr>
+<td>Electric arc burst</td>
+<td>400ms</td>
+<td><code>ease-out</code></td>
+<td>14–16 particles per symbol; arc-shaped trajectory outward; <code>--color-gold-bright</code> + <code>--color-arc-white</code> mix; Additive blend</td>
+</tr>
+<tr>
+<td>Bright flash at cell center</td>
+<td>150ms</td>
+<td><code>ease-out-expo</code></td>
+<td>White circular bloom (radius 0px → 30px), <code>opacity</code> 0 → 0.8 → 0</td>
+</tr>
+<tr>
+<td>Fragment fade</td>
+<td>300ms (delay 100ms)</td>
+<td><code>linear</code></td>
+<td><code>opacity</code>: 1.0 → 0.0</td>
+</tr>
+</tbody></table></div>
+<p><strong>SFX sync:</strong> <code>SFX_CASCADE_EXPLODE</code> fires at t=0ms of elimination (one call per symbol, pitch ±1 semitone randomized per AUDIO.md §3.2). <code>SFX_CASCADE</code> (base layer) fires once per step concurrent with first elimination symbol.</p>
+<p><strong>Cascade tint progression (WIN counter area background, from VDD §7.2):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Cascade Count</th>
+<th>WIN Area Tint</th>
+<th>Float Counter Color</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>rgba(255,215,0,0.05)</code></td>
+<td><code>--color-gold-bright</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>rgba(255,215,0,0.12)</code></td>
+<td><code>--color-gold-bright</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>rgba(255,165,0,0.18)</code></td>
+<td><code>--color-orange-thunder</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>rgba(255,100,0,0.25)</code></td>
+<td><code>oklch(70% 0.22 40)</code> orange-red</td>
+</tr>
+<tr>
+<td>5+</td>
+<td><code>rgba(255,50,0,0.30)</code></td>
+<td><code>oklch(62% 0.25 25)</code> red-orange</td>
+</tr>
+</tbody></table></div>
+<p>Tint applied via <code>mix-blend-mode: overlay</code> on WIN counter container background.</p>
+<h3 id="h-32-symbol-drop-cascade-refill">3.2 Symbol Drop (Cascade Refill)</h3>
+<p><strong>Trigger:</strong> After elimination animations complete. New symbols drop from above the reel top to fill empty cells. The drop animation is <code>[PARALLEL]</code> across all filling cells, but staggered by position.</p>
+<p><strong>Drop animation parameters (from VDD §4.2 and FRONTEND.md §6.2):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Property</th>
+<th>Start</th>
+<th>End</th>
+<th>Duration</th>
+<th>Easing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Drop</td>
+<td><code>translateY</code></td>
+<td>-200px (above reel top)</td>
+<td>0px (target cell)</td>
+<td>420ms</td>
+<td><code>ease-out-bounce</code> (JS custom — not a single cubic-bezier; see VDD §4.1 note)</td>
+</tr>
+<tr>
+<td>Opacity on entry</td>
+<td><code>opacity</code></td>
+<td>0</td>
+<td>1.0</td>
+<td>100ms</td>
+<td><code>linear</code></td>
+</tr>
+<tr>
+<td>Landing bounce</td>
+<td><code>scale</code></td>
+<td>1.0</td>
+<td>1.05 → 1.0</td>
+<td>150ms</td>
+<td><code>--ease-out-back</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Stagger formula:</strong> Each symbol&#x27;s drop <code>delay = (col − 1) × 20ms + (row − 1) × 30ms</code>. Maximum delay: (4 × 20ms) + (5 × 30ms) = 230ms. This means the last symbol in column 5, row 6 starts dropping 230ms after the first symbol.</p>
+<p><strong>SFX sync:</strong> <code>SFX_CASCADE_DROP</code> fires per symbol at the moment of landing bounce onset (420ms after that symbol&#x27;s drop starts). The stagger on <code>SFX_CASCADE_DROP</code> calls mirrors the visual stagger formula. Total calls per step: up to 30 (5 cols × 6 rows max).</p>
+<p><strong>Surviving symbol opacity restore:</strong> Non-winning symbols that were dimmed during the preceding win animation (opacity 0.5, brightness 0.6, saturate 0.4 per §2.3) animate back to full values (opacity 1.0, brightness 1.0, saturate 1.0) over 200ms using <code>ease-out-cubic</code>. This restore is <code>[PARALLEL]</code> and begins at the same moment the cascade refill drop starts (t=0ms of §3.2 drop phase), so that dimmed symbols recover concurrent with new symbols falling in.</p>
+<h3 id="h-33-lightning-mark-placement">3.3 Lightning Mark Placement</h3>
+<p><strong>Trigger:</strong> Concurrent with the symbol elimination animation within the same <code>CASCADE_STEP</code>. <code>LightningMarkComponent.addMarks(step.newLightningMarks)</code> is called as each cell is eliminated.</p>
+<p><strong>Mark appearance animation (from FRONTEND.md §6.3 and VDD §5.1):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Scale-in</td>
+<td>400ms</td>
+<td><code>--ease-out-back</code></td>
+<td>Mark <code>scale</code>: 0 → 1.2 → 1.0</td>
+</tr>
+<tr>
+<td>Initial arc particles</td>
+<td>400ms concurrent</td>
+<td><code>ease-out</code></td>
+<td>6–12 gold arc particles drift upward from mark center; <code>--color-gold-bright</code> (50%) + <code>--color-arc-white</code> (50%); 0.4–0.8s lifetime; Additive blend</td>
+</tr>
+<tr>
+<td>Overlay settle</td>
+<td>400ms</td>
+<td><code>ease-out-cubic</code></td>
+<td>Mark overlay opacity ramps to 0.6 (Additive blend on symbol layer below)</td>
+</tr>
+</tbody></table></div>
+<p><strong>SFX sync:</strong> <code>SFX_LIGHTNING_MARK</code> fires at scale-in midpoint (~200ms into appearance). Pitch shifts +2 semitones per cumulative mark count, <strong>capped at +8 semitones for 5 or more marks</strong> (1 mark = 0st base, 2 marks = +2st, 3 marks = +4st, 4 marks = +6st, 5+ marks = +8st — no further pitch increase beyond 5 marks) via AudioContext <code>detune</code> property (AUDIO.md §3.2).</p>
+<p><strong>Mark persistence across cascade steps:</strong> <code>LightningMarkComponent</code> is stateful — marks placed in <code>CASCADE_STEP[N]</code> remain rendered without any explicit retention call at the start of <code>CASCADE_STEP[N+1]</code>. No <code>retainMarks()</code> call is dispatched between steps. The component&#x27;s internal mark array accumulates across all steps in the cascade chain and is cleared only by <code>LightningMarkComponent.clearAllMarks()</code> at the TB settle phase (§4.5) or on IDLE re-entry. This implicit persistence (main-game cascade) contrasts with explicit restoration via <code>restoreMarks(positions)</code> called at the start of each FG round (§6.2).</p>
+<p><strong>Mark idle (persistent) animation:</strong></p>
+<p>Once placed, marks emit a continuous low-intensity electric arc particle loop (<code>SFX_LIGHTNING_PERSIST</code> [LOOP]):</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Mark Count</th>
+<th>Particle Count</th>
+<th>Gain Level</th>
+<th>Brightness</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1–2 marks</td>
+<td>3–6 per cell</td>
+<td>−18 dBFS</td>
+<td>dim gold constant</td>
+</tr>
+<tr>
+<td>3–4 marks</td>
+<td>6–9 per cell</td>
+<td>−12 dBFS</td>
+<td>orange-gold arc flicker</td>
+</tr>
+<tr>
+<td>5+ marks</td>
+<td>9–12 per cell</td>
+<td>−6 dBFS</td>
+<td>pulsing white-gold, expanded background glow</td>
+</tr>
+</tbody></table></div>
+<p><strong>Visual threshold changes (matching FRONTEND.md §3.3):</strong></p>
+<ul>
+<li>1–2 marks: <code>--color-gold-bright</code> at 60% opacity, constant. No animation beyond particle drift.</li>
+<li>3–4 marks: Electric arc flicker added; mark overlay pulses at 0.8s period (opacity 0.6 → 0.9 → 0.6).</li>
+<li>5+ marks: Pulsing white-gold (<code>--color-gold-divine</code>), 0.4s pulse period; expanded background radial glow (radius 60px, Additive) behind each mark.</li>
+</ul>
+<h3 id="h-34-free-letter-activation">3.4 FREE Letter Activation</h3>
+<p><strong>Trigger:</strong> Each time <code>step.rows</code> increases (i.e., a Reel Expansion event per §2.4), the corresponding FREE letter is illuminated. Letters F, R, E, E correspond to the 1st, 2nd, 3rd, and 4th row expansion events respectively (from FRONTEND.md §3.9).</p>
+<p><strong>Letter illuminate animation (from VDD §4.4):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Property</th>
+<th>Start</th>
+<th>End</th>
+<th>Duration</th>
+<th>Easing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Brightness ramp</td>
+<td><code>filter: brightness</code></td>
+<td>0.3</td>
+<td>1.0</td>
+<td>200ms</td>
+<td><code>--ease-out-cubic</code></td>
+</tr>
+<tr>
+<td>Scale pulse</td>
+<td><code>scale</code></td>
+<td>0.8</td>
+<td>1.15 → 1.0</td>
+<td>300ms</td>
+<td><code>--ease-out-back</code></td>
+</tr>
+<tr>
+<td>Glow particle burst</td>
+<td>4–6 particles per letter</td>
+<td>spawn at letter center</td>
+<td>radiate outward 40px</td>
+<td>400ms</td>
+<td><code>ease-out</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>SFX sync:</strong> <code>SFX_FREE_LETTER</code> fires at the brightness-ramp peak (~150ms into the 200ms ramp). Pitch rises per letter: F = base, R = +2 semitones, E3 = +4 semitones, E4 = +7 semitones (AUDIO.md §3.2).</p>
+<p><strong>All 4 letters lit — BGM crossfade trigger:</strong></p>
+<ul>
+<li>When the 4th letter (E4) illuminates, <code>BGM_ANTICIPATION</code> crossfades in over 300ms (state-observer owned — AUDIO.md §4.2).</li>
+<li>HUD pulsing intensifies: all 4 lit letters cycle at 0.6s pulse period (brightness 1.0 → 1.4 → 1.0) until cascade ends or Coin Toss triggers.</li>
+</ul>
+<hr>
+<h2 id="h-4-thunder-blessing-sequence">§4 Thunder Blessing Sequence</h2>
+<h3 id="h-41-overview-and-timing-diagram">4.1 Overview and Timing Diagram</h3>
+<p>The Thunder Blessing sequence is driven by <code>ThunderBlessingComponent.playSequence()</code>, inserted into the <code>AnimationQueue</code> immediately after the <code>CASCADE_STEP</code> where <code>thunderBlessingTriggeredAfterStep = true</code>. All timings are absolute from t=0 (the moment <code>dispatcher.dispatch({ type: &#x27;THUNDER_BLESSING&#x27; })</code> is called).</p>
+<p><strong>SC win animation placement:</strong> The Scatter symbol&#x27;s 1800ms win animation runs entirely within the preceding <code>CASCADE_STEP</code> (not at t=0ms of the <code>THUNDER_BLESSING</code> step). Specifically, <code>SFX_CASCADE_EXPLODE</code> fires at ~1800ms in steps where SC is in a winning line (per §10.1 and AUDIO.md §5.2) — the CASCADE_STEP waits for the SC win animation to complete before the step concludes. The THUNDER_BLESSING AQ step begins only after the CASCADE_STEP finishes. The Scatter symbol at its cell position is the arc-line source (§4.2) but no SC win replay occurs inside the THUNDER_BLESSING step.</p>
+<pre><code>t=0ms       TB sequence begins
+              - Reel grid overlay dims to 85% brightness (300ms, ease-in)
+              - Background cloud layer (parallax layer 1) accelerates to 40px/s
+
+t=200ms     Lightning Marks begin pulsing simultaneously
+              - SFX_LIGHTNING_ACTIVATE fires
+              - Arc lines from Scatter cell → each mark (Bezier, 2px, --color-arc-white, Additive)
+
+t=800ms     ALL marks explode simultaneously
+              - SFX_THUNDER_BLESSING fires
+              - SFX_TB_FIRST_HIT fires (layered)
+              - Background white flash: rgba(255,255,255,0) → rgba(255,255,255,0.9) → rgba(255,255,255,0)
+                Duration: 0–300ms within this window
+              - fx_thunder_blessing_hit1.spine plays at reel center
+
+t=1200ms    Marked cells: current symbols shatter (elimination variant)
+              - Electric arc explosion (scale 0.5 → 2.5, 600ms, ease-out-expo) per VDD §4.3
+
+t=1500ms    Target symbol assembles at each formerly-marked cell
+              - SFX_TB_SYMBOL_UPGRADE fires
+              - SymbolComponent.upgradeToSymbol(convertedSymbol)
+              - Whole reel: filter sepia(0.3) brightness(1.4) (300ms, ease-out-cubic)
+
+t=1800ms    Gold glow fades out
+              - filter returns to none (400ms, ease-in-out-cubic)
+
+---if thunderBlessingSecondHit === true---
+
+t=2300ms    Second pulse
+              - SFX_SECOND_HIT fires
+              - White flash: rgba(255,255,255,0) → rgba(255,255,255,0.6) → rgba(255,255,255,0) (300ms)
+              - fx_thunder_blessing_hit2.spine plays at reel center
+              - Each converted symbol upgrades one tier (upgrade path animation)
+
+t=3000ms    Sequence complete; grid returns to normal
+              - SFX_TB_SETTLE fires
+              - Reel brightness restores to 1.0 (200ms, ease-out-cubic)
+              - Background cloud layer decelerates back to 8px/s (1000ms, ease-in-out-cubic)
+              - All mark overlays cleared
+              - AnimationQueue resumes to next CASCADE_STEP or WIN_DISPLAY</code></pre>
+<h3 id="h-42-lightning-mark-activation-animation-t200ms">4.2 Lightning Mark Activation Animation (t=200ms)</h3>
+<p>At t=200ms, <code>SFX_LIGHTNING_ACTIVATE</code> fires and the following animations begin simultaneously (<code>[PARALLEL]</code>):</p>
+<p><strong>Mark pulse activation:</strong></p>
+<ul>
+<li>All active marks begin a rapid brightness pulse: <code>opacity</code> 0.6 → 1.0 → 0.6, period 150ms, repeating until t=800ms (approximately 4 cycles).</li>
+<li>Mark particle emitters ramp from idle particle count to maximum (12 per cell) over 300ms.</li>
+<li>Particle velocity ramps from 40px/s to 100px/s over the same 300ms.</li>
+</ul>
+<p><strong>Arc line draw (Bezier from SC → each mark):</strong></p>
+<ul>
+<li>The <code>THUNDER_BLESSING</code> AQ step is dispatched using the <code>ThunderBlessingParams</code> interface defined in FRONTEND.md §3.4: <code>dispatcher.dispatch({ type: &#x27;THUNDER_BLESSING&#x27;, data: { thunderBlessingResult, thunderBlessingFirstHit, thunderBlessingSecondHit, upgradedSymbol } })</code>. The SC cell position for arc-line source is <strong>not</strong> a separate <code>scatterCell</code> field; instead <code>ThunderBlessingComponent</code> derives the SC cell origin from <code>thunderBlessingResult</code> (which carries the converted mark positions and their source SC reference) or from the <code>FullSpinOutcome</code> snapshot captured before elimination. <code>ThunderBlessingComponent</code> must not query the live grid for SC position — SC will have been eliminated and replaced by cascade-drop symbols before this AQ step fires.</li>
+<li>Each arc line draws from the derived SC pixel center to the target mark cell center using a Bezier path.</li>
+<li>Arc draw duration: 200ms per line, staggered 20ms apart from nearest to farthest mark.</li>
+<li>Arc line: 2px stroke, <code>--color-arc-white</code>, Additive blend, opacity 0.8.</li>
+<li>Arc lines persist (flicker at 0.8 opacity ± 0.2, 80ms period) from t=200ms through t=3000ms. The lines remain rendered through the mark explosion (t=800ms) and symbol upgrade (t=1500ms) phases — they are not cleared at mark explosion. At t=3000ms (settle phase, §4.5) they fade opacity 0.8 → 0.0 over 300ms.</li>
+</ul>
+<h3 id="h-43-mark-explosion-and-symbol-upgrade-t800ms-t1500ms">4.3 Mark Explosion and Symbol Upgrade (t=800ms → t=1500ms)</h3>
+<p><strong>At t=800ms — Mark explosion:</strong></p>
+<ul>
+<li>All marks explode simultaneously (<code>[PARALLEL]</code>).</li>
+<li>Per-mark particle burst: 80–120 particles per cell (desktop), 40–60 (mobile); speed 80–400px/s outward radially; lifetime 0.3–1.0s; <code>--color-gold-bright</code> + <code>--color-arc-white</code>; Additive blend.</li>
+<li>Total particles: up to 480 desktop (within TB explosion budget, VDD §5.4). Mobile: 240.</li>
+<li><code>fx_thunder_blessing_hit1.spine</code> plays at reel grid center (not per cell) — full-reel-width VFX spine animation.</li>
+<li>Background white flash: <code>rgba(255,255,255,0)</code> → <code>rgba(255,255,255,0.9)</code> (200ms, <code>ease-out-expo</code>), then <code>rgba(255,255,255,0.9)</code> → <code>rgba(255,255,255,0)</code> (100ms, <code>linear</code>). Total: 300ms.</li>
+</ul>
+<p><strong>At t=1200ms — Cell shatter:</strong></p>
+<ul>
+<li>Marked cell symbols play the Thunder Blessing elimination variant (from VDD §4.3):</li>
+<li>Electric arc explosion <code>scale</code>: 0.5 → 2.5 (600ms, <code>--ease-out-expo</code>), overflowing cell boundary by 20%.</li>
+<li>Symbol itself <code>scale</code>: 1.0 → 0.0 (200ms, <code>ease-in</code>).</li>
+</ul>
+<p><strong>At t=1500ms — Symbol assembly:</strong></p>
+<ul>
+<li><code>SymbolComponent.upgradeToSymbol(convertedSymbol)</code> at each converted position.</li>
+<li>Assembly animation: target symbol materializes from gold light coalescing at cell center.</li>
+<li>Gold light <code>scale</code>: 0 → 1.8 → 1.0 (400ms, <code>--ease-out-back</code>).</li>
+<li>Symbol <code>opacity</code>: 0 → 1.0 (200ms, <code>linear</code>, starting at t=1600ms).</li>
+<li>Whole reel gold filter: <code>sepia(0.3) brightness(1.4)</code> applied over 300ms (<code>ease-out-cubic</code>) starting t=1500ms.</li>
+<li>At t=1800ms — Gold filter fade-out: <code>filter</code> returns to <code>none</code> over 400ms (<code>ease-in-out-cubic</code>). The ramp-in completes at t=1800ms and the fade-out begins immediately; the filter clears fully at t=2200ms. <em>(Second-hit path: this fade-out still occurs at t=1800ms — the second hit at t=2300ms produces a symbol over-brightening on a per-symbol basis, not a reel-wide gold filter re-application.)</em></li>
+<li><code>SFX_TB_SYMBOL_UPGRADE</code> fires at t=1500ms — all positions simultaneously.</li>
+</ul>
+<h3 id="h-44-second-hit-optional-t2300ms">4.4 Second Hit (Optional, t=2300ms)</h3>
+<p>Applies only when <code>thunderBlessingSecondHit = true</code> (from <code>ThunderBlessingParams</code>).</p>
+<p><strong>At t=2300ms:</strong></p>
+<ul>
+<li><code>SFX_SECOND_HIT</code> fires (1500ms duration, more electric/less thunder than first hit — AUDIO.md §3.2).</li>
+<li>Second white flash: <code>rgba(255,255,255,0)</code> → <code>rgba(255,255,255,0.6)</code> → <code>rgba(255,255,255,0)</code> (300ms total; lower intensity than first hit per VDD §7.4).</li>
+<li><code>fx_thunder_blessing_hit2.spine</code> plays at reel center.</li>
+<li>Each already-converted symbol plays <code>SymbolComponent.upgradeToSymbol(upgradedSymbol)</code> for one tier advancement (upgrade path: L1/L2/L3/L4 → P4; P4 → P3; P3 → P2; P2 → P1).</li>
+<li>Upgrade visual: symbol briefly over-brightens (brightness 1.0 → 2.0 → 1.0, 200ms) then resolves to the new symbol identity (same assembly animation as t=1500ms but 250ms compressed).</li>
+<li>Per-position particle: 20–30 particles per cell (smaller than first hit), <code>--color-gold-divine</code>, 0.3–0.6s lifetime, upward radial.</li>
+</ul>
+<h3 id="h-45-settle-phase-t3000ms">4.5 Settle Phase (t=3000ms)</h3>
+<p><strong>At t=3000ms:</strong></p>
+<ul>
+<li><code>SFX_TB_SETTLE</code> fires (400ms gold resonance chime, signals cascade resume).</li>
+<li>Reel brightness restores: <code>filter: none</code> over 200ms (<code>ease-out-cubic</code>). <em>(Safety clear — in the single-hit path the gold filter already fades to zero by t=2200ms [1500ms ramp start + 300ms ramp + 400ms fade]; this call ensures no residual filter state persists into subsequent cascade steps regardless of path.)</em></li>
+<li>All remaining TB particles fade out (old particles preemptive recycle).</li>
+<li>Arc lines from §4.2 fade out completely (opacity 0.8 → 0.0, 300ms, <code>linear</code>).</li>
+<li>Mark overlay indicators are cleared: <code>LightningMarkComponent.clearAllMarks()</code> called.</li>
+<li>Background cloud layer decelerates back to 8px/s drift over 1000ms (<code>ease-in-out-cubic</code>).</li>
+<li>AnimationQueue resumes; next step dispatched.</li>
+</ul>
+<hr>
+<h2 id="h-5-coin-toss-animations">§5 Coin Toss Animations</h2>
+<h3 id="h-51-overview">5.1 Overview</h3>
+<p>The Coin Toss is triggered when <code>coinTossTriggered = true</code> in <code>FullSpinOutcome</code>, queued as an <code>AnimationQueue</code> step of type <code>COIN_TOSS</code>. Total sequence duration: 3000ms–3500ms (randomized in the sustained spin phase). The <code>CoinTossComponent.playToss(result, stage)</code> drives all animations.</p>
+<p>BGM crossfade to <code>BGM_COIN_TOSS</code> (800ms) is state-observer-owned and begins at <code>COIN_TOSS</code> state entry; it does not block this animation sequence.</p>
+<h3 id="h-52-coin-fly-in-t0ms">5.2 Coin Fly-In (t=0ms)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>SFX</td>
+<td><code>SFX_COIN_TOSS_START</code> at t=0ms (500ms woosh)</td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>500ms</td>
+</tr>
+<tr>
+<td>Entry position</td>
+<td>Off-screen top (Y: viewport_top − 150px)</td>
+</tr>
+<tr>
+<td>Target position</td>
+<td>Reel center (X: 960px, Y: 500px at 1920×1080)</td>
+</tr>
+<tr>
+<td>Animation</td>
+<td><code>translateY</code>: −(viewport_top + 150)px → 0 (relative to target)</td>
+</tr>
+<tr>
+<td>Easing</td>
+<td><code>--ease-out-cubic</code></td>
+</tr>
+<tr>
+<td>Backdrop</td>
+<td><code>opacity</code>: 0 → 0.7 (dark overlay over game) over 500ms, <code>linear</code></td>
+</tr>
+<tr>
+<td>Spotlight</td>
+<td>Cone spotlight appears at t=300ms (opacity 0 → 1.0, 300ms, <code>ease-out-cubic</code>) centered on coin target position</td>
+</tr>
+<tr>
+<td>Coin render</td>
+<td>Zeus portrait face visible during fly-in (both faces pre-loaded; result not yet revealed)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-53-coin-flip-loop-t500ms">5.3 Coin Flip Loop (t=500ms)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>SFX</td>
+<td><code>SFX_COIN_TOSS_FLIP</code> [LOOP] starts at t=500ms</td>
+</tr>
+<tr>
+<td>CSS perspective</td>
+<td><code>perspective: 800px</code> applied to <code>CoinTossComponent</code> container (from VDD §4.5); required for realistic 3D foreshortening on rotateY — without this value the rotation appears flat</td>
+</tr>
+<tr>
+<td>Acceleration phase</td>
+<td>0°→2520° <code>rotateY</code> (7 full Y-axis rotations) over 800ms, <code>ease-in</code></td>
+</tr>
+<tr>
+<td>Sustained phase</td>
+<td>Continue rotateY at constant angular velocity; duration 200ms–700ms (randomized to create suspense — total flip + sustained = 1000ms–1500ms)</td>
+</tr>
+<tr>
+<td>Loop stops</td>
+<td>At t≈2000ms (start of deceleration)</td>
+</tr>
+<tr>
+<td>Visual</td>
+<td>Coin front (Zeus portrait) and back (lightning bolt) alternate as rotateY crosses 90°/270° per rotation. Coin uses two textures; texture swap at half-rotation crossing.</td>
+</tr>
+<tr>
+<td>Particle</td>
+<td>4–6 gold glint particles per second emitted from coin rim during spin phase; <code>--color-gold-bright</code>; Additive blend; 0.2s lifetime; scattered radially.</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-54-result-reveal-t2000ms3500ms">5.4 Result Reveal (t≈2000ms–3500ms)</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>SFX</td>
+<td><code>SFX_COIN_TOSS_FLIP</code> loop stops at t≈2000ms</td>
+</tr>
+<tr>
+<td>Deceleration</td>
+<td><code>rotateY</code> continues from current angle to final face-up angle; duration 1500ms; <code>--ease-coin-decel</code> (<code>cubic-bezier(0.05, 0.7, 0.1, 1.0)</code>)</td>
+</tr>
+<tr>
+<td>Final face</td>
+<td>HEADS: Zeus portrait face-up. TAILS: Lightning bolt face-up.</td>
+</tr>
+<tr>
+<td>SFX result</td>
+<td><code>SFX_COIN_HEADS</code> (800ms) or <code>SFX_COIN_TAILS</code> (600ms) fires when coin fully settles (~t=3500ms)</td>
+</tr>
+<tr>
+<td>Result text</td>
+<td>Text banner appears 100ms after coin settles: &quot;ZEUS SMILES!&quot; (HEADS) or &quot;NOT THIS TIME&quot; (TAILS); <code>translateY</code>: −80px → 0, 400ms, <code>--ease-out-back</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-55-heads-outcome">5.5 HEADS Outcome</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>SFX</td>
+<td><code>SFX_COIN_HEADS</code> at coin-settle; <code>SFX_COIN_MULT_PROGRESS</code> at progress bar animation start</td>
+</tr>
+<tr>
+<td>Coin effect</td>
+<td><code>scale</code>: 1.0 → 1.3 → 1.0 (600ms, <code>--ease-out-back</code>); outer glow <code>opacity</code>: 0 → 1.0 → 0 (600ms, <code>ease-out-expo</code>); <code>--color-gold-divine</code> radiance</td>
+</tr>
+<tr>
+<td>Gold burst</td>
+<td>40–60 gold particles burst radially from coin center; <code>--color-gold-bright</code>; speed 60–200px/s; 0.6s lifetime; Additive blend</td>
+</tr>
+<tr>
+<td>&quot;ZEUS SMILES!&quot; banner</td>
+<td><code>--color-gold-bright</code> text, scale 0.8 → 1.1 → 1.0 (400ms, <code>--ease-out-back</code>). Background pulse: gold rim on banner</td>
+</tr>
+<tr>
+<td>Multiplier progress bar</td>
+<td>Animates progress line from current stage node to next stage node; duration 500ms, <code>--ease-in-out-cubic</code>; line color transitions per VDD §7.3 table</td>
+</tr>
+<tr>
+<td>Progress bar SFX</td>
+<td><code>SFX_COIN_MULT_PROGRESS</code> fires at progress bar animation start (pitch rises per stage: ×3=base, ×7=+3st, ×17=+6st, ×27=+9st, ×77=+12st)</td>
+</tr>
+<tr>
+<td>Transition</td>
+<td>Coin Toss overlay fades out (opacity 1.0 → 0.0, 400ms) after progress bar animation completes; FG_ENTRY AQ step begins</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-56-tails-outcome">5.6 TAILS Outcome</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>SFX</td>
+<td><code>SFX_COIN_TAILS</code> at coin-settle (600ms, duller metal land + minor chord)</td>
+</tr>
+<tr>
+<td>Coin effect</td>
+<td><code>filter: brightness</code>: 1.0 → 0.6 (400ms, <code>--ease-in-out-cubic</code>) — coin dims</td>
+</tr>
+<tr>
+<td>&quot;NOT THIS TIME&quot; text</td>
+<td>Silver/grey color (<code>oklch(70% 0.02 0)</code>), opacity 0 → 1.0 (300ms, <code>linear</code>); no scale animation</td>
+</tr>
+<tr>
+<td>Result panel</td>
+<td>Static; no further animation beyond text appear</td>
+</tr>
+<tr>
+<td>BGM crossfade</td>
+<td><strong>Main-game only:</strong> State-observer owned: <code>BGM_COIN_TOSS</code> → <code>BGM_MAIN</code>, 500ms (AUDIO.md §4.2 <code>COIN_TOSS→RESULT_DISPLAY</code>). <strong>FG context:</strong> BGM crossfade does NOT occur — BGM continues as <code>BGM_FREE_GAME</code> or <code>BGM_77X</code> until <code>RESULT_DISMISSED</code> (per AUDIO.md §5.6 FG caveat).</td>
+</tr>
+<tr>
+<td>Transition</td>
+<td><strong>Main-game only:</strong> Overlay fades out (opacity 1.0 → 0.0, 600ms, <code>ease-in-out-cubic</code>); <code>WIN_DISPLAY</code> AQ step begins (or no-win result). <strong>FG context:</strong> Overlay fades out then <code>FG_COMPLETE</code> AQ step begins — NOT <code>WIN_DISPLAY</code> (per AUDIO.md §5.6 FG caveat).</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-6-free-game-animations">§6 Free Game Animations</h2>
+<h3 id="h-61-fg-entry-animation-aq-step-fg_entry">6.1 FG Entry Animation (AQ Step: <code>FG_ENTRY</code>)</h3>
+<p><strong>Trigger:</strong> <code>fgTriggered = true</code>; <code>dispatcher.dispatch({ type: &#x27;FG_ENTRY&#x27;, data: { fgBonusMultiplier, initialMultiplier: 3 } })</code>.</p>
+<p><strong>SFX sync:</strong> <code>SFX_FG_ENTER</code> (2500ms full fanfare) fires at t=0ms of FG_ENTRY step. BGM crossfade <code>BGM_COIN_TOSS</code> → <code>BGM_FREE_GAME</code> (800ms) is state-observer-owned.</p>
+<p><strong>Scene transition animation (from VDD §4.6):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Old scene dissolve</td>
+<td>800ms</td>
+<td><code>linear</code></td>
+<td>Main game background <code>opacity</code>: 1.0 → 0.0</td>
+</tr>
+<tr>
+<td>Sky Temple background fade-in</td>
+<td>800ms (delay 400ms)</td>
+<td><code>linear</code></td>
+<td>FG night sky background <code>opacity</code>: 0.0 → 1.0</td>
+</tr>
+<tr>
+<td>Starfield particles</td>
+<td>starts at t=400ms</td>
+<td>continuous</td>
+<td>20–30 slow-moving star particles; white dots; low opacity (0.4–0.7); Additive; drift at 10px/s</td>
+</tr>
+</tbody></table></div>
+<p><strong>FG Banner drop (from VDD §4.6):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Delay</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>FG title banner drop</td>
+<td>1200ms</td>
+<td>600ms</td>
+<td><code>--ease-out-cubic</code></td>
+<td>Banner <code>translateY</code>: −200px → 0</td>
+</tr>
+<tr>
+<td>Multiplier reveal</td>
+<td>1800ms</td>
+<td>800ms</td>
+<td><code>--ease-out-back</code></td>
+<td>Multiplier number: <code>scale</code> 0 → 2.0 → 1.0</td>
+</tr>
+</tbody></table></div>
+<p><strong>FG Bonus Multiplier reveal (at t=1800ms, concurrent with multiplier <code>scale</code> animation):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th><code>fgBonusMultiplier</code></th>
+<th>SFX</th>
+<th>Particle Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>SFX_FG_BONUS_REVEAL</code> at t=1800ms</td>
+<td>Standard reveal, 10–20 gold particles</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>SFX_FG_BONUS_5X</code> at t=1800ms</td>
+<td>Moderate gold burst: 60–80 particles, radius 120px, <code>--color-gold-bright</code></td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>SFX_FG_BONUS_20X</code> at t=1800ms</td>
+<td>Large burst: 150–200 particles, radius 200px; banner swells to scale 1.2 before settling</td>
+</tr>
+<tr>
+<td>100</td>
+<td><code>SFX_FG_BONUS_100X</code> at t=1800ms</td>
+<td>Full-screen explosion: 3000 particles desktop / 800 mobile (VDD §5.4 exception); <code>fx_fg_bonus_100x.spine</code> plays; 3.0s burst window; BGM duck −9dB for 4000ms (state-observer owned). <strong>Flash compliance note:</strong> <code>fx_fg_bonus_100x.spine</code> must not contain brightness-peak flashes exceeding 3Hz (WCAG 2.3.1); the Spine FX asset must be reviewed at QA against VDD §8.2 before ship. The 3000-particle burst itself does not constitute a flash event.</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-62-fg-round-hud">6.2 FG Round HUD</h3>
+<p><strong>Active during all <code>FG_ROUND</code> AQ steps.</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Element</th>
+<th>Location (1920×1080)</th>
+<th>Update Animation</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Current multiplier display</td>
+<td>Reel top-center, above FREE letters</td>
+<td>Number changes: old number <code>scale</code> 1.0 → 0 (200ms, <code>ease-in</code>), new number <code>scale</code> 0 → 1.1 → 1.0 (300ms, <code>--ease-out-back</code>)</td>
+</tr>
+<tr>
+<td>Round counter (&quot;ROUND N&quot;)</td>
+<td>Below multiplier</td>
+<td>Direct text update; no animation</td>
+</tr>
+<tr>
+<td>Lightning mark display</td>
+<td>Same position as main game (1465px X, 90px Y)</td>
+<td>Marks persist and accumulate across FG rounds; same visual thresholds as §3.3</td>
+</tr>
+<tr>
+<td>Background scene</td>
+<td>Sky Temple (night), starfield continues</td>
+<td>Continuous idle</td>
+</tr>
+</tbody></table></div>
+<p><strong>Lightning mark persistence in FG:</strong> <code>fgRounds[i].lightningMarksBefore</code> positions are restored at the start of each FG round via <code>LightningMarkComponent.restoreMarks(positions)</code> (no animation — instant restore; FRONTEND.md §6.3). <code>restoreMarks(positions)</code> is a <strong>replace/set operation</strong>: it clears the component&#x27;s internal mark array and sets it to the provided <code>positions</code> array. It is NOT additive (append). Implementers must not confuse this with the implicit accumulation behavior in main-game cascades (§3.3); FG round-start marks are always a full replacement of state.</p>
+<p><strong>×77 multiplier HUD state:</strong> When <code>fgMultiplier = 77</code> is reached, all 5 progress bar nodes enter a continuous flicker (from VDD §7.3):</p>
+<ul>
+<li><code>filter: brightness</code> keyframe cycle: 0% → 1.0; 25% → 2.5; 50% → 1.2; 75% → 2.0; 100% → 1.0</li>
+<li>Duration: 1.5s <code>ease-in-out</code>, <code>infinite</code> repeat until FG exits.</li>
+<li>BGM crossfade to <code>BGM_77X</code> (800ms, state-observer-owned).</li>
+</ul>
+<h3 id="h-63-multiplier-advance-heads-in-fg">6.3 Multiplier Advance (HEADS in FG)</h3>
+<p><strong>Trigger:</strong> <code>fgRounds[i].coinTossResult === &#x27;HEADS&#x27;</code> and <code>multiplier ≠ 77</code>. SFX: <code>SFX_FG_MULT_UP</code> (1200ms) fires immediately.</p>
+<p><strong>Normal multiplier advance:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Old number explode</td>
+<td>300ms</td>
+<td><code>ease-out-expo</code></td>
+<td>Old number <code>scale</code>: 1.0 → 2.5; <code>opacity</code>: 1.0 → 0</td>
+</tr>
+<tr>
+<td>New number scale-in</td>
+<td>500ms (delay 200ms from explode start)</td>
+<td><code>--ease-out-back</code></td>
+<td>New number <code>scale</code>: 0 → 1.2 → 1.0</td>
+</tr>
+<tr>
+<td>Gold particle burst</td>
+<td>300ms</td>
+<td><code>ease-out</code></td>
+<td>30–50 gold particles from multiplier display position; <code>--color-gold-bright</code>; radial outward</td>
+</tr>
+<tr>
+<td>Progress bar fill</td>
+<td>500ms (delay 300ms)</td>
+<td><code>--ease-in-out-cubic</code></td>
+<td>Progress line advances to next node; color transitions per VDD §7.3</td>
+</tr>
+</tbody></table></div>
+<p><code>SFX_COIN_MULT_PROGRESS</code> fires at progress bar animation start (AUDIO.md §5.6).</p>
+<p><strong>×77 multiplier advance (special case):</strong></p>
+<p><code>SFX_FG_MULT_77</code> fires (3000ms maximum intensity, AUDIO.md §3.2). <code>SFX_FG_MULT_UP</code> does NOT fire on this branch.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Start Offset</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Old number explode</td>
+<td>t=0ms</td>
+<td>400ms</td>
+<td><code>ease-out-expo</code></td>
+<td>Same as normal but 400ms</td>
+</tr>
+<tr>
+<td>Lightning strike visual</td>
+<td>t=400ms</td>
+<td>600ms</td>
+<td>—</td>
+<td>Full-width lightning bolt descends from screen top to multiplier display area; 2px → 8px stroke width; <code>--color-gold-divine</code>; white bloom at impact</td>
+</tr>
+<tr>
+<td>&quot;×77&quot; number scale-in</td>
+<td>t=700ms (delay 300ms, overlaps strike)</td>
+<td>800ms</td>
+<td><code>--ease-out-back</code></td>
+<td><code>scale</code>: 0 → 1.8 → 1.0; color: <code>--color-gold-divine</code>; text size increases to <code>--text-mult-max</code> (72px)</td>
+</tr>
+<tr>
+<td>Screen gold flash</td>
+<td>t=1000ms (concurrent with lightning strike completion)</td>
+<td>300ms</td>
+<td><code>ease-out-expo</code></td>
+<td><code>rgba(255,200,0,0.4)</code> overlay flash, fade to 0</td>
+</tr>
+<tr>
+<td>All progress nodes illuminate</td>
+<td>t=1000ms (concurrent with flash)</td>
+<td>500ms</td>
+<td><code>ease-out-cubic</code></td>
+<td>All 5 nodes reach maximum brightness simultaneously</td>
+</tr>
+<tr>
+<td>Particle burst (<code>PS_FG_MULT_77</code>)</td>
+<td>t=1000ms (concurrent with node illuminate)</td>
+<td>—</td>
+<td>—</td>
+<td>200–300 particles desktop / 100–150 mobile; <code>--color-gold-divine</code>; Additive blend; 1000ms lifetime; spawn from multiplier display area (screen center, same Y as multiplier number)</td>
+</tr>
+<tr>
+<td>BGM crossfade begins</td>
+<td>t=0ms (concurrent with sequence start)</td>
+<td>—</td>
+<td>—</td>
+<td><code>BGM_FREE_GAME</code> → <code>BGM_77X</code> over 800ms (state-observer-owned)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-64-fg-complete-aq-step-fg_complete">6.4 FG Complete (AQ Step: <code>FG_COMPLETE</code>)</h3>
+<p><strong>Trigger:</strong> All FG rounds consumed or TAILS result received. <code>dispatcher.dispatch({ type: &#x27;FG_COMPLETE&#x27;, data })</code>.</p>
+<p><strong>SFX:</strong> <code>SFX_FG_COMPLETE</code> (3500ms grand resolution) at t=0ms.</p>
+<p><strong>Summary panel animation:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Summary panel slide-in</td>
+<td>600ms</td>
+<td><code>--ease-out-cubic</code></td>
+<td>Panel <code>translateY</code>: −300px → 0; appears centered over frozen reel</td>
+</tr>
+<tr>
+<td>Summary content reveal</td>
+<td>400ms (delay 200ms)</td>
+<td><code>linear</code></td>
+<td>Labels and values fade in sequentially (totalFGWin → fgMultiplier → bonusMultiplier)</td>
+</tr>
+<tr>
+<td>WIN roll-up begins</td>
+<td>0ms (concurrent with summary)</td>
+<td>—</td>
+<td><code>BalanceComponent.animateWin(totalWin)</code> starts; <code>SFX_WIN_ROLLUP_TICK</code> throttled at 80ms</td>
+</tr>
+</tbody></table></div>
+<p><strong>Win tier overlay (fires at roll-up completion):</strong></p>
+<ul>
+<li>Evaluated against <code>outcome.totalWin / baseBet</code> (see §7.2 for overlay specs).</li>
+<li>For FG outcomes this is the cumulative win including multiplier — applies the same overlay animation as non-FG.</li>
+<li><strong>Win tier SFX timing:</strong> The win tier SFX (<code>SFX_WIN_SMALL</code> through <code>SFX_MAX_WIN_LEGENDARY</code>) fires at roll-up <strong>completion</strong> (per AUDIO.md §5.7), not at t=0ms of the FG_COMPLETE step. This differs from WIN_DISPLAY (non-FG path) where the win tier SFX fires at t=0ms concurrent with roll-up start (AUDIO.md §5.8 and §10.1 AQ Step Map).</li>
+</ul>
+<p><strong>Transition after summary:</strong> After overlay resolves (or player dismisses), FG exits: background cross-dissolves back to main scene (800ms, <code>linear</code>). BGM crossfade to <code>BGM_MAIN</code> fires on <code>RESULT_DISMISSED</code> event (state-observer-owned, 800ms — per AUDIO.md §5.7).</p>
+<hr>
+<h2 id="h-7-win-display-animations">§7 Win Display Animations</h2>
+<h3 id="h-71-win_display-step-non-fg">7.1 WIN_DISPLAY Step (Non-FG)</h3>
+<p><strong>Trigger:</strong> AQ step type <code>WIN_DISPLAY</code>, only when <code>outcome.totalWin &gt; 0</code> and <code>!outcome.fgTriggered</code>.</p>
+<p><strong>WIN counter roll-up (from VDD §4.7 and FRONTEND.md §6.7):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Algorithm</td>
+<td>Exponential decay: each frame delta = <code>(targetWin − current) × 0.15</code>; driven by <code>requestAnimationFrame</code></td>
+</tr>
+<tr>
+<td>Duration formula</td>
+<td><code>max(min(totalWin / 50, 5000), 200)</code> ms</td>
+</tr>
+<tr>
+<td>Minimum duration</td>
+<td>200ms (Small Win)</td>
+</tr>
+<tr>
+<td>Maximum duration</td>
+<td>5000ms (very large wins)</td>
+</tr>
+<tr>
+<td>Number format</td>
+<td>2 decimal places; <code>font-variant-numeric: tabular-nums</code> (per VDD §2.3)</td>
+</tr>
+<tr>
+<td>End bounce</td>
+<td><code>scale</code>: 1.0 → 1.08 → 1.0 (200ms, <code>--ease-out-back</code>) on counter reaching target</td>
+</tr>
+<tr>
+<td>Color transition</td>
+<td>On reaching Big Win threshold (20× baseBet): counter color <code>--color-gold-bright</code> → <code>--color-gold-divine</code> (gradient, 300ms)</td>
+</tr>
+<tr>
+<td>SFX</td>
+<td><code>SFX_WIN_ROLLUP_TICK</code> fires at most every 80ms during roll-up (throttled, AUDIO.md §3.2)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Win tier SFX (at t=0ms of WIN_DISPLAY, concurrent with roll-up start):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th><code>totalWin / baseBet</code></th>
+<th>SFX</th>
+<th>BGM Duck</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>&lt; 5</td>
+<td><code>SFX_WIN_SMALL</code> (600ms)</td>
+<td>None</td>
+</tr>
+<tr>
+<td>5 ≤ ratio &lt; 20</td>
+<td><code>SFX_WIN_MEDIUM</code> (900ms)</td>
+<td>None</td>
+</tr>
+<tr>
+<td>20 ≤ ratio &lt; 100</td>
+<td><code>SFX_WIN_BIG</code> (2000ms)</td>
+<td>−6 dB, 200ms ramp, 2000ms hold, 400ms restore</td>
+</tr>
+<tr>
+<td>100 ≤ ratio &lt; 500</td>
+<td><code>SFX_WIN_MEGA</code> (3000ms)</td>
+<td>−6 dB, 200ms ramp, 3000ms hold, 400ms restore</td>
+</tr>
+<tr>
+<td>500 ≤ ratio &lt; 30,000</td>
+<td><code>SFX_WIN_JACKPOT</code> (4000ms)</td>
+<td>−6 dB, 200ms ramp, 4000ms hold, 400ms restore</td>
+</tr>
+<tr>
+<td>30,000 (Main Game cap)</td>
+<td><code>SFX_MAX_WIN</code> (6000ms)</td>
+<td>−12 dB, 300ms ramp, 6000ms hold, 800ms restore</td>
+</tr>
+<tr>
+<td>90,000 (Buy Feature cap)</td>
+<td><code>SFX_MAX_WIN_LEGENDARY</code> (10000ms)</td>
+<td>−12 dB, 300ms ramp, 10000ms hold, 800ms restore</td>
+</tr>
+</tbody></table></div>
+<p>BGM ducking is state-observer-owned; AQ step documents it for reference only (AUDIO.md §4.2).</p>
+<h3 id="h-72-win-tier-overlays">7.2 Win Tier Overlays</h3>
+<p>Overlays display on top of the frozen reel state (using the ResultScene overlay panel within GameScene, FRONTEND.md §2.2).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Tier</th>
+<th>Trigger Condition</th>
+<th>Overlay Duration</th>
+<th>Particle Burst</th>
+<th>Animation Spec</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Small Win</td>
+<td>0 &lt; win &lt; 5× baseBet</td>
+<td>No overlay — counter only</td>
+<td>None</td>
+<td>WIN counter roll-up only</td>
+</tr>
+<tr>
+<td>Medium Win</td>
+<td>5× ≤ win &lt; 20×</td>
+<td>1500ms overlay display</td>
+<td>20 gold particles, radial, 0.5s lifetime</td>
+<td>&quot;WIN&quot; text appears: <code>scale</code> 0 → 1.1 → 1.0 (400ms, <code>--ease-out-back</code>); <code>--color-gold-bright</code></td>
+</tr>
+<tr>
+<td>Big Win</td>
+<td>20× ≤ win &lt; 100×</td>
+<td>3000ms</td>
+<td>60–80 particles, <code>--color-gold-bright</code>, 0.8s lifetime</td>
+<td>&quot;BIG WIN&quot; banner <code>translateY</code> −200px → 0 (600ms, <code>--ease-out-cubic</code>); <code>fx_win_bigwin_banner.spine</code></td>
+</tr>
+<tr>
+<td>Mega Win</td>
+<td>100× ≤ win &lt; 500×</td>
+<td>4000ms</td>
+<td>120–150 particles, <code>--color-gold-divine</code>, 1.0s lifetime</td>
+<td>&quot;MEGA WIN&quot; banner (<code>fx_win_megawin_banner.spine</code>, 4000ms) + lightning arc around text; Bloom at full intensity</td>
+</tr>
+<tr>
+<td>Jackpot</td>
+<td>500× ≤ win &lt; 30,000×</td>
+<td>5000ms</td>
+<td>200 particles, <code>--color-gold-divine</code>, 1.2s lifetime</td>
+<td>&quot;JACKPOT&quot; + Zeus character animation (playSpecial on P1 Zeus symbol overlay); full Bloom on text</td>
+</tr>
+<tr>
+<td>Max Win (30,000×)</td>
+<td>win = 30,000× baseBet</td>
+<td>6000ms</td>
+<td>See §7.3</td>
+<td>See §7.3</td>
+</tr>
+<tr>
+<td>Max Win Legendary (90,000×)</td>
+<td>win = 90,000× baseBet</td>
+<td>10000ms+</td>
+<td>See §7.3</td>
+<td>See §7.3</td>
+</tr>
+</tbody></table></div>
+<p><strong>Tier overlay dismiss rules:</strong></p>
+<ul>
+<li>All overlays <strong>auto-dismiss</strong> after their listed duration if the player takes no action; the SPIN button re-enables at auto-dismiss.</li>
+<li>Player tap/click dismisses the overlay <strong>early</strong>, but only after the 1500ms minimum mandatory display has elapsed.</li>
+<li>Overlay fade-out on dismiss (auto or manual): <code>opacity</code> 1.0 → 0.0, 400ms, <code>ease-in-out-cubic</code>.</li>
+<li><strong>Medium Win (1500ms duration):</strong> The overlay auto-dismisses at exactly 1500ms; since the minimum mandatory display is also 1500ms, players effectively cannot dismiss Medium Win early — the auto-dismiss fires at the same time as the earliest manual-dismiss window opens. SPIN button re-enables at 1500ms (auto-dismiss fires automatically if not manually dismissed at that moment).</li>
+</ul>
+<h3 id="h-73-max-win-celebration">7.3 Max Win Celebration</h3>
+<p><strong>30,000× Max Win:</strong></p>
+<ul>
+<li>SFX: <code>SFX_MAX_WIN</code> (6000ms wall-of-sound) at t=0ms.</li>
+<li>Overlay: &quot;MAX WIN&quot; text — font size 200px (<code>--text-win-2xl</code>), <code>--color-gold-divine</code>, animated scale 0 → 1.3 → 1.0 (800ms, <code>--ease-out-back</code>).</li>
+<li>Gold coin rain: 2000 particles desktop / 600 mobile (VDD §5.4 exception, 2s burst); coin-shaped sprites from <code>particle_coin_gold_sheet.png</code>; fall from screen top; each coin <code>rotateZ</code> randomly; lifetime 2.0–3.0s per coin.</li>
+<li>Full-screen particle burst: 300 electric gold particles radially outward (0.8s, fades to coin rain after).</li>
+<li>Zeus lightning strike visual: Full-height <code>translateY</code> stroke from screen top to center; <code>--color-gold-divine</code>; 4px → 12px stroke width; white bloom at base; duration 400ms; <code>ease-out-expo</code>.</li>
+<li>Background flash: <code>rgba(255,215,0,0.5)</code> → 0 over 800ms.</li>
+<li>Duration: 6000ms minimum before dismiss becomes possible.</li>
+</ul>
+<p><strong>90,000× Max Win Legendary:</strong></p>
+<ul>
+<li>SFX: <code>SFX_MAX_WIN_LEGENDARY</code> (10000ms, separately mastered).</li>
+<li>Overlay: &quot;LEGENDARY WIN&quot; text stacked above &quot;×90,000&quot;; dual-color text (gold + divine white).</li>
+<li>All 30,000× effects plus:</li>
+<li>Extended coin rain: 3000 particles desktop (3s burst before settling to 500 continuous); <strong>mobile: 600 particles maximum</strong> (VDD §5.4 exception; same 3s burst window, settling to 150 continuous) — see §8.1 <code>PS_WIN_LEGENDARY</code>.</li>
+<li>Multiple Zeus lightning strikes: 3 sequential strikes at 0ms, 1500ms, 3000ms.</li>
+<li>Screen remains at 70% gold ambient brightness for full 10s duration.</li>
+<li>Duration: 10000ms minimum; dismiss possible after 5000ms.</li>
+</ul>
+<hr>
+<h2 id="h-8-particle-systems">§8 Particle Systems</h2>
+<h3 id="h-81-particle-system-inventory">8.1 Particle System Inventory</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>System ID</th>
+<th>Trigger</th>
+<th>Max Particles (desktop/mobile)</th>
+<th>Blend Mode</th>
+<th>Lifetime (ms)</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>PS_MARK_IDLE</code></td>
+<td>Lightning Mark placed and persisting</td>
+<td>12 per cell / 6 per cell</td>
+<td>Additive</td>
+<td>400–800</td>
+<td><code>--color-gold-bright</code> + <code>--color-arc-white</code>; scales with mark count (§3.3)</td>
+</tr>
+<tr>
+<td><code>PS_MARK_APPEAR</code></td>
+<td>Mark scale-in animation</td>
+<td>6–12 per mark / 3–6</td>
+<td>Additive</td>
+<td>400</td>
+<td>Gold arc particles, upward drift</td>
+</tr>
+<tr>
+<td><code>PS_MARK_EXPLODE</code></td>
+<td>t=800ms of TB sequence</td>
+<td>80–120 per cell / 40–60</td>
+<td>Additive</td>
+<td>300–1000</td>
+<td>Electric arc burst, radial, full TB budget</td>
+</tr>
+<tr>
+<td><code>PS_TB_ARC_LINE</code></td>
+<td>t=200ms of TB (SC → marks)</td>
+<td>N/A (Bezier renderer)</td>
+<td>Additive</td>
+<td>Until t=3000ms</td>
+<td>2px stroke; not particle-based; Bezier path renderer</td>
+</tr>
+<tr>
+<td><code>PS_SYM_ELIMINATE_STD</code></td>
+<td>Standard symbol elimination</td>
+<td>12–14 per symbol / 6–8</td>
+<td>Additive</td>
+<td>400</td>
+<td>Colored fragments matching symbol tint</td>
+</tr>
+<tr>
+<td><code>PS_SYM_ELIMINATE_PREMIUM</code></td>
+<td>Premium symbol elimination</td>
+<td>14–16 per symbol / 8–10</td>
+<td>Additive</td>
+<td>400</td>
+<td>Gold + arc-white arc burst</td>
+</tr>
+<tr>
+<td><code>PS_REEL_STOP_BOUNCE</code></td>
+<td>Reel landing overshoot</td>
+<td>None (CSS transform only)</td>
+<td>—</td>
+<td>—</td>
+<td>No particles; pure transform animation</td>
+</tr>
+<tr>
+<td><code>PS_SYMBOL_WIN_GLOW</code></td>
+<td>Symbol win animation</td>
+<td>6–10 per symbol / 3–6</td>
+<td>Screen</td>
+<td>600–1800</td>
+<td>Bloom layer; color per symbol tier</td>
+</tr>
+<tr>
+<td><code>PS_COIN_TOSS_GLINT</code></td>
+<td>Coin spin phase</td>
+<td>4–6 / 2–4</td>
+<td>Additive</td>
+<td>200</td>
+<td>Gold rim glints during rotation</td>
+</tr>
+<tr>
+<td><code>PS_COIN_HEADS_BURST</code></td>
+<td>HEADS result settle</td>
+<td>40–60 / 20–30</td>
+<td>Additive</td>
+<td>600</td>
+<td><code>--color-gold-bright</code> radial burst</td>
+</tr>
+<tr>
+<td><code>PS_FREE_LETTER_GLOW</code></td>
+<td>FREE letter illuminate</td>
+<td>4–6 per letter / 2–4</td>
+<td>Additive</td>
+<td>400</td>
+<td>Gold glow from letter center</td>
+</tr>
+<tr>
+<td><code>PS_FG_ENTRY_STAR</code></td>
+<td>FG scene entry (continuous)</td>
+<td>20–30 / 10–15</td>
+<td>Additive</td>
+<td>3000–8000</td>
+<td>Slow starfield drift; white dots; low opacity</td>
+</tr>
+<tr>
+<td><code>PS_FG_BONUS_5X</code></td>
+<td>fgBonusMultiplier = 5</td>
+<td>60–80 / 30–40</td>
+<td>Additive</td>
+<td>600</td>
+<td>Gold burst from multiplier reveal position</td>
+</tr>
+<tr>
+<td><code>PS_FG_BONUS_20X</code></td>
+<td>fgBonusMultiplier = 20</td>
+<td>150–200 / 75–100</td>
+<td>Additive</td>
+<td>800</td>
+<td>Larger burst + banner particle halo</td>
+</tr>
+<tr>
+<td><code>PS_FG_BONUS_100X</code></td>
+<td>fgBonusMultiplier = 100</td>
+<td><strong>3000 / 800</strong> (exception)</td>
+<td>Additive</td>
+<td>1000</td>
+<td>Full-screen; 3s burst; VDD §5.4 exception</td>
+</tr>
+<tr>
+<td><code>PS_FG_MULT_ADVANCE</code></td>
+<td>Multiplier advance (HEADS)</td>
+<td>30–50 / 15–25</td>
+<td>Additive</td>
+<td>600</td>
+<td>Gold burst from multiplier display</td>
+</tr>
+<tr>
+<td><code>PS_FG_MULT_77</code></td>
+<td>×77 multiplier</td>
+<td>200–300 / 100–150</td>
+<td>Additive</td>
+<td>1000</td>
+<td>Maximum intensity; <code>--color-gold-divine</code></td>
+</tr>
+<tr>
+<td><code>PS_WIN_BIG</code></td>
+<td>Big Win overlay</td>
+<td>60–80 / 30–40</td>
+<td>Additive</td>
+<td>800</td>
+<td><code>--color-gold-bright</code> banner burst</td>
+</tr>
+<tr>
+<td><code>PS_WIN_MEGA</code></td>
+<td>Mega Win overlay</td>
+<td>120–150 / 60–75</td>
+<td>Additive</td>
+<td>1000</td>
+<td><code>--color-gold-divine</code> + arc-white</td>
+</tr>
+<tr>
+<td><code>PS_WIN_JACKPOT</code></td>
+<td>Jackpot overlay</td>
+<td>200 / 100</td>
+<td>Additive</td>
+<td>1200</td>
+<td>Full Bloom + divine gold</td>
+</tr>
+<tr>
+<td><code>PS_WIN_MAX</code></td>
+<td>Max Win (30,000×)</td>
+<td><strong>2000 / 600</strong> (exception, coin rain)</td>
+<td>Normal (coin sprites)</td>
+<td>2000–3000</td>
+<td>Gold coin sprites; gravity simulation</td>
+</tr>
+<tr>
+<td><code>PS_WIN_MAX_LIGHTNING</code></td>
+<td>Max Win Zeus strike</td>
+<td>300 / 150</td>
+<td>Additive</td>
+<td>800</td>
+<td>Electric radial burst at strike base</td>
+</tr>
+<tr>
+<td><code>PS_WIN_LEGENDARY</code></td>
+<td>Max Win Legendary (90,000×)</td>
+<td><strong>3000 / 600</strong> burst → <strong>500 / 150</strong> continuous</td>
+<td>Normal</td>
+<td>3000 (burst) / ongoing (continuous)</td>
+<td>Burst phase: 3s at 3000/600 (VDD §5.4 exception); continuous phase: emitter rate drops via old-particle preemptive recycle after 3s, settles to 500 desktop / 150 mobile; persists until overlay dismisses</td>
+</tr>
+<tr>
+<td><code>PS_TB_SECOND_HIT</code></td>
+<td>t=2300ms second hit (thunderBlessingSecondHit=true)</td>
+<td>20–30 per cell / 10–15 per cell</td>
+<td>Additive</td>
+<td>300–600</td>
+<td><code>--color-gold-divine</code>; upward radial; per converted cell</td>
+</tr>
+<tr>
+<td><code>PS_NEAR_MISS</code></td>
+<td>nearMissApplied = true</td>
+<td>None (no particles)</td>
+<td>—</td>
+<td>—</td>
+<td>Near miss is positional only (reel twitch)</td>
+</tr>
+<tr>
+<td><code>PS_CASCADE_TINT</code></td>
+<td>Cascade counter increment</td>
+<td>None (CSS filter only)</td>
+<td>—</td>
+<td>—</td>
+<td>WIN area background tint; no particles</td>
+</tr>
+<tr>
+<td><code>PS_WIN_MEDIUM</code></td>
+<td>Medium Win overlay (5× ≤ win &lt; 20× baseBet)</td>
+<td>20 / 10</td>
+<td>Additive</td>
+<td>500</td>
+<td>Gold radial burst from overlay center; <code>--color-gold-bright</code>; used in §7.2 Medium Win overlay</td>
+</tr>
+<tr>
+<td><code>PS_WILD_IDLE_ARC</code></td>
+<td>Wild symbol idle (persistent, while rendered)</td>
+<td>2–4/s desktop / 1–2/s mobile</td>
+<td>Additive</td>
+<td>400</td>
+<td><code>--color-arc-white</code> micro-sparks drifting upward from Wild cell; continuous emitter; contributes to idle particle budget (§8.2)</td>
+</tr>
+<tr>
+<td><code>PS_SC_IDLE_ARC</code></td>
+<td>Scatter symbol idle (persistent, while rendered)</td>
+<td>3–6/s desktop / 2–3/s mobile</td>
+<td>Additive</td>
+<td>300–500</td>
+<td><code>--color-sym-scatter-arc</code> rotating arc ring particles; continuous emitter; contributes to idle particle budget (§8.2)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-82-performance-budget">8.2 Performance Budget</h3>
+<p><strong>Standard operation (non-exception states):</strong></p>
+<ul>
+<li>Desktop instantaneous particle cap: 500 particles.</li>
+<li>Mobile instantaneous particle cap: 200 particles.</li>
+<li>Priority-based throttle order (when approaching cap):</li>
+</ul>
+<p>  1. Reduce <code>PS_MARK_IDLE</code>, <code>PS_WILD_IDLE_ARC</code>, and <code>PS_SC_IDLE_ARC</code> first (all three are background ambient idle emitters; treat as equal priority — halve their count together).   2. Reduce <code>PS_SYM_ELIMINATE_STD</code> count from 14 to 8.   3. Reduce <code>PS_FG_ENTRY_STAR</code> from 30 to 15.   4. Never reduce <code>PS_MARK_EXPLODE</code>, <code>PS_TB_ARC_LINE</code>, or <code>PS_WIN_MAX*</code> (critical feedback moments).</p>
+<p><strong>Exception states (allowed above cap for short bursts):</strong></p>
+<ul>
+<li><code>PS_FG_BONUS_100X</code>: up to 3000 desktop / 800 mobile for 3s.</li>
+<li><code>PS_WIN_MAX</code>: up to 2000 desktop / 600 mobile for 2s.</li>
+<li><code>PS_WIN_LEGENDARY</code>: up to 3000 desktop / 600 mobile for 3s.</li>
+<li>These exceptions must not occur simultaneously. Design guarantees they cannot (coin rain only appears in non-FG win display; FG bonus only appears at FG entry).</li>
+</ul>
+<p><strong>Mobile particle reduction rules:</strong></p>
+<ul>
+<li>All <code>PS_*</code> particle counts halved on mobile.</li>
+<li><code>PS_TB_ARC_LINE</code>: Bezier arc lines are replaced with a simple white flash at each mark location (200ms flash, <code>opacity</code> 0 → 0.8 → 0) to avoid Bezier renderer overhead on low-end devices.</li>
+<li><code>PS_MARK_IDLE</code>: maximum 6 particles per cell (vs 12 on desktop).</li>
+<li>Spine idle fps: 12fps (vs 24fps). Spine win/special: 60fps maintained (priority feedback).</li>
+</ul>
+<hr>
+<h2 id="h-9-uihud-animations">§9 UI/HUD Animations</h2>
+<h3 id="h-91-balance-counter-update">9.1 Balance Counter Update</h3>
+<p><strong>Trigger:</strong> <code>BalanceComponent.setBalance(amount)</code> called after <code>FullSpinOutcome</code> is received.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Trigger</td>
+<td>Post-spin balance update (after WIN_DISPLAY or FG_COMPLETE step completes)</td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>400ms</td>
+</tr>
+<tr>
+<td>Algorithm</td>
+<td>Smooth number roll from previous balance to new balance; exponential decay per VDD §4.7 formula</td>
+</tr>
+<tr>
+<td>Easing</td>
+<td><code>--ease-out-expo</code></td>
+</tr>
+<tr>
+<td>End effect</td>
+<td>No bounce (balance update is informational, not celebratory)</td>
+</tr>
+<tr>
+<td>Color</td>
+<td><code>--color-marble-white</code> at all times; brief <code>--color-success</code> (<code>oklch(60% 0.16 145)</code>) tint on increase (150ms, fade back to white)</td>
+</tr>
+<tr>
+<td>SFX</td>
+<td>None — balance update is silent</td>
+</tr>
+</tbody></table></div>
+<p><strong>No-win and bet-deduction path:</strong> When <code>outcome.totalWin = 0</code>, the bet was already deducted from balance before the spin. <code>BalanceComponent.setBalance(newBalance)</code> is called instantly (no roll animation, no tint) once the spin result is received. No color indication is applied to a decrease — the balance number updates immediately and silently (<code>ease-in-out-cubic</code> is NOT used; the call is synchronous/instant). This matches FRONTEND.md §3.8 <code>setBalance</code> interface contract.</p>
+<h3 id="h-92-betline-selector">9.2 Bet/Line Selector</h3>
+<p><strong>Spin button states:</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>State</th>
+<th>Visual</th>
+<th>Duration</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Idle</td>
+<td>Full brightness; subtle pulse (<code>scale</code> 1.0 → 1.03 → 1.0, 2.5s loop)</td>
+<td>Continuous</td>
+</tr>
+<tr>
+<td>Hover</td>
+<td><code>brightness</code> 1.0 → 1.2 (150ms, <code>--ease-out-cubic</code>); cursor: pointer</td>
+<td>150ms</td>
+</tr>
+<tr>
+<td>Active / Pressed</td>
+<td><code>scale</code> 1.0 → 0.93 (80ms, <code>ease-in</code>); <code>brightness</code> 1.2 → 0.9</td>
+<td>80ms down</td>
+</tr>
+<tr>
+<td>Pressed release</td>
+<td><code>scale</code> 0.93 → 1.0 (150ms, <code>--ease-out-back</code>)</td>
+<td>150ms</td>
+</tr>
+<tr>
+<td>Focus (keyboard nav)</td>
+<td>2px gold outline ring (<code>outline: 2px solid --color-gold-primary; outline-offset: 3px</code>); appears instantly on <code>:focus-visible</code>; removed on blur; no scale or brightness change</td>
+<td>Instant</td>
+</tr>
+<tr>
+<td>Disabled</td>
+<td><code>opacity</code>: 1.0 → 0.5 (300ms, <code>ease-in-out-cubic</code>); <code>cursor: not-allowed</code>; all animations paused</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p><strong>SFX:</strong> <code>SFX_UI_BUTTON_PRESS</code> (80ms) fires on SPIN press, BET+/− press, INFO press, SETTINGS press. <code>SFX_UI_BET_UP</code> fires on BET+ press; <code>SFX_UI_BET_DOWN</code> fires on BET− press.</p>
+<p><strong>BET+/− buttons:</strong></p>
+<ul>
+<li>Press: <code>scale</code> 1.0 → 0.9 (80ms, <code>ease-in</code>), release <code>scale</code> 0.9 → 1.0 (120ms, <code>--ease-out-back</code>).</li>
+</ul>
+<h3 id="h-93-extra-bet-toggle">9.3 Extra Bet Toggle</h3>
+<p><strong>Toggle ON:</strong></p>
+<ul>
+<li>Indicator: Border color transitions from <code>--color-disabled</code> → <code>--color-orange-thunder</code> (150ms, <code>--ease-out-cubic</code>).</li>
+<li>Background fill: <code>rgba(255,140,0,0.15)</code> fills over 200ms from left.</li>
+<li>SFX: <code>SFX_EXTRA_BET_ON</code> (300ms, electric activation snap).</li>
+</ul>
+<p><strong>Toggle OFF:</strong></p>
+<ul>
+<li>Reverse: fill drains right to left over 200ms; border returns to disabled color.</li>
+<li>SFX: <code>SFX_EXTRA_BET_OFF</code> (250ms, power-down click).</li>
+</ul>
+<p><strong>Lock during spin:</strong> <code>pointer-events: none</code>; <code>opacity</code> dims to 0.6 (300ms). Restores on <code>IDLE</code> state entry.</p>
+<h3 id="h-94-buy-feature-button">9.4 Buy Feature Button</h3>
+<p><strong>Attention pulse (IDLE state, button enabled):</strong></p>
+<ul>
+<li>Continuous subtle pulse: <code>box-shadow</code> glow size 0px → 8px → 0px, <code>--color-purple-zeus</code>, 2.0s loop, <code>ease-in-out-cubic</code>.</li>
+<li>On hover: glow intensifies to 16px; color shifts to <code>--color-gold-primary</code>.</li>
+</ul>
+<p><strong>Buy Feature dialog open:</strong></p>
+<ul>
+<li>Dialog: <code>translateY</code> −100px → 0, <code>opacity</code> 0 → 1.0, 300ms, <code>--ease-out-cubic</code>.</li>
+<li>SFX: <code>SFX_BUY_FG_OPEN</code> (200ms light shimmer) at dialog open.</li>
+</ul>
+<p><strong>Buy Feature confirm:</strong></p>
+<ul>
+<li>Confirmation: button <code>scale</code> 1.0 → 1.1 → 1.0 (200ms, <code>--ease-out-back</code>).</li>
+<li>Dialog closes: <code>opacity</code> 1.0 → 0, 200ms, <code>ease-in</code>.</li>
+<li>SFX: <code>SFX_BUY_FG_CONFIRM</code> (600ms rich coin placement).</li>
+</ul>
+<p><strong>Buy Feature session floor banner (&quot;BONUS WIN GUARANTEED&quot;, from FRONTEND.md §11.2):</strong></p>
+<p>Displayed when <code>sessionFloorApplied = true</code> in <code>FullSpinOutcome</code> (Buy Feature guarantee triggered).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Easing</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Banner slide-in</td>
+<td>400ms</td>
+<td><code>--ease-out-cubic</code></td>
+<td>Gold ribbon banner <code>translateY</code>: −60px → 0; appears below the multiplier display area</td>
+</tr>
+<tr>
+<td>Text fade-in</td>
+<td>300ms (delay 100ms)</td>
+<td><code>linear</code></td>
+<td>&quot;BONUS WIN GUARANTEED&quot; text <code>opacity</code>: 0 → 1.0; <code>--color-gold-bright</code></td>
+</tr>
+<tr>
+<td>Auto-dismiss</td>
+<td>1500ms hold → 300ms</td>
+<td><code>ease-in</code></td>
+<td>After 1500ms display, banner fades <code>opacity</code> 1.0 → 0; <code>translateY</code> 0 → −30px (slides back up)</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>SFX: <code>SFX_UI_DIALOG_CLOSE</code> (150ms) fires at banner auto-dismiss start (reuses standard UI SFX; no dedicated SFX for banner).</li>
+<li>Banner does not block SPIN or interrupt any AQ step; it renders as a HUD overlay above the game canvas.</li>
+</ul>
+<p><strong>Buy Feature cancel/dismiss (player closes dialog without confirming):</strong></p>
+<ul>
+<li>Dialog closes: <code>opacity</code> 1.0 → 0, 200ms, <code>ease-in</code> (same as confirm-close duration).</li>
+<li>SFX: <code>SFX_UI_DIALOG_CLOSE</code> (150ms) fires at dismiss start.</li>
+<li>No button scale animation (cancel is neutral, not a positive action).</li>
+</ul>
+<h3 id="h-95-error-network-states">9.5 Error / Network States</h3>
+<p><strong>Error overlay (NETWORK_ERROR state):</strong></p>
+<ul>
+<li>Overlay: <code>opacity</code> 0 → 0.85 (400ms, <code>ease-in</code>) over full game content.</li>
+<li>Error panel: <code>translateY</code> −60px → 0 (400ms, <code>--ease-out-cubic</code>); <code>opacity</code> 0 → 1.0 concurrent.</li>
+<li>SFX: <code>SFX_ERROR</code> (400ms) at overlay appear.</li>
+<li>Rate limit countdown timer: numeric countdown in <code>--color-warning</code> (#FFA500), updates every 1000ms.</li>
+</ul>
+<p><strong>Loading spinner (SPINNING state, API call &gt; 500ms):</strong></p>
+<ul>
+<li>Spinner: <code>rotate</code> 0 → 360°, continuous, 1.0s per rotation, <code>linear</code>.</li>
+<li>Spin button: transitions to spinner icon over 150ms.</li>
+<li>No SFX.</li>
+</ul>
+<p><strong>Offline banner:</strong></p>
+<ul>
+<li>Slides down from top: <code>translateY</code> −48px → 0 (300ms, <code>--ease-out-cubic</code>).</li>
+<li><code>--color-warning</code> background; white text.</li>
+<li>Slides back up on <code>hideOfflineBanner()</code> (300ms, <code>ease-in</code>).</li>
+</ul>
+<p><strong>SESSION_RECONNECT visual restore (from FRONTEND.md §11.5):</strong></p>
+<p><strong>Mid-animation reconnect handling:</strong> If <code>APP_RESUME</code> fires while the <code>AnimationQueue</code> is mid-execution (e.g., mid-cascade, mid-coin-toss), call <code>AnimationQueue.clear()</code> first, then invoke <code>fast-complete()</code> on all active components to snap them to their final visual state synchronously (same pattern as §10.3 interrupt handling, but triggered by <code>APP_RESUME</code> not <code>SPIN_PRESSED</code>). Apply the restoration animations in the table below only after all active animations have been fast-completed.</p>
+<p>When the session reconnects after a network interruption mid-spin, the game restores state with these animations:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Element</th>
+<th>Animation</th>
+<th>Duration</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Loading overlay dismiss</td>
+<td><code>opacity</code> 1.0 → 0.0</td>
+<td>400ms, <code>ease-in</code></td>
+<td>Fires after <code>FullSpinOutcome</code> is re-received and state restored</td>
+</tr>
+<tr>
+<td>Lightning Marks restore</td>
+<td><code>LightningMarkComponent.restoreMarks(positions)</code> — no scale-in animation</td>
+<td>Instant</td>
+<td>Same instant-restore behavior as FG round start (§6.2); marks appear without transition to avoid confusion about new vs restored marks</td>
+</tr>
+<tr>
+<td>FG multiplier bar restore</td>
+<td>Multiplier progress bar animates from 0 to restored position</td>
+<td>500ms, <code>--ease-in-out-cubic</code></td>
+<td>Only if in FG context; gives player a quick visual confirmation of their restored multiplier</td>
+</tr>
+<tr>
+<td>Balance display</td>
+<td><code>BalanceComponent.setBalance(balance)</code> — no roll-up animation</td>
+<td>Instant</td>
+<td>Balance is restored value, not a win; no roll-up</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>SFX: No SFX on reconnect restore (silent state restoration; player was aware of disconnect).</li>
+</ul>
+<hr>
+<h2 id="h-10-animationqueue-integration">§10 AnimationQueue Integration</h2>
+<h3 id="h-101-aq-step-map">10.1 AQ Step Map</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>AQ Step Type</th>
+<th>ANIM.md Section</th>
+<th>Typical Duration</th>
+<th>SFX Sync (key events)</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>NEAR_MISS</code></td>
+<td>§2.1 (Near Miss Twitch)</td>
+<td>200ms</td>
+<td><code>SFX_NEAR_MISS</code> at t=0ms</td>
+</tr>
+<tr>
+<td><code>REEL_SPIN</code> (implicit; pre-AQ)</td>
+<td>§2.1</td>
+<td>Variable (until API response)</td>
+<td><code>SFX_SPIN_START</code> immediate; <code>SFX_REEL_STOP_1–5</code> staggered 120ms</td>
+</tr>
+<tr>
+<td><code>CASCADE_STEP</code></td>
+<td>§2.3, §3.1, §3.2, §3.3, §3.4</td>
+<td>1500ms–2500ms (up to ~3200ms when Scatter is in winning line: 1800ms win + ~600ms eliminate + ~800ms drop with max stagger)</td>
+<td><code>SFX_WIN</code> / <code>SFX_SCATTER_WIN</code> at t=0ms; <code>SFX_CASCADE_EXPLODE</code> at t=[max symbol win duration in this step] — duration varies by highest-tier winning symbol per §2.3: L1–L4 only → ~800ms; P4 → ~1000ms; Wild/P3 → ~1200ms; P2 → ~1300ms; P1 → ~1500ms; SC present → ~1800ms (per AUDIO.md §5.2); <code>SFX_LIGHTNING_MARK</code> concurrent with elimination; <code>SFX_REEL_EXPAND</code> at ~1000ms; <code>SFX_FREE_LETTER</code> concurrent; <code>SFX_CASCADE_DROP</code> staggered at drop-land</td>
+</tr>
+<tr>
+<td><code>THUNDER_BLESSING</code></td>
+<td>§4</td>
+<td>3000ms (or 3000ms+)</td>
+<td><code>SFX_LIGHTNING_ACTIVATE</code> at t=200ms; <code>SFX_THUNDER_BLESSING</code> + <code>SFX_TB_FIRST_HIT</code> at t=800ms; <code>SFX_TB_SYMBOL_UPGRADE</code> at t=1500ms; <code>SFX_SECOND_HIT</code> at t=2300ms (if applicable); <code>SFX_TB_SETTLE</code> at t=3000ms</td>
+</tr>
+<tr>
+<td><code>COIN_TOSS</code></td>
+<td>§5</td>
+<td>3000ms–3500ms</td>
+<td><code>SFX_COIN_TOSS_START</code> at t=0ms; <code>SFX_COIN_TOSS_FLIP</code> [loop] at t=500ms; <code>SFX_COIN_HEADS</code> or <code>SFX_COIN_TAILS</code> at ~t=3500ms; <code>SFX_COIN_MULT_PROGRESS</code> on HEADS. TAILS in main-game → <code>WIN_DISPLAY</code>; TAILS in FG context → <code>FG_COMPLETE</code> (per AUDIO.md §5.6 FG caveat); <code>BGM_COIN_TOSS</code>→<code>BGM_MAIN</code> crossfade does NOT fire in FG context.</td>
+</tr>
+<tr>
+<td><code>FG_ENTRY</code></td>
+<td>§6.1</td>
+<td>~2600ms (×1 bonus) up to ~4800ms (×100 bonus: <code>fx_fg_bonus_100x.spine</code> 3000ms window starts at t=1800ms; AQ must await full 3s window before marking step complete)</td>
+<td><code>SFX_FG_ENTER</code> at t=0ms; <code>SFX_FG_BONUS_REVEAL</code> / <code>SFX_FG_BONUS_5X</code> / <code>SFX_FG_BONUS_20X</code> / <code>SFX_FG_BONUS_100X</code> at t=1800ms</td>
+</tr>
+<tr>
+<td><code>FG_ROUND</code></td>
+<td>§5, §6.2, §6.3</td>
+<td>Variable (cascade + coin toss per round)</td>
+<td><code>SFX_FG_ROUND_START</code> at t=0ms; cascade SFX per AUDIO.md §5.2; coin toss SFX per AUDIO.md §5.4; visual cascade animation per ANIM.md §6.2; visual coin toss flip/reveal animation per ANIM.md §5 (same sequence as main-game coin toss); visual HEADS multiplier advance per ANIM.md §6.3; <code>SFX_FG_MULT_UP</code> + <code>SFX_COIN_MULT_PROGRESS</code> or <code>SFX_FG_MULT_77</code> on HEADS</td>
+</tr>
+<tr>
+<td><code>FG_COMPLETE</code></td>
+<td>§6.4</td>
+<td>3500ms+</td>
+<td><code>SFX_FG_COMPLETE</code> at t=0ms; <code>SFX_WIN_ROLLUP_TICK</code> during roll-up; win tier SFX at roll-up end</td>
+</tr>
+<tr>
+<td><code>WIN_DISPLAY</code></td>
+<td>§7.1, §7.2, §7.3</td>
+<td>200ms–10,000ms+ (Legendary tier: min 5000ms mandatory, no upper bound — player dismiss required)</td>
+<td>Win tier SFX at t=0ms; <code>SFX_WIN_ROLLUP_TICK</code> throttled during roll-up</td>
+</tr>
+</tbody></table></div>
+<p><strong>Reel spin</strong> is not a formal AQ step type — it begins on <code>SPIN_PRESSED</code> and ends when the first <code>CASCADE_STEP</code> is dequeued. The AQ is built and begins draining immediately on <code>SPIN_RESPONSE_OK</code>.</p>
+<h3 id="h-102-parallel-animation-rules">10.2 Parallel Animation Rules</h3>
+<p>Within any single AQ step, the following sub-animations are tagged <code>[PARALLEL]</code> and may begin concurrently:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>AQ Step</th>
+<th>Parallel Sub-Animations</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>CASCADE_STEP</code></td>
+<td>Symbol win animations for all winning positions; win line highlight; WIN counter start</td>
+</tr>
+<tr>
+<td><code>CASCADE_STEP</code></td>
+<td>Symbol elimination and Lightning Mark placement (after win animations complete)</td>
+</tr>
+<tr>
+<td><code>CASCADE_STEP</code></td>
+<td>Reel expansion and FREE letter illuminate (if row count increased)</td>
+</tr>
+<tr>
+<td><code>CASCADE_STEP</code></td>
+<td>Symbol drop for all refill positions (staggered by position formula, but all drops started together)</td>
+</tr>
+<tr>
+<td><code>THUNDER_BLESSING</code></td>
+<td>Mark pulse activation and arc line drawing (both at t=200ms)</td>
+</tr>
+<tr>
+<td><code>THUNDER_BLESSING</code></td>
+<td>Mark explosion and background white flash (both at t=800ms)</td>
+</tr>
+<tr>
+<td><code>THUNDER_BLESSING</code></td>
+<td>All mark positions simultaneously convert to target symbol (t=1500ms)</td>
+</tr>
+<tr>
+<td><code>FG_ENTRY</code></td>
+<td>Scene cross-dissolve and <code>SFX_FG_ENTER</code> fanfare</td>
+</tr>
+<tr>
+<td><code>FG_COMPLETE</code></td>
+<td>Summary panel reveal and WIN roll-up</td>
+</tr>
+<tr>
+<td><code>WIN_DISPLAY</code></td>
+<td>WIN counter roll-up and win tier overlay display</td>
+</tr>
+</tbody></table></div>
+<p>Across AQ steps, strict sequential ordering is enforced. <code>CASCADE_STEP[N+1]</code> does not begin until <code>CASCADE_STEP[N]</code> fully resolves, including all symbol drops landing.</p>
+<h3 id="h-103-interrupt-handling">10.3 Interrupt Handling</h3>
+<p>If the player presses SPIN while an animation step is active, the <code>AnimationQueue</code> handles interrupt as follows:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Active AQ Step</th>
+<th>Interrupt Response</th>
+<th>Audio</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>NEAR_MISS</code></td>
+<td>Step completes within 200ms; if SPIN is pressed during this window, the twitch animation snaps immediately to final reel position.</td>
+<td><code>SFX_NEAR_MISS</code> call cancelled if not yet fired; no further audio action.</td>
+</tr>
+<tr>
+<td><code>CASCADE_STEP</code> (win animation or elimination)</td>
+<td>Step is cut short: all animations skip to final state immediately; particles already spawned fade out at 3× normal rate</td>
+<td><code>SFX_WIN_ROLLUP_TICK</code> stops; WIN counter jumps to step win value</td>
+</tr>
+<tr>
+<td><code>CASCADE_STEP</code> (symbol drop)</td>
+<td>Drop animations teleport to final positions instantly</td>
+<td><code>SFX_CASCADE_DROP</code> calls cancelled</td>
+</tr>
+<tr>
+<td><code>WIN_DISPLAY</code> (roll-up in progress)</td>
+<td>Roll-up jumps immediately to <code>totalWin</code> final value; win tier overlay dismissed in 400ms</td>
+<td><code>SFX_WIN_ROLLUP_TICK</code> stops; tier SFX cuts at natural end</td>
+</tr>
+<tr>
+<td><code>THUNDER_BLESSING</code></td>
+<td><strong>Cannot be interrupted.</strong> SPIN button remains disabled for full 3000ms sequence. No skip allowed — game integrity requires TB to resolve before next spin.</td>
+<td>All TB SFX continue</td>
+</tr>
+<tr>
+<td><code>COIN_TOSS</code></td>
+<td><strong>Cannot be interrupted.</strong> SPIN button disabled for full coin toss duration.</td>
+<td>All coin toss SFX continue</td>
+</tr>
+<tr>
+<td><code>FG_ENTRY</code></td>
+<td><strong>Cannot be interrupted.</strong> Must complete before first FG_ROUND.</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>FG_ROUND</code></td>
+<td>Same rules as CASCADE_STEP within FG — can be cut short; coin toss cannot.</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>FG_COMPLETE</code></td>
+<td>Roll-up can be skipped (jump to final); overlay requires minimum 1500ms display.</td>
+<td>Tier SFX continues to natural end</td>
+</tr>
+</tbody></table></div>
+<p><strong>Skip implementation:</strong> <code>AnimationQueue.clear()</code> is called on interrupt. All pending steps are dropped. Components call their respective &quot;fast-complete&quot; methods to set final visual state synchronously.</p>
+<hr>
+<h2 id="h-11-accessibility">§11 Accessibility</h2>
+<h3 id="h-111-reduced-motion-mode">11.1 Reduced Motion Mode</h3>
+<p>Detected via <code>prefers-reduced-motion: reduce</code> CSS media query, or the in-game &quot;Low Effects Mode&quot; toggle. When active:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Original Effect</th>
+<th>Reduced Motion Substitute</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Symbol drop with bounce (420ms + 150ms)</td>
+<td>Symbol appears at target position directly; <code>opacity</code> 0 → 1.0, 100ms, <code>linear</code></td>
+</tr>
+<tr>
+<td>Cascade elimination fragments</td>
+<td>Symbol <code>opacity</code> 1.0 → 0.0, 300ms, <code>linear</code>; no particles spawned</td>
+</tr>
+<tr>
+<td>Coin toss 3D rotation (3000–3500ms)</td>
+<td>Static coin face cross-fades to result face; <code>opacity</code> 0 → 1.0, 200ms, <code>linear</code></td>
+</tr>
+<tr>
+<td>FG scene cross-dissolve (800ms)</td>
+<td><code>opacity</code> 0 → 1.0, 100ms, <code>linear</code> (or immediate cut)</td>
+</tr>
+<tr>
+<td>WIN counter roll-up (200ms–5000ms)</td>
+<td>Final <code>totalWin</code> value displayed immediately; no counting animation</td>
+</tr>
+<tr>
+<td>×77 node flicker (continuous pulse)</td>
+<td>Static maximum brightness; no pulse</td>
+</tr>
+<tr>
+<td>Background parallax motion</td>
+<td>All parallax layers fixed; no mouse/gyro response</td>
+</tr>
+<tr>
+<td>All particle systems</td>
+<td>Disabled entirely; replaced by static glow images where applicable</td>
+</tr>
+<tr>
+<td>Thunder Blessing arc lines + explosions</td>
+<td>Mark positions flash once (200ms brightness spike) then symbols swap immediately</td>
+</tr>
+<tr>
+<td>Free letter pulse</td>
+<td>Letters illuminate at full brightness instantly; no scale animation</td>
+</tr>
+<tr>
+<td>Win tier overlays (BIG WIN etc.)</td>
+<td>Overlay appears at full opacity immediately; no slide or scale animation</td>
+</tr>
+<tr>
+<td>FG multiplier advance (old number explode + scale-in, 800ms; ×77 lightning strike visual, 600ms)</td>
+<td>Multiplier number cross-fades to new value: <code>opacity</code> 0 → 1.0, 100ms, <code>linear</code>. Lightning strike visual omitted. Progress bar still animates to next node (500ms, <code>ease-in-out-cubic</code> — informational, not decorative)</td>
+</tr>
+<tr>
+<td>Symbol idle animations (4.0s loops — Wild, Scatter, P1–P4 Spine animations)</td>
+<td>Spine idle animation halted at first frame (static pose); Bloom radius clamped to 2px; no idle particle emitters (<code>PS_WILD_IDLE_ARC</code>, <code>PS_SC_IDLE_ARC</code> disabled)</td>
+</tr>
+<tr>
+<td>Symbol win animations (800ms – 1800ms per §2.3)</td>
+<td>Symbol brightness ramps to 120% and returns to 100% over 200ms, <code>linear</code>; no scale animation; no win-glow particles (<code>PS_SYMBOL_WIN_GLOW</code> disabled)</td>
+</tr>
+<tr>
+<td>Reel expansion sequence (~850ms, cloud layer + row animate)</td>
+<td>New row appears at <code>opacity</code> 0 → 1.0 over 100ms, <code>linear</code>; cloud overlay removed instantly (cut); no scale or translate animation</td>
+</tr>
+<tr>
+<td>Max Win celebration — coin rain and Zeus strike (6000ms / 10000ms per §7.3)</td>
+<td>Static MAX WIN or LEGENDARY WIN text at full opacity immediately; coin rain (<code>PS_WIN_MAX</code>) and Zeus lightning strike animation omitted; overlay holds for minimum display duration then dismisses</td>
+</tr>
+<tr>
+<td>FG Complete summary panel entrance (600ms slide-in per §6.4)</td>
+<td>Summary panel appears at full opacity immediately; no <code>translateY</code> animation</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-112-colorblind-considerations">11.2 Colorblind Considerations</h3>
+<p>Win highlights, Lightning Mark indicators, and FREE letter progress must not rely solely on color for their meaning. Shape and motion alternatives are provided for each (from VDD §8.1):</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Indicator</th>
+<th>Color Encoding</th>
+<th>Shape / Motion Supplement</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Lightning Mark (1–2)</td>
+<td>Gold constant</td>
+<td>Static lightning bolt icon at each marked cell; icon weight does not change</td>
+</tr>
+<tr>
+<td>Lightning Mark (3–4)</td>
+<td>Orange-gold</td>
+<td>Icon arc flicker animation distinguishes 3–4 from 1–2 marks regardless of hue perception</td>
+</tr>
+<tr>
+<td>Lightning Mark (5+)</td>
+<td>White-gold</td>
+<td>Icon pulsing + increased icon size (1.3× base) distinguishes 5+ from lower counts</td>
+</tr>
+<tr>
+<td>Cascade count tint</td>
+<td>Gold→orange→red progression</td>
+<td>WIN area label &quot;CASCADE ×N&quot; floats above counter (36px text) showing cascade number in text</td>
+</tr>
+<tr>
+<td>FREE letters (unlit vs lit)</td>
+<td>Dim vs bright</td>
+<td>Unlit letters: outline only (1px stroke, no fill). Lit letters: filled + glow. Shape difference persists regardless of brightness perception.</td>
+</tr>
+<tr>
+<td>Scatter (SC)</td>
+<td>Blue-white</td>
+<td>White circular border (2px ring) always present; does not rely on blue-only identification</td>
+</tr>
+<tr>
+<td>FG progress nodes</td>
+<td>Green→yellow→orange→red per stage</td>
+<td>Node shape changes per stage: ×3=circle, ×7=diamond, ×17=five-pointed star, ×27=hexagram, ×77=lightning bolt (from VDD §8.1)</td>
+</tr>
+<tr>
+<td>Win line highlight</td>
+<td>Gold path</td>
+<td>Win line uses both color AND a 2px animated dashed stroke pattern to trace the payline</td>
+</tr>
+<tr>
+<td>Big Win / Mega Win overlays</td>
+<td>Gold vs larger gold</td>
+<td>Tier differentiated by text size (Big Win: 120px; Mega Win: 144px; Jackpot: 200px) in addition to color intensity</td>
+</tr>
+</tbody></table></div>
+<p><strong>Flash frequency compliance (from VDD §8.2):</strong></p>
+<ul>
+<li>Win flash: 0.8s cycle = 1.25Hz. Within WCAG 2.3.1 &lt; 3Hz limit.</li>
+<li>Thunder Blessing white flash: single 300ms impact, ≥ 1s gap between consecutive flashes, maximum 2 total per TB sequence (one at t=800ms first hit; one optional at t=2300ms when <code>thunderBlessingSecondHit=true</code>).</li>
+<li>FG Bonus ×100 celebration: flash peaks &lt; 3 per second (one peak every ~400ms).</li>
+</ul>
+<hr>
+<h2 id="h-12-asset-specifications">§12 Asset Specifications</h2>
+<h3 id="h-121-sprite-sheet-requirements">12.1 Sprite Sheet Requirements</h3>
+<p>All animated symbols use Spine 2D. Frame rates and counts per VDD §3.3:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Asset</th>
+<th>Spine File</th>
+<th>Idle Frames (24fps)</th>
+<th>Win Frames (60fps)</th>
+<th>Special Frames (60fps)</th>
+<th>Atlas Max Size</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Wild (W)</td>
+<td><code>symbol_wild.spine</code></td>
+<td>96 (4.0s)</td>
+<td>72 (1.2s)</td>
+<td>150 (2.5s)</td>
+<td>2048×2048px</td>
+</tr>
+<tr>
+<td>Scatter (SC)</td>
+<td><code>symbol_sc.spine</code></td>
+<td>72 (3.0s)</td>
+<td>108 (1.8s)</td>
+<td>90 (1.5s)</td>
+<td>2048×2048px</td>
+</tr>
+<tr>
+<td>P1 Zeus</td>
+<td><code>symbol_p1.spine</code></td>
+<td>96 (4.0s)</td>
+<td>90 (1.5s)</td>
+<td>120 (2.0s)</td>
+<td>2048×2048px</td>
+</tr>
+<tr>
+<td>P2 Pegasus</td>
+<td><code>symbol_p2.spine</code></td>
+<td>84 (3.5s)</td>
+<td>78 (1.3s)</td>
+<td>108 (1.8s)</td>
+<td>2048×2048px</td>
+</tr>
+<tr>
+<td>P3 Athena</td>
+<td><code>symbol_p3.spine</code></td>
+<td>96 (4.0s)</td>
+<td>72 (1.2s)</td>
+<td>108 (1.8s)</td>
+<td>2048×2048px</td>
+</tr>
+<tr>
+<td>P4 Eagle</td>
+<td><code>symbol_p4.spine</code></td>
+<td>72 (3.0s)</td>
+<td>60 (1.0s)</td>
+<td>90 (1.5s)</td>
+<td>2048×2048px</td>
+</tr>
+<tr>
+<td>L1–L4</td>
+<td>Static texture (no Spine)</td>
+<td>—</td>
+<td>48 (0.8s) sprite sheet</td>
+<td>90 (1.5s) sprite sheet</td>
+<td>512×512px each</td>
+</tr>
+</tbody></table></div>
+<p><strong>Spine skeleton bone limits (from VDD §9.3):</strong></p>
+<ul>
+<li>Wild / Scatter: max 32 bones.</li>
+<li>P1–P4: max 24 bones.</li>
+<li>L1–L4: no Spine skeleton; sprite-sheet animation only.</li>
+<li>IK constraints: Wild only (hand holding lightning bolt). All others: avoid IK.</li>
+</ul>
+<p><strong>Effect animations (Spine FX):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Asset</th>
+<th>Spine File</th>
+<th>Duration</th>
+<th>Atlas Max Size</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Cascade explode (premium)</td>
+<td><code>fx_cascade_explode_premium.spine</code></td>
+<td>600ms</td>
+<td>1024×1024px</td>
+</tr>
+<tr>
+<td>Cascade explode (low)</td>
+<td><code>fx_cascade_explode_low.spine</code></td>
+<td>400ms</td>
+<td>512×512px</td>
+</tr>
+<tr>
+<td>Lightning mark appear</td>
+<td><code>fx_lightning_mark_appear.spine</code></td>
+<td>400ms</td>
+<td>512×512px</td>
+</tr>
+<tr>
+<td>Thunder Blessing hit 1</td>
+<td><code>fx_thunder_blessing_hit1.spine</code></td>
+<td>1200ms</td>
+<td>2048×2048px</td>
+</tr>
+<tr>
+<td>Thunder Blessing hit 2</td>
+<td><code>fx_thunder_blessing_hit2.spine</code></td>
+<td>700ms</td>
+<td>1024×1024px</td>
+</tr>
+<tr>
+<td>Coin toss flip</td>
+<td><code>fx_coin_toss_flip.spine</code></td>
+<td>3500ms</td>
+<td>1024×1024px</td>
+</tr>
+<tr>
+<td>Big Win banner</td>
+<td><code>fx_win_bigwin_banner.spine</code></td>
+<td>3000ms</td>
+<td>1024×1024px</td>
+</tr>
+<tr>
+<td>Mega Win banner</td>
+<td><code>fx_win_megawin_banner.spine</code></td>
+<td>4000ms</td>
+<td>1024×1024px</td>
+</tr>
+<tr>
+<td>FG Bonus 100×</td>
+<td><code>fx_fg_bonus_100x.spine</code></td>
+<td>3000ms</td>
+<td>2048×2048px</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-122-particle-texture-requirements">12.2 Particle Texture Requirements</h3>
+<p>All particle sprites are sourced from shared sprite sheets (PNG-32, pngquant quality 88, max 256KB per VDD §9.2).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Texture ID</th>
+<th>File</th>
+<th>Dimensions</th>
+<th>Frame Layout</th>
+<th>Use</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>particle_lightning_arc_sheet</code></td>
+<td><code>particle_lightning_arc_sheet.png</code></td>
+<td>1024×1024px</td>
+<td>8×8 grid of 128×128px frames</td>
+<td>Lightning arc particles, TB explosion, mark persist</td>
+</tr>
+<tr>
+<td><code>particle_coin_gold_sheet</code></td>
+<td><code>particle_coin_gold_sheet.png</code></td>
+<td>512×512px</td>
+<td>4×4 grid of 128×128px frames (front/back faces, tilts)</td>
+<td>Coin toss glints, Max Win coin rain</td>
+</tr>
+<tr>
+<td><code>particle_explosion_sheet</code></td>
+<td><code>particle_explosion_sheet.png</code></td>
+<td>1024×1024px</td>
+<td>8×8 grid of 128×128px frames</td>
+<td>Symbol elimination bursts, FG bonus explosions</td>
+</tr>
+<tr>
+<td><code>particle_star_white</code></td>
+<td>(single 16×16px PNG; embedded in main atlas)</td>
+<td>16×16px</td>
+<td>Single frame</td>
+<td>FG starfield</td>
+</tr>
+<tr>
+<td><code>particle_glow_gold</code></td>
+<td>(single 32×32px PNG; embedded in main atlas)</td>
+<td>32×32px</td>
+<td>Single frame (radial gradient)</td>
+<td>WIN counter burst, FREE letter glow</td>
+</tr>
+</tbody></table></div>
+<p><strong>Atlas format:</strong> PNG-32 with <code>premultipliedAlpha</code> enabled (matches Spine runtime requirement). Particle sheets are separate from symbol atlases to allow independent streaming.</p>
+<h3 id="h-123-shader-requirements">12.3 Shader Requirements</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Shader</th>
+<th>Engine Equivalent</th>
+<th>Input Parameters</th>
+<th>Used In</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Bloom / Glow</td>
+<td><code>KawaseBlurFilter</code> (PixiJS) / <code>BloomEffect</code> (Cocos)</td>
+<td><code>radius</code>: 0–16px; <code>quality</code>: 0–4 iterations; <code>strength</code>: 0.0–1.5; <code>blendMode</code>: Screen</td>
+<td>Symbol win glow, Wild/SC idle, WIN counter, win tier text</td>
+</tr>
+<tr>
+<td>Additive blend</td>
+<td>Built-in Additive blend mode</td>
+<td>—</td>
+<td>All particle systems, Lightning arc overlays</td>
+</tr>
+<tr>
+<td>Brightness / Sepia</td>
+<td><code>filter: brightness() sepia()</code> (CSS/WebGL uniform)</td>
+<td><code>brightness</code>: 0.0–3.0; <code>sepia</code>: 0.0–1.0</td>
+<td>TB reel gold filter (t=1500ms); background white flash (brightness); dim non-winning symbols</td>
+</tr>
+<tr>
+<td>Bezier arc renderer</td>
+<td>Custom WebGL line renderer</td>
+<td><code>start: {x,y}</code>, <code>end: {x,y}</code>, <code>control: {x,y}</code> (auto-calculated midpoint), <code>width</code>: 2px, <code>color: --color-arc-white</code>, <code>opacity</code>: 0.0–1.0</td>
+<td>TB arc lines (SC → marks), COIN_TOSS overlay border (optional)</td>
+</tr>
+<tr>
+<td>Parallax compositor</td>
+<td>Multi-layer transform</td>
+<td><code>ratio</code>: 0.0–1.0 per layer; <code>offsetX</code>, <code>offsetY</code>; triggered by <code>mousemove</code> or Gyroscope API</td>
+<td>Background parallax layers 1–4 (VDD §5.3)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Shader performance note:</strong> Wild and Scatter symbols apply full Bloom (radius 16px, 4 iterations) continuously during idle. On mobile, reduce to radius 8px, 2 iterations to maintain 30fps budget. P3/P4 Bloom (radius 6px, 2 iterations) is disabled entirely on mobile (L-category equivalent treatment: no Bloom).</p>
+<hr>
+<p><em>End of ANIM.md — Animation Effects Design Document v1.0</em></p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>ANIM — Animation Spec</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>

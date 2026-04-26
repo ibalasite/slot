@@ -1,0 +1,2722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VDD — Video Design — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">VDD — Video Design</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link active"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>🎬 Design</span>
+        <span>Source: <code>VDD.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="vdd-visual-design-document">VDD — Visual Design Document</h1>
+<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+<hr>
+<h2 id="h-0-document-control">§0 Document Control</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>欄位</th>
+<th>內容</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>DOC-ID</strong></td>
+<td>VDD-THUNDERBLESSING-20260426</td>
+</tr>
+<tr>
+<td><strong>產品名稱</strong></td>
+<td>Thunder Blessing Slot Game</td>
+</tr>
+<tr>
+<td><strong>文件版本</strong></td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td><strong>狀態</strong></td>
+<td>DRAFT</td>
+</tr>
+<tr>
+<td><strong>作者</strong></td>
+<td>AI Generated (gendoc-gen agent)</td>
+</tr>
+<tr>
+<td><strong>日期</strong></td>
+<td>2026-04-26</td>
+</tr>
+<tr>
+<td><strong>上游文件</strong></td>
+<td>IDEA.md, BRD.md, PRD.md, PDD.md v1.0, engine_config.json</td>
+</tr>
+<tr>
+<td><strong>審閱者</strong></td>
+<td>Art Director, UI/UX 設計師</td>
+</tr>
+<tr>
+<td><strong>核准者</strong></td>
+<td>Art Director, Engineering Lead</td>
+</tr>
+</tbody></table></div>
+<h3 id="change-log">Change Log</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>版本</th>
+<th>日期</th>
+<th>作者</th>
+<th>變更摘要</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-04-26</td>
+<td>AI Generated</td>
+<td>初始生成，精化 PDD §11–§14 視覺規格</td>
+</tr>
+</tbody></table></div>
+<h3 id="與-pdd-的關係">與 PDD 的關係</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>維度</th>
+<th>PDD</th>
+<th>VDD</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>定義層次</td>
+<td>「設計什麼」</td>
+<td>「怎麼做到視覺品質」</td>
+</tr>
+<tr>
+<td>色彩</td>
+<td>色名 + HEX + 粗略 OKLCH</td>
+<td>精確 OKLCH + sRGB HEX + CSS Token</td>
+</tr>
+<tr>
+<td>動畫</td>
+<td>時長描述 + 大略 easing</td>
+<td>cubic-bezier 精確值 + Keyframe 表</td>
+</tr>
+<tr>
+<td>特效</td>
+<td>性質描述</td>
+<td>粒子預算 + Blend Mode + Shader 參數</td>
+</tr>
+<tr>
+<td>資源</td>
+<td>格式列表</td>
+<td>壓縮設定 + 輸出 pipeline 規格</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-1-visual-identity-system視覺識別系統">§1 Visual Identity System（視覺識別系統）</h2>
+<h3 id="h-11-品牌色板">1.1 品牌色板</h3>
+<p>以 PDD §11 為基礎，提供工程可直接使用的精確色值。所有色彩以 OKLCH 為主色空間，同時提供 sRGB HEX 供 Photoshop / Spine 工作流程使用。</p>
+<h4 id="primary-palette主色">Primary Palette（主色）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Token 名稱</th>
+<th>OKLCH</th>
+<th>sRGB HEX</th>
+<th>CMYK（印刷參考）</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>--color-gold-primary</code></td>
+<td><code>oklch(75% 0.14 80)</code></td>
+<td><code>#DCA331</code></td>
+<td>C0 M37 Y78 K5</td>
+<td>主框架、按鈕描邊、Win 連線</td>
+</tr>
+<tr>
+<td><code>--color-gold-bright</code></td>
+<td><code>oklch(85% 0.17 88)</code></td>
+<td><code>#FFD700</code></td>
+<td>C0 M16 Y100 K0</td>
+<td>Win 數字、閃電標記、HIGH LIGHT</td>
+</tr>
+<tr>
+<td><code>--color-gold-divine</code></td>
+<td><code>oklch(91% 0.14 88)</code></td>
+<td><code>#FFE55C</code></td>
+<td>C0 M10 Y64 K0</td>
+<td>Divine Lightning Wild 外光暈</td>
+</tr>
+<tr>
+<td><code>--color-blue-olympus</code></td>
+<td><code>oklch(22% 0.06 250)</code></td>
+<td><code>#1B2A4A</code></td>
+<td>C64 M43 Y0 K71</td>
+<td>主背景色、HUD 底色</td>
+</tr>
+<tr>
+<td><code>--color-blue-deep</code></td>
+<td><code>oklch(14% 0.04 253)</code></td>
+<td><code>#0A0F1E</code></td>
+<td>C72 M55 Y0 K88</td>
+<td>最深背景層、遮罩底色</td>
+</tr>
+<tr>
+<td><code>--color-purple-zeus</code></td>
+<td><code>oklch(25% 0.12 300)</code></td>
+<td><code>#4A1B6B</code></td>
+<td>C53 M83 Y0 K58</td>
+<td>FG 場景副色、Buy FG 按鈕</td>
+</tr>
+</tbody></table></div>
+<h4 id="secondary-palette次色">Secondary Palette（次色）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Token 名稱</th>
+<th>OKLCH</th>
+<th>sRGB HEX</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>--color-marble-white</code></td>
+<td><code>oklch(95% 0.01 80)</code></td>
+<td><code>#F5F0E8</code></td>
+<td>對話框文字、主文字</td>
+</tr>
+<tr>
+<td><code>--color-orange-thunder</code></td>
+<td><code>oklch(68% 0.18 55)</code></td>
+<td><code>#FF8C00</code></td>
+<td>Extra Bet ON、Near Miss 高亮</td>
+</tr>
+<tr>
+<td><code>--color-arc-white</code></td>
+<td><code>oklch(96% 0.02 230)</code></td>
+<td><code>#E8F4FF</code></td>
+<td>電弧粒子、Scatter 外光</td>
+</tr>
+<tr>
+<td><code>--color-fg-blue</code></td>
+<td><code>oklch(75% 0.12 220)</code></td>
+<td><code>#00BFFF</code></td>
+<td>FG 倍率進度條填充</td>
+</tr>
+</tbody></table></div>
+<h4 id="functional-palette功能色">Functional Palette（功能色）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Token 名稱</th>
+<th>OKLCH</th>
+<th>sRGB HEX</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>--color-error</code></td>
+<td><code>oklch(42% 0.18 28)</code></td>
+<td><code>#D32F2F</code></td>
+<td>系統錯誤、Tails 文字</td>
+</tr>
+<tr>
+<td><code>--color-disabled</code></td>
+<td><code>oklch(50% 0 0)</code></td>
+<td><code>#757575</code></td>
+<td>禁用按鈕</td>
+</tr>
+<tr>
+<td><code>--color-success</code></td>
+<td><code>oklch(60% 0.16 145)</code></td>
+<td><code>#2E8B57</code></td>
+<td>餘額增加提示</td>
+</tr>
+<tr>
+<td><code>--color-warning</code></td>
+<td><code>oklch(75% 0.18 65)</code></td>
+<td><code>#FFA500</code></td>
+<td>低餘額警示、L2 符號色</td>
+</tr>
+</tbody></table></div>
+<h4 id="symbol-palette符號專屬色">Symbol Palette（符號專屬色）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>符號</th>
+<th>Token 名稱</th>
+<th>OKLCH</th>
+<th>sRGB HEX</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Wild（Divine Lightning）</td>
+<td><code>--color-sym-wild</code></td>
+<td><code>oklch(88% 0.19 92)</code></td>
+<td><code>#FFD700</code></td>
+</tr>
+<tr>
+<td>P1 Zeus</td>
+<td><code>--color-sym-p1</code></td>
+<td><code>oklch(88% 0.19 92)</code></td>
+<td><code>#FFD700</code></td>
+</tr>
+<tr>
+<td>Scatter</td>
+<td><code>--color-sym-scatter-inner</code></td>
+<td><code>oklch(96% 0.02 230)</code></td>
+<td><code>#E8F4FF</code></td>
+</tr>
+<tr>
+<td>Scatter 電弧</td>
+<td><code>--color-sym-scatter-arc</code></td>
+<td><code>oklch(52% 0.18 240)</code></td>
+<td><code>#1A6EBF</code></td>
+</tr>
+<tr>
+<td>P2 Pegasus</td>
+<td><code>--color-sym-p2</code></td>
+<td><code>oklch(82% 0.08 300)</code></td>
+<td><code>#D4BBFF</code></td>
+</tr>
+<tr>
+<td>P3 Athena</td>
+<td><code>--color-sym-p3</code></td>
+<td><code>oklch(77% 0.05 235)</code></td>
+<td><code>#B0C4DE</code></td>
+</tr>
+<tr>
+<td>P4 Eagle</td>
+<td><code>--color-sym-p4</code></td>
+<td><code>oklch(70% 0.12 76)</code></td>
+<td><code>#DAA520</code></td>
+</tr>
+<tr>
+<td>L1 Z</td>
+<td><code>--color-sym-l1</code></td>
+<td><code>oklch(88% 0.19 88)</code></td>
+<td><code>#FFD700</code></td>
+</tr>
+<tr>
+<td>L2 E</td>
+<td><code>--color-sym-l2</code></td>
+<td><code>oklch(72% 0.18 55)</code></td>
+<td><code>#FFA500</code></td>
+</tr>
+<tr>
+<td>L3 U</td>
+<td><code>--color-sym-l3</code></td>
+<td><code>oklch(60% 0.12 56)</code></td>
+<td><code>#CD7F32</code></td>
+</tr>
+<tr>
+<td>L4 S</td>
+<td><code>--color-sym-l4</code></td>
+<td><code>oklch(46% 0.10 68)</code></td>
+<td><code>#8B6914</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-12-設計-token-命名系統">1.2 設計 Token 命名系統</h3>
+<p>以 CSS custom property 風格定義，供前端（PixiJS Filter / Cocos Material）直接引用：</p>
+<pre><code class="language-css">:root {
+  /* Primary */
+  --color-gold-primary:    oklch(75% 0.14 80);
+  --color-gold-bright:     oklch(85% 0.17 88);
+  --color-gold-divine:     oklch(91% 0.14 88);
+  --color-blue-olympus:    oklch(22% 0.06 250);
+  --color-blue-deep:       oklch(14% 0.04 253);
+  --color-purple-zeus:     oklch(25% 0.12 300);
+
+  /* Functional */
+  --color-marble-white:    oklch(95% 0.01 80);
+  --color-orange-thunder:  oklch(68% 0.18 55);
+  --color-arc-white:       oklch(96% 0.02 230);
+  --color-fg-blue:         oklch(75% 0.12 220);
+  --color-success:         oklch(60% 0.16 145);
+  --color-warning:         oklch(75% 0.18 65);
+  --color-error:           oklch(42% 0.18 28);
+  --color-disabled:        oklch(50% 0 0);
+
+  /* Animation tokens */
+  --duration-snap:         80ms;
+  --duration-fast:         150ms;
+  --duration-normal:       300ms;
+  --duration-slow:         600ms;
+  --duration-cascade-drop: 420ms;
+  --duration-coin-flip:    3250ms; /* mid-range of 3000–3500ms; actual duration randomized per §4.5 */
+
+  --ease-out-cubic:        cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-out-back:         cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo:         cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-cubic:     cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-coin-decel:       cubic-bezier(0.05, 0.7, 0.1, 1.0);
+
+  /* Symbol palette tokens */
+  --color-sym-wild:          oklch(88% 0.19 92);
+  --color-sym-p1:            oklch(88% 0.19 92);
+  --color-sym-scatter-inner: oklch(96% 0.02 230);
+  --color-sym-scatter-arc:   oklch(52% 0.18 240);
+  --color-sym-p2:            oklch(82% 0.08 300);
+  --color-sym-p3:            oklch(77% 0.05 235);
+  --color-sym-p4:            oklch(70% 0.12 76);
+  --color-sym-l1:            oklch(88% 0.19 88);
+  --color-sym-l2:            oklch(72% 0.18 55);
+  --color-sym-l3:            oklch(60% 0.12 56);
+  --color-sym-l4:            oklch(46% 0.10 68);
+
+  /* Typography scale tokens (em, based on 16px root) */
+  --text-win-sm:      2.0em;   /* 32px */
+  --text-win-md:      3.5em;   /* 56px */
+  --text-win-lg:      7.5em;   /* 120px — PDD §9.1 Big Win min */
+  --text-win-xl:      9.0em;   /* 144px */
+  --text-win-2xl:    12.5em;   /* 200px */
+  --text-hud-value:   1.375em; /* 22px */
+  --text-hud-label:   0.875em; /* 14px */
+  --text-btn:         1.0em;   /* 16px */
+  --text-symbol:      0.8125em;/* 13px */
+  --text-free:        2.5em;   /* 40px */
+  --text-mult-mid:    3.25em;  /* 52px */
+  --text-mult-max:    4.5em;   /* 72px */
+  --text-cascade:     2.25em;  /* 36px */
+  --text-dialog-title:1.75em;  /* 28px */
+  --text-dialog-body: 1.125em; /* 18px */
+  --text-counter:     1.5em;   /* 24px */
+}</code></pre>
+<h3 id="h-13-視覺一致性規則禁止用色清單">1.3 視覺一致性規則（禁止用色清單）</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>禁止行為</th>
+<th>原因</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>使用純黑 <code>#000000</code> 作為背景</td>
+<td>品牌背景色為 <code>--color-blue-deep</code>，純黑破壞深海藍氛圍</td>
+</tr>
+<tr>
+<td>使用飽和度 &gt; 0.25 的 OKLCH 色彩用於 UI 底色</td>
+<td>過飽和背景會搶奪符號視覺注意力</td>
+</tr>
+<tr>
+<td>使用 <code>#FF0000</code> 正紅色用於 Win 展示</td>
+<td>品牌 Win 色為金色系，正紅色傳遞錯誤感</td>
+</tr>
+<tr>
+<td>在暗背景使用 OKLCH lightness &lt; 40% 的文字</td>
+<td>對比不足，違反 WCAG AA</td>
+</tr>
+<tr>
+<td>對 FG 進度條使用非 <code>--color-fg-blue</code> 色系</td>
+<td>破壞倍率進度的視覺編碼一致性</td>
+</tr>
+<tr>
+<td>混用 sRGB 與 Display P3 色域符號資源</td>
+<td>在 P3 螢幕上色偏不可預測</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-2-typography-specification字體規格精化">§2 Typography Specification（字體規格精化）</h2>
+<h3 id="h-21-字體家族與-load-策略">2.1 字體家族與 Load 策略</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>用途分組</th>
+<th>字體名稱</th>
+<th>格式</th>
+<th>Subset</th>
+<th>font-display</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>WIN 數字主字體</td>
+<td>Trajan Pro（若未取得授權，可以 Orbitron 作為備援；最終選型需 Art Director 確認）</td>
+<td>WOFF2</td>
+<td>數字 <code>0–9</code> + <code>$,. ×</code></td>
+<td><code>swap</code></td>
+</tr>
+<tr>
+<td>WIN 大獎展示備用</td>
+<td>Impact（系統字）</td>
+<td>系統</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>HUD 標籤</td>
+<td>Open Sans</td>
+<td>WOFF2</td>
+<td>Latin + <code>$,.%×</code></td>
+<td><code>swap</code></td>
+</tr>
+<tr>
+<td>符號銘文底部</td>
+<td>Cinzel</td>
+<td>WOFF2</td>
+<td>A–Z uppercase only</td>
+<td><code>optional</code></td>
+</tr>
+<tr>
+<td>BIG WIN / JACKPOT 特效文字</td>
+<td>自訂 Display 字體（GreeK-Display）（佔位符命名，最終字體需確認商業授權，TBD 待 Art Director 確認）</td>
+<td>WOFF2</td>
+<td>大寫 A–Z + <code>!×</code></td>
+<td><code>swap</code></td>
+</tr>
+<tr>
+<td>對話框內文</td>
+<td>Open Sans</td>
+<td>WOFF2</td>
+<td>同 HUD</td>
+<td><code>swap</code></td>
+</tr>
+</tbody></table></div>
+<blockquote><p><strong>選型說明（WIN 數字）</strong>：Orbitron 的幾何圓弧感與希臘神話的「電能科技」風格契合，同時在高對比背景下數字間距清晰，適合快速滾動的計數動畫。備選 Impact 作為系統字降級。</p></blockquote>
+<h3 id="h-22-完整-type-scale-表19201080-基準">2.2 完整 Type Scale 表（1920×1080 基準）</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>元素</th>
+<th>Token</th>
+<th>px 值</th>
+<th>em（基於 16px root）</th>
+<th>字重</th>
+<th>字距（letter-spacing）</th>
+<th>行高（line-height）</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>WIN 數字 Small</td>
+<td><code>--text-win-sm</code></td>
+<td>32px</td>
+<td>2.0em</td>
+<td>700</td>
+<td>0.02em</td>
+<td>1.2</td>
+</tr>
+<tr>
+<td>WIN 數字 Medium</td>
+<td><code>--text-win-md</code></td>
+<td>56px</td>
+<td>3.5em</td>
+<td>700</td>
+<td>0.01em</td>
+<td>1.1</td>
+</tr>
+<tr>
+<td>WIN 數字 Big</td>
+<td><code>--text-win-lg</code></td>
+<td>120px</td>
+<td>7.5em</td>
+<td>700</td>
+<td>0em</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>WIN 數字 Mega</td>
+<td><code>--text-win-xl</code></td>
+<td>144px</td>
+<td>9.0em</td>
+<td>700</td>
+<td>-0.01em</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>WIN 數字 Jackpot</td>
+<td><code>--text-win-2xl</code></td>
+<td>200px</td>
+<td>12.5em</td>
+<td>700</td>
+<td>-0.02em</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>HUD 主要數值</td>
+<td><code>--text-hud-value</code></td>
+<td>22px</td>
+<td>1.375em</td>
+<td>600</td>
+<td>0.02em</td>
+<td>1.4</td>
+</tr>
+<tr>
+<td>HUD 標籤</td>
+<td><code>--text-hud-label</code></td>
+<td>14px</td>
+<td>0.875em</td>
+<td>400</td>
+<td>0.05em</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>按鈕標籤</td>
+<td><code>--text-btn</code></td>
+<td>16px</td>
+<td>1.0em</td>
+<td>600</td>
+<td>0.08em</td>
+<td>1.3</td>
+</tr>
+<tr>
+<td>符號銘文</td>
+<td><code>--text-symbol</code></td>
+<td>13px</td>
+<td>0.8125em</td>
+<td>400</td>
+<td>0.06em</td>
+<td>1.2</td>
+</tr>
+<tr>
+<td>FREE 字母</td>
+<td><code>--text-free</code></td>
+<td>40px</td>
+<td>2.5em</td>
+<td>700</td>
+<td>0.1em</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>倍率顯示 ×3–×17</td>
+<td><code>--text-mult-mid</code></td>
+<td>52px</td>
+<td>3.25em</td>
+<td>700</td>
+<td>0em</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>倍率顯示 ×27–×77</td>
+<td><code>--text-mult-max</code></td>
+<td>72px</td>
+<td>4.5em</td>
+<td>700</td>
+<td>-0.02em</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>CASCADE × N 浮字</td>
+<td><code>--text-cascade</code></td>
+<td>36px</td>
+<td>2.25em</td>
+<td>700</td>
+<td>0.04em</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>對話框標題</td>
+<td><code>--text-dialog-title</code></td>
+<td>28px</td>
+<td>1.75em</td>
+<td>700</td>
+<td>0.02em</td>
+<td>1.3</td>
+</tr>
+<tr>
+<td>對話框內文</td>
+<td><code>--text-dialog-body</code></td>
+<td>18px</td>
+<td>1.125em</td>
+<td>400</td>
+<td>0em</td>
+<td>1.6</td>
+</tr>
+<tr>
+<td>計數器數字</td>
+<td><code>--text-counter</code></td>
+<td>24px</td>
+<td>1.5em</td>
+<td>600</td>
+<td>0.02em</td>
+<td>1.3</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-23-win-數字動畫字體規格">2.3 WIN 數字動畫字體規格</h3>
+<p>使用 <strong>Trajan Pro Bold</strong>（備援字體 Orbitron Bold；最終選型需 Art Director 確認）配合以下動畫規格：</p>
+<ul>
+<li>數字 roll-up 期間啟用 <code>font-variant-numeric: tabular-nums</code>（等寬數字，防止版面抖動）</li>
+<li>計數器滾動結束後 0.1s 播放 <code>scale(1.0 → 1.08 → 1.0)</code> 彈跳（duration: 200ms，ease-out-back）</li>
+<li>超過 Big Win（20× BET）時，字體色從 <code>--color-gold-bright</code> 過渡至 <code>--color-gold-divine</code>（漸層動畫，0.3s）</li>
+</ul>
+<hr>
+<h2 id="h-3-icon-symbol-visual-specs符號視覺精確規格">§3 Icon &amp; Symbol Visual Specs（符號視覺精確規格）</h2>
+<h3 id="h-31-canvas-符號尺寸系統19201080-基準">3.1 Canvas 符號尺寸系統（1920×1080 基準）</h3>
+<p>格子渲染尺寸：190×190px（含 10px 間距後符號可用區域）</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>符號分組</th>
+<th>設計源尺寸</th>
+<th>渲染尺寸</th>
+<th>格子佔比</th>
+<th>留邊（單側）</th>
+<th>含出血設計尺寸</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Wild / Scatter</td>
+<td>200×200px</td>
+<td>171×171px</td>
+<td>90%</td>
+<td>5% (9.5px)</td>
+<td>220×220px</td>
+</tr>
+<tr>
+<td>P1 / P2 / P3 / P4</td>
+<td>180×180px</td>
+<td>162×162px</td>
+<td>85%</td>
+<td>7.5% (14px)</td>
+<td>200×200px</td>
+</tr>
+<tr>
+<td>L1 / L2 / L3 / L4</td>
+<td>160×160px</td>
+<td>144×144px</td>
+<td>76%</td>
+<td>12% (23px)</td>
+<td>180×180px</td>
+</tr>
+</tbody></table></div>
+<blockquote><p><strong>留邊設計意圖</strong>：Wild / Scatter 更大佔比強化視覺層級；Low 符號較小留邊讓多符號同框時不顯擁擠。</p></blockquote>
+<h3 id="h-32-符號色調規格與關鍵渲染參數">3.2 符號色調規格與關鍵渲染參數</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>符號</th>
+<th>主色 Token</th>
+<th>輔色 Token</th>
+<th>外光暈</th>
+<th>Bloom 半徑</th>
+<th>陰影</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Wild（Divine Lightning）</td>
+<td><code>--color-sym-wild</code></td>
+<td><code>--color-arc-white</code></td>
+<td>白金放射光（<code>--color-gold-divine</code>），半徑 24px</td>
+<td>16px</td>
+<td>drop-shadow(0 4px 12px rgba(255,215,0,0.6))</td>
+</tr>
+<tr>
+<td>Scatter</td>
+<td><code>--color-arc-white</code></td>
+<td><code>--color-sym-scatter-arc</code></td>
+<td>藍白電弧光，半徑 20px</td>
+<td>14px</td>
+<td>drop-shadow(0 4px 16px rgba(26,110,191,0.7))</td>
+</tr>
+<tr>
+<td>P1 Zeus</td>
+<td><code>--color-sym-p1</code></td>
+<td><code>--color-gold-primary</code></td>
+<td>帝王金放射光，半徑 18px</td>
+<td>12px</td>
+<td>drop-shadow(0 3px 10px rgba(255,215,0,0.5))</td>
+</tr>
+<tr>
+<td>P2 Pegasus</td>
+<td><code>--color-sym-p2</code></td>
+<td><code>--color-purple-zeus</code></td>
+<td>紫金柔光，半徑 14px</td>
+<td>8px</td>
+<td>drop-shadow(0 3px 8px rgba(212,187,255,0.4))</td>
+</tr>
+<tr>
+<td>P3 Athena</td>
+<td><code>--color-sym-p3</code></td>
+<td><code>--color-arc-white</code></td>
+<td>銀藍冷光，半徑 12px</td>
+<td>6px</td>
+<td>drop-shadow(0 2px 8px rgba(176,196,222,0.4))</td>
+</tr>
+<tr>
+<td>P4 Eagle</td>
+<td><code>--color-sym-p4</code></td>
+<td><code>--color-gold-primary</code></td>
+<td>琥珀暖光，半徑 10px</td>
+<td>6px</td>
+<td>drop-shadow(0 2px 6px rgba(218,165,32,0.4))</td>
+</tr>
+<tr>
+<td>L1–L4</td>
+<td>各 <code>--color-sym-l*</code></td>
+<td>—</td>
+<td>無外光暈</td>
+<td>0px</td>
+<td>drop-shadow(0 1px 4px rgba(0,0,0,0.5))</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-33-spine-骨骼動畫幀率規格">3.3 Spine 骨骼動畫幀率規格</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>動畫狀態</th>
+<th>所有符號幀率</th>
+<th>最大幀數（預算）</th>
+<th>備註</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Idle（loop）</td>
+<td>24fps</td>
+<td>96幀（4s@24fps）</td>
+<td>桌面播放；行動裝置降至 12fps</td>
+</tr>
+<tr>
+<td>Win（一般符號）</td>
+<td>60fps</td>
+<td>90幀（1.5s@60fps）</td>
+<td>Wild=72幀(1.2s) / P1=90幀(1.5s) / P2=78幀(1.3s) / P3=72幀(1.2s) / P4=60幀(1.0s) / L1-L4=48幀(0.8s)</td>
+</tr>
+<tr>
+<td>Win（Scatter 觸發）</td>
+<td>60fps</td>
+<td>108幀（1.8s@60fps）</td>
+<td>PDD §2.3：Scatter觸發後 Win 演出需 1.8s；此行為 Scatter 專屬預算上限</td>
+</tr>
+<tr>
+<td>Special（升階）</td>
+<td>60fps</td>
+<td>150幀（2.5s@60fps）</td>
+<td>Wild Special 最長</td>
+</tr>
+</tbody></table></div>
+<blockquote><p><strong>Spine 版本要求</strong>：≥ 4.1；Spine Runtime 需與前端框架（Cocos Creator 3.x / PixiJS 7.x）版本對齊。 <strong>Atlas 規格</strong>：每個符號獨立 atlas，最大 2048×2048px，啟用 <code>premultipliedAlpha</code>。</p></blockquote>
+<h3 id="h-34-多解析度輸出規格">3.4 多解析度輸出規格</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>輸出倍率</th>
+<th>用途</th>
+<th>Wild/SC 尺寸</th>
+<th>P 類尺寸</th>
+<th>L 類尺寸</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1×</td>
+<td>低端行動裝置（768px 以下）</td>
+<td>220×220px</td>
+<td>200×200px</td>
+<td>180×180px</td>
+</tr>
+<tr>
+<td>2×</td>
+<td>主流桌面 / 中高端行動裝置</td>
+<td>440×440px</td>
+<td>400×400px</td>
+<td>360×360px</td>
+</tr>
+<tr>
+<td>3×</td>
+<td>2K / Retina 顯示器</td>
+<td>512×512px（上限）</td>
+<td>512×512px（上限）</td>
+<td>512×512px（上限）</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-4-animation-timing-system動畫時序系統">§4 Animation Timing System（動畫時序系統）</h2>
+<h3 id="h-41-全域動畫-token">4.1 全域動畫 Token</h3>
+<p>所有動畫均從以下 Token 派生，禁止在動畫中硬編碼數值：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Token</th>
+<th>值</th>
+<th>說明</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>--duration-snap</code></td>
+<td>80ms</td>
+<td>即時響應（按鈕點擊）</td>
+</tr>
+<tr>
+<td><code>--duration-fast</code></td>
+<td>150ms</td>
+<td>快速過渡（toggle、hover）</td>
+</tr>
+<tr>
+<td><code>--duration-normal</code></td>
+<td>300ms</td>
+<td>標準動畫</td>
+</tr>
+<tr>
+<td><code>--duration-slow</code></td>
+<td>600ms</td>
+<td>強調動畫</td>
+</tr>
+<tr>
+<td><code>--ease-out-cubic</code></td>
+<td><code>cubic-bezier(0.33, 1, 0.68, 1)</code></td>
+<td>通用滑出</td>
+</tr>
+<tr>
+<td><code>--ease-out-back</code></td>
+<td><code>cubic-bezier(0.34, 1.56, 0.64, 1)</code></td>
+<td>彈跳落定</td>
+</tr>
+<tr>
+<td><code>--ease-out-expo</code></td>
+<td><code>cubic-bezier(0.16, 1, 0.3, 1)</code></td>
+<td>符號擴展</td>
+</tr>
+<tr>
+<td><code>--ease-in-out-cubic</code></td>
+<td><code>cubic-bezier(0.65, 0, 0.35, 1)</code></td>
+<td>進度條填充</td>
+</tr>
+<tr>
+<td><code>--ease-coin-decel</code></td>
+<td><code>cubic-bezier(0.05, 0.7, 0.1, 1.0)</code></td>
+<td>硬幣翻轉減速（Y2=1.0 線性結尾，硬幣停止效果；需設計師在動畫工具預覽確認物理感）</td>
+</tr>
+<tr>
+<td><code>--ease-out-bounce</code></td>
+<td>JS 自定義緩動（非 cubic-bezier）</td>
+<td>Cascade 落下彈性碰撞感（PDD §5.2）；以 requestAnimationFrame 或 Spine custom curve 實現；不可用單一 cubic-bezier 替代</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-42-符號落下動畫cascade-drop">4.2 符號落下動畫（Cascade Drop）</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>階段</th>
+<th>屬性</th>
+<th>起始值</th>
+<th>結束值</th>
+<th>時長</th>
+<th>Easing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>落下</td>
+<td><code>translateY</code></td>
+<td>-200px（滾輪頂端外）</td>
+<td>0px</td>
+<td>420ms</td>
+<td><code>--ease-out-bounce</code>（PDD §5.2 彈性碰撞感，JS 自定義實現）</td>
+</tr>
+<tr>
+<td>落下</td>
+<td><code>opacity</code></td>
+<td>0</td>
+<td>1</td>
+<td>100ms</td>
+<td>linear</td>
+</tr>
+<tr>
+<td>落定彈跳</td>
+<td><code>scale</code></td>
+<td>1.0</td>
+<td>1.05 → 1.0</td>
+<td>150ms</td>
+<td><code>--ease-out-back</code></td>
+</tr>
+<tr>
+<td>階梯延遲</td>
+<td><code>delay</code></td>
+<td>col×20ms + row×30ms</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>5 滾輪 × 6 列最大延遲：col 4 × 20ms + row 5 × 30ms = 230ms（符號依序落下）</p></blockquote>
+<h3 id="h-43-符號消除爆炸動畫">4.3 符號消除爆炸動畫</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>階段</th>
+<th>屬性</th>
+<th>起始值</th>
+<th>結束值</th>
+<th>時長</th>
+<th>Easing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>符號縮小</td>
+<td><code>scale</code></td>
+<td>1.0</td>
+<td>0.0</td>
+<td>200ms</td>
+<td><code>ease-in</code></td>
+</tr>
+<tr>
+<td>碎片飛散</td>
+<td>粒子 translateX/Y</td>
+<td>0</td>
+<td>±80px（隨機）</td>
+<td>400ms</td>
+<td><code>ease-out</code></td>
+</tr>
+<tr>
+<td>碎片透明</td>
+<td><code>opacity</code></td>
+<td>1.0</td>
+<td>0.0</td>
+<td>300ms（delay 100ms）</td>
+<td>linear</td>
+</tr>
+<tr>
+<td>格子透明</td>
+<td><code>opacity</code></td>
+<td>1.0</td>
+<td>0.0</td>
+<td>80ms</td>
+<td>linear</td>
+</tr>
+<tr>
+<td><strong>雷霆祝福消除</strong></td>
+<td>電弧爆炸 scale</td>
+<td>0.5</td>
+<td>2.5（外溢 20%）</td>
+<td>600ms</td>
+<td><code>--ease-out-expo</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-44-滾輪行數擴展動畫">4.4 滾輪行數擴展動畫</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>階段</th>
+<th>屬性</th>
+<th>起始值</th>
+<th>結束值</th>
+<th>時長</th>
+<th>Easing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>框架高度延伸</td>
+<td><code>scaleY</code> transform</td>
+<td>當前</td>
+<td>當前 + 200px</td>
+<td>300ms</td>
+<td><code>--ease-out-cubic</code></td>
+</tr>
+<tr>
+<td>雲霧消散</td>
+<td><code>opacity</code></td>
+<td>1.0</td>
+<td>0.0</td>
+<td>250ms</td>
+<td>linear</td>
+</tr>
+<tr>
+<td>新列淡入</td>
+<td><code>opacity</code></td>
+<td>0.0</td>
+<td>1.0</td>
+<td>300ms（delay 200ms）</td>
+<td>linear</td>
+</tr>
+<tr>
+<td>FREE 字母點亮</td>
+<td><code>brightness</code></td>
+<td>0.3</td>
+<td>1.0</td>
+<td>200ms</td>
+<td><code>--ease-out-cubic</code></td>
+</tr>
+<tr>
+<td>FREE 字母 scale</td>
+<td><code>scale</code></td>
+<td>0.8</td>
+<td>1.15 → 1.0</td>
+<td>300ms</td>
+<td><code>--ease-out-back</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="h-45-coin-toss-翻轉動畫">4.5 Coin Toss 翻轉動畫</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>階段</th>
+<th>屬性</th>
+<th>值</th>
+<th>時長</th>
+<th>Easing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>硬幣飛入</td>
+<td><code>translateY</code>: -800px → 0</td>
+<td>—</td>
+<td>500ms</td>
+<td><code>--ease-out-cubic</code></td>
+</tr>
+<tr>
+<td>加速旋轉</td>
+<td><code>rotateY</code>: 0° → 2520°（7圈）</td>
+<td>—</td>
+<td>800ms</td>
+<td><code>ease-in</code></td>
+</tr>
+<tr>
+<td>持續旋轉</td>
+<td><code>rotateY</code>: 繼續旋轉（隨機圈數，使總時長落在範圍內）</td>
+<td>—</td>
+<td>200ms–700ms（隨機）</td>
+<td>linear</td>
+</tr>
+<tr>
+<td>減速停止</td>
+<td><code>rotateY</code>: 繼續至最終面</td>
+<td>—</td>
+<td>1500ms</td>
+<td><code>--ease-coin-decel</code></td>
+</tr>
+<tr>
+<td><strong>總時長</strong></td>
+<td>—</td>
+<td>—</td>
+<td>3000ms–3500ms（隨機）</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<blockquote><p><strong>PDD §6.3 與 VDD 差異說明</strong>：PDD §6.3 記載整體設計目標範圍 2.5s–3.5s；VDD 各階段時長之加總最小值為 3000ms（500+800+200+1500），實作下限以 VDD 為準。若需壓縮至 2.5s，需減少飛入或加速旋轉階段時長（須動畫 QA 確認流暢感）。</p></blockquote>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>結果爆光（Heads）</th>
+<th><code>scale</code>: 1.0 → 1.3 → 1.0</th>
+<th><code>opacity</code> glow: 0→1→0</th>
+<th>600ms</th>
+<th><code>--ease-out-back</code></th>
+</tr></thead>
+<tbody>
+</tbody></table></div>
+<h3 id="h-46-fg-場景切換">4.6 FG 場景切換</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>階段</th>
+<th>屬性</th>
+<th>時長</th>
+<th>Easing</th>
+<th>備註</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>舊場景溶解</td>
+<td><code>opacity</code>: 1→0</td>
+<td>800ms</td>
+<td>linear</td>
+<td>Cross-dissolve 前半</td>
+</tr>
+<tr>
+<td>新場景淡入</td>
+<td><code>opacity</code>: 0→1</td>
+<td>800ms（delay 400ms）</td>
+<td>linear</td>
+<td>Cross-dissolve 後半</td>
+</tr>
+<tr>
+<td>FG 標題橫幅落下</td>
+<td><code>translateY</code>: -200px → 0</td>
+<td>600ms</td>
+<td><code>--ease-out-cubic</code></td>
+<td>delay 1200ms</td>
+</tr>
+<tr>
+<td>倍率數字展示</td>
+<td><code>scale</code>: 0→2→1</td>
+<td>800ms</td>
+<td><code>--ease-out-back</code></td>
+<td>delay 1800ms</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-47-win-數字-roll-up">4.7 Win 數字 Roll-up</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>參數</th>
+<th>規格</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>滾動算法</td>
+<td><code>requestAnimationFrame</code>，每幀增量 = <code>(目標值 - 當前值) × 0.15</code>（exponential decay）</td>
+</tr>
+<tr>
+<td>最長滾動時長</td>
+<td><code>min(totalWin / 50, 5000)ms</code>（單位：ms；totalWin 單位：BET 倍數）</td>
+</tr>
+<tr>
+<td>最短滾動時長</td>
+<td>200ms（Small Win，確保動畫可見）</td>
+</tr>
+<tr>
+<td>數字格式更新幀率</td>
+<td>每幀更新（不限制更新頻率）</td>
+</tr>
+<tr>
+<td>結束彈跳</td>
+<td><code>scale: 1.0 → 1.08 → 1.0</code>，200ms，<code>--ease-out-back</code></td>
+</tr>
+<tr>
+<td>Easing 曲線</td>
+<td><code>--ease-out-expo</code>（前 70% 快速，後 30% 緩降至精確值）</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-48-fg-multiplier-進度條色彩過渡">4.8 FG Multiplier 進度條色彩過渡</h3>
+<p>依 PDD §6.4 修正，進度條節點顏色精確值：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>節點</th>
+<th>倍率</th>
+<th>Heads 機率</th>
+<th>節點色（OKLCH）</th>
+<th>連線色</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>×3</td>
+<td>80%</td>
+<td><code>oklch(70% 0.17 142)</code> #4BA03A</td>
+<td>連接 1→2：<code>oklch(78% 0.17 88)</code> 黃</td>
+</tr>
+<tr>
+<td>2</td>
+<td>×7</td>
+<td>68%</td>
+<td><code>oklch(80% 0.18 88)</code> #FFD040</td>
+<td>連接 2→3：<code>oklch(78% 0.17 88)</code> 黃</td>
+</tr>
+<tr>
+<td>3</td>
+<td>×17</td>
+<td>56%</td>
+<td><code>oklch(72% 0.19 55)</code> #E8A828</td>
+<td>連接 3→4：<code>oklch(68% 0.18 45)</code> 橙</td>
+</tr>
+<tr>
+<td>4</td>
+<td>×27</td>
+<td>48%</td>
+<td><code>oklch(68% 0.21 40)</code> #E06820</td>
+<td>連接 4→5：<code>oklch(55% 0.22 25)</code> 橘紅</td>
+</tr>
+<tr>
+<td>5</td>
+<td>×77</td>
+<td>40%</td>
+<td><code>oklch(62% 0.22 25)</code> #C83018</td>
+<td>連接 5：紅色電弧</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>進度線從綠→黃→黃橙→橙→紅漸進，對應 Heads 機率 80%→68%→56%→48%→40%，視覺傳達難度遞增。</p></blockquote>
+<hr>
+<h2 id="h-5-shader-visual-effect-specsshader-與特效規格">§5 Shader &amp; Visual Effect Specs（Shader 與特效規格）</h2>
+<h3 id="h-51-閃電電弧效果lightning-mark-thunder-blessing">5.1 閃電電弧效果（Lightning Mark &amp; Thunder Blessing）</h3>
+<h4 id="閃電標記持續態">閃電標記（持續態）</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>參數</th>
+<th>規格</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>粒子系統類型</td>
+<td>Sprite Sheet Particle（PNG Sprite）</td>
+</tr>
+<tr>
+<td>每格粒子數（靜態態）</td>
+<td>6–12 個（依裝置能力動態調整）</td>
+</tr>
+<tr>
+<td>粒子速度</td>
+<td>20–60px/s，隨機方向，上方偏向性（cos bias）</td>
+</tr>
+<tr>
+<td>粒子生命週期</td>
+<td>0.4s–0.8s</td>
+</tr>
+<tr>
+<td>粒子色</td>
+<td><code>--color-gold-bright</code>（50%）+<code>--color-arc-white</code>（50%），隨機混合</td>
+</tr>
+<tr>
+<td>Blend Mode</td>
+<td><code>Additive</code>（亮度疊加，避免壓暗底層符號）</td>
+</tr>
+<tr>
+<td>透明度</td>
+<td>整體 overlay opacity：0.6（讓底層符號仍可辨識）</td>
+</tr>
+<tr>
+<td>Z-order</td>
+<td>符號層上方，連線高亮層下方</td>
+</tr>
+</tbody></table></div>
+<h4 id="thunder-blessing-引爆特效">Thunder Blessing 引爆特效</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>參數</th>
+<th>規格</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>引爆瞬間粒子數</td>
+<td>每個標記格 80–120 個（電弧爆炸粒子）</td>
+</tr>
+<tr>
+<td>全盤同時引爆最大粒子數</td>
+<td>480 個（桌面上限，30 格 × 16 粒子均值，低於絕對上限 500）</td>
+</tr>
+<tr>
+<td>粒子速度</td>
+<td>80–400px/s，外放射</td>
+</tr>
+<tr>
+<td>粒子生命週期</td>
+<td>0.3s–1.0s</td>
+</tr>
+<tr>
+<td>電弧連線效果</td>
+<td>SC 到每個標記格：Bezier 曲線電弧 renderer，寬度 2px，色 <code>--color-arc-white</code>，Additive Blend</td>
+</tr>
+<tr>
+<td>背景白光閃爍</td>
+<td><code>brightness: 1→3→1</code>，duration: 300ms，Overlay 層</td>
+</tr>
+<tr>
+<td>行動裝置降級</td>
+<td>粒子數減半至最大 240 個；電弧連線省略（改為簡單 Flash）</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-52-符號-win-高亮效果">5.2 符號 Win 高亮效果</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>參數</th>
+<th>規格</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Bloom 強度</td>
+<td>Low（L類）: 0.2；Mid（P4/P3）: 0.5；High（P2/P1）: 0.8；Wild/SC: 1.2</td>
+</tr>
+<tr>
+<td>Outline 寬度</td>
+<td>2px（L類）；4px（P類）；6px（Wild/SC）</td>
+</tr>
+<tr>
+<td>Outline 色</td>
+<td>對應符號主色 Token（見 §3.2）</td>
+</tr>
+<tr>
+<td>Bloom 半徑</td>
+<td>對應 §3.2 各符號規格</td>
+</tr>
+<tr>
+<td>Win Flash 頻率</td>
+<td>每 0.8s 循環一次（連線輪播節拍）</td>
+</tr>
+<tr>
+<td>Blend Mode</td>
+<td>Screen（Bloom 層）+ Normal（Outline 層）</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-53-背景視差層速度規格">5.3 背景視差層速度規格</h3>
+<p>精化 PDD §3.2，提供精確 Parallax ratio：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>層次</th>
+<th>元素</th>
+<th>Parallax Ratio</th>
+<th>移動觸發方式</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>天空漸層</td>
+<td>0（靜止）</td>
+<td>不移動</td>
+</tr>
+<tr>
+<td>1</td>
+<td>遠景雲層</td>
+<td>0.05</td>
+<td>自動橫向漂移，速度 8px/s；Thunder Blessing 觸發：加速至 40px/s（1s 後回速）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>奧林匹斯山</td>
+<td>0.10</td>
+<td>鼠標或觸控 gyro 驅動</td>
+</tr>
+<tr>
+<td>3</td>
+<td>帕德嫩神殿（遠）</td>
+<td>0.20</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>4</td>
+<td>神殿前景柱</td>
+<td>0.40</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>5</td>
+<td>滾輪 + 符號</td>
+<td>1.0（固定）</td>
+<td>不隨 parallax 移動</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>行動裝置無 mousemove，層 2–4 改用 Gyroscope API（<code>DeviceOrientationEvent</code>），傾斜角度映射至 ±15px 位移。</p></blockquote>
+<h3 id="h-54-粒子預算particle-budget">5.4 粒子預算（Particle Budget）</h3>
+<p>全遊戲同時最大粒子數限制：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>場景</th>
+<th>桌面上限</th>
+<th>行動裝置上限</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>平常 Idle（所有標記）</td>
+<td>120 個</td>
+<td>60 個</td>
+</tr>
+<tr>
+<td>Cascade 消除（單次）</td>
+<td>200 個</td>
+<td>100 個</td>
+</tr>
+<tr>
+<td>Thunder Blessing 引爆</td>
+<td>480 個</td>
+<td>240 個</td>
+</tr>
+<tr>
+<td>Big Win / Mega Win 粒子</td>
+<td>300 個</td>
+<td>150 個</td>
+</tr>
+<tr>
+<td>FG Bonus ×100 全屏特效</td>
+<td>3000 個（3s 爆發，允許超預算）</td>
+<td>800 個</td>
+</tr>
+<tr>
+<td>MAX WIN 30,000× 金幣雨</td>
+<td>2000 個</td>
+<td>600 個</td>
+</tr>
+<tr>
+<td><strong>絕對瞬時上限</strong></td>
+<td><strong>500 個</strong></td>
+<td><strong>200 個</strong></td>
+</tr>
+</tbody></table></div>
+<blockquote><p><strong>特殊例外</strong>：FG Bonus ×100 特殊演出期間例外允許桌面最高 3000 粒子 / 行動最高 800 粒子（3s 短時爆發，對齊 PDD §7.4「3000+ 粒子」規格，由效能測試驗證後可調整）。MAX WIN 金幣雨允許桌面 2000 粒子 / 行動 600 粒子（2s 爆發）。其餘場景須嚴格遵守桌面 500 / 行動 200 粒子絕對瞬時上限。</p></blockquote>
+<blockquote><p>超出上限時，採用「舊粒子提前 fade-out」回收策略，禁止拒絕新粒子生成。</p></blockquote>
+<h3 id="h-55-bloom-glow-shader-參數">5.5 Bloom / Glow Shader 參數</h3>
+<p>使用 PixiJS <code>KawaseBlurFilter</code> 或 Cocos Creator <code>BloomEffect</code>：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>參數</th>
+<th>Wild/SC</th>
+<th>P1/P2</th>
+<th>P3/P4</th>
+<th>L類</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Blur 半徑（radius）</td>
+<td>16px</td>
+<td>10px</td>
+<td>6px</td>
+<td>0px</td>
+</tr>
+<tr>
+<td>Blur 迭代次數（quality）</td>
+<td>4</td>
+<td>3</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td>亮度增益（strength）</td>
+<td>1.5</td>
+<td>1.2</td>
+<td>1.0</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Blend Mode</td>
+<td>Screen</td>
+<td>Screen</td>
+<td>Screen</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-6-screen-layout-pixel-specs屏幕佈局像素規格">§6 Screen Layout Pixel Specs（屏幕佈局像素規格）</h2>
+<h3 id="h-61-19201080-基準佈局精確-pixel-值">6.1 1920×1080 基準佈局精確 Pixel 值</h3>
+<h4 id="滾輪主體">滾輪主體</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>元素</th>
+<th>X（左邊距）</th>
+<th>Y（頂邊距）</th>
+<th>W（寬）</th>
+<th>H（高，3列基準）</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>滾輪容器（外框）</td>
+<td>460px</td>
+<td>80px</td>
+<td>1000px</td>
+<td>590px</td>
+</tr>
+<tr>
+<td>單格格子（含間距）</td>
+<td>—</td>
+<td>—</td>
+<td>200px</td>
+<td>200px</td>
+</tr>
+<tr>
+<td>格子可渲染區（扣間距）</td>
+<td>+5px offset</td>
+<td>+5px offset</td>
+<td>190px</td>
+<td>190px</td>
+</tr>
+<tr>
+<td>格子間距（水平）</td>
+<td>—</td>
+<td>—</td>
+<td>10px</td>
+<td>—</td>
+</tr>
+<tr>
+<td>格子間距（垂直）</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>10px</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>5 格滾輪：460 + 5 × 200 = 1460px（右邊到 1460px，留右側 460px 給背景）。 3 列總高：3 × 200 - 10 = 590px（最後一列不加間距）。</p></blockquote>
+<h4 id="各列數下滾輪高度">各列數下滾輪高度</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>列數</th>
+<th>滾輪 H</th>
+<th>Y 底邊</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>590px</td>
+<td>670px</td>
+</tr>
+<tr>
+<td>4</td>
+<td>780px</td>
+<td>860px</td>
+</tr>
+<tr>
+<td>5</td>
+<td>970px</td>
+<td>1050px</td>
+</tr>
+<tr>
+<td>6</td>
+<td>1160px</td>
+<td>1240px（超出 1080px → 底部遮罩 + 特效遮蔽）</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>6 列時底部超出屏幕，設計意圖：滾輪「突破天際」視覺效果，底部以雲霧遮蔽。</p></blockquote>
+<h4 id="hud-底部工具列">HUD 底部工具列</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>元素</th>
+<th>X</th>
+<th>Y（top）</th>
+<th>W</th>
+<th>H</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>HUD 底部容器</td>
+<td>0px</td>
+<td>914px</td>
+<td>1920px</td>
+<td>166px</td>
+</tr>
+<tr>
+<td>BALANCE 標籤</td>
+<td>60px</td>
+<td>924px</td>
+<td>160px</td>
+<td>20px</td>
+</tr>
+<tr>
+<td>BALANCE 值</td>
+<td>60px</td>
+<td>948px</td>
+<td>200px</td>
+<td>30px</td>
+</tr>
+<tr>
+<td>WIN 標籤</td>
+<td>440px</td>
+<td>924px</td>
+<td>100px</td>
+<td>20px</td>
+</tr>
+<tr>
+<td>WIN 值</td>
+<td>420px</td>
+<td>948px</td>
+<td>160px</td>
+<td>36px</td>
+</tr>
+<tr>
+<td>BET 標籤</td>
+<td>780px</td>
+<td>924px</td>
+<td>80px</td>
+<td>20px</td>
+</tr>
+<tr>
+<td>BET 值</td>
+<td>770px</td>
+<td>948px</td>
+<td>130px</td>
+<td>28px</td>
+</tr>
+<tr>
+<td>LINES 標籤</td>
+<td>980px</td>
+<td>924px</td>
+<td>80px</td>
+<td>20px</td>
+</tr>
+<tr>
+<td>LINES 值</td>
+<td>975px</td>
+<td>948px</td>
+<td>100px</td>
+<td>24px</td>
+</tr>
+<tr>
+<td>BET − 按鈕</td>
+<td>1200px</td>
+<td>934px</td>
+<td>48px</td>
+<td>48px</td>
+</tr>
+<tr>
+<td>BET + 按鈕</td>
+<td>1320px</td>
+<td>934px</td>
+<td>48px</td>
+<td>48px</td>
+</tr>
+<tr>
+<td>EXTRA BET 開關</td>
+<td>1400px</td>
+<td>930px</td>
+<td>160px</td>
+<td>56px</td>
+</tr>
+<tr>
+<td>SPIN 按鈕（圓形）</td>
+<td>1630px（center）</td>
+<td>970px（center）</td>
+<td>100px（直徑）</td>
+<td>100px</td>
+</tr>
+<tr>
+<td>AUTO 按鈕</td>
+<td>1760px</td>
+<td>940px</td>
+<td>140px</td>
+<td>50px</td>
+</tr>
+<tr>
+<td>BUY FG 按鈕</td>
+<td>1760px</td>
+<td>940px</td>
+<td>140px</td>
+<td>50px</td>
+</tr>
+</tbody></table></div>
+<blockquote><p><strong>AUTO 與 BUY FG 互斥顯示說明</strong>：AUTO 按鈕與 BUY FG 按鈕採互斥顯示——Main Game 期間顯示 BUY FG 按鈕，BUY FG 按鈕隱藏時 AUTO 按鈕出現在相同位置（X=1760px, Y=940px）。兩者佔用相同空間（W=140px, H=50px），不可同時可見。</p></blockquote>
+<h4 id="hud-頂部工具列">HUD 頂部工具列</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>元素</th>
+<th>X</th>
+<th>Y</th>
+<th>W</th>
+<th>H</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>INFO 按鈕</td>
+<td>20px</td>
+<td>20px</td>
+<td>48px</td>
+<td>48px</td>
+</tr>
+<tr>
+<td>SOUND 按鈕</td>
+<td>80px</td>
+<td>20px</td>
+<td>48px</td>
+<td>48px</td>
+</tr>
+<tr>
+<td>LINES 顯示（頂部）</td>
+<td>850px</td>
+<td>24px</td>
+<td>160px</td>
+<td>36px</td>
+</tr>
+<tr>
+<td>SETTINGS 按鈕</td>
+<td>1852px</td>
+<td>20px</td>
+<td>48px</td>
+<td>48px</td>
+</tr>
+</tbody></table></div>
+<h4 id="free-字母進度指示器">FREE 字母進度指示器</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>元素</th>
+<th>X（center per letter）</th>
+<th>Y</th>
+<th>W</th>
+<th>H</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>F 字母</td>
+<td>814px</td>
+<td>50px</td>
+<td>40px</td>
+<td>50px</td>
+</tr>
+<tr>
+<td>R 字母</td>
+<td>861px</td>
+<td>50px</td>
+<td>40px</td>
+<td>50px</td>
+</tr>
+<tr>
+<td>E（第 3 個）</td>
+<td>908px</td>
+<td>50px</td>
+<td>40px</td>
+<td>50px</td>
+</tr>
+<tr>
+<td>E（第 4 個）</td>
+<td>955px</td>
+<td>50px</td>
+<td>40px</td>
+<td>50px</td>
+</tr>
+</tbody></table></div>
+<h4 id="閃電標記計數器">閃電標記計數器</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>元素</th>
+<th>X</th>
+<th>Y</th>
+<th>W</th>
+<th>H</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>計數器容器</td>
+<td>1465px</td>
+<td>90px</td>
+<td>120px</td>
+<td>48px</td>
+</tr>
+<tr>
+<td>閃電圖示</td>
+<td>1470px</td>
+<td>100px</td>
+<td>24px</td>
+<td>24px</td>
+</tr>
+<tr>
+<td>計數數字</td>
+<td>1510px</td>
+<td>96px</td>
+<td>60px</td>
+<td>36px</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-62-安全邊距safe-margin">6.2 安全邊距（Safe Margin）</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>平台</th>
+<th>上</th>
+<th>下</th>
+<th>左</th>
+<th>右</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>桌面（1920×1080）</td>
+<td>20px</td>
+<td>20px</td>
+<td>20px</td>
+<td>20px</td>
+</tr>
+<tr>
+<td>iOS 橫屏（含 Home Indicator）</td>
+<td>34px</td>
+<td>34px</td>
+<td>44px</td>
+<td>44px</td>
+</tr>
+<tr>
+<td>iOS 直屏（含動態島）</td>
+<td>44px</td>
+<td>34px</td>
+<td>0px</td>
+<td>0px</td>
+</tr>
+<tr>
+<td>Android 橫屏</td>
+<td>20px</td>
+<td>48px</td>
+<td>32px</td>
+<td>32px</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>所有可互動元素（按鈕、開關）必須在安全邊距內。滾輪背景視覺可延伸至安全邊距外。</p></blockquote>
+<hr>
+<h2 id="h-7-color-animation-specs色彩動畫規格">§7 Color Animation Specs（色彩動畫規格）</h2>
+<h3 id="h-71-win-flash-動畫-keyframe">7.1 Win Flash 動畫 Keyframe</h3>
+<p>Win 中獎連線高亮循環（0.8s 1 cycle）：</p>
+<pre><code>Keyframe  0%:   opacity: 1.0; filter: brightness(1.0)
+Keyframe 30%:   opacity: 1.0; filter: brightness(1.8)
+Keyframe 50%:   opacity: 0.7; filter: brightness(0.8)
+Keyframe 70%:   opacity: 1.0; filter: brightness(1.6)
+Keyframe 100%:  opacity: 1.0; filter: brightness(1.0)</code></pre>
+<p>非中獎符號同步 keyframe：</p>
+<pre><code>0%–100%:  opacity: 0.5; filter: brightness(0.6) saturate(0.4)</code></pre>
+<h3 id="h-72-cascade-連鎖層級色彩遞進">7.2 Cascade 連鎖層級色彩遞進</h3>
+<p>每次 Cascade 成功，WIN 數字區域 tint 加深，傳達「能量累積」感：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Cascade 次數</th>
+<th>WIN 區域背景 tint</th>
+<th>計數浮字色彩</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>rgba(255,215,0,0.05)</code></td>
+<td><code>--color-gold-bright</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>rgba(255,215,0,0.12)</code></td>
+<td><code>--color-gold-bright</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>rgba(255,165,0,0.18)</code></td>
+<td><code>--color-orange-thunder</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>rgba(255,100,0,0.25)</code></td>
+<td><code>oklch(70% 0.22 40)</code> 橙紅</td>
+</tr>
+<tr>
+<td>5 次以上</td>
+<td><code>rgba(255,50,0,0.30)</code></td>
+<td><code>oklch(62% 0.25 25)</code> 紅橙</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>tint 以 <code>mix-blend-mode: overlay</code> 疊加於 WIN 數字容器背景，不影響數字本身可讀性。</p></blockquote>
+<h3 id="h-73-fg-multiplier-色彩過渡精確修正-pdd-64">7.3 FG Multiplier 色彩過渡（精確修正 PDD §6.4）</h3>
+<p>Coin Toss Heads 後進度條色彩過渡動畫（duration: 500ms，<code>--ease-in-out-cubic</code>）：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>過渡方向</th>
+<th>起始 OKLCH</th>
+<th>結束 OKLCH</th>
+<th>說明</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>×3 → ×7</td>
+<td><code>oklch(70% 0.17 142)</code> 綠</td>
+<td><code>oklch(80% 0.18 88)</code> 黃</td>
+<td>進度線段色漸變</td>
+</tr>
+<tr>
+<td>×7 → ×17</td>
+<td><code>oklch(80% 0.18 88)</code> 黃</td>
+<td><code>oklch(72% 0.19 55)</code> 黃橙</td>
+<td></td>
+</tr>
+<tr>
+<td>×17 → ×27</td>
+<td><code>oklch(72% 0.19 55)</code> 黃橙</td>
+<td><code>oklch(68% 0.21 40)</code> 橙紅</td>
+<td></td>
+</tr>
+<tr>
+<td>×27 → ×77</td>
+<td><code>oklch(68% 0.21 40)</code> 橙紅</td>
+<td><code>oklch(62% 0.22 25)</code> 深紅</td>
+<td>+ 紅色電弧粒子</td>
+</tr>
+</tbody></table></div>
+<p>達到 ×77 時全節點閃爍：</p>
+<pre><code>Keyframe 0%:   filter: brightness(1.0)
+Keyframe 25%:  filter: brightness(2.5) saturate(1.5)
+Keyframe 50%:  filter: brightness(1.2)
+Keyframe 75%:  filter: brightness(2.0)
+Keyframe 100%: filter: brightness(1.0)
+Animation: 1.5s ease-in-out infinite（持續至 FG 結束）</code></pre>
+<h3 id="h-74-thunder-blessing-觸發全域色彩動畫">7.4 Thunder Blessing 觸發全域色彩動畫</h3>
+<blockquote><p><strong>時序基準</strong>：以引爆開始（PDD §4.3 步驟3，Scatter 落定後約 0.8s 後 SC 標記轉換完成）為 t=0，非 Scatter 落盤時刻。</p></blockquote>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>時序</th>
+<th>效果</th>
+<th>精確值</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>0.0s</td>
+<td>背景 overlay 閃白</td>
+<td><code>rgba(255,255,255,0)</code> → <code>rgba(255,255,255,0.9)</code></td>
+</tr>
+<tr>
+<td>0.3s</td>
+<td>白光消退</td>
+<td><code>rgba(255,255,255,0.9)</code> → <code>rgba(255,255,255,0)</code></td>
+</tr>
+<tr>
+<td>0.8s</td>
+<td>符號替換完成，全盤金色光暈</td>
+<td><code>filter: sepia(0.3) brightness(1.4)</code> on reel layer</td>
+</tr>
+<tr>
+<td>1.8s</td>
+<td>光暈退出</td>
+<td>回到 <code>filter: none</code></td>
+</tr>
+<tr>
+<td>1.5s</td>
+<td>第二擊（若觸發）再次白光</td>
+<td>強度降至 0.6（<code>rgba(255,255,255,0.6)</code>）（PDD §4.3 絕對 2.3s − 引爆開始 0.8s = 1.5s）</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-8-accessibility-visual-standards無障礙視覺標準">§8 Accessibility Visual Standards（無障礙視覺標準）</h2>
+<h3 id="h-81-色盲適配方案">8.1 色盲適配方案</h3>
+<p>Thunder Blessing 主色系（金/藍/紫）在常見色盲類型下的可辨識性：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>色盲類型</th>
+<th>影響</th>
+<th>適配措施</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Protanopia（紅色盲）</td>
+<td>紅色系（Cascade tint 5次+）辨識困難</td>
+<td>Cascade 高次數時以圖形（閃電圖標數量）補充提示，不純依賴色彩</td>
+</tr>
+<tr>
+<td>Deuteranopia（綠色盲）</td>
+<td>×3 進度節點（綠色）與其他節點可能混淆</td>
+<td>進度節點形狀依倍率不同（×3:圓形；×7:菱形；×17:五角星；×27:六芒星；×77:閃電形）</td>
+</tr>
+<tr>
+<td>Tritanopia（藍色盲）</td>
+<td>Scatter 藍色電弧辨識受影響</td>
+<td>Scatter 加入環形白色外框（2px），不依賴藍色唯一標識</td>
+</tr>
+<tr>
+<td>全色盲</td>
+<td>僅依靠亮度</td>
+<td>關鍵符號（Wild、Scatter）亮度差 ≥ 30%（OKLCH lightness 差）</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-82-高頻閃爍限制">8.2 高頻閃爍限制</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>規範</th>
+<th>要求</th>
+<th>對應設計</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>PRD A11y-01</td>
+<td>閃爍頻率 &lt; 3Hz</td>
+<td>Win Flash 循環 0.8s（1.25Hz）✅</td>
+</tr>
+<tr>
+<td>WCAG 2.3.1（三閃限制）</td>
+<td>1s 內紅色閃爍 &lt; 3次</td>
+<td>不使用純紅色閃爍效果</td>
+</tr>
+<tr>
+<td>雷霆祝福白光</td>
+<td>單次 0.3s 衝擊光</td>
+<td>觸發間隔 ≥ 1s，整場不超過 3次連續白光</td>
+</tr>
+<tr>
+<td>FG Bonus ×100 全屏特效</td>
+<td>爆炸持續 3.0s</td>
+<td>閃爍幀 &lt; 3 個/s（每 400ms 一個高亮峰值）</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-83-動態縮減reduced-motion替代方案">8.3 動態縮減（Reduced Motion）替代方案</h3>
+<p>偵測 <code>prefers-reduced-motion: reduce</code>（或遊戲內設定「低效果模式」）時：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>原始效果</th>
+<th>縮減替代</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>符號落下彈跳</td>
+<td>直接顯示，無落下動畫</td>
+</tr>
+<tr>
+<td>Cascade 消除碎片飛散</td>
+<td>符號直接淡出（opacity 1→0，300ms）</td>
+</tr>
+<tr>
+<td>硬幣翻轉 3D 旋轉</td>
+<td>靜態硬幣正面/反面切換（200ms fade）</td>
+</tr>
+<tr>
+<td>FG 場景 Cross-dissolve</td>
+<td>場景直接切換（無過渡，或 100ms fade）</td>
+</tr>
+<tr>
+<td>Win 數字 Roll-up</td>
+<td>直接顯示最終值（無滾動）</td>
+</tr>
+<tr>
+<td>×77 節點閃爍</td>
+<td>靜態高亮（恆亮，無 pulse）</td>
+</tr>
+<tr>
+<td>背景視差</td>
+<td>所有層固定，不隨輸入移動</td>
+</tr>
+<tr>
+<td>粒子特效</td>
+<td>關閉所有粒子（僅保留靜態光暈圖片）</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-9-asset-quality-standards資源品質標準">§9 Asset Quality Standards（資源品質標準）</h2>
+<h3 id="h-91-輸出解析度-pipeline">9.1 輸出解析度 Pipeline</h3>
+<pre><code>設計原稿（3× @ 2560×1440 等效）
+    │
+    ├── 導出 3× PNG（Retina / 2K：最大 512×512px Wild，對齊 PDD §14.1 上限）
+    │       ↓ pngquant --quality=85-95 --strip
+    │
+    ├── 導出 2× PNG（主流桌面：440×440px Wild）
+    │       ↓ pngquant --quality=88-95 --strip
+    │
+    └── 導出 1× PNG（低端行動：220×220px Wild）
+            ↓ pngquant --quality=80-90 --strip
+            ↓ 同步轉換 WebP（cwebp -q 90 -m 6）</code></pre>
+<h3 id="h-92-壓縮設定精確規格">9.2 壓縮設定精確規格</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>資源類型</th>
+<th>格式</th>
+<th>壓縮工具</th>
+<th>quality 參數</th>
+<th>最大檔案大小</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>符號靜態 Idle（PNG）</td>
+<td>PNG-32</td>
+<td>pngquant</td>
+<td>85-95</td>
+<td>120 KB（Wild 3×）</td>
+</tr>
+<tr>
+<td>背景圖層（PNG，桌面）</td>
+<td>PNG-32</td>
+<td>pngquant</td>
+<td>88-95</td>
+<td>800 KB（1920×1080）</td>
+</tr>
+<tr>
+<td>背景圖層（WebP，行動）</td>
+<td>WebP</td>
+<td>cwebp</td>
+<td>-q 90 -m 6</td>
+<td>200 KB（750×1334）</td>
+</tr>
+<tr>
+<td>UI 元件（PNG）</td>
+<td>PNG-32</td>
+<td>pngquant</td>
+<td>90-95</td>
+<td>50 KB</td>
+</tr>
+<tr>
+<td>粒子 Sprite Sheet</td>
+<td>PNG-32</td>
+<td>pngquant</td>
+<td>88</td>
+<td>256 KB（2048×2048）</td>
+</tr>
+<tr>
+<td>Spine 骨骼 JSON</td>
+<td>JSON</td>
+<td>gzip</td>
+<td>—</td>
+<td>80 KB（Wild 完整動畫）</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-93-spine-骨骼架構建議">9.3 Spine 骨骼架構建議</h3>
+<p>每個動態符號的 Spine 檔案結構：</p>
+<pre><code>symbol_[name].spine
+├── skeleton
+│   ├── root（根骨骼）
+│   ├── body（主體）
+│   │   ├── head（如 Zeus 頭部）
+│   │   ├── hand_L / hand_R（雙手）
+│   │   └── accessory（配件：閃電叉、翅膀等）
+│   ├── frame（外框骨骼，分離以便獨立動畫）
+│   └── glow（光暈層，IK 跟隨 body）
+├── animations
+│   ├── idle（loop: true，duration: 4s 以內）
+│   ├── win（loop: false，duration: ≤ 1.8s）  // Scatter 觸發 Win 最長 1.8s；其他符號最長 1.5s（見 §3.3）
+│   └── special（loop: false，duration: ≤ 2.5s）
+└── atlas
+    └── symbol_[name]_2x.atlas（2× 為主 atlas）</code></pre>
+<blockquote><p><strong>骨骼數量預算</strong>：每符號最大 24 個骨骼；Wild / Scatter 允許最多 32 個（複雜度較高）。 <strong>IK 約束</strong>：限用於 Wild 手持閃電叉跟隨動畫，其他符號避免 IK 防止運算負擔。</p></blockquote>
+<h3 id="h-94-命名與目錄結構對齊-pdd-143">9.4 命名與目錄結構（對齊 PDD §14.3）</h3>
+<blockquote><p><strong>行動端背景命名說明</strong>：行動端背景採 <code>.webp</code> 後綴，PDD §14.3 命名示例中的 <code>.png</code> 後綴為佔位符，實際交付以 <code>.webp</code> 為準。</p></blockquote>
+<pre><code>assets/
+├── symbols/
+│   ├── wild/
+│   │   ├── symbol_wild_idle.png          # 1× 靜態 fallback
+│   │   ├── symbol_wild_idle@2x.png
+│   │   ├── symbol_wild_idle@3x.png
+│   │   ├── symbol_wild.spine             # Spine 骨骼（含 idle/win/special）
+│   │   └── symbol_wild.atlas
+│   ├── sc/
+│   ├── p1/ p2/ p3/ p4/
+│   └── l1/ l2/ l3/ l4/
+├── ui/
+│   ├── buttons/
+│   │   ├── ui_btn_spin_normal@2x.png
+│   │   ├── ui_btn_spin_pressed@2x.png
+│   │   └── ...
+│   ├── hud/
+│   │   ├── ui_hud_background@2x.png
+│   │   └── ui_hud_background.webp        # 行動端
+│   └── dialogs/
+│       └── ui_dialog_buyfg@2x.png
+├── fx/
+│   ├── fx_cascade_explode_premium.spine
+│   ├── fx_cascade_explode_low.spine      # 行動裝置降級版
+│   ├── fx_lightning_mark_appear.spine
+│   ├── fx_thunder_blessing_hit1.spine
+│   ├── fx_thunder_blessing_hit2.spine
+│   ├── fx_coin_toss_flip.spine
+│   ├── fx_win_bigwin_banner.spine
+│   ├── fx_win_megawin_banner.spine
+│   └── fx_fg_bonus_100x.spine
+├── backgrounds/
+│   ├── bg_main_sky_1920x1080.png
+│   ├── bg_main_sky_750x1334.webp
+│   ├── bg_main_temple_1920x1080.png
+│   ├── bg_freegame_sky_1920x1080.png
+│   └── bg_freegame_sky_750x1334.webp
+├── particles/
+│   ├── particle_lightning_arc_sheet.png  # 128×128px 幀，8×8 排列
+│   ├── particle_coin_gold_sheet.png
+│   └── particle_explosion_sheet.png
+└── fonts/
+    ├── Orbitron-Bold.woff2               # Subset: 0-9 $ , . × %
+    ├── OpenSans-Regular.woff2
+    ├── OpenSans-SemiBold.woff2
+    └── Cinzel-Regular.woff2              # Subset: A-Z uppercase</code></pre>
+<hr>
+<h2 id="h-10-visual-qa-checklist視覺-qa-清單">§10 Visual QA Checklist（視覺 QA 清單）</h2>
+<h3 id="h-101-設計評審檢查點交付前設計師自查">10.1 設計評審檢查點（交付前，設計師自查）</h3>
+<h4 id="色彩系統">色彩系統</h4>
+<ul>
+<li>[ ] 所有色彩值有對應 Token（<code>--color-*</code>），無硬編碼 HEX</li>
+<li>[ ] OKLCH 值已轉換確認 sRGB HEX 在目標色域下正確顯示</li>
+<li>[ ] FG 進度條 5 個節點色彩依 §4.8 / §7.3 精確規格（綠→黃→黃橙→橙→紅）</li>
+<li>[ ] 所有符號主色在 Spine 中使用 Slot Tint 而非直接繪製，確保可程式化切換</li>
+</ul>
+<h4 id="動畫系統">動畫系統</h4>
+<ul>
+<li>[ ] 所有 easing curve 使用 §4.1 Token（<code>--ease-out-cubic</code> 等），無自定義随意 curve</li>
+<li>[ ] Coin Toss 翻轉總時長在 3000–3500ms 範圍（含隨機，500+800+200~700+1500ms 各階段確認）</li>
+<li>[ ] Win roll-up 最長 ≤ 5000ms（計算：<code>min(totalWin/50, 5000)ms</code>）</li>
+<li>[ ] Cascade drop 階梯延遲正確（<code>col×20ms + row×30ms</code>，最大 230ms）</li>
+<li>[ ] FG 進度條過渡 500ms，easing <code>--ease-in-out-cubic</code></li>
+</ul>
+<h4 id="資源規格">資源規格</h4>
+<ul>
+<li>[ ] Wild / SC 靜態尺寸 220×220px（含出血），渲染尺寸 171×171px</li>
+<li>[ ] P 類靜態尺寸 200×200px（含出血），渲染尺寸 162×162px</li>
+<li>[ ] L 類靜態尺寸 180×180px（含出血），渲染尺寸 144×144px</li>
+<li>[ ] Spine 骨骼數量 ≤ 24（Wild / SC ≤ 32）</li>
+<li>[ ] Atlas 最大 2048×2048px，啟用 premultipliedAlpha</li>
+</ul>
+<h3 id="h-102-上線前視覺驗收標準">10.2 上線前視覺驗收標準</h3>
+<h4 id="效能">效能</h4>
+<ul>
+<li>[ ] 桌面 60fps 穩定（Chrome DevTools Performance，無 frame drop &gt; 5ms）</li>
+<li>[ ] 行動裝置 30fps 穩定（Cascade 消除 + 視差最差情況下）</li>
+<li>[ ] 全盤粒子數在桌面不超過 500 個瞬時上限（FG Bonus ×100 例外最高 3000 個，MAX WIN 例外 2000 個）；行動不超過 200 個（FG Bonus ×100 例外 800 個，MAX WIN 例外 600 個）</li>
+<li>[ ] Spine atlas 紋理已壓縮（Crunch 或 ETC2/ASTC for mobile）</li>
+</ul>
+<h4 id="視覺正確性">視覺正確性</h4>
+<ul>
+<li>[ ] 1920×1080：所有 HUD 元素 pixel 位置與 §6.1 表格吻合（±2px 容差）</li>
+<li>[ ] FREE 字母 4 個位置（814/861/908/955px X）正確</li>
+<li>[ ] 閃電標記計數器位置（1465px X, 90px Y）正確</li>
+<li>[ ] 6 列擴展時底部超出 1080px，雲霧遮蔽效果正常</li>
+</ul>
+<h4 id="色彩驗收">色彩驗收</h4>
+<ul>
+<li>[ ] Marble White (#F5F0E8) 對 Olympus Blue (#1B2A4A) 對比 ≥ 7:1（AAA）</li>
+<li>[ ] Win Gold (#FFD700) 對 Olympus Blue (#1B2A4A) 對比 ≥ 4.5:1（AA）</li>
+<li>[ ] HUD 主要數值文字對比 ≥ 4.5:1（AA）</li>
+</ul>
+<h4 id="無障礙">無障礙</h4>
+<ul>
+<li>[ ] Win Flash 閃爍頻率 ≤ 1.25Hz（0.8s 循環）</li>
+<li>[ ] 雷霆祝福白光單次 ≤ 0.3s，間隔 ≥ 1s</li>
+<li>[ ] <code>prefers-reduced-motion: reduce</code> 下所有粒子/動畫已縮減（手動測試）</li>
+<li>[ ] 色盲模式：進度節點形狀差異化（圓/菱/五角/六芒/閃電）可辨識</li>
+</ul>
+<h3 id="h-103-常見視覺-bug-類型及預防">10.3 常見視覺 Bug 類型及預防</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Bug 類型</th>
+<th>原因</th>
+<th>預防措施</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>符號 Z-order 錯誤（閃電標記被符號壓住）</td>
+<td>Spine layer 排序未設定</td>
+<td>每次 Cascade 後強制重置 Z-order（<code>zIndex: markLayer = symbolLayer + 10</code>）</td>
+</tr>
+<tr>
+<td>Win Flash 不同步（多線同時高亮 blink 不同步）</td>
+<td>各連線 CSS animation 起始時間不同步</td>
+<td>所有連線 animation 使用同一 <code>animationTimeline</code> 起始點</td>
+</tr>
+<tr>
+<td>FG 進度條色彩停在前一節點色</td>
+<td>Tween 被 interrupt 未 complete</td>
+<td>使用 <code>onComplete</code> callback 強制設為目標色</td>
+</tr>
+<tr>
+<td>行動端 Bloom 造成畫面偏亮</td>
+<td><code>KawaseBlurFilter</code> 在 WebGL 1 下 Screen blend 溢出</td>
+<td>行動端 Bloom strength 最大 0.8，並 clamp <code>rgb(255,255,255)</code></td>
+</tr>
+<tr>
+<td>Coin Toss 翻轉在特定角度出現「停頓感」</td>
+<td><code>rotateY</code> 360° 邊界重置導致 glitch</td>
+<td>使用累積角度（不重置），避免 modulo 歸零</td>
+</tr>
+<tr>
+<td>粒子在低端裝置爆量</td>
+<td>Thunder Blessing 觸發粒子計算在主線程</td>
+<td>使用 Worker offscreen canvas 或預計算粒子路徑</td>
+</tr>
+<tr>
+<td>字體閃爍（FOUT）</td>
+<td>Orbitron 字體載入延遲</td>
+<td>預載入（<code>&lt;link rel=&quot;preload&quot; as=&quot;font&quot;&gt;</code>），設 <code>font-display: swap</code> 降級顯示</td>
+</tr>
+</tbody></table></div>
+<hr>
+<p><em>VDD 版本 1.0 — 基於 PDD v1.0（DOC-ID: PDD-THUNDERBLESSING-20260426）精化生成。</em> <em>所有設計 Token、像素值及動畫規格均以 PDD 規格為基礎，提供工程直接可用的精確規格。</em> <em>VDD 不重複 PDD 的設計意圖說明，聚焦於「怎麼做到視覺品質」的精確實作規格。</em></p>
+<p>STEP_COMPLETE: D05-VDD</p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>VDD — Video Design</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>

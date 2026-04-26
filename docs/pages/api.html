@@ -1,0 +1,2681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API — REST API Reference — Thunder Blessing GDD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:     #0f1117;
+      --bg-secondary:   #161b27;
+      --bg-tertiary:    #1e2535;
+      --bg-card:        #1a2032;
+      --border:         #2a3347;
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #64748b;
+      --accent:         #f6ad55;
+      --accent-dim:     #c27d30;
+      --accent-glow:    rgba(246,173,85,0.15);
+      --green:          #4ade80;
+      --blue:           #60a5fa;
+      --purple:         #a78bfa;
+      --red:            #f87171;
+      --sidebar-width:  260px;
+      --header-height:  60px;
+      --font-sans:      'Inter', system-ui, sans-serif;
+      --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+      --radius:         8px;
+      --radius-lg:      12px;
+      --duration-fast:  150ms;
+      --ease-out:       cubic-bezier(0.16,1,0.3,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-back {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all var(--duration-fast);
+      white-space: nowrap;
+    }
+
+    .header-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-glow);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .menu-toggle:hover { background: var(--bg-tertiary); }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: var(--header-height);
+      left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0;
+      transition: transform var(--duration-fast) var(--ease-out);
+      z-index: 90;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nav-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: all var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: var(--accent-glow);
+      border-left-color: var(--accent-dim);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 920px;
+    }
+
+    /* Page heading */
+    .page-title {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .page-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Markdown content */
+    .md-content h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: var(--text-primary);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content h1:first-child { margin-top: 0; }
+
+    .md-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 36px 0 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .md-content h2::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .md-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text-primary);
+    }
+
+    .md-content h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.82rem;
+    }
+
+    .md-content p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .md-content a:hover { text-decoration: underline; }
+
+    .md-content strong { color: var(--text-primary); font-weight: 600; }
+    .md-content em     { color: var(--text-secondary); font-style: italic; }
+
+    /* Inline code */
+    .md-content code {
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .md-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .md-content table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .md-content table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md-content table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42,51,71,0.5);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    .md-content table tr:last-child td { border-bottom: none; }
+    .md-content table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Lists */
+    .md-content ul, .md-content ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    .md-content li { margin-bottom: 5px; }
+    .md-content li > ul, .md-content li > ol { margin-top: 5px; margin-bottom: 0; }
+
+    /* Blockquotes */
+    .md-content blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 10px 16px;
+      background: rgba(246,173,85,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .md-content blockquote p { margin-bottom: 0; }
+
+    /* HR */
+    .md-content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 28px 0;
+    }
+
+    /* Footer */
+    .site-footer {
+      margin-left: var(--sidebar-width);
+      border-top: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .footer-accent { color: var(--accent); font-weight: 600; }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 89;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .site-footer { margin-left: 0; padding: 14px 16px; flex-direction: column; gap: 6px; text-align: center; }
+      .menu-toggle { display: flex; }
+      .header-title { display: none; }
+    }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6"  x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="index.html" class="header-logo">⚡ Thunder Blessing</a>
+    <span class="header-title">API — REST API Reference</span>
+    <a href="index.html" class="header-back">← Docs Hub</a>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="nav-section-label">Business</div>
+<a href="BRD.html" class="nav-link"><span>📋</span><span>BRD — Business Requirements</span></a>
+<a href="PRD.html" class="nav-link"><span>📝</span><span>PRD — Product Requirements</span></a>
+<div class="nav-section-label">Design</div>
+<a href="PDD.html" class="nav-link"><span>🎨</span><span>PDD — Product Design</span></a>
+<a href="VDD.html" class="nav-link"><span>🎬</span><span>VDD — Video Design</span></a>
+<a href="ANIM.html" class="nav-link"><span>✨</span><span>ANIM — Animation Spec</span></a>
+<a href="AUDIO.html" class="nav-link"><span>🔊</span><span>AUDIO — Audio Design</span></a>
+<div class="nav-section-label">Engineering</div>
+<a href="EDD.html" class="nav-link"><span>⚙️</span><span>EDD — Engine Design</span></a>
+<a href="ARCH.html" class="nav-link"><span>🏗️</span><span>ARCH — Architecture</span></a>
+<a href="API.html" class="nav-link active"><span>🔌</span><span>API — REST API Reference</span></a>
+<a href="SCHEMA.html" class="nav-link"><span>🗄️</span><span>SCHEMA — Database Schema</span></a>
+<a href="FRONTEND.html" class="nav-link"><span>🖥️</span><span>FRONTEND — Frontend Spec</span></a>
+<div class="nav-section-label">Testing</div>
+<a href="test-plan.html" class="nav-link"><span>🧪</span><span>Test Plan — QA Strategy</span></a>
+<a href="RTM.html" class="nav-link"><span>📊</span><span>RTM — Traceability Matrix</span></a>
+<div class="nav-section-label">Operations</div>
+<a href="runbook.html" class="nav-link"><span>📟</span><span>Runbook — Production Ops</span></a>
+<a href="LOCAL_DEPLOY.html" class="nav-link"><span>🚀</span><span>LOCAL_DEPLOY — Local Dev Setup</span></a>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="page-meta">
+        <span>🔌 Engineering</span>
+        <span>Source: <code>API.md</code></span>
+        <span>Generated: 2026-04-26</span>
+      </div>
+      <article class="md-content">
+        <h1 id="apimd-api-design-document">API.md — API Design Document</h1>
+<h1 id="thunder-blessing-slot-game">Thunder Blessing Slot Game</h1>
+<hr>
+<h2 id="h-0-document-control">§0 Document Control</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Field</th>
+<th>Content</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>DOC-ID</strong></td>
+<td>API-THUNDERBLESSING-20260426</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>Thunder Blessing Slot Game</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>DRAFT</td>
+</tr>
+<tr>
+<td><strong>Author</strong></td>
+<td>AI Generated (gendoc D08-API)</td>
+</tr>
+<tr>
+<td><strong>Date</strong></td>
+<td>2026-04-26</td>
+</tr>
+<tr>
+<td><strong>client_type</strong></td>
+<td>game (Cocos Creator / PixiJS frontend)</td>
+</tr>
+</tbody></table></div>
+<h3 id="upstream-document-links">Upstream Document Links</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Document</th>
+<th>Section</th>
+<th>Relevance</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><a href="PRD.md">PRD.md</a></td>
+<td>§4 Scope, §5 User Stories</td>
+<td>Requirements; AC-1 to AC-5 per use case</td>
+</tr>
+<tr>
+<td><a href="EDD.md">EDD.md</a></td>
+<td>§5.2 FullSpinOutcome, §6 API Design, §6.3 Error Codes, §8 Security</td>
+<td>Canonical schema, error code table, auth</td>
+</tr>
+<tr>
+<td><a href="ARCH.md">ARCH.md</a></td>
+<td>§1.2 ADRs, §3 Component Diagram, §5 Communication Patterns, §6 Data Layering</td>
+<td>ADR-002/003 single-trip; rate limiting; circuit breakers</td>
+</tr>
+<tr>
+<td><a href="PDD.md">PDD.md</a></td>
+<td>§1 Design Vision, §2 Symbol Design</td>
+<td>Symbol identifiers, currency display</td>
+</tr>
+<tr>
+<td><a href="diagrams/class-application.md">diagrams/class-application.md</a></td>
+<td>FullSpinOutcomeDTO, CascadeStepDTO</td>
+<td>DTO field names and types</td>
+</tr>
+<tr>
+<td><a href="diagrams/class-domain.md">diagrams/class-domain.md</a></td>
+<td>SymbolId enum, Value Objects</td>
+<td>Canonical symbol enumeration</td>
+</tr>
+<tr>
+<td><a href="diagrams/sequence-spin-happy.md">diagrams/sequence-spin-happy.md</a></td>
+<td>Happy-path spin sequence</td>
+<td>Request/response flow reference</td>
+</tr>
+</tbody></table></div>
+<h3 id="change-log">Change Log</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Summary</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>v1.0</td>
+<td>2026-04-26</td>
+<td>AI Generated (gendoc D08-API)</td>
+<td>Initial generation</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="h-1-api-overview">§1 API Overview</h2>
+<h3 id="h-11-base-url">1.1 Base URL</h3>
+<pre><code>/v1</code></pre>
+<p>All game endpoints are prefixed with <code>/v1</code>. Health and readiness probes are at the root level (<code>/health</code>, <code>/ready</code>) with no version prefix.</p>
+<h3 id="h-12-protocol">1.2 Protocol</h3>
+<ul>
+<li><strong>HTTPS only</strong> — TLS 1.3 terminated at the Kubernetes Ingress (nginx-ingress).</li>
+<li>Plaintext HTTP connections are rejected at the Ingress level.</li>
+<li>HSTS header is set: <code>Strict-Transport-Security: max-age=31536000; includeSubDomains; preload</code></li>
+</ul>
+<h3 id="h-13-authentication">1.3 Authentication</h3>
+<ul>
+<li><strong>Algorithm:</strong> RS256 JWT Bearer token issued by <strong>Supabase Auth</strong></li>
+<li><strong>Header:</strong> <code>Authorization: Bearer &lt;access_token&gt;</code></li>
+<li><strong>Token TTL:</strong> Access token 3600s (1 hour); Refresh token 604800s (7 days)</li>
+<li><strong>Claims:</strong> <code>sub</code> (player UUID), <code>role</code> (<code>player</code> | <code>operator</code> | <code>service_role</code>), <code>exp</code>, <code>iat</code></li>
+<li><strong>Verification:</strong> <code>JwtAuthGuard</code> runs as a Fastify <code>preHandler</code> on all <code>/v1/*</code> routes. The RS256 public key is cached in memory (TTL 1 hour) — no DB call per request.</li>
+<li>Health/readiness probes (<code>GET /health</code>, <code>GET /ready</code>) require <strong>no auth</strong>.</li>
+</ul>
+<h3 id="h-14-rate-limits">1.4 Rate Limits</h3>
+<ul>
+<li><strong>Global limit:</strong> 5 requests/second per player (keyed by JWT <code>sub</code> claim)</li>
+<li><strong>Implementation:</strong> <code>@fastify/rate-limit</code> with Redis store (sliding window algorithm)</li>
+<li><strong>Exceed response:</strong> HTTP 429 — see §5 for full rate-limit response format</li>
+<li>Extra Bet and Buy Feature requests count against the same limit</li>
+</ul>
+<h3 id="h-15-content-type">1.5 Content-Type</h3>
+<p>All requests and responses use <code>application/json</code>. Requests with a body must include <code>Content-Type: application/json</code>.</p>
+<h3 id="h-16-versioning-strategy">1.6 Versioning Strategy</h3>
+<ul>
+<li>Current version: <code>v1</code> (path-based versioning: <code>/v1/...</code>)</li>
+<li>New non-breaking fields may be added to response bodies without a version bump (additive-only changes)</li>
+<li>Breaking changes (field removal, type change, semantic change) require a new path prefix (<code>/v2/...</code>)</li>
+<li><code>v1</code> endpoints remain supported for a minimum of 12 months after <code>v2</code> GA release</li>
+<li>Deprecation is announced via <code>Deprecation</code> and <code>Sunset</code> response headers</li>
+</ul>
+<h3 id="h-17-standard-error-envelope">1.7 Standard Error Envelope</h3>
+<p>All error responses from <code>/v1/*</code> endpoints use this envelope:</p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;ERROR_CODE&quot;,
+  &quot;message&quot;: &quot;Human-readable description of the error&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440000&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:34:56.789Z&quot;
+}</code></pre>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>success</code></td>
+<td><code>boolean</code></td>
+<td>Always <code>false</code> for errors</td>
+</tr>
+<tr>
+<td><code>code</code></td>
+<td><code>string</code></td>
+<td>Machine-readable error code (see §1.8)</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td><code>string</code></td>
+<td>Human-readable message; never exposes raw DB errors or internal stack traces</td>
+</tr>
+<tr>
+<td><code>requestId</code></td>
+<td><code>string</code> (UUID)</td>
+<td>Unique identifier for log correlation; matches <code>X-Request-Id</code> response header</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td><code>string</code> (ISO 8601)</td>
+<td>Server time when error was generated</td>
+</tr>
+<tr>
+<td><code>retryAfter</code></td>
+<td><code>integer</code></td>
+<td>(optional) Seconds to wait before retrying; present only on 429 and 503 responses</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-18-all-error-codes">1.8 All Error Codes</h3>
+<blockquote><p><strong>Note on VALIDATION_ERROR</strong>: This code appears on both HTTP 400 (malformed JSON or schema violation) and HTTP 422 (semantically invalid parameters). Clients must inspect the HTTP status code to distinguish them.</p></blockquote>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>HTTP Status</th>
+<th>Code</th>
+<th>Trigger Endpoint(s)</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>INSUFFICIENT_FUNDS</code></td>
+<td>POST /v1/spin</td>
+<td>Player balance is less than the spin cost: baseBet (normal), baseBet×3 (Extra Bet), baseBet×100 (Buy Feature), or baseBet×300 (Extra Bet + Buy Feature combined).</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>INVALID_BET_LEVEL</code></td>
+<td>POST /v1/spin</td>
+<td><code>betLevel</code> is outside the configured range (USD: 1–20; TWD: 1–320); or <code>betLevel</code> is not an integer</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>INVALID_CURRENCY</code></td>
+<td>POST /v1/spin</td>
+<td><code>currency</code> is not <code>&quot;USD&quot;</code> or <code>&quot;TWD&quot;</code></td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>BUY_FEATURE_NOT_ALLOWED</code></td>
+<td>POST /v1/spin</td>
+<td><code>buyFeature: true</code> combined with invalid bet level or in a context where Buy Feature is unavailable</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>VALIDATION_ERROR</code></td>
+<td>POST /v1/spin</td>
+<td>Request body fails JSON schema validation (missing required field, wrong type, out-of-range value)</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>UNAUTHORIZED</code></td>
+<td>POST /v1/spin, GET /v1/session/:sessionId, GET /v1/config</td>
+<td>JWT is missing, malformed, expired, or signature invalid</td>
+</tr>
+<tr>
+<td>403</td>
+<td><code>FORBIDDEN</code></td>
+<td>POST /v1/spin, GET /v1/session/:sessionId</td>
+<td>JWT is valid but the player&#x27;s account is suspended, or the player is attempting to access another player&#x27;s session</td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>SESSION_NOT_FOUND</code></td>
+<td>GET /v1/session/:sessionId</td>
+<td>Session ID does not exist in Redis (expired after 1800s TTL or never created)</td>
+</tr>
+<tr>
+<td>409</td>
+<td><code>SPIN_IN_PROGRESS</code></td>
+<td>POST /v1/spin</td>
+<td>A concurrent spin is already in progress for this session (Redis NX lock <code>session:{sessionId}:lock</code> is held). Wait for the lock TTL (≤10s) before retrying.</td>
+</tr>
+<tr>
+<td>422</td>
+<td><code>VALIDATION_ERROR</code></td>
+<td>POST /v1/spin</td>
+<td>Semantically invalid payload: structurally valid but semantically unsupported combinations, such as extraBet/buyFeature unavailable per game config.</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>RATE_LIMITED</code></td>
+<td>POST /v1/spin</td>
+<td>Player has exceeded 5 requests/second</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>INTERNAL_ERROR</code></td>
+<td>All /v1/*</td>
+<td>Unexpected engine or infrastructure error not matching any specific code</td>
+</tr>
+<tr>
+<td>503</td>
+<td><code>SERVICE_UNAVAILABLE</code></td>
+<td>POST /v1/spin</td>
+<td>Circuit breaker OPEN on PostgreSQL or Redis (cascading failure protection)</td>
+</tr>
+<tr>
+<td>504</td>
+<td><code>ENGINE_TIMEOUT</code></td>
+<td>POST /v1/spin</td>
+<td>Spin engine took &gt; 2000ms; wallet IS debited before engine runs; a compensating credit is issued automatically (see ARCH §6 Partial Failure Compensation)</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-19-error-response-examples">1.9 Error Response Examples</h3>
+<p>The following compact examples illustrate the error envelope for each major error code.</p>
+<blockquote><p>Note: HTTP 402 (Payment Required) is not used. Balance failures return HTTP 400 with code INSUFFICIENT_FUNDS.</p></blockquote>
+<p><strong>HTTP 400 — INSUFFICIENT_FUNDS</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;INSUFFICIENT_FUNDS&quot;,
+  &quot;message&quot;: &quot;Insufficient balance to cover the spin cost&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440001&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:00.000Z&quot;
+}</code></pre>
+<p><strong>HTTP 400 — INVALID_BET_LEVEL</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;INVALID_BET_LEVEL&quot;,
+  &quot;message&quot;: &quot;betLevel 25 is outside the valid range for USD (1–20)&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440002&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:01.000Z&quot;
+}</code></pre>
+<p><strong>HTTP 400 — BUY_FEATURE_NOT_ALLOWED</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;BUY_FEATURE_NOT_ALLOWED&quot;,
+  &quot;message&quot;: &quot;Buy Feature is not available for the current bet level or game configuration&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440003&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:02.000Z&quot;
+}</code></pre>
+<p><strong>HTTP 401 — UNAUTHORIZED</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;UNAUTHORIZED&quot;,
+  &quot;message&quot;: &quot;JWT is missing, malformed, or expired&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440004&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:03.000Z&quot;
+}</code></pre>
+<p><strong>HTTP 403 — FORBIDDEN</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;FORBIDDEN&quot;,
+  &quot;message&quot;: &quot;Player account is suspended or access to this resource is denied&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440005&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:04.000Z&quot;
+}</code></pre>
+<p><strong>HTTP 404 — SESSION_NOT_FOUND</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;SESSION_NOT_FOUND&quot;,
+  &quot;message&quot;: &quot;Session not found or expired (TTL 1800s)&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440006&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:05.000Z&quot;
+}</code></pre>
+<p><strong>HTTP 409 — SPIN_IN_PROGRESS</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;SPIN_IN_PROGRESS&quot;,
+  &quot;message&quot;: &quot;A spin is already in progress for this player. Retry after the lock TTL (up to 10 seconds).&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440007&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:06.000Z&quot;
+}</code></pre>
+<p><strong>HTTP 504 — ENGINE_TIMEOUT</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;ENGINE_TIMEOUT&quot;,
+  &quot;message&quot;: &quot;Spin engine timed out. Your bet has been refunded automatically.&quot;,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440008&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T12:00:07.000Z&quot;
+}</code></pre>
+<hr>
+<h2 id="h-2-authentication-security">§2 Authentication &amp; Security</h2>
+<h3 id="h-21-jwt-flow">2.1 JWT Flow</h3>
+<p><strong>Step 1 — Obtain access token (client-side, Supabase Auth SDK):</strong></p>
+<pre><code>POST https://&lt;project&gt;.supabase.co/auth/v1/token?grant_type=password
+Content-Type: application/json
+
+{ &quot;email&quot;: &quot;player@example.com&quot;, &quot;password&quot;: &quot;...&quot; }</code></pre>
+<p>Response:</p>
+<pre><code class="language-json">{
+  &quot;access_token&quot;: &quot;eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...&quot;,
+  &quot;refresh_token&quot;: &quot;v1.refresh-token-string&quot;,
+  &quot;expires_in&quot;: 3600,
+  &quot;token_type&quot;: &quot;bearer&quot;
+}</code></pre>
+<p><strong>Step 2 — Attach token to game API requests:</strong></p>
+<pre><code>Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+<p><strong>Step 3 — Backend verifies token:</strong></p>
+<p><code>JwtAuthGuard</code> calls <code>SupabaseAuthAdapter.verifyJWT(token)</code>, which:</p>
+<ol>
+<li>Verifies the RS256 signature using the cached Supabase public key</li>
+<li>Checks <code>exp</code> claim — expired tokens return 401 <code>UNAUTHORIZED</code></li>
+<li>Checks <code>role</code> claim — suspended accounts return 403 <code>FORBIDDEN</code></li>
+<li>Extracts <code>sub</code> as <code>playerId</code>, attaches <code>PlayerClaims</code> to request context</li>
+</ol>
+<h3 id="h-22-token-refresh-flow">2.2 Token Refresh Flow</h3>
+<p>When the access token expires (after 3600s), the client must refresh before the next spin:</p>
+<pre><code>POST https://&lt;project&gt;.supabase.co/auth/v1/token?grant_type=refresh_token
+Content-Type: application/json
+
+{ &quot;refresh_token&quot;: &quot;v1.refresh-token-string&quot; }</code></pre>
+<p>Response: new <code>access_token</code> + rotated single-use <code>refresh_token</code>. Refresh tokens are valid for 604800s (7 days).</p>
+<p><strong>Frontend integration note:</strong> The Supabase JS SDK handles token refresh automatically via <code>onAuthStateChange</code>. The game client should listen for the <code>TOKEN_REFRESHED</code> event and update the stored token before the next spin call.</p>
+<h3 id="h-23-jwt-claims-structure">2.3 JWT Claims Structure</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Claim</th>
+<th>Type</th>
+<th>Example</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>sub</code></td>
+<td>string (UUID)</td>
+<td><code>&quot;a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234&quot;</code></td>
+<td>Player UUID; used as <code>playerId</code> throughout the API</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td>string</td>
+<td><code>&quot;player&quot;</code></td>
+<td><code>player</code>, <code>operator</code>, or <code>service_role</code></td>
+</tr>
+<tr>
+<td><code>exp</code></td>
+<td>number</td>
+<td><code>1745716800</code></td>
+<td>Unix timestamp; token expires at this time</td>
+</tr>
+<tr>
+<td><code>iat</code></td>
+<td>number</td>
+<td><code>1745713200</code></td>
+<td>Unix timestamp; token issued at this time</td>
+</tr>
+<tr>
+<td><code>aud</code></td>
+<td>string</td>
+<td><code>&quot;authenticated&quot;</code></td>
+<td>Supabase audience claim</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-24-rate-limiting-details">2.4 Rate Limiting Details</h3>
+<ul>
+<li><strong>Algorithm:</strong> Sliding window counter, backed by Redis</li>
+<li><strong>Window:</strong> 1 second</li>
+<li><strong>Limit:</strong> 5 requests per player per window</li>
+<li><strong>Key:</strong> JWT <code>sub</code> claim (player UUID); falls back to client IP if JWT not yet verified</li>
+<li><strong>Response on limit exceeded:</strong> HTTP 429 with rate-limit headers (see §5)</li>
+<li><strong>Auth failure lockout:</strong> After 10 consecutive failed JWT verifications from the same IP within 60s, the IP is rate-limited more aggressively (configurable via <code>RATE_LIMIT_AUTH_FAIL_MAX</code> env var)</li>
+</ul>
+<h3 id="h-25-role-based-endpoint-access">2.5 Role-Based Endpoint Access</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Endpoint</th>
+<th>player</th>
+<th>operator</th>
+<th>service_role</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>POST /v1/spin</td>
+<td>✅</td>
+<td>❌ (403)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>GET /v1/session/:sessionId</td>
+<td>✅ (own)</td>
+<td>❌ (403)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>GET /v1/config</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>GET /health</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>GET /ready</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>See EDD §8.1 permission matrix for full authorization rules.</p></blockquote>
+<h3 id="h-26-cors-policy">2.6 CORS Policy</h3>
+<pre><code>Access-Control-Allow-Origin: https://*.yourdomain.com
+Access-Control-Allow-Methods: GET, POST, OPTIONS
+Access-Control-Allow-Headers: Authorization, Content-Type, X-Request-Id
+Access-Control-Max-Age: 86400</code></pre>
+<p>In development, <code>Access-Control-Allow-Origin: *</code> is permitted. In production, only listed origins are allowed. The allowed origins list is configured via the <code>CORS_ALLOWED_ORIGINS</code> environment variable.</p>
+<hr>
+<h2 id="h-3-endpoints">§3 Endpoints</h2>
+<h3 id="h-31-post-v1spin">3.1 POST /v1/spin</h3>
+<p><strong>Summary:</strong> Execute a single spin. Returns the complete <code>FullSpinOutcome</code> including all Cascade steps, Thunder Blessing results, Coin Toss outcome, and all Free Game rounds (if triggered). This is a single-trip endpoint — one POST returns everything the frontend needs to render the entire game round.</p>
+<p><strong>Authentication required:</strong> Yes — JWT Bearer token</p>
+<p><strong>Rate limit:</strong> 5 req/s per player (global default)</p>
+<h4 id="request-headers">Request Headers</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Header</th>
+<th>Required</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>Authorization</code></td>
+<td>Yes</td>
+<td><code>Bearer &lt;access_token&gt;</code></td>
+</tr>
+<tr>
+<td><code>Content-Type</code></td>
+<td>Yes</td>
+<td><code>application/json</code></td>
+</tr>
+<tr>
+<td><code>X-Request-Id</code></td>
+<td>No</td>
+<td>Client-provided UUID for idempotency tracking; echoed in response <code>X-Request-Id</code> header</td>
+</tr>
+</tbody></table></div>
+<h4 id="request-body">Request Body</h4>
+<pre><code class="language-json">{
+  &quot;playerId&quot;: &quot;a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234&quot;,
+  &quot;sessionId&quot;: &quot;sess-9e2b1a34-6f7c-4d2e-b8a1-c5d9e0f12345&quot;,
+  &quot;betLevel&quot;: 5,
+  &quot;currency&quot;: &quot;USD&quot;,
+  &quot;extraBet&quot;: false,
+  &quot;buyFeature&quot;: false
+}</code></pre>
+<h4 id="request-body-json-schema">Request Body JSON Schema</h4>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;required&quot;: [&quot;playerId&quot;, &quot;betLevel&quot;, &quot;currency&quot;, &quot;extraBet&quot;, &quot;buyFeature&quot;],
+  &quot;additionalProperties&quot;: false,
+  &quot;properties&quot;: {
+    &quot;playerId&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;format&quot;: &quot;uuid&quot;,
+      &quot;description&quot;: &quot;Player UUID — must match JWT sub claim&quot;
+    },
+    &quot;sessionId&quot;: {
+      &quot;type&quot;: [&quot;string&quot;, &quot;null&quot;],
+      &quot;description&quot;: &quot;Session identifier (format: sess-{uuid}). Existing session for FG resume; null or omitted for a new spin&quot;
+    },
+    &quot;betLevel&quot;: {
+      &quot;type&quot;: &quot;integer&quot;,
+      &quot;minimum&quot;: 1,
+      &quot;maximum&quot;: 320,
+      &quot;description&quot;: &quot;Bet level index. USD valid range: 1–20. TWD valid range: 1–320. Values outside the currency-specific range return INVALID_BET_LEVEL.&quot;
+    },
+    &quot;currency&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;enum&quot;: [&quot;USD&quot;, &quot;TWD&quot;],
+      &quot;description&quot;: &quot;Player&#x27;s selected currency. Determines baseBet amount from BetRangeConfig.&quot;
+    },
+    &quot;extraBet&quot;: {
+      &quot;type&quot;: &quot;boolean&quot;,
+      &quot;description&quot;: &quot;If true: spin cost is baseBet × 3; a Scatter symbol is guaranteed to appear in the grid.&quot;
+    },
+    &quot;buyFeature&quot;: {
+      &quot;type&quot;: &quot;boolean&quot;,
+      &quot;description&quot;: &quot;If true: spin cost is baseBet × 100; triggers guaranteed Heads × 5 FG sequence; session floor ≥ 20× baseBet is applied.&quot;
+    }
+  }
+}</code></pre>
+<p><strong>Bet Level to baseBet Mapping (examples):</strong></p>
+<blockquote><p><strong>Note:</strong> The mapping is non-linear; the canonical mapping is in the <code>GET /v1/config</code> response. The table below shows representative examples only.</p></blockquote>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>betLevel</th>
+<th>USD baseBet</th>
+<th>TWD baseBet</th>
+<th>USD totalBet (extraBet=false)</th>
+<th>USD totalBet (extraBet=true)</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>$0.10</td>
+<td>TWD 3</td>
+<td>$0.10</td>
+<td>$0.30</td>
+</tr>
+<tr>
+<td>5</td>
+<td>$0.50</td>
+<td>TWD 15</td>
+<td>$0.50</td>
+<td>$1.50</td>
+</tr>
+<tr>
+<td>10</td>
+<td>$2.00</td>
+<td>TWD 30</td>
+<td>$2.00</td>
+<td>$6.00</td>
+</tr>
+<tr>
+<td>20</td>
+<td>$10.00</td>
+<td>TWD 60</td>
+<td>$10.00</td>
+<td>$30.00</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>Note: USD and TWD use different canonical level boundaries. Use GET /v1/config for the complete table.</p></blockquote>
+<blockquote><p>Note: This table shows selected representative levels. Obtain the complete bet table from GET /v1/config.</p></blockquote>
+<p>Full bet table is available via <code>GET /v1/config</code>.</p>
+<h4 id="response-200-fullspinoutcome">Response 200 — FullSpinOutcome</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;requestId&quot;: &quot;550e8400-e29b-41d4-a716-446655440000&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:22:31.445Z&quot;,
+  &quot;data&quot;: {
+    &quot;spinId&quot;: &quot;spin-7d3a9b2c-1e4f-4c8d-a5b6-9e0f12345678&quot;,
+    &quot;sessionId&quot;: &quot;sess-9e2b1a34-6f7c-4d2e-b8a1-c5d9e0f12345&quot;,
+    &quot;playerId&quot;: &quot;a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234&quot;,
+    &quot;betLevel&quot;: 5,
+    &quot;baseBet&quot;: 0.50,
+    &quot;totalBet&quot;: 0.50,
+    &quot;totalWin&quot;: 1.25,
+    &quot;newBalance&quot;: 249.75,
+    &quot;currency&quot;: &quot;USD&quot;,
+    &quot;extraBetActive&quot;: false,
+    &quot;buyFeatureActive&quot;: false,
+
+    &quot;initialGrid&quot;: [
+      [&quot;P2&quot;, &quot;L1&quot;, &quot;P4&quot;, &quot;W&quot;, &quot;L3&quot;],
+      [&quot;L2&quot;, &quot;P1&quot;, &quot;L4&quot;, &quot;P3&quot;, &quot;L1&quot;],
+      [&quot;P4&quot;, &quot;L3&quot;, &quot;W&quot;, &quot;L2&quot;, &quot;P2&quot;]
+    ],
+    &quot;finalGrid&quot;: [
+      [&quot;L3&quot;, &quot;P2&quot;, &quot;L1&quot;, &quot;P4&quot;, &quot;W&quot;],
+      [&quot;P2&quot;, &quot;L2&quot;, &quot;P1&quot;, &quot;L4&quot;, &quot;P3&quot;],
+      [&quot;L4&quot;, &quot;P4&quot;, &quot;L3&quot;, &quot;W&quot;, &quot;L2&quot;],
+      [&quot;P3&quot;, &quot;L1&quot;, &quot;P2&quot;, &quot;L3&quot;, &quot;P4&quot;]
+    ],
+    &quot;finalRows&quot;: 4,
+
+    &quot;cascadeSequence&quot;: {
+      &quot;steps&quot;: [
+        {
+          &quot;index&quot;: 0,
+          &quot;grid&quot;: [
+            [&quot;P2&quot;, &quot;L1&quot;, &quot;P4&quot;, &quot;W&quot;, &quot;L3&quot;],
+            [&quot;L2&quot;, &quot;P1&quot;, &quot;L4&quot;, &quot;P3&quot;, &quot;L1&quot;],
+            [&quot;P4&quot;, &quot;L3&quot;, &quot;W&quot;, &quot;L2&quot;, &quot;P2&quot;]
+          ],
+          &quot;winLines&quot;: [
+            {
+              &quot;paylineId&quot;: 3,
+              &quot;symbolId&quot;: &quot;L2&quot;,
+              &quot;matchCount&quot;: 3,
+              &quot;positions&quot;: [
+                { &quot;row&quot;: 1, &quot;col&quot;: 0 },
+                { &quot;row&quot;: 1, &quot;col&quot;: 1 },
+                { &quot;row&quot;: 1, &quot;col&quot;: 2 }
+              ],
+              &quot;payout&quot;: 0.75
+            }
+          ],
+          &quot;stepWin&quot;: 0.75,
+          &quot;newLightningMarks&quot;: [
+            { &quot;row&quot;: 1, &quot;col&quot;: 0 },
+            { &quot;row&quot;: 1, &quot;col&quot;: 1 },
+            { &quot;row&quot;: 1, &quot;col&quot;: 2 }
+          ],
+          &quot;rows&quot;: 3
+        },
+        {
+          &quot;index&quot;: 1,
+          &quot;grid&quot;: [
+            [&quot;L3&quot;, &quot;P2&quot;, &quot;L1&quot;, &quot;P4&quot;, &quot;W&quot;],
+            [&quot;P2&quot;, &quot;L2&quot;, &quot;P1&quot;, &quot;L4&quot;, &quot;P3&quot;],
+            [&quot;L4&quot;, &quot;P4&quot;, &quot;L3&quot;, &quot;W&quot;, &quot;L2&quot;],
+            [&quot;P3&quot;, &quot;L1&quot;, &quot;P2&quot;, &quot;L3&quot;, &quot;P4&quot;]
+          ],
+          &quot;winLines&quot;: [
+            {
+              &quot;paylineId&quot;: 1,
+              &quot;symbolId&quot;: &quot;P4&quot;,
+              &quot;matchCount&quot;: 3,
+              &quot;positions&quot;: [
+                { &quot;row&quot;: 0, &quot;col&quot;: 3 },
+                { &quot;row&quot;: 2, &quot;col&quot;: 1 },
+                { &quot;row&quot;: 3, &quot;col&quot;: 4 }
+              ],
+              &quot;payout&quot;: 0.50
+            }
+          ],
+          &quot;stepWin&quot;: 0.50,
+          &quot;newLightningMarks&quot;: [
+            { &quot;row&quot;: 0, &quot;col&quot;: 3 },
+            { &quot;row&quot;: 2, &quot;col&quot;: 1 },
+            { &quot;row&quot;: 3, &quot;col&quot;: 4 }
+          ],
+          &quot;rows&quot;: 4
+        }
+      ],
+      &quot;totalWin&quot;: 1.25,
+      &quot;finalGrid&quot;: [
+        [&quot;L3&quot;, &quot;P2&quot;, &quot;L1&quot;, &quot;P4&quot;, &quot;W&quot;],
+        [&quot;P2&quot;, &quot;L2&quot;, &quot;P1&quot;, &quot;L4&quot;, &quot;P3&quot;],
+        [&quot;L4&quot;, &quot;P4&quot;, &quot;L3&quot;, &quot;W&quot;, &quot;L2&quot;],
+        [&quot;P3&quot;, &quot;L1&quot;, &quot;P2&quot;, &quot;L3&quot;, &quot;P4&quot;]
+      ],
+      &quot;finalRows&quot;: 4,
+      &quot;lightningMarks&quot;: {
+        &quot;positions&quot;: [
+          { &quot;row&quot;: 1, &quot;col&quot;: 0 },
+          { &quot;row&quot;: 1, &quot;col&quot;: 1 },
+          { &quot;row&quot;: 1, &quot;col&quot;: 2 },
+          { &quot;row&quot;: 0, &quot;col&quot;: 3 },
+          { &quot;row&quot;: 2, &quot;col&quot;: 1 },
+          { &quot;row&quot;: 3, &quot;col&quot;: 4 }
+        ],
+        &quot;count&quot;: 6
+      }
+    },
+
+    &quot;thunderBlessingTriggered&quot;: false,
+    &quot;thunderBlessingFirstHit&quot;: false,
+    &quot;thunderBlessingSecondHit&quot;: false,
+    &quot;upgradedSymbol&quot;: null,
+    &quot;thunderBlessingResult&quot;: null,
+
+    &quot;coinTossTriggered&quot;: false,
+    &quot;coinTossResult&quot;: null,
+
+    &quot;fgTriggered&quot;: false,
+    &quot;fgMultiplier&quot;: null,
+    &quot;fgRounds&quot;: [],
+    &quot;fgBonusMultiplier&quot;: null,
+    &quot;totalFGWin&quot;: null,
+
+    &quot;sessionFloorApplied&quot;: false,
+    &quot;sessionFloorValue&quot;: null,
+
+    &quot;nearMissApplied&quot;: false,
+    &quot;engineVersion&quot;: &quot;1.0.0&quot;,
+    &quot;timestamp&quot;: &quot;2026-04-26T14:22:31.445Z&quot;
+  }
+}</code></pre>
+<h4 id="response-200-json-schema-fullspinoutcome-data-object">Response 200 JSON Schema — FullSpinOutcome (data object)</h4>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;required&quot;: [
+    &quot;spinId&quot;, &quot;sessionId&quot;, &quot;playerId&quot;, &quot;betLevel&quot;, &quot;baseBet&quot;, &quot;totalBet&quot;,
+    &quot;totalWin&quot;, &quot;newBalance&quot;, &quot;currency&quot;, &quot;extraBetActive&quot;, &quot;buyFeatureActive&quot;,
+    &quot;initialGrid&quot;, &quot;finalGrid&quot;, &quot;finalRows&quot;, &quot;cascadeSequence&quot;,
+    &quot;thunderBlessingTriggered&quot;, &quot;thunderBlessingFirstHit&quot;, &quot;thunderBlessingSecondHit&quot;,
+    &quot;upgradedSymbol&quot;, &quot;thunderBlessingResult&quot;,
+    &quot;coinTossTriggered&quot;, &quot;coinTossResult&quot;,
+    &quot;fgTriggered&quot;, &quot;fgMultiplier&quot;, &quot;fgRounds&quot;, &quot;fgBonusMultiplier&quot;, &quot;totalFGWin&quot;,
+    &quot;sessionFloorApplied&quot;, &quot;sessionFloorValue&quot;,
+    &quot;nearMissApplied&quot;, &quot;engineVersion&quot;, &quot;timestamp&quot;
+  ],
+  &quot;properties&quot;: {
+    &quot;spinId&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Spin identifier (format: spin-{uuid})&quot; },
+    &quot;sessionId&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Session identifier (format: sess-{uuid})&quot; },
+    &quot;playerId&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot; },
+    &quot;betLevel&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 1, &quot;maximum&quot;: 320 },
+    &quot;baseBet&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Base bet amount in player&#x27;s currency&quot; },
+    &quot;totalBet&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Actual amount debited from balance. Formula: baseBet × 1 (normal), × 3 (extraBet only), × 100 (buyFeature only), × 300 (extraBet + buyFeature combined = 3 × 100 × baseBet)&quot; },
+    &quot;totalWin&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Total win credited to wallet. SOLE ACCOUNTING AUTHORITY. 0 if no win.&quot; },
+    &quot;newBalance&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Player wallet balance after this spin (post-credit)&quot; },
+    &quot;currency&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;USD&quot;, &quot;TWD&quot;] },
+    &quot;extraBetActive&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;true when Extra Bet (3× cost) is active for this spin&quot; },
+    &quot;buyFeatureActive&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;true when Buy Feature (100× cost) is active for this spin&quot; },
+    &quot;initialGrid&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;description&quot;: &quot;5×3 initial grid before Cascade. Outer array = rows (0-indexed top to bottom), inner = columns (left to right).&quot;,
+      &quot;items&quot;: {
+        &quot;type&quot;: &quot;array&quot;,
+        &quot;items&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;W&quot;, &quot;SC&quot;, &quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;, &quot;P4&quot;, &quot;L1&quot;, &quot;L2&quot;, &quot;L3&quot;, &quot;L4&quot;] }
+      }
+    },
+    &quot;finalGrid&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;description&quot;: &quot;Final grid after all Cascade steps. Rows count equals finalRows.&quot;,
+      &quot;items&quot;: {
+        &quot;type&quot;: &quot;array&quot;,
+        &quot;items&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;W&quot;, &quot;SC&quot;, &quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;, &quot;P4&quot;, &quot;L1&quot;, &quot;L2&quot;, &quot;L3&quot;, &quot;L4&quot;] }
+      }
+    },
+    &quot;finalRows&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [3, 4, 5, 6], &quot;description&quot;: &quot;Final row count after Cascade expansion&quot; },
+    &quot;cascadeSequence&quot;: { &quot;$ref&quot;: &quot;#/definitions/CascadeSequence&quot; },
+    &quot;thunderBlessingTriggered&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;true when Thunder Blessing was triggered (SC Scatter landed while at least one Lightning Mark existed). First hit is always applied. Check `thunderBlessingSecondHit` to determine if the conditional second hit (RNG &lt; 0.40) also occurred.&quot; },
+    &quot;thunderBlessingFirstHit&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;true when first Scatter hit occurred (all Lightning Mark positions converted to premium symbol)&quot; },
+    &quot;thunderBlessingSecondHit&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;true when second Thunder Blessing hit applied — all converted mark positions upgraded one symbol tier higher (e.g., P4→P3→P2→P1). Applied when RNG draw &lt; 0.40.&quot; },
+    &quot;upgradedSymbol&quot;: {
+      &quot;type&quot;: [&quot;string&quot;, &quot;null&quot;],
+      &quot;enum&quot;: [&quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;, &quot;P4&quot;, null],
+      &quot;description&quot;: &quot;Symbol ID that all Lightning Mark positions were upgraded to on first hit. Null if Thunder Blessing was not triggered. Convenience shortcut — always equals `thunderBlessingResult.convertedSymbol` when `thunderBlessingTriggered = true`. Null when `thunderBlessingTriggered = false`.&quot;
+    },
+    &quot;thunderBlessingResult&quot;: {
+      &quot;oneOf&quot;: [
+        { &quot;$ref&quot;: &quot;#/definitions/ThunderBlessingResult&quot; },
+        { &quot;type&quot;: &quot;null&quot; }
+      ]
+    },
+    &quot;coinTossTriggered&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;true when the grid reaches 6 rows AND the final cascade step on the 6-row grid produced at least one win (lastCascadeHadWin = true). Coin Toss is not evaluated if no win occurred on the final cascade step.&quot; },
+    &quot;coinTossResult&quot;: {
+      &quot;type&quot;: [&quot;string&quot;, &quot;null&quot;],
+      &quot;enum&quot;: [&quot;HEADS&quot;, &quot;TAILS&quot;, null]
+    },
+    &quot;fgTriggered&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;true when Free Game sequence was entered (requires coinTossResult = HEADS)&quot; },
+    &quot;fgMultiplier&quot;: {
+      &quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;],
+      &quot;enum&quot;: [3, 7, 17, 27, 77, null],
+      &quot;description&quot;: &quot;Final FG multiplier reached in the Coin Toss sequence. Null if FG was not triggered.&quot;
+    },
+    &quot;fgRounds&quot;: {
+      &quot;type&quot;: &quot;array&quot;,
+      &quot;items&quot;: { &quot;$ref&quot;: &quot;#/definitions/FGRound&quot; },
+      &quot;description&quot;: &quot;All FG rounds played (up to 5). Empty array if fgTriggered is false.&quot;
+    },
+    &quot;fgBonusMultiplier&quot;: {
+      &quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;],
+      &quot;enum&quot;: [1, 5, 20, 100, null],
+      &quot;description&quot;: &quot;Bonus multiplier drawn once at the START of the FG sequence, before round 1 begins. All FGRound objects in the response contain the same bonusMultiplier value. Null if FG not triggered.&quot;
+    },
+    &quot;totalFGWin&quot;: {
+      &quot;type&quot;: [&quot;number&quot;, &quot;null&quot;],
+      &quot;description&quot;: &quot;Sum of raw round wins across all FG rounds, before applying fgMultiplier and bonusMultiplier. effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier. flooredFGWin = max(effectiveFGWin, sessionFloorValue) — only when sessionFloorApplied=true. totalWin = min(mainCascadeWin + flooredFGWin, maxWin × baseBet). When `sessionFloorApplied=true` (Buy Feature spin), the effective FG win is raised to at least `sessionFloorValue` before applying the max-win cap. totalWin is the sole accounting authority. Null if FG not triggered.&quot;
+    },
+    &quot;sessionFloorApplied&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;True if Buy Feature session floor (≥ 20× baseBet) was applied&quot; },
+    &quot;sessionFloorValue&quot;: {
+      &quot;type&quot;: [&quot;number&quot;, &quot;null&quot;],
+      &quot;description&quot;: &quot;Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin.&quot;
+    },
+    &quot;nearMissApplied&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;description&quot;: &quot;true when near-miss weighting was applied to the reel stop positions&quot; },
+    &quot;engineVersion&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Version of GameConfig.generated.ts used&quot; },
+    &quot;timestamp&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot; },
+    &quot;rngSeed&quot;: { &quot;type&quot;: [&quot;string&quot;, &quot;null&quot;], &quot;description&quot;: &quot;Optional audit/replay seed; present only when server is running in audit mode (LOG_RNG_VALUES=true). Omitted in production responses.&quot; }
+  },
+  &quot;definitions&quot;: {
+    &quot;CascadeSequence&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;description&quot;: &quot;Complete cascade result. If totalWin &gt; 0, steps array contains at least one entry. Note: abbreviated examples may show `steps: []` for brevity; in production responses `steps` contains one entry per cascade iteration, and will be non-empty when totalWin &gt; 0.&quot;,
+      &quot;required&quot;: [&quot;steps&quot;, &quot;totalWin&quot;, &quot;finalGrid&quot;, &quot;finalRows&quot;, &quot;lightningMarks&quot;],
+      &quot;properties&quot;: {
+        &quot;steps&quot;: { &quot;type&quot;: &quot;array&quot;, &quot;items&quot;: { &quot;$ref&quot;: &quot;#/definitions/CascadeStep&quot; } },
+        &quot;totalWin&quot;: { &quot;type&quot;: &quot;number&quot; },
+        &quot;finalGrid&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: { &quot;type&quot;: &quot;array&quot;, &quot;items&quot;: { &quot;type&quot;: &quot;string&quot; } }
+        },
+        &quot;finalRows&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [3, 4, 5, 6] },
+        &quot;lightningMarks&quot;: { &quot;$ref&quot;: &quot;#/definitions/LightningMarkSet&quot; }
+      }
+    },
+    &quot;CascadeStep&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;index&quot;, &quot;grid&quot;, &quot;winLines&quot;, &quot;stepWin&quot;, &quot;newLightningMarks&quot;, &quot;rows&quot;],
+      &quot;properties&quot;: {
+        &quot;index&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0, &quot;description&quot;: &quot;0-based cascade step index&quot; },
+        &quot;grid&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: { &quot;type&quot;: &quot;array&quot;, &quot;items&quot;: { &quot;type&quot;: &quot;string&quot; } },
+          &quot;description&quot;: &quot;Grid state at the start of this cascade step&quot;
+        },
+        &quot;winLines&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: { &quot;$ref&quot;: &quot;#/definitions/WinLine&quot; }
+        },
+        &quot;stepWin&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Total win from all winLines in this cascade step&quot; },
+        &quot;newLightningMarks&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: { &quot;$ref&quot;: &quot;#/definitions/Position&quot; },
+          &quot;description&quot;: &quot;Positions that received Lightning Marks in this step (subset of all accumulated marks)&quot;
+        },
+        &quot;rows&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [3, 4, 5, 6], &quot;description&quot;: &quot;Row count after this cascade step&quot; }
+      }
+    },
+    &quot;WinLine&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;paylineId&quot;, &quot;symbolId&quot;, &quot;matchCount&quot;, &quot;positions&quot;, &quot;payout&quot;],
+      &quot;properties&quot;: {
+        &quot;paylineId&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 1, &quot;maximum&quot;: 57, &quot;description&quot;: &quot;Payline identifier (1–25 at 3 rows; up to 57 at 6 rows)&quot; },
+        &quot;symbolId&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;W&quot;, &quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;, &quot;P4&quot;, &quot;L1&quot;, &quot;L2&quot;, &quot;L3&quot;, &quot;L4&quot;] },
+        &quot;matchCount&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 3, &quot;maximum&quot;: 5 },
+        &quot;positions&quot;: { &quot;type&quot;: &quot;array&quot;, &quot;items&quot;: { &quot;$ref&quot;: &quot;#/definitions/Position&quot; } },
+        &quot;payout&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Win amount for this payline in the player&#x27;s currency&quot; }
+      }
+    },
+    &quot;Position&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;row&quot;, &quot;col&quot;],
+      &quot;properties&quot;: {
+        &quot;row&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 5, &quot;description&quot;: &quot;0-indexed row (top = 0)&quot; },
+        &quot;col&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 4, &quot;description&quot;: &quot;0-indexed column (left = 0)&quot; }
+      }
+    },
+    &quot;LightningMarkSet&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;positions&quot;, &quot;count&quot;],
+      &quot;properties&quot;: {
+        &quot;positions&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: { &quot;$ref&quot;: &quot;#/definitions/Position&quot; },
+          &quot;description&quot;: &quot;All accumulated Lightning Mark positions (across all cascade steps)&quot;
+        },
+        &quot;count&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0 }
+      }
+    },
+    &quot;ThunderBlessingResult&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;marksConverted&quot;, &quot;convertedSymbol&quot;, &quot;firstHitApplied&quot;, &quot;secondHitApplied&quot;],
+      &quot;properties&quot;: {
+        &quot;marksConverted&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: { &quot;$ref&quot;: &quot;#/definitions/Position&quot; },
+          &quot;description&quot;: &quot;Grid positions where Lightning Marks were converted to the upgraded symbol&quot;
+        },
+        &quot;convertedSymbol&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;enum&quot;: [&quot;P1&quot;, &quot;P2&quot;, &quot;P3&quot;, &quot;P4&quot;],
+          &quot;description&quot;: &quot;Symbol all Lightning Mark positions were upgraded to on first hit&quot;
+        },
+        &quot;firstHitApplied&quot;: { &quot;type&quot;: &quot;boolean&quot; },
+        &quot;secondHitApplied&quot;: {
+          &quot;type&quot;: &quot;boolean&quot;,
+          &quot;description&quot;: &quot;True if the second hit (RNG &lt; tbSecondHit probability of 0.40) was also applied, upgrading symbols one tier higher&quot;
+        }
+      }
+    },
+    &quot;FGRound&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;description&quot;: &quot;Represents a single round within an FG sequence. The bonusMultiplier is drawn once at the start of the FG sequence (before round 1) and is identical in all FGRound objects within the same sequence.&quot;,
+      &quot;required&quot;: [&quot;round&quot;, &quot;multiplier&quot;, &quot;bonusMultiplier&quot;, &quot;grid&quot;, &quot;cascadeSequence&quot;, &quot;roundWin&quot;, &quot;coinTossResult&quot;, &quot;lightningMarksBefore&quot;, &quot;lightningMarksAfter&quot;],
+      &quot;properties&quot;: {
+        &quot;round&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 1, &quot;maximum&quot;: 5, &quot;description&quot;: &quot;1-indexed FG round number&quot; },
+        &quot;multiplier&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [3, 7, 17, 27, 77], &quot;description&quot;: &quot;FG multiplier for this round&quot; },
+        &quot;bonusMultiplier&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [1, 5, 20, 100], &quot;description&quot;: &quot;Bonus multiplier drawn once at the start of the FG sequence (before round 1). This value is identical in all FGRound objects within the same sequence. Cross-reference: EDD §5.6.&quot; },
+        &quot;grid&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: { &quot;type&quot;: &quot;array&quot;, &quot;items&quot;: { &quot;type&quot;: &quot;string&quot; } },
+          &quot;description&quot;: &quot;Initial grid for this FG round (5×3 reset per round; Lightning Marks persist)&quot;
+        },
+        &quot;cascadeSequence&quot;: { &quot;$ref&quot;: &quot;#/definitions/CascadeSequence&quot; },
+        &quot;roundWin&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Raw win for this FG round before multiplier application (for frontend display)&quot; },
+        &quot;coinTossResult&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;enum&quot;: [&quot;HEADS&quot;, &quot;TAILS&quot;],
+          &quot;description&quot;: &quot;Coin Toss result at the end of this FG round. TAILS ends the FG sequence.&quot;
+        },
+        &quot;lightningMarksBefore&quot;: { &quot;$ref&quot;: &quot;#/definitions/LightningMarkSet&quot; },
+        &quot;lightningMarksAfter&quot;: { &quot;$ref&quot;: &quot;#/definitions/LightningMarkSet&quot; }
+      }
+    }
+  }
+}</code></pre>
+<h4 id="error-responses">Error Responses</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>HTTP Status</th>
+<th>Code</th>
+<th>When</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>INSUFFICIENT_FUNDS</code></td>
+<td><code>balance &lt; totalBet</code></td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>INVALID_BET_LEVEL</code></td>
+<td><code>betLevel</code> out of range for the given <code>currency</code></td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>INVALID_CURRENCY</code></td>
+<td><code>currency</code> is not <code>&quot;USD&quot;</code> or <code>&quot;TWD&quot;</code></td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>BUY_FEATURE_NOT_ALLOWED</code></td>
+<td><code>buyFeature: true</code> at an invalid bet level</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>VALIDATION_ERROR</code></td>
+<td>Missing required field, wrong type, or invalid enum value</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>UNAUTHORIZED</code></td>
+<td>JWT missing, expired, or invalid signature</td>
+</tr>
+<tr>
+<td>403</td>
+<td><code>FORBIDDEN</code></td>
+<td>Account suspended</td>
+</tr>
+<tr>
+<td>409</td>
+<td><code>SPIN_IN_PROGRESS</code></td>
+<td>Redis concurrency lock already held for this session</td>
+</tr>
+<tr>
+<td>422</td>
+<td><code>VALIDATION_ERROR</code></td>
+<td>Semantically invalid payload: structurally valid but semantically unsupported combinations, such as <code>extraBet</code>/<code>buyFeature</code> unavailable in this game config. Note: <code>extraBet: true</code> + <code>buyFeature: true</code> is a <strong>valid</strong> combination (costs 300× baseBet); <code>INSUFFICIENT_FUNDS</code> is returned when balance &lt; 300× baseBet for this combination.</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>RATE_LIMITED</code></td>
+<td>More than 5 req/s per player</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>INTERNAL_ERROR</code></td>
+<td>Unexpected server-side error</td>
+</tr>
+<tr>
+<td>503</td>
+<td><code>SERVICE_UNAVAILABLE</code></td>
+<td>Circuit breaker open — database or cache unavailable</td>
+</tr>
+<tr>
+<td>504</td>
+<td><code>ENGINE_TIMEOUT</code></td>
+<td>Engine took &gt; 2000ms; compensating credit issued automatically</td>
+</tr>
+</tbody></table></div>
+<h4 id="example-free-game-triggered-spin">Example — Free Game Triggered Spin</h4>
+<blockquote><p><strong>Note:</strong> The <code>cascadeSequence.steps</code> arrays in <code>fgRounds</code> below are abbreviated for brevity; actual responses contain full CascadeStep details.</p></blockquote>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">POST /v1/spin
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  &quot;playerId&quot;: &quot;a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234&quot;,
+  &quot;sessionId&quot;: null,
+  &quot;betLevel&quot;: 7,
+  &quot;currency&quot;: &quot;USD&quot;,
+  &quot;extraBet&quot;: false,
+  &quot;buyFeature&quot;: false
+}</code></pre>
+<p><strong>Response 200 (FG triggered, multiplier ×17, bonusMultiplier ×5, betLevel 7 → baseBet $1.00):</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;requestId&quot;: &quot;6ba7b810-9dad-11d1-80b4-00c04fd430c8&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:55:12.000Z&quot;,
+  &quot;data&quot;: {
+    &quot;spinId&quot;: &quot;spin-4c2a8e91-3b7f-4d1c-9a5b-2e6f78901234&quot;,
+    &quot;sessionId&quot;: &quot;sess-b1c2d3e4-f5a6-4b7c-8d9e-0f1234567890&quot;,
+    &quot;playerId&quot;: &quot;a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234&quot;,
+    &quot;betLevel&quot;: 7,
+    &quot;baseBet&quot;: 1.00,
+    &quot;totalBet&quot;: 1.00,
+    &quot;totalWin&quot;: 173.00,
+    &quot;newBalance&quot;: 1172.00,
+    &quot;currency&quot;: &quot;USD&quot;,
+    &quot;extraBetActive&quot;: false,
+    &quot;buyFeatureActive&quot;: false,
+    &quot;initialGrid&quot;: [
+      [&quot;P1&quot;, &quot;L2&quot;, &quot;SC&quot;, &quot;P3&quot;, &quot;L4&quot;],
+      [&quot;L1&quot;, &quot;P2&quot;, &quot;L3&quot;, &quot;W&quot;, &quot;P4&quot;],
+      [&quot;P3&quot;, &quot;L4&quot;, &quot;P1&quot;, &quot;L2&quot;, &quot;L1&quot;]
+    ],
+    &quot;finalGrid&quot;: [
+      [&quot;L2&quot;, &quot;P2&quot;, &quot;L3&quot;, &quot;P1&quot;, &quot;L4&quot;],
+      [&quot;P4&quot;, &quot;L1&quot;, &quot;P3&quot;, &quot;L2&quot;, &quot;P2&quot;],
+      [&quot;L3&quot;, &quot;P4&quot;, &quot;L1&quot;, &quot;P3&quot;, &quot;L3&quot;],
+      [&quot;P2&quot;, &quot;L3&quot;, &quot;P4&quot;, &quot;L1&quot;, &quot;P4&quot;],
+      [&quot;L1&quot;, &quot;P1&quot;, &quot;L2&quot;, &quot;P4&quot;, &quot;L2&quot;],
+      [&quot;P3&quot;, &quot;L2&quot;, &quot;P1&quot;, &quot;L3&quot;, &quot;P1&quot;]
+    ],
+    &quot;finalRows&quot;: 6,
+    &quot;cascadeSequence&quot;: {
+      &quot;steps&quot;: [
+        {
+          &quot;index&quot;: 0,
+          &quot;grid&quot;: [[&quot;P1&quot;,&quot;L2&quot;,&quot;SC&quot;,&quot;P3&quot;,&quot;L4&quot;],[&quot;L1&quot;,&quot;P2&quot;,&quot;L3&quot;,&quot;W&quot;,&quot;P4&quot;],[&quot;P3&quot;,&quot;L4&quot;,&quot;P1&quot;,&quot;L2&quot;,&quot;L1&quot;]],
+          &quot;winLines&quot;: [
+            {
+              &quot;paylineId&quot;: 7,
+              &quot;symbolId&quot;: &quot;P1&quot;,
+              &quot;matchCount&quot;: 3,
+              &quot;positions&quot;: [{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:2,&quot;col&quot;:2}],
+              &quot;payout&quot;: 3.00
+            }
+          ],
+          &quot;stepWin&quot;: 3.00,
+          &quot;newLightningMarks&quot;: [{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:2,&quot;col&quot;:2}],
+          &quot;rows&quot;: 3
+        }
+      ],
+      &quot;totalWin&quot;: 3.00,
+      &quot;finalGrid&quot;: [
+        [&quot;L2&quot;,&quot;P2&quot;,&quot;L3&quot;,&quot;P1&quot;,&quot;L4&quot;],[&quot;P4&quot;,&quot;L1&quot;,&quot;P3&quot;,&quot;L2&quot;,&quot;P2&quot;],
+        [&quot;L3&quot;,&quot;P4&quot;,&quot;L1&quot;,&quot;P3&quot;,&quot;L3&quot;],[&quot;P2&quot;,&quot;L3&quot;,&quot;P4&quot;,&quot;L1&quot;,&quot;P4&quot;],
+        [&quot;L1&quot;,&quot;P1&quot;,&quot;L2&quot;,&quot;P4&quot;,&quot;L2&quot;],[&quot;P3&quot;,&quot;L2&quot;,&quot;P1&quot;,&quot;L3&quot;,&quot;P1&quot;]
+      ],
+      &quot;finalRows&quot;: 6,
+      &quot;lightningMarks&quot;: {
+        &quot;positions&quot;: [{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:2,&quot;col&quot;:2}],
+        &quot;count&quot;: 3
+      }
+    },
+    &quot;thunderBlessingTriggered&quot;: false,
+    &quot;thunderBlessingFirstHit&quot;: false,
+    &quot;thunderBlessingSecondHit&quot;: false,
+    &quot;upgradedSymbol&quot;: null,
+    &quot;thunderBlessingResult&quot;: null,
+    &quot;coinTossTriggered&quot;: true,
+    &quot;coinTossResult&quot;: &quot;HEADS&quot;,
+    &quot;fgTriggered&quot;: true,
+    &quot;fgMultiplier&quot;: 17,
+    &quot;fgRounds&quot;: [
+      {
+        &quot;round&quot;: 1,
+        &quot;multiplier&quot;: 3,
+        &quot;bonusMultiplier&quot;: 5,
+        &quot;grid&quot;: [[&quot;P2&quot;,&quot;L1&quot;,&quot;P4&quot;,&quot;W&quot;,&quot;L3&quot;],[&quot;L2&quot;,&quot;P1&quot;,&quot;L4&quot;,&quot;P3&quot;,&quot;L1&quot;],[&quot;P4&quot;,&quot;L3&quot;,&quot;W&quot;,&quot;L2&quot;,&quot;P2&quot;]],
+        &quot;cascadeSequence&quot;: {
+          &quot;steps&quot;: [],
+          &quot;totalWin&quot;: 0.50,
+          &quot;finalGrid&quot;: [[&quot;P2&quot;,&quot;L1&quot;,&quot;P4&quot;,&quot;W&quot;,&quot;L3&quot;],[&quot;L2&quot;,&quot;P1&quot;,&quot;L4&quot;,&quot;P3&quot;,&quot;L1&quot;],[&quot;P4&quot;,&quot;L3&quot;,&quot;W&quot;,&quot;L2&quot;,&quot;P2&quot;]],
+          &quot;finalRows&quot;: 3,
+          &quot;lightningMarks&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:4},{&quot;row&quot;:2,&quot;col&quot;:0}],&quot;count&quot;:2}
+        },
+        &quot;roundWin&quot;: 0.50,
+        &quot;coinTossResult&quot;: &quot;HEADS&quot;,
+        &quot;lightningMarksBefore&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:2,&quot;col&quot;:2}],&quot;count&quot;:3},
+        &quot;lightningMarksAfter&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:0,&quot;col&quot;:4},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:2,&quot;col&quot;:0},{&quot;row&quot;:2,&quot;col&quot;:2}],&quot;count&quot;:5}
+      },
+      {
+        &quot;round&quot;: 2,
+        &quot;multiplier&quot;: 7,
+        &quot;bonusMultiplier&quot;: 5,
+        &quot;grid&quot;: [[&quot;L4&quot;,&quot;P2&quot;,&quot;W&quot;,&quot;P1&quot;,&quot;L2&quot;],[&quot;P3&quot;,&quot;L1&quot;,&quot;P4&quot;,&quot;L3&quot;,&quot;P2&quot;],[&quot;W&quot;,&quot;P4&quot;,&quot;L2&quot;,&quot;P3&quot;,&quot;L4&quot;]],
+        &quot;cascadeSequence&quot;: {
+          &quot;steps&quot;: [],
+          &quot;totalWin&quot;: 0.75,
+          &quot;finalGrid&quot;: [[&quot;L4&quot;,&quot;P2&quot;,&quot;W&quot;,&quot;P1&quot;,&quot;L2&quot;],[&quot;P3&quot;,&quot;L1&quot;,&quot;P4&quot;,&quot;L3&quot;,&quot;P2&quot;],[&quot;W&quot;,&quot;P4&quot;,&quot;L2&quot;,&quot;P3&quot;,&quot;L4&quot;]],
+          &quot;finalRows&quot;: 3,
+          &quot;lightningMarks&quot;: {&quot;positions&quot;:[{&quot;row&quot;:1,&quot;col&quot;:3}],&quot;count&quot;:1}
+        },
+        &quot;roundWin&quot;: 0.75,
+        &quot;coinTossResult&quot;: &quot;HEADS&quot;,
+        &quot;lightningMarksBefore&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:0,&quot;col&quot;:4},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:2,&quot;col&quot;:0},{&quot;row&quot;:2,&quot;col&quot;:2}],&quot;count&quot;:5},
+        &quot;lightningMarksAfter&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:0,&quot;col&quot;:4},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:1,&quot;col&quot;:3},{&quot;row&quot;:2,&quot;col&quot;:0},{&quot;row&quot;:2,&quot;col&quot;:2}],&quot;count&quot;:6}
+      },
+      {
+        &quot;round&quot;: 3,
+        &quot;multiplier&quot;: 17,
+        &quot;bonusMultiplier&quot;: 5,
+        &quot;grid&quot;: [[&quot;P1&quot;,&quot;W&quot;,&quot;L3&quot;,&quot;P2&quot;,&quot;L1&quot;],[&quot;L4&quot;,&quot;P3&quot;,&quot;P1&quot;,&quot;L2&quot;,&quot;P4&quot;],[&quot;P2&quot;,&quot;L1&quot;,&quot;L4&quot;,&quot;P3&quot;,&quot;W&quot;]],
+        &quot;cascadeSequence&quot;: {
+          &quot;steps&quot;: [],
+          &quot;totalWin&quot;: 0.75,
+          &quot;finalGrid&quot;: [[&quot;P1&quot;,&quot;W&quot;,&quot;L3&quot;,&quot;P2&quot;,&quot;L1&quot;],[&quot;L4&quot;,&quot;P3&quot;,&quot;P1&quot;,&quot;L2&quot;,&quot;P4&quot;],[&quot;P2&quot;,&quot;L1&quot;,&quot;L4&quot;,&quot;P3&quot;,&quot;W&quot;]],
+          &quot;finalRows&quot;: 3,
+          &quot;lightningMarks&quot;: {&quot;positions&quot;:[],&quot;count&quot;:0}
+        },
+        &quot;roundWin&quot;: 0.75,
+        &quot;coinTossResult&quot;: &quot;TAILS&quot;,
+        &quot;lightningMarksBefore&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:0,&quot;col&quot;:4},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:1,&quot;col&quot;:3},{&quot;row&quot;:2,&quot;col&quot;:0},{&quot;row&quot;:2,&quot;col&quot;:2}],&quot;count&quot;:6},
+        &quot;lightningMarksAfter&quot;: {&quot;positions&quot;:[],&quot;count&quot;:0}
+      }
+    ],
+    &quot;fgBonusMultiplier&quot;: 5,
+    &quot;totalFGWin&quot;: 2.00,
+    &quot;sessionFloorApplied&quot;: false,
+    &quot;sessionFloorValue&quot;: null,
+    &quot;nearMissApplied&quot;: false,
+    &quot;engineVersion&quot;: &quot;1.0.0&quot;,
+    &quot;timestamp&quot;: &quot;2026-04-26T14:55:12.000Z&quot;
+  }
+}</code></pre>
+<p>_Note: <code>effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier</code> = <code>2.00 × 17 × 5</code> = <code>170.00</code>. <code>totalWin = min(mainCascadeWin + effectiveFGWin, maxWin × baseBet)</code> = <code>min(3.00 + 170.00, 30000 × 1.00)</code> = <code>min(173.00, 30000.00)</code> = <code>173.00</code> (no cap applied in this example). <code>outcome.totalWin</code> is the sole accounting authority._</p>
+<hr>
+<h3 id="h-32-get-v1sessionsessionid">3.2 GET /v1/session/:sessionId</h3>
+<p><strong>Summary:</strong> Reconnect endpoint. Returns the current in-progress FG session state from Redis. Used when the client disconnects mid-FG sequence and needs to resume. The session expires after 1800s of inactivity (TTL auto-renewed on each FG round).</p>
+<p><strong>Authentication required:</strong> Yes — JWT Bearer token. Player may only access their own sessions (403 if <code>playerId</code> in session does not match JWT <code>sub</code>).</p>
+<p><strong>Rate limit:</strong> Global 5 req/s per player</p>
+<h4 id="request-headers">Request Headers</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Header</th>
+<th>Required</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>Authorization</code></td>
+<td>Yes</td>
+<td><code>Bearer &lt;access_token&gt;</code></td>
+</tr>
+</tbody></table></div>
+<h4 id="path-parameters">Path Parameters</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>sessionId</code></td>
+<td>string (format: sess-{uuid})</td>
+<td>Yes</td>
+<td>Session ID previously returned in a <code>POST /v1/spin</code> response</td>
+</tr>
+</tbody></table></div>
+<h4 id="request-example">Request Example</h4>
+<pre><code>GET /v1/session/sess-9e2b1a34-6f7c-4d2e-b8a1-c5d9e0f12345
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+<blockquote><p><strong>Note:</strong> steps array abbreviated for brevity; actual response contains full CascadeStep details.</p></blockquote>
+<h4 id="response-200-session-state">Response 200 — Session State</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;requestId&quot;: &quot;7ca8b910-9dad-22d2-80b4-00c04fd431a9&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:56:30.000Z&quot;,
+  &quot;data&quot;: {
+    &quot;sessionId&quot;: &quot;sess-9e2b1a34-6f7c-4d2e-b8a1-c5d9e0f12345&quot;,
+    &quot;playerId&quot;: &quot;a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234&quot;,
+    &quot;status&quot;: &quot;FG_ACTIVE&quot;,
+    &quot;baseBet&quot;: 1.00,
+    &quot;currency&quot;: &quot;USD&quot;,
+    &quot;extraBet&quot;: false,
+    &quot;buyFeature&quot;: false,
+    &quot;fgRound&quot;: 2,
+    &quot;fgMultiplier&quot;: 7,
+    &quot;fgBonusMultiplier&quot;: 5,
+    &quot;totalFGWin&quot;: 0.50,
+    &quot;lightningMarks&quot;: {
+      &quot;positions&quot;: [
+        { &quot;row&quot;: 0, &quot;col&quot;: 0 },
+        { &quot;row&quot;: 0, &quot;col&quot;: 4 },
+        { &quot;row&quot;: 1, &quot;col&quot;: 1 },
+        { &quot;row&quot;: 2, &quot;col&quot;: 0 },
+        { &quot;row&quot;: 2, &quot;col&quot;: 2 }
+      ],
+      &quot;count&quot;: 5
+    },
+    &quot;floorValue&quot;: null,
+    &quot;completedRounds&quot;: [
+      {
+        &quot;round&quot;: 1,
+        &quot;multiplier&quot;: 3,
+        &quot;bonusMultiplier&quot;: 5,
+        &quot;grid&quot;: [[&quot;P2&quot;,&quot;L1&quot;,&quot;P4&quot;,&quot;W&quot;,&quot;L3&quot;],[&quot;L2&quot;,&quot;P1&quot;,&quot;L4&quot;,&quot;P3&quot;,&quot;L1&quot;],[&quot;P4&quot;,&quot;L3&quot;,&quot;W&quot;,&quot;L2&quot;,&quot;P2&quot;]],
+        &quot;cascadeSequence&quot;: {
+          &quot;steps&quot;: [],
+          &quot;totalWin&quot;: 0.50,
+          &quot;finalGrid&quot;: [[&quot;P2&quot;,&quot;L1&quot;,&quot;P4&quot;,&quot;W&quot;,&quot;L3&quot;],[&quot;L2&quot;,&quot;P1&quot;,&quot;L4&quot;,&quot;P3&quot;,&quot;L1&quot;],[&quot;P4&quot;,&quot;L3&quot;,&quot;W&quot;,&quot;L2&quot;,&quot;P2&quot;]],
+          &quot;finalRows&quot;: 3,
+          &quot;lightningMarks&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:4},{&quot;row&quot;:2,&quot;col&quot;:0}],&quot;count&quot;:2}
+        },
+        &quot;roundWin&quot;: 0.50,
+        &quot;coinTossResult&quot;: &quot;HEADS&quot;,
+        &quot;lightningMarksBefore&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:2,&quot;col&quot;:2}],&quot;count&quot;:3},
+        &quot;lightningMarksAfter&quot;: {&quot;positions&quot;:[{&quot;row&quot;:0,&quot;col&quot;:0},{&quot;row&quot;:0,&quot;col&quot;:4},{&quot;row&quot;:1,&quot;col&quot;:1},{&quot;row&quot;:2,&quot;col&quot;:0},{&quot;row&quot;:2,&quot;col&quot;:2}],&quot;count&quot;:5}
+      }
+    ],
+    &quot;remainingMaxRounds&quot;: 4,
+    &quot;ttlSeconds&quot;: 243
+  }
+}</code></pre>
+<h4 id="response-200-json-schema-session-state-data-object">Response 200 JSON Schema — Session State (data object)</h4>
+<blockquote><p><strong>Note:</strong> This schema references shared type definitions (<code>LightningMarkSet</code>, <code>FGRound</code>) defined in the §3.1 FullSpinOutcome schema <code>definitions</code> block. For standalone schema validation, merge the <code>definitions</code> sections from both schemas.</p></blockquote>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;required&quot;: [&quot;sessionId&quot;, &quot;playerId&quot;, &quot;status&quot;, &quot;baseBet&quot;, &quot;currency&quot;, &quot;extraBet&quot;, &quot;buyFeature&quot;, &quot;fgRound&quot;, &quot;fgMultiplier&quot;, &quot;fgBonusMultiplier&quot;, &quot;totalFGWin&quot;, &quot;lightningMarks&quot;, &quot;floorValue&quot;, &quot;completedRounds&quot;, &quot;remainingMaxRounds&quot;, &quot;ttlSeconds&quot;],
+  &quot;properties&quot;: {
+    &quot;sessionId&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Session identifier (format: sess-{uuid})&quot; },
+    &quot;playerId&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;uuid&quot; },
+    &quot;status&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;SPINNING&quot;, &quot;FG_ACTIVE&quot;, &quot;COMPLETE&quot;] },
+    &quot;baseBet&quot;: { &quot;type&quot;: &quot;number&quot; },
+    &quot;currency&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;USD&quot;, &quot;TWD&quot;] },
+    &quot;extraBet&quot;: { &quot;type&quot;: &quot;boolean&quot; },
+    &quot;buyFeature&quot;: { &quot;type&quot;: &quot;boolean&quot; },
+    &quot;fgRound&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 5, &quot;description&quot;: &quot;1-indexed round number of the next FG round to be played. Value 1 = first round not yet started but session initialized. Value 2 = second round upcoming (1 completed). Value 0 = Free Game not yet entered.&quot; },
+    &quot;fgMultiplier&quot;: { &quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;], &quot;enum&quot;: [3, 7, 17, 27, 77, null], &quot;description&quot;: &quot;Current FG multiplier; null when no active FG sequence&quot; },
+    &quot;fgBonusMultiplier&quot;: { &quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;], &quot;enum&quot;: [1, 5, 20, 100, null], &quot;description&quot;: &quot;Bonus multiplier drawn at FG sequence start. Null if no FG sequence is active or bonus multiplier has not yet been determined.&quot; },
+    &quot;totalFGWin&quot;: { &quot;type&quot;: &quot;number&quot; },
+    &quot;lightningMarks&quot;: { &quot;$ref&quot;: &quot;#/definitions/LightningMarkSet&quot; },
+    &quot;floorValue&quot;: { &quot;type&quot;: [&quot;number&quot;, &quot;null&quot;], &quot;description&quot;: &quot;Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin.&quot; },
+    &quot;completedRounds&quot;: { &quot;type&quot;: &quot;array&quot;, &quot;items&quot;: { &quot;$ref&quot;: &quot;#/definitions/FGRound&quot; } },
+    &quot;remainingMaxRounds&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 5 },
+    &quot;ttlSeconds&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;description&quot;: &quot;Seconds remaining before this Redis session key expires&quot; }
+  }
+}</code></pre>
+<h4 id="error-responses">Error Responses</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>HTTP Status</th>
+<th>Code</th>
+<th>When</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>401</td>
+<td><code>UNAUTHORIZED</code></td>
+<td>JWT missing or expired</td>
+</tr>
+<tr>
+<td>403</td>
+<td><code>FORBIDDEN</code></td>
+<td>JWT is valid but <code>playerId</code> in session does not match JWT <code>sub</code></td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>SESSION_NOT_FOUND</code></td>
+<td>Session ID does not exist in Redis (TTL expired or never created)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3 id="h-33-get-v1config">3.3 GET /v1/config</h3>
+<p><strong>Summary:</strong> Returns the game configuration needed by the frontend: bet level table (USD and TWD), game parameters summary, and RTP targets per scenario. Used at game startup to initialize the bet selector UI.</p>
+<p><strong>Authentication required:</strong> Yes — JWT Bearer token (any valid role: <code>player</code>, <code>operator</code>, <code>service_role</code>)</p>
+<p><strong>Rate limit:</strong> Global 5 req/s per player</p>
+<h4 id="request-headers">Request Headers</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Header</th>
+<th>Required</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>Authorization</code></td>
+<td>Yes</td>
+<td><code>Bearer &lt;access_token&gt;</code></td>
+</tr>
+</tbody></table></div>
+<h4 id="query-parameters">Query Parameters</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>currency</code></td>
+<td>string</td>
+<td>No</td>
+<td>Returns both</td>
+<td>Filter to <code>USD</code> or <code>TWD</code> bet levels only</td>
+</tr>
+</tbody></table></div>
+<h4 id="request-example">Request Example</h4>
+<pre><code>GET /v1/config
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+<p>The <code>maxWin</code> object in the game config contains three cap values: <code>mainGame</code> (30,000× baseBet, applies to normal and Extra Bet spins), <code>buyFeature</code> (90,000× baseBet, applies when Buy Feature is active), and <code>extraBetBuyFeature</code> (90,000× baseBet, the cap when both Extra Bet and Buy Feature are active simultaneously — same cap as <code>buyFeature</code>).</p>
+<h4 id="response-200-game-config">Response 200 — Game Config</h4>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;requestId&quot;: &quot;8db9ca20-bcde-33e3-91c5-11d15fe542b0&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:00:00.000Z&quot;,
+  &quot;data&quot;: {
+    &quot;engineVersion&quot;: &quot;1.0.0&quot;,
+    &quot;betRange&quot;: {
+      &quot;USD&quot;: {
+        &quot;minBetLevel&quot;: 1,
+        &quot;maxBetLevel&quot;: 20,
+        &quot;levels&quot;: [
+          { &quot;level&quot;: 1,  &quot;baseBet&quot;: 0.10, &quot;extraBetCost&quot;: 0.30, &quot;buyFeatureCost&quot;: 10.00 },
+          { &quot;level&quot;: 2,  &quot;baseBet&quot;: 0.20, &quot;extraBetCost&quot;: 0.60, &quot;buyFeatureCost&quot;: 20.00 },
+          { &quot;level&quot;: 3,  &quot;baseBet&quot;: 0.25, &quot;extraBetCost&quot;: 0.75, &quot;buyFeatureCost&quot;: 25.00 },
+          { &quot;level&quot;: 4,  &quot;baseBet&quot;: 0.30, &quot;extraBetCost&quot;: 0.90, &quot;buyFeatureCost&quot;: 30.00 },
+          { &quot;level&quot;: 5,  &quot;baseBet&quot;: 0.50, &quot;extraBetCost&quot;: 1.50, &quot;buyFeatureCost&quot;: 50.00 },
+          { &quot;level&quot;: 6,  &quot;baseBet&quot;: 0.75, &quot;extraBetCost&quot;: 2.25, &quot;buyFeatureCost&quot;: 75.00 },
+          { &quot;level&quot;: 7,  &quot;baseBet&quot;: 1.00, &quot;extraBetCost&quot;: 3.00, &quot;buyFeatureCost&quot;: 100.00 },
+          { &quot;level&quot;: 8,  &quot;baseBet&quot;: 1.25, &quot;extraBetCost&quot;: 3.75, &quot;buyFeatureCost&quot;: 125.00 },
+          { &quot;level&quot;: 9,  &quot;baseBet&quot;: 1.50, &quot;extraBetCost&quot;: 4.50, &quot;buyFeatureCost&quot;: 150.00 },
+          { &quot;level&quot;: 10, &quot;baseBet&quot;: 2.00, &quot;extraBetCost&quot;: 6.00, &quot;buyFeatureCost&quot;: 200.00 },
+          { &quot;level&quot;: 11, &quot;baseBet&quot;: 2.50, &quot;extraBetCost&quot;: 7.50, &quot;buyFeatureCost&quot;: 250.00 },
+          { &quot;level&quot;: 12, &quot;baseBet&quot;: 3.00, &quot;extraBetCost&quot;: 9.00, &quot;buyFeatureCost&quot;: 300.00 },
+          { &quot;level&quot;: 13, &quot;baseBet&quot;: 3.50, &quot;extraBetCost&quot;: 10.50, &quot;buyFeatureCost&quot;: 350.00 },
+          { &quot;level&quot;: 14, &quot;baseBet&quot;: 4.00, &quot;extraBetCost&quot;: 12.00, &quot;buyFeatureCost&quot;: 400.00 },
+          { &quot;level&quot;: 15, &quot;baseBet&quot;: 5.00, &quot;extraBetCost&quot;: 15.00, &quot;buyFeatureCost&quot;: 500.00 },
+          { &quot;level&quot;: 16, &quot;baseBet&quot;: 6.00, &quot;extraBetCost&quot;: 18.00, &quot;buyFeatureCost&quot;: 600.00 },
+          { &quot;level&quot;: 17, &quot;baseBet&quot;: 7.00, &quot;extraBetCost&quot;: 21.00, &quot;buyFeatureCost&quot;: 700.00 },
+          { &quot;level&quot;: 18, &quot;baseBet&quot;: 8.00, &quot;extraBetCost&quot;: 24.00, &quot;buyFeatureCost&quot;: 800.00 },
+          { &quot;level&quot;: 19, &quot;baseBet&quot;: 9.00, &quot;extraBetCost&quot;: 27.00, &quot;buyFeatureCost&quot;: 900.00 },
+          { &quot;level&quot;: 20, &quot;baseBet&quot;: 10.00, &quot;extraBetCost&quot;: 30.00, &quot;buyFeatureCost&quot;: 1000.00 }
+        ]
+      },
+      &quot;TWD&quot;: {
+        &quot;minBetLevel&quot;: 1,
+        &quot;maxBetLevel&quot;: 320,
+        &quot;levels&quot;: [
+          { &quot;level&quot;: 1,   &quot;baseBet&quot;: 3,   &quot;extraBetCost&quot;: 9,    &quot;buyFeatureCost&quot;: 300   },
+          { &quot;level&quot;: 5,   &quot;baseBet&quot;: 15,  &quot;extraBetCost&quot;: 45,   &quot;buyFeatureCost&quot;: 1500  },
+          { &quot;level&quot;: 10,  &quot;baseBet&quot;: 30,  &quot;extraBetCost&quot;: 90,   &quot;buyFeatureCost&quot;: 3000  },
+          { &quot;level&quot;: 20,  &quot;baseBet&quot;: 60,  &quot;extraBetCost&quot;: 180,  &quot;buyFeatureCost&quot;: 6000  },
+          { &quot;level&quot;: 50,  &quot;baseBet&quot;: 150, &quot;extraBetCost&quot;: 450,  &quot;buyFeatureCost&quot;: 15000 },
+          { &quot;level&quot;: 100, &quot;baseBet&quot;: 300, &quot;extraBetCost&quot;: 900,  &quot;buyFeatureCost&quot;: 30000 },
+          { &quot;level&quot;: 200, &quot;baseBet&quot;: 600, &quot;extraBetCost&quot;: 1800, &quot;buyFeatureCost&quot;: 60000 },
+          { &quot;level&quot;: 320, &quot;baseBet&quot;: 600, &quot;extraBetCost&quot;: 1800, &quot;buyFeatureCost&quot;: 60000 }
+        ],
+        &quot;note&quot;: &quot;Full TWD level table (1–320) is served; only representative levels shown here for brevity. betLevels 200–320 share baseBet cap of 600 TWD per game design (capped tier).&quot;
+      }
+    },
+    &quot;gameParameters&quot;: {
+      &quot;reels&quot;: 5,
+      &quot;initialRows&quot;: 3,
+      &quot;maxRows&quot;: 6,
+      &quot;paylines&quot;: {
+        &quot;at3Rows&quot;: 25,
+        &quot;at4Rows&quot;: 33,
+        &quot;at5Rows&quot;: 45,
+        &quot;at6Rows&quot;: 57
+      },
+      &quot;symbols&quot;: [
+        { &quot;id&quot;: &quot;W&quot;,  &quot;name&quot;: &quot;Wild (Divine Lightning)&quot;, &quot;isWild&quot;: true,  &quot;isScatter&quot;: false },
+        { &quot;id&quot;: &quot;SC&quot;, &quot;name&quot;: &quot;Thunder Blessing Scatter&quot;, &quot;isWild&quot;: false, &quot;isScatter&quot;: true  },
+        { &quot;id&quot;: &quot;P1&quot;, &quot;name&quot;: &quot;Zeus&quot;,    &quot;isWild&quot;: false, &quot;isScatter&quot;: false, &quot;tier&quot;: &quot;premium&quot; },
+        { &quot;id&quot;: &quot;P2&quot;, &quot;name&quot;: &quot;Pegasus&quot;, &quot;isWild&quot;: false, &quot;isScatter&quot;: false, &quot;tier&quot;: &quot;premium&quot; },
+        { &quot;id&quot;: &quot;P3&quot;, &quot;name&quot;: &quot;Athena&quot;,  &quot;isWild&quot;: false, &quot;isScatter&quot;: false, &quot;tier&quot;: &quot;premium&quot; },
+        { &quot;id&quot;: &quot;P4&quot;, &quot;name&quot;: &quot;Eagle&quot;,   &quot;isWild&quot;: false, &quot;isScatter&quot;: false, &quot;tier&quot;: &quot;premium&quot; },
+        { &quot;id&quot;: &quot;L1&quot;, &quot;name&quot;: &quot;Z&quot;,       &quot;isWild&quot;: false, &quot;isScatter&quot;: false, &quot;tier&quot;: &quot;low&quot; },
+        { &quot;id&quot;: &quot;L2&quot;, &quot;name&quot;: &quot;E&quot;,       &quot;isWild&quot;: false, &quot;isScatter&quot;: false, &quot;tier&quot;: &quot;low&quot; },
+        { &quot;id&quot;: &quot;L3&quot;, &quot;name&quot;: &quot;U&quot;,       &quot;isWild&quot;: false, &quot;isScatter&quot;: false, &quot;tier&quot;: &quot;low&quot; },
+        { &quot;id&quot;: &quot;L4&quot;, &quot;name&quot;: &quot;S&quot;,       &quot;isWild&quot;: false, &quot;isScatter&quot;: false, &quot;tier&quot;: &quot;low&quot; }
+      ],
+      &quot;fgMultiplierSequence&quot;: [3, 7, 17, 27, 77],
+      &quot;fgBonusMultipliers&quot;: [1, 5, 20, 100],
+      &quot;coinTossProbabilities&quot;: {
+        &quot;stage0_entry&quot;: 0.80,
+        &quot;stage1_x7&quot;:    0.68,
+        &quot;stage2_x17&quot;:   0.56,
+        &quot;stage3_x27&quot;:   0.48,
+        &quot;stage4_x77&quot;:   0.40
+      },
+      &quot;maxWin&quot;: {
+        &quot;mainGame&quot;:   30000,
+        &quot;buyFeature&quot;: 90000,
+        &quot;extraBetBuyFeature&quot;: 90000,
+        &quot;unit&quot;: &quot;× baseBet&quot;
+      },
+      &quot;buyFeatureSessionFloor&quot;: 20,
+      &quot;extraBetCostMultiplier&quot;: 3,
+      &quot;buyFeatureCostMultiplier&quot;: 100
+    },
+    &quot;rtpTargets&quot;: {
+      &quot;mainGame&quot;:    { &quot;target&quot;: 97.5, &quot;tolerance&quot;: 1.0, &quot;unit&quot;: &quot;%&quot; },
+      &quot;extraBet&quot;:    { &quot;target&quot;: 97.5, &quot;tolerance&quot;: 1.0, &quot;unit&quot;: &quot;%&quot; },
+      &quot;buyFeature&quot;:  { &quot;target&quot;: 97.5, &quot;tolerance&quot;: 1.0, &quot;unit&quot;: &quot;%&quot; },
+      &quot;ebBuyFeature&quot;:{ &quot;target&quot;: 97.5, &quot;tolerance&quot;: 1.0, &quot;unit&quot;: &quot;%&quot; }
+    }
+  }
+}</code></pre>
+<h4 id="config-response-json-schema">Config Response JSON Schema</h4>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;required&quot;: [&quot;engineVersion&quot;, &quot;betRange&quot;, &quot;gameParameters&quot;, &quot;rtpTargets&quot;],
+  &quot;properties&quot;: {
+    &quot;engineVersion&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Version of GameConfig.generated.ts in use&quot; },
+    &quot;betRange&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;USD&quot;, &quot;TWD&quot;],
+      &quot;properties&quot;: {
+        &quot;USD&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;required&quot;: [&quot;minBetLevel&quot;, &quot;maxBetLevel&quot;, &quot;levels&quot;],
+          &quot;properties&quot;: {
+            &quot;minBetLevel&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 1 },
+            &quot;maxBetLevel&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;maximum&quot;: 20 },
+            &quot;levels&quot;: {
+              &quot;type&quot;: &quot;array&quot;,
+              &quot;items&quot;: {
+                &quot;type&quot;: &quot;object&quot;,
+                &quot;required&quot;: [&quot;level&quot;, &quot;baseBet&quot;, &quot;extraBetCost&quot;, &quot;buyFeatureCost&quot;],
+                &quot;properties&quot;: {
+                  &quot;level&quot;: { &quot;type&quot;: &quot;integer&quot; },
+                  &quot;baseBet&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Base bet amount in USD&quot; },
+                  &quot;extraBetCost&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Extra Bet cost (baseBet × 3)&quot; },
+                  &quot;buyFeatureCost&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;description&quot;: &quot;Buy Feature cost (baseBet × 100)&quot; }
+                }
+              }
+            }
+          }
+        },
+        &quot;TWD&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;required&quot;: [&quot;minBetLevel&quot;, &quot;maxBetLevel&quot;, &quot;levels&quot;],
+          &quot;properties&quot;: {
+            &quot;minBetLevel&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;minimum&quot;: 1 },
+            &quot;maxBetLevel&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;maximum&quot;: 320 },
+            &quot;levels&quot;: {
+              &quot;type&quot;: &quot;array&quot;,
+              &quot;items&quot;: {
+                &quot;type&quot;: &quot;object&quot;,
+                &quot;required&quot;: [&quot;level&quot;, &quot;baseBet&quot;, &quot;extraBetCost&quot;, &quot;buyFeatureCost&quot;],
+                &quot;properties&quot;: {
+                  &quot;level&quot;: { &quot;type&quot;: &quot;integer&quot; },
+                  &quot;baseBet&quot;: { &quot;type&quot;: &quot;number&quot; },
+                  &quot;extraBetCost&quot;: { &quot;type&quot;: &quot;number&quot; },
+                  &quot;buyFeatureCost&quot;: { &quot;type&quot;: &quot;number&quot; }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    &quot;gameParameters&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;reels&quot;, &quot;initialRows&quot;, &quot;maxRows&quot;, &quot;paylines&quot;, &quot;symbols&quot;, &quot;fgMultiplierSequence&quot;, &quot;fgBonusMultipliers&quot;, &quot;coinTossProbabilities&quot;, &quot;maxWin&quot;, &quot;buyFeatureSessionFloor&quot;, &quot;extraBetCostMultiplier&quot;, &quot;buyFeatureCostMultiplier&quot;],
+      &quot;properties&quot;: {
+        &quot;reels&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [5] },
+        &quot;initialRows&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [3] },
+        &quot;maxRows&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [6] },
+        &quot;paylines&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;required&quot;: [&quot;at3Rows&quot;, &quot;at4Rows&quot;, &quot;at5Rows&quot;, &quot;at6Rows&quot;],
+          &quot;properties&quot;: {
+            &quot;at3Rows&quot;: { &quot;type&quot;: &quot;integer&quot; },
+            &quot;at4Rows&quot;: { &quot;type&quot;: &quot;integer&quot; },
+            &quot;at5Rows&quot;: { &quot;type&quot;: &quot;integer&quot; },
+            &quot;at6Rows&quot;: { &quot;type&quot;: &quot;integer&quot; }
+          }
+        },
+        &quot;symbols&quot;: {
+          &quot;type&quot;: &quot;array&quot;,
+          &quot;items&quot;: {
+            &quot;type&quot;: &quot;object&quot;,
+            &quot;required&quot;: [&quot;id&quot;, &quot;name&quot;, &quot;isWild&quot;, &quot;isScatter&quot;],
+            &quot;properties&quot;: {
+              &quot;id&quot;: { &quot;type&quot;: &quot;string&quot; },
+              &quot;name&quot;: { &quot;type&quot;: &quot;string&quot; },
+              &quot;isWild&quot;: { &quot;type&quot;: &quot;boolean&quot; },
+              &quot;isScatter&quot;: { &quot;type&quot;: &quot;boolean&quot; },
+              &quot;tier&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;premium&quot;, &quot;low&quot;] }
+            }
+          }
+        },
+        &quot;fgMultiplierSequence&quot;: { &quot;type&quot;: &quot;array&quot;, &quot;items&quot;: { &quot;type&quot;: &quot;integer&quot; } },
+        &quot;fgBonusMultipliers&quot;: { &quot;type&quot;: &quot;array&quot;, &quot;items&quot;: { &quot;type&quot;: &quot;integer&quot; } },
+        &quot;coinTossProbabilities&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;description&quot;: &quot;Per-stage Coin Toss HEADS probabilities. stage0_entry: probability of HEADS at FG entry stage (awards ×3 FG multiplier). stage1_x7 through stage4_x77: probabilities for advancing to the ×7, ×17, ×27, and ×77 multiplier tiers respectively.&quot;,
+          &quot;required&quot;: [&quot;stage0_entry&quot;, &quot;stage1_x7&quot;, &quot;stage2_x17&quot;, &quot;stage3_x27&quot;, &quot;stage4_x77&quot;],
+          &quot;properties&quot;: {
+            &quot;stage0_entry&quot;: { &quot;type&quot;: &quot;number&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 1, &quot;description&quot;: &quot;HEADS probability at FG entry (awards ×3 multiplier)&quot; },
+            &quot;stage1_x7&quot;:    { &quot;type&quot;: &quot;number&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 1, &quot;description&quot;: &quot;HEADS probability at ×7 re-flip stage&quot; },
+            &quot;stage2_x17&quot;:   { &quot;type&quot;: &quot;number&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 1, &quot;description&quot;: &quot;HEADS probability at ×17 re-flip stage&quot; },
+            &quot;stage3_x27&quot;:   { &quot;type&quot;: &quot;number&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 1, &quot;description&quot;: &quot;HEADS probability at ×27 re-flip stage&quot; },
+            &quot;stage4_x77&quot;:   { &quot;type&quot;: &quot;number&quot;, &quot;minimum&quot;: 0, &quot;maximum&quot;: 1, &quot;description&quot;: &quot;HEADS probability at ×77 re-flip stage&quot; }
+          }
+        },
+        &quot;maxWin&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;required&quot;: [&quot;mainGame&quot;, &quot;buyFeature&quot;, &quot;extraBetBuyFeature&quot;, &quot;unit&quot;],
+          &quot;properties&quot;: {
+            &quot;mainGame&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;description&quot;: &quot;Max win cap for main game and Extra Bet (× baseBet)&quot; },
+            &quot;buyFeature&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;description&quot;: &quot;Max win cap when Buy Feature is active (× baseBet)&quot; },
+            &quot;extraBetBuyFeature&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;description&quot;: &quot;Max win cap when both Extra Bet and Buy Feature are active (× baseBet)&quot; },
+            &quot;unit&quot;: { &quot;type&quot;: &quot;string&quot; }
+          }
+        },
+        &quot;buyFeatureSessionFloor&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;description&quot;: &quot;Session floor multiplier for Buy Feature (20 means floor = 20 × baseBet)&quot; },
+        &quot;extraBetCostMultiplier&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [3] },
+        &quot;buyFeatureCostMultiplier&quot;: { &quot;type&quot;: &quot;integer&quot;, &quot;enum&quot;: [100] }
+      }
+    },
+    &quot;rtpTargets&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;description&quot;: &quot;RTP targets per game scenario&quot;,
+      &quot;additionalProperties&quot;: {
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;required&quot;: [&quot;target&quot;, &quot;tolerance&quot;, &quot;unit&quot;],
+        &quot;properties&quot;: {
+          &quot;target&quot;: { &quot;type&quot;: &quot;number&quot; },
+          &quot;tolerance&quot;: { &quot;type&quot;: &quot;number&quot; },
+          &quot;unit&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;%&quot;] }
+        }
+      }
+    }
+  }
+}</code></pre>
+<h4 id="error-responses">Error Responses</h4>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>HTTP Status</th>
+<th>Code</th>
+<th>When</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>401</td>
+<td><code>UNAUTHORIZED</code></td>
+<td>JWT missing or expired</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>RATE_LIMITED</code></td>
+<td>Rate limit exceeded</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>INTERNAL_ERROR</code></td>
+<td>Unexpected server error</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3 id="h-34-get-health">3.4 GET /health</h3>
+<p><strong>Summary:</strong> Kubernetes liveness probe. Returns immediately without checking dependencies. If the process is up and the event loop is running, this returns 200.</p>
+<p><strong>Authentication required:</strong> No</p>
+<p><strong>Rate limit:</strong> Not rate-limited (Kubernetes internal traffic)</p>
+<h4 id="request-example">Request Example</h4>
+<pre><code>GET /health</code></pre>
+<h4 id="response-200">Response 200</h4>
+<pre><code class="language-json">{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:00:00.000Z&quot;
+}</code></pre>
+<h4 id="response-json-schema">Response JSON Schema</h4>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;required&quot;: [&quot;status&quot;, &quot;timestamp&quot;],
+  &quot;properties&quot;: {
+    &quot;status&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;ok&quot;] },
+    &quot;timestamp&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot; }
+  }
+}</code></pre>
+<hr>
+<h3 id="h-35-get-ready">3.5 GET /ready</h3>
+<p><strong>Summary:</strong> Kubernetes readiness probe. Checks live connectivity to Supabase PostgreSQL and Redis before marking the pod as ready to receive traffic. A pod that fails readiness is removed from the load balancer rotation.</p>
+<p><strong>Authentication required:</strong> No</p>
+<p><strong>Rate limit:</strong> Not rate-limited</p>
+<h4 id="request-example">Request Example</h4>
+<pre><code>GET /ready</code></pre>
+<h4 id="response-200-all-dependencies-healthy">Response 200 — All dependencies healthy</h4>
+<pre><code class="language-json">{
+  &quot;status&quot;: &quot;ready&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:00:00.000Z&quot;,
+  &quot;checks&quot;: {
+    &quot;db&quot;: &quot;ok&quot;,
+    &quot;redis&quot;: &quot;ok&quot;
+  }
+}</code></pre>
+<h4 id="response-503-one-or-more-dependencies-unhealthy">Response 503 — One or more dependencies unhealthy</h4>
+<pre><code class="language-json">{
+  &quot;status&quot;: &quot;not_ready&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:00:05.123Z&quot;,
+  &quot;checks&quot;: {
+    &quot;db&quot;: &quot;fail&quot;,
+    &quot;redis&quot;: &quot;ok&quot;
+  }
+}</code></pre>
+<h4 id="response-json-schema">Response JSON Schema</h4>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;required&quot;: [&quot;status&quot;, &quot;timestamp&quot;, &quot;checks&quot;],
+  &quot;properties&quot;: {
+    &quot;status&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;ready&quot;, &quot;not_ready&quot;] },
+    &quot;timestamp&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;format&quot;: &quot;date-time&quot; },
+    &quot;checks&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [&quot;db&quot;, &quot;redis&quot;],
+      &quot;properties&quot;: {
+        &quot;db&quot;:    { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;ok&quot;, &quot;fail&quot;] },
+        &quot;redis&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;ok&quot;, &quot;fail&quot;] }
+      }
+    }
+  }
+}</code></pre>
+<p>HTTP status is 200 when <code>status = &quot;ready&quot;</code>, 503 when <code>status = &quot;not_ready&quot;</code>.</p>
+<hr>
+<h2 id="h-4-data-types-shared-schemas">§4 Data Types (Shared Schemas)</h2>
+<h3 id="h-40-fullspinoutcome">4.0 FullSpinOutcome</h3>
+<pre><code class="language-typescript">// Domain-level TypeScript reference. §3.1 JSON Schema is the authoritative wire contract.
+interface FullSpinOutcome {
+  spinId: string;          // format: spin-{uuid}
+  sessionId: string;       // format: sess-{uuid}
+  playerId: string;        // UUID; matches JWT sub claim
+  betLevel: number;
+  baseBet: number;         // base bet amount in player&#x27;s currency
+  totalBet: number;
+  totalWin: number;
+  newBalance: number;
+  currency: &quot;USD&quot; | &quot;TWD&quot;;
+  extraBetActive: boolean;
+  buyFeatureActive: boolean;
+  initialGrid: string[][];  // 5×3 initial grid before Cascade
+  finalGrid: string[][];    // final grid after all Cascade steps
+  finalRows: 3 | 4 | 5 | 6;
+  cascadeSequence: CascadeSequence;
+  thunderBlessingTriggered: boolean;
+  thunderBlessingFirstHit: boolean;
+  thunderBlessingSecondHit: boolean;
+  thunderBlessingResult: ThunderBlessingResult | null;
+  upgradedSymbol: string | null;   // P1|P2|P3|P4|null
+  coinTossTriggered: boolean;
+  coinTossResult: &quot;HEADS&quot; | &quot;TAILS&quot; | null;
+  fgTriggered: boolean;
+  fgMultiplier: 3 | 7 | 17 | 27 | 77 | null;
+  fgBonusMultiplier: 1 | 5 | 20 | 100 | null;
+  fgRounds: FGRound[];
+  totalFGWin: number | null;
+  sessionFloorApplied: boolean;
+  sessionFloorValue: number | null; // Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin.
+  nearMissApplied: boolean;
+  engineVersion: string;
+  timestamp: string;        // ISO 8601
+  rngSeed?: string | null;  // audit/replay seed; present only in audit mode
+}</code></pre>
+<h3 id="h-41-symbolid-enumeration">4.1 SymbolId Enumeration</h3>
+<p>Thunder Blessing uses 10 distinct symbol identifiers (2 special + 4 premium + 4 low):</p>
+<pre><code class="language-typescript">type SymbolId =
+  | &quot;W&quot;   // Wild (Divine Lightning / Golden Thunderbolt) — substitutes all except SC
+  | &quot;SC&quot;  // Thunder Blessing Scatter — triggers Thunder Blessing when marks present
+  | &quot;P1&quot;  // Zeus — highest premium symbol
+  | &quot;P2&quot;  // Pegasus
+  | &quot;P3&quot;  // Athena
+  | &quot;P4&quot;  // Eagle — lowest premium symbol; upgrade target for L-symbols
+  | &quot;L1&quot;  // Z (low symbol)
+  | &quot;L2&quot;  // E (low symbol)
+  | &quot;L3&quot;  // U (low symbol)
+  | &quot;L4&quot;; // S (low symbol)</code></pre>
+<p><strong>Thunder Blessing Upgrade Path (first hit):</strong> All Lightning Mark positions are replaced with a single randomly selected symbol from <code>{P1, P2, P3, P4}</code>.</p>
+<p><strong>Thunder Blessing Upgrade Path (second hit, probability 0.40):</strong> Each upgraded symbol rises one tier:</p>
+<ul>
+<li><code>L1/L2/L3/L4</code> → <code>P4</code></li>
+<li><code>P4</code> → <code>P3</code></li>
+<li><code>P3</code> → <code>P2</code></li>
+<li><code>P2</code> → <code>P1</code></li>
+<li><code>P1</code> → <code>P1</code> (ceiling; no change)</li>
+</ul>
+<blockquote><p>Note: L-symbol entries in the second-hit path are a defensive no-op. After a valid first hit, all Lightning Mark positions already hold premium symbols (P1–P4). The L-symbol case can only trigger if the implementation encounters an unexpected symbol state.</p></blockquote>
+<h3 id="h-42-grid">4.2 Grid</h3>
+<pre><code class="language-typescript">interface Grid {
+  cells: SymbolId[][];  // [row][col], row 0 = top row, col 0 = leftmost reel
+  rows: number;         // 3 | 4 | 5 | 6
+  cols: number;         // always 5
+}</code></pre>
+<p>In the JSON API, <code>Grid</code> is serialized as a 2D string array (<code>string[][]</code>). The outer array has <code>rows</code> elements; each inner array has exactly 5 elements (one per reel).</p>
+<p><strong>Grid index convention:</strong></p>
+<ul>
+<li><code>grid[0][0]</code> = top-left cell (row 0, reel 1)</li>
+<li><code>grid[rows-1][4]</code> = bottom-right cell</li>
+</ul>
+<h3 id="h-43-position">4.3 Position</h3>
+<pre><code class="language-typescript">interface Position {
+  row: number;  // 0-indexed; 0 = top row
+  col: number;  // 0-indexed; 0 = leftmost reel
+}</code></pre>
+<h3 id="h-44-winline">4.4 WinLine</h3>
+<pre><code class="language-typescript">interface WinLine {
+  paylineId: number;    // 1–57; paylines 1–25 active at 3 rows; up to 57 at 6 rows
+  symbolId: SymbolId;   // winning symbol (Wild is normalized to the matched symbol)
+  matchCount: number;   // 3 | 4 | 5
+  positions: Position[]; // grid positions contributing to this win
+  payout: number;       // win amount in player currency (baseBet × payline multiplier × matchCount multiplier)
+}</code></pre>
+<h3 id="h-45-cascadestep">4.5 CascadeStep</h3>
+<pre><code class="language-typescript">interface CascadeStep {
+  index: number;                 // 0-based; first step = 0
+  grid: SymbolId[][];            // grid state at start of this step (before elimination)
+  winLines: WinLine[];           // all winning paylines detected in this step
+  stepWin: number;               // sum of all winLine payouts in this step
+  newLightningMarks: Position[]; // positions newly marked in this step (additive; not total)
+  rows: number;                  // 3 | 4 | 5 | 6 — row count after expansion in this step
+}</code></pre>
+<h3 id="h-46-cascadesequence">4.6 CascadeSequence</h3>
+<pre><code class="language-typescript">interface CascadeSequence {
+  steps: CascadeStep[];         // all cascade steps, 0-indexed; empty if no wins
+  totalWin: number;             // sum of all stepWin values across all steps
+  finalGrid: SymbolId[][];      // grid state after all cascade steps complete
+  finalRows: number;            // 3 | 4 | 5 | 6
+  lightningMarks: LightningMarkSet; // all accumulated marks (union across all steps)
+}</code></pre>
+<h3 id="h-47-lightningmarkset">4.7 LightningMarkSet</h3>
+<pre><code class="language-typescript">interface LightningMarkSet {
+  positions: Position[]; // all unique grid positions that have received Lightning Marks
+  count: number;         // positions.length (provided for convenience)
+}</code></pre>
+<p><strong>Lifecycle:</strong></p>
+<ul>
+<li><strong>Main Game:</strong> Cleared at the start of each new spin.</li>
+<li><strong>Free Game:</strong> Accumulated across all FG rounds within the same FG sequence; cleared when FG sequence ends.</li>
+</ul>
+<h3 id="h-48-thunderblessingresult">4.8 ThunderBlessingResult</h3>
+<pre><code class="language-typescript">interface ThunderBlessingResult {
+  marksConverted: Position[];   // all positions where Lightning Marks were converted
+  convertedSymbol: SymbolId;    // P1 | P2 | P3 | P4 — symbol chosen for first hit
+  firstHitApplied: boolean;     // always true when ThunderBlessingResult is non-null
+  secondHitApplied: boolean;    // true if RNG &lt; 0.40 (tbSecondHit probability)
+}</code></pre>
+<p>Thunder Blessing is triggered when:</p>
+<ol>
+<li>A new symbol that is <code>SC</code> falls into the grid during Cascade</li>
+<li><code>lightningMarks.count &gt; 0</code></li>
+</ol>
+<p>If neither condition is met, <code>thunderBlessingTriggered = false</code> and <code>thunderBlessingResult = null</code>.</p>
+<h3 id="h-49-fground">4.9 FGRound</h3>
+<pre><code class="language-typescript">interface FGRound {
+  round: number;                      // 1–5 (1-indexed; max 5 rounds = 5 consecutive Heads)
+  multiplier: number;                 // 3 | 7 | 17 | 27 | 77 — multiplier for this round
+  bonusMultiplier: number;            // 1 | 5 | 20 | 100 — drawn once, same across all rounds
+  grid: SymbolId[][];                 // initial 5×3 grid for this FG round
+  cascadeSequence: CascadeSequence;   // full cascade result for this FG round
+  roundWin: number;                   // raw win (before multiplier); for frontend running total
+  coinTossResult: &quot;HEADS&quot; | &quot;TAILS&quot;; // HEADS = advance to next multiplier; TAILS = FG ends
+  lightningMarksBefore: LightningMarkSet; // accumulated marks entering this round
+  lightningMarksAfter: LightningMarkSet;  // accumulated marks after this round completes
+}</code></pre>
+<p><strong>FG Win Calculation:</strong></p>
+<pre><code>totalFGWin = sum(round.roundWin for all rounds)
+effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier
+flooredFGWin = max(effectiveFGWin, sessionFloorValue)  // only when sessionFloorApplied=true
+totalWin = min(mainCascadeWin + flooredFGWin, maxWin × baseBet)</code></pre>
+<p>When <code>sessionFloorApplied=true</code> (Buy Feature spin), the effective FG win is raised to at least <code>sessionFloorValue</code> before applying the max-win cap.</p>
+<h3 id="h-410-betlevel">4.10 BetLevel</h3>
+<pre><code class="language-typescript">interface BetLevel {
+  level: number;          // 1–20 (USD) | 1–320 (TWD)
+  baseBet: number;        // USD: 0.10–10.00 | TWD: 3–600
+  extraBetCost: number;   // baseBet × 3
+  buyFeatureCost: number; // baseBet × 100
+}</code></pre>
+<p><strong>USD Bet Level Summary (representative; non-linear — see <code>GET /v1/config</code> for full table):</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Level</th>
+<th>baseBet</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>$0.10</td>
+</tr>
+<tr>
+<td>5</td>
+<td>$0.50</td>
+</tr>
+<tr>
+<td>7</td>
+<td>$1.00</td>
+</tr>
+<tr>
+<td>10</td>
+<td>$2.00</td>
+</tr>
+<tr>
+<td>15</td>
+<td>$5.00</td>
+</tr>
+<tr>
+<td>20</td>
+<td>$10.00</td>
+</tr>
+</tbody></table></div>
+<p>_Full table of 20 levels served by <code>GET /v1/config</code>._</p>
+<p><strong>TWD Bet Level Constraints:</strong></p>
+<ul>
+<li><code>betLevel</code> max for TWD = 320 (not 20 — TWD uses a higher-resolution bet scale)</li>
+<li>TWD <code>baseBet</code> range: 3 TWD (level 1) to 600 TWD (max level)</li>
+</ul>
+<h3 id="h-411-sessionstatedto">4.11 SessionStateDTO</h3>
+<pre><code class="language-typescript">interface SessionStateDTO {
+  sessionId: string;              // UUID
+  playerId: string;               // UUID; must match JWT sub
+  status: &quot;SPINNING&quot; | &quot;FG_ACTIVE&quot; | &quot;COMPLETE&quot;;
+  baseBet: number;
+  currency: &quot;USD&quot; | &quot;TWD&quot;;
+  extraBet: boolean;
+  buyFeature: boolean;
+  fgRound: number;                // 1-indexed: 0=not entered, N=Nth round upcoming
+  fgMultiplier: number | null;    // 3 | 7 | 17 | 27 | 77 — null when no active FG sequence
+  fgBonusMultiplier: number | null; // 1 | 5 | 20 | 100 — drawn once at FG sequence start; null if no active FG
+  totalFGWin: number;
+  lightningMarks: LightningMarkSet;
+  floorValue: number | null;      // Floor guarantee applied on Buy Feature spins. 20 × baseBet when buyFeature=true and extraBet=false; 60 × baseBet (= 20 × 3 × baseBet) when both extraBet=true and buyFeature=true. Null if not a Buy Feature spin.
+  completedRounds: FGRound[];     // FG rounds already resolved
+  remainingMaxRounds: number;     // max rounds still possible
+  ttlSeconds: number;             // seconds until Redis key expires
+}</code></pre>
+<hr>
+<h2 id="h-5-rate-limiting-throttling">§5 Rate Limiting &amp; Throttling</h2>
+<h3 id="h-51-rate-limit-headers">5.1 Rate Limit Headers</h3>
+<p>Every response from <code>/v1/*</code> includes the following rate-limiting headers:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Header</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>X-RateLimit-Limit</code></td>
+<td>integer</td>
+<td>Maximum requests allowed per window (5)</td>
+</tr>
+<tr>
+<td><code>X-RateLimit-Remaining</code></td>
+<td>integer</td>
+<td>Requests remaining in the current window</td>
+</tr>
+<tr>
+<td><code>X-RateLimit-Reset</code></td>
+<td>integer</td>
+<td>Unix timestamp (seconds) when the window resets</td>
+</tr>
+<tr>
+<td><code>Retry-After</code></td>
+<td>integer</td>
+<td>Seconds before next retry allowed; present on 429 and 503 responses</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-52-common-response-headers">5.2 Common Response Headers</h3>
+<p>The following general response headers are included on all <code>/v1/*</code> responses (beyond rate-limiting headers):</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Header</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>X-Request-Id</code></td>
+<td>string (UUID)</td>
+<td>Unique identifier for this request (for log correlation); echoed from client <code>X-Request-Id</code> if provided</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-53-http-429-response">5.3 HTTP 429 Response</h3>
+<p>When a player exceeds 5 requests/second, the server returns:</p>
+<pre><code>HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+Retry-After: 1
+X-RateLimit-Limit: 5
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1745713261</code></pre>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;RATE_LIMITED&quot;,
+  &quot;message&quot;: &quot;Too many requests. Maximum 5 requests per second per player.&quot;,
+  &quot;requestId&quot;: &quot;9ec0db30-cdef-44f4-a2d7-22e26ff653c1&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:01:00.000Z&quot;,
+  &quot;retryAfter&quot;: 1
+}</code></pre>
+<h3 id="h-54-retry-after">5.4 Retry-After</h3>
+<ul>
+<li><code>Retry-After</code> header value is always <code>1</code> second for game spin endpoints (matches the sliding window size)</li>
+<li>Clients should implement exponential backoff if they receive multiple consecutive 429 responses</li>
+<li>The Supabase Auth endpoint has a separate rate limit (not managed by this API)</li>
+</ul>
+<h3 id="h-55-circuit-breaker-503-response">5.5 Circuit Breaker 503 Response</h3>
+<p>When the circuit breaker is OPEN (PostgreSQL or Redis unavailable), spins are rejected before any wallet debit:</p>
+<pre><code>HTTP/1.1 503 Service Unavailable
+Retry-After: 30</code></pre>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;code&quot;: &quot;SERVICE_UNAVAILABLE&quot;,
+  &quot;message&quot;: &quot;Service temporarily unavailable. Please try again in 30 seconds.&quot;,
+  &quot;requestId&quot;: &quot;a1b2c3d4-e5f6-4a7b-8c9d-0e1f23456789&quot;,
+  &quot;timestamp&quot;: &quot;2026-04-26T14:02:00.000Z&quot;,
+  &quot;retryAfter&quot;: 30
+}</code></pre>
+<hr>
+<h2 id="h-6-websocket-api">§6 WebSocket API</h2>
+<p><strong>No WebSocket API.</strong> Per ADR-002 (ARCH.md §1.2 / EDD.md §3.2), the game uses a <strong>single-trip REST design</strong>. One <code>POST /v1/spin</code> returns the complete <code>FullSpinOutcome</code> including all FG rounds, Cascade steps, and the final <code>totalWin</code>. The frontend plays back the animation sequence locally using the returned data, requiring no persistent connection.</p>
+<p><strong>Rationale (ADR-002):</strong></p>
+<ul>
+<li>Eliminates client-server round trips during FG</li>
+<li>Simplifies state management (no partial state to synchronize)</li>
+<li>Reduces reconnect risk during animations</li>
+<li>Frontend animations are driven entirely by the locally stored <code>FullSpinOutcome</code></li>
+</ul>
+<p><strong>Reconnect scenario:</strong> If the client disconnects after a spin completes but before the animation finishes, <code>GET /v1/session/:sessionId</code> provides the full FG sequence data for playback resumption.</p>
+<hr>
+<h2 id="h-7-versioning-backward-compatibility">§7 Versioning &amp; Backward Compatibility</h2>
+<h3 id="h-71-current-version">7.1 Current Version</h3>
+<p>API version <code>v1</code> — path prefix <code>/v1</code>.</p>
+<h3 id="h-72-backward-compatible-changes-no-version-bump">7.2 Backward-Compatible Changes (no version bump)</h3>
+<p>The following changes are safe and do not require a version increment:</p>
+<ul>
+<li><strong>Adding new optional fields</strong> to response bodies (existing clients ignore unknown fields)</li>
+<li><strong>Adding new enum values</strong> (clients should handle unknown enum values gracefully)</li>
+<li><strong>Adding new endpoints</strong> under <code>/v1/</code></li>
+<li><strong>Expanding rate limits</strong> (increasing from 5 to 10 req/s)</li>
+</ul>
+<h3 id="h-73-breaking-changes-require-v2">7.3 Breaking Changes (require /v2/)</h3>
+<p>The following changes require a new API version:</p>
+<ul>
+<li>Removing or renaming existing response fields</li>
+<li>Changing field types (e.g., <code>number</code> → <code>string</code>)</li>
+<li>Changing semantic meaning of existing fields</li>
+<li>Changing HTTP method for an endpoint</li>
+<li>Removing an endpoint</li>
+</ul>
+<h3 id="h-74-deprecation-policy">7.4 Deprecation Policy</h3>
+<ol>
+<li>Breaking changes are introduced under <code>/v2/</code> — <code>/v1/</code> continues to work.</li>
+<li>Deprecated endpoints return a <code>Deprecation: true</code> and <code>Sunset: &lt;date&gt;</code> response header.</li>
+<li><code>/v1/</code> remains supported for a minimum of <strong>12 months</strong> after the <code>/v2/</code> GA release.</li>
+<li>Operators are notified via the B2B developer channel at least 6 months before sunset.</li>
+</ol>
+<h3 id="h-75-versioning-for-new-fields">7.5 Versioning for New Fields</h3>
+<p>When adding optional fields to <code>FullSpinOutcome</code> in a minor update:</p>
+<ul>
+<li>New fields default to <code>null</code> or <code>false</code> when not applicable</li>
+<li>The <code>engineVersion</code> field in every response identifies the exact config generation in use</li>
+<li>Clients should treat unknown fields as informational (not fatal)</li>
+</ul>
+<hr>
+<h2 id="h-8-security-considerations">§8 Security Considerations</h2>
+<h3 id="h-81-jwt-claims-and-verification">8.1 JWT Claims and Verification</h3>
+<p>The backend verifies the following claims on every <code>/v1/*</code> request:</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Claim</th>
+<th>Verification</th>
+<th>Failure</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Signature (RS256)</td>
+<td>Validated against Supabase public key</td>
+<td>401 UNAUTHORIZED</td>
+</tr>
+<tr>
+<td><code>exp</code></td>
+<td>Must be in the future</td>
+<td>401 UNAUTHORIZED</td>
+</tr>
+<tr>
+<td><code>sub</code></td>
+<td>Must be a valid UUID; used as <code>playerId</code></td>
+<td>401 UNAUTHORIZED</td>
+</tr>
+<tr>
+<td><code>aud</code></td>
+<td>Must equal <code>&quot;authenticated&quot;</code></td>
+<td>401 UNAUTHORIZED</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td>Must be <code>player</code>, <code>operator</code>, or <code>service_role</code></td>
+<td>403 FORBIDDEN</td>
+</tr>
+<tr>
+<td><code>playerId</code> match</td>
+<td>JWT <code>sub</code> must match <code>playerId</code> in request body</td>
+<td>403 FORBIDDEN</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-82-expired-token-handling">8.2 Expired Token Handling</h3>
+<ul>
+<li>The server returns <code>401 UNAUTHORIZED</code> with <code>code: &quot;UNAUTHORIZED&quot;</code> immediately on expired tokens.</li>
+<li>No partial state is created — the spin is rejected before any lock acquisition or wallet debit.</li>
+<li>The client must refresh the token using the Supabase Auth refresh token flow and retry the spin.</li>
+</ul>
+<h3 id="h-83-cors-allowed-origins">8.3 CORS Allowed Origins</h3>
+<pre><code>Production:  https://*.yourdomain.com (configured via CORS_ALLOWED_ORIGINS env var)
+Staging:     https://*.staging.yourdomain.com
+Development: * (all origins permitted)</code></pre>
+<p>The <code>Access-Control-Allow-Origin</code> header is set per-request based on the <code>Origin</code> header match against the allowlist.</p>
+<h3 id="h-84-https-enforcement">8.4 HTTPS Enforcement</h3>
+<ul>
+<li>TLS 1.3 is enforced at the Kubernetes Ingress (nginx-ingress).</li>
+<li>The following security headers are set on all responses:</li>
+</ul>
+<pre><code>Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()</code></pre>
+<h3 id="h-85-session-ownership-enforcement">8.5 Session Ownership Enforcement</h3>
+<p><code>GET /v1/session/:sessionId</code> verifies that the <code>playerId</code> stored in Redis for the session matches the JWT <code>sub</code>. Mismatches return <code>403 FORBIDDEN</code> with <code>code: &quot;FORBIDDEN&quot;</code>. Players cannot access or resume another player&#x27;s session.</p>
+<h3 id="h-86-wallet-safety-invariants">8.6 Wallet Safety Invariants</h3>
+<ul>
+<li>The wallet is debited <strong>before</strong> the engine runs. If the engine times out (504), a compensating credit equal to the debited amount is issued automatically.</li>
+<li><code>outcome.totalWin</code> is the sole authority for wallet credit — the frontend totalWin display is for animation only and does not affect accounting.</li>
+<li>Redis optimistic lock (<code>SET NX EX 10</code>) prevents double-debiting from concurrent requests.</li>
+</ul>
+<h3 id="h-87-input-sanitization">8.7 Input Sanitization</h3>
+<p>All request body fields are validated against the Fastify/JSON Schema before reaching any use case:</p>
+<ul>
+<li><code>playerId</code>: UUID format enforced</li>
+<li><code>betLevel</code>: integer, range-checked per currency</li>
+<li><code>currency</code>: strict enum (<code>&quot;USD&quot;</code> | <code>&quot;TWD&quot;</code>)</li>
+<li><code>extraBet</code> / <code>buyFeature</code>: boolean type enforced</li>
+<li>No raw SQL is constructed from user input — all DB queries use parameterized statements via the Supabase JS Client</li>
+</ul>
+<hr>
+<h2 id="h-9-sdk-integration-notes">§9 SDK / Integration Notes</h2>
+<h3 id="h-91-frontend-integration-checklist-cocos-creator-pixijs">9.1 Frontend Integration Checklist (Cocos Creator / PixiJS)</h3>
+<p><strong>At game startup:</strong></p>
+<ol>
+<li>Authenticate via Supabase Auth SDK → obtain <code>access_token</code> + <code>refresh_token</code></li>
+<li>Call <code>GET /v1/config</code> → initialize bet selector UI with bet levels and symbols</li>
+<li>Store <code>access_token</code>; register <code>onAuthStateChange</code> listener to handle <code>TOKEN_REFRESHED</code> events</li>
+</ol>
+<p><strong>On Spin button press:</strong></p>
+<ol>
+<li>Disable Spin button immediately (prevent double-tap / double-click)</li>
+<li>Read current <code>betLevel</code>, <code>currency</code>, <code>extraBet</code>, <code>buyFeature</code> from UI state</li>
+<li>Call <code>POST /v1/spin</code> with current JWT token</li>
+<li>On 200: store <code>FullSpinOutcome</code>; begin animation sequence</li>
+<li>Re-enable Spin button only after full animation playback completes</li>
+<li>On 409 <code>SPIN_IN_PROGRESS</code>: show &quot;Please wait&quot; — do not retry automatically</li>
+<li>On 401 <code>UNAUTHORIZED</code>: refresh token → retry once → if still 401, show login screen</li>
+<li>On 429 <code>RATE_LIMITED</code>: wait <code>retryAfter</code> seconds → retry once</li>
+<li>On 504 <code>ENGINE_TIMEOUT</code>: show &quot;Connection issue&quot; — do NOT retry (compensating credit is already issued server-side)</li>
+</ol>
+<p><strong>Animation playback from FullSpinOutcome:</strong></p>
+<ol>
+<li>Play initial grid → <code>initialGrid</code></li>
+<li>For each <code>cascadeSequence.steps[i]</code>:</li>
+</ol>
+<p>   a. Highlight <code>winLines[j].positions</code> for each winning line    b. Animate Lightning Marks appearing at <code>newLightningMarks</code> positions    c. Eliminate winning symbols; apply gravity; expand rows to <code>step.rows</code></p>
+<ol>
+<li>If <code>thunderBlessingTriggered</code>:</li>
+</ol>
+<p>   a. Play SC trigger animation    b. Apply first hit: replace all mark positions with <code>upgradedSymbol</code>    c. If <code>thunderBlessingSecondHit</code>: play second hit animation; upgrade all marks one tier    d. Re-evaluate paylines from updated grid</p>
+<ol>
+<li>If <code>coinTossTriggered</code>: play Coin Toss animation with <code>coinTossResult</code></li>
+<li>If <code>fgTriggered</code>:</li>
+</ol>
+<p>   a. Show FG multiplier reveal (<code>fgMultiplier</code>)    b. Show Bonus Multiplier reveal (<code>fgBonusMultiplier</code>) — drawn before round 1, display before the first round begins    c. For each <code>fgRounds[i]</code>: play FG round spin + Cascade sequence</p>
+<ol>
+<li>Display <code>totalWin</code> as the final win amount</li>
+</ol>
+<p><strong>Reconnect flow (player returns after disconnect):</strong></p>
+<ol>
+<li>On app resume: call <code>GET /v1/session/:sessionId</code> with the last known <code>sessionId</code></li>
+<li>If 200 <code>FG_ACTIVE</code>: replay <code>completedRounds</code> animations; resume from <code>fgRound</code> index</li>
+<li>If 404 <code>SESSION_NOT_FOUND</code>: session has expired or completed — show final state from locally cached <code>FullSpinOutcome</code> if available</li>
+</ol>
+<p><strong><code>rngSeed</code> integration note:</strong> The <code>rngSeed</code> field is returned only in non-production/audit environments (when <code>LOG_RNG_VALUES=true</code> is set on the server). Production responses omit this field entirely. Clients should treat its absence as normal and must not depend on it for game logic.</p>
+<h3 id="h-92-request-id-tracing">9.2 Request ID Tracing</h3>
+<p>The client may set <code>X-Request-Id</code> header with a client-generated UUID on each request. The server echoes this value in the response <code>X-Request-Id</code> header and includes it in structured logs. This enables end-to-end tracing from the client&#x27;s perspective.</p>
+<pre><code>POST /v1/spin
+X-Request-Id: my-client-generated-uuid-here</code></pre>
+<h3 id="h-93-currency-display">9.3 Currency Display</h3>
+<ul>
+<li>All monetary amounts in API responses are in the player&#x27;s selected <code>currency</code> (USD or TWD)</li>
+<li>USD: display as <code>$0.00</code> format (2 decimal places)</li>
+<li>TWD: display as <code>NT$0</code> format (whole numbers; TWD amounts are integers in the bet table)</li>
+<li>The <code>CurrencyFormatter</code> service on the backend uses <code>BetRangeConfig.generated.ts</code> as the source of truth for all bet amounts</li>
+</ul>
+<h3 id="h-94-error-handling-guidance">9.4 Error Handling Guidance</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Code</th>
+<th>Frontend Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>INSUFFICIENT_FUNDS</code></td>
+<td>Show balance warning; update balance display; do NOT retry</td>
+</tr>
+<tr>
+<td><code>INVALID_BET_LEVEL</code></td>
+<td>Clamp bet selector to valid range; should not occur if UI is initialized from <code>/v1/config</code></td>
+</tr>
+<tr>
+<td><code>UNAUTHORIZED</code></td>
+<td>Refresh token; retry once; show login if still unauthorized</td>
+</tr>
+<tr>
+<td><code>SPIN_IN_PROGRESS</code></td>
+<td>On 409 SPIN_IN_PROGRESS, the client should wait for the Redis lock TTL (up to 10 seconds) before retrying. Polling GET /v1/session/:sessionId is appropriate only when a Free Game sequence is in progress (the session endpoint returns FG state). For base spins, retry the spin request after the lock TTL expires.</td>
+</tr>
+<tr>
+<td><code>RATE_LIMITED</code></td>
+<td>Wait <code>retryAfter</code> seconds; do not retry faster</td>
+</tr>
+<tr>
+<td><code>ENGINE_TIMEOUT</code></td>
+<td>Show error; do NOT retry — compensating credit already issued</td>
+</tr>
+<tr>
+<td><code>INTERNAL_ERROR</code></td>
+<td>Show generic error message; log <code>requestId</code> for support</td>
+</tr>
+</tbody></table></div>
+<h3 id="h-95-bet-level-constraints-summary">9.5 Bet Level Constraints Summary</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Currency</th>
+<th>Min Level</th>
+<th>Max Level</th>
+<th>Min baseBet</th>
+<th>Max baseBet</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>USD</td>
+<td>1</td>
+<td>20</td>
+<td>$0.10</td>
+<td>$10.00</td>
+</tr>
+<tr>
+<td>TWD</td>
+<td>1</td>
+<td>320</td>
+<td>TWD 3</td>
+<td>TWD 600</td>
+</tr>
+</tbody></table></div>
+<p>The frontend bet selector must enforce these ranges. Requests with <code>betLevel</code> outside the currency-specific range will receive <code>400 INVALID_BET_LEVEL</code>.</p>
+      </article>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <span>⚡ <span class="footer-accent">Thunder Blessing</span> GDD Documentation</span>
+    <span>API — REST API Reference</span>
+    <span><a href="index.html" style="color:var(--text-muted);text-decoration:none;">← Back to Hub</a></span>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen  = sidebar.classList.toggle('open');
+      overlay.classList.toggle('active', isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background:         '#1a2032',
+        primaryColor:       '#1e2535',
+        primaryBorderColor: '#2a3347',
+        primaryTextColor:   '#e2e8f0',
+        lineColor:          '#f6ad55',
+        secondaryColor:     '#161b27',
+        tertiaryColor:      '#0f1117',
+        edgeLabelBackground:'#1a2032',
+        clusterBkg:         '#1a2032',
+        titleColor:         '#f6ad55',
+      }
+    });
+  </script>
+</body>
+</html>
