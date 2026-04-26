@@ -153,7 +153,7 @@ const CRITICAL_ASSETS = [
 **Entry actions:**
 1. Display balance fetched from `GET /v1/session` (or cached from login).
 2. Apply bet level limits from `ConfigService.getConfig()`.
-3. Enable/disable Buy Feature button based on `config.buyFeatureEnabled`.
+3. Enable/disable Buy Feature button based on `config.gameParameters.buyFeatureCostMultiplier > 0`.
 
 **Exit actions:**
 1. Store selected `betLevel`, `extraBet`, `currency` in `GameContext` singleton.
@@ -937,11 +937,11 @@ interface GameConfig {
     readonly fgMultiplierSequence: readonly [3, 7, 17, 27, 77];
     readonly fgBonusMultipliers: readonly [1, 5, 20, 100];
     readonly coinTossProbabilities: {
-      stage0_entry: number;
-      stage1_x7: number;
-      stage2_x17: number;
-      stage3_x27: number;
-      stage4_x77: number;
+      stage1_x3:  number;   // 0.80 — entry (×3)
+      stage2_x7:  number;   // 0.68 — ×7
+      stage3_x17: number;   // 0.56 — ×17
+      stage4_x27: number;   // 0.48 — ×27
+      stage5_x77: number;   // 0.40 — ×77
     };
     readonly maxWin: {
       readonly mainGame: number;            // 30000 (× baseBet)
@@ -1062,6 +1062,9 @@ type AnimationStep =
 class AnimationQueue {
   private queue: AnimationStep[] = [];
   private isPlaying = false;
+
+  // Number of steps remaining in queue (used in unit tests and debug HUD)
+  get length(): number { return this.queue.length; }
 
   // Build queue from complete FullSpinOutcome
   build(outcome: FullSpinOutcome): void {
@@ -1300,6 +1303,7 @@ Singleton responsible for all audio playback, preloading, and state management.
 // src/audio/AudioManager.ts
 
 type SoundCategory = 'BGM' | 'SFX';
+type SoundId = string;  // Asset key registered via preload()
 
 interface AudioConfig {
   readonly volume: { bgm: number; sfx: number };  // 0.0–1.0
@@ -1363,8 +1367,15 @@ class AudioManager {
     source.start();
   }
 
+  private async loadBuffer(soundId: SoundId): Promise<AudioBuffer> {
+    const cached = this.sounds.get(soundId);
+    if (cached) return cached;
+    throw new Error(`Sound not preloaded: ${soundId}. Call preload() at startup.`);
+  }
+
   async crossfadeBGM(newSoundId: SoundId, durationMs = 1000): Promise<void> {
     const ctx = this.context;
+    if (!ctx) return;  // unlock() not yet called
     const now = ctx.currentTime;
     const endTime = now + durationMs / 1000;
 
@@ -1781,11 +1792,7 @@ When `FullSpinOutcome.nearMissApplied` is `true`, the reel stop animation includ
 - No text label is shown (per PDD §7.5 — "ALMOST!" or similar are explicitly forbidden).
 - `totalWin = 0` is still displayed normally; the near-miss is a pure visual effect.
 
-```typescript
-if (outcome.nearMissApplied) {
-  await animationQueue.enqueueNearMiss();  // Resolves before cascade steps
-}
-```
+Near-miss is handled automatically inside `AnimationQueue.build()` — when `outcome.nearMissApplied` is `true`, a `NEAR_MISS` step is inserted at the front of the queue before any cascade steps. No separate call is needed; the game loop processes it as the first step in the normal animation sequence.
 
 ### 11.2 Session Floor (`sessionFloorApplied = true`)
 
@@ -1805,7 +1812,7 @@ When `totalWin` equals the applicable max win cap:
 
 ```typescript
 const { maxWin } = configService.getConfig().gameParameters;
-const maxWinMultiplier = outcome.buyFeatureActive
+const maxWinMultiplier = outcome.buyFeature
   ? maxWin.buyFeature        // 90,000×
   : maxWin.mainGame;         // 30,000×
 const maxWinValue = maxWinMultiplier * outcome.baseBet;
@@ -1843,6 +1850,7 @@ async function restoreFGSession(session: SessionData): Promise<void> {
   lightningMarkComponent.restoreMarks(session.lightningMarks.positions);
 
   // 3. Restore multiplier progress bar to session.fgMultiplier
+  const fgMults = configService.getConfig().gameParameters.fgMultiplierSequence;
   coinTossComponent.updateMultiplierProgress(
     fgMults.indexOf(session.fgMultiplier!) + 1
   );
