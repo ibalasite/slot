@@ -1,27 +1,20 @@
 /**
  * Thunder Blessing — Prototype Main Logic
- * Router + State + All 12 Screen Renderers + Game Flow Simulation
+ * PrototypeRouter + Global Game State + 12 Screen Renderers + Spin Simulation
  */
 
 'use strict';
 
-// ============================================================
-// CONSTANTS (shorthand refs to mock-data)
-// ============================================================
-const {
-  GAME_CONFIG, SYMBOLS, REEL_POOL, SPIN_RESULTS, PLAYER_STATE, PAYTABLE,
-  randomSymbol, generateRandomGrid, getBaseBet, getTotalBet,
-  getBuyFeatureCost, formatAmount, classifyWin, getCoinTossProb,
-} = window.MOCK_DATA;
+// All mock data variables (GAME_CONFIG, SYMBOLS, REEL_POOL, etc.) are declared
+// globally by mock-data.js — access them directly without destructuring.
 
 // ============================================================
-// GLOBAL GAME STATE (mutable, immutably updated via helpers)
+// GLOBAL GAME STATE
 // ============================================================
 let gameState = {
-  ...PLAYER_STATE,
-  balance: 1000.00,
+  balance: 1250.50,
   currency: 'USD',
-  betIndex: 7,
+  betIndex: 7,            // index into betLevelsUSD
   extraBetActive: false,
   sessionWin: 0,
   sessionSpins: 0,
@@ -29,7 +22,7 @@ let gameState = {
   lightningMarks: [],
   fgActive: false,
   fgSpinsRemaining: 0,
-  fgMultiplierLevel: 0,
+  fgMultiplierLevel: 0,   // index into fgMultipliers
   fgTotalWin: 0,
   coinTossHeads: 0,
   rowCount: 3,
@@ -40,6 +33,10 @@ let gameState = {
   autoPlay: false,
   cascadeStep: 0,
   grid: generateRandomGrid(5, 3),
+  lastSpins: [],          // session history entries added during this session
+  currentMultiplier: 1,
+  sessionId: 'sess_mock_001',
+  _winTier: 'normal',
 };
 
 function updateState(partial) {
@@ -47,12 +44,49 @@ function updateState(partial) {
 }
 
 // ============================================================
-// PROTO ROUTER
+// HELPERS
+// ============================================================
+function fmt(amount) {
+  return formatAmount(amount, gameState.currency);
+}
+
+function baseBet() { return getBaseBet(gameState); }
+function totalBet() { return getTotalBet(gameState); }
+
+function betLevels() {
+  return gameState.currency === 'USD'
+    ? GAME_CONFIG.betLevelsUSD
+    : GAME_CONFIG.betLevelsTWD;
+}
+
+function currentBetStr() { return fmt(baseBet()); }
+function totalBetStr()   { return fmt(totalBet()); }
+
+// ============================================================
+// SCREEN LABEL MAP
+// ============================================================
+const SCREEN_LABELS = {
+  'screen-01': '01 · Loading',
+  'screen-02': '02 · Lobby',
+  'screen-03': '03 · Main Game — Idle',
+  'screen-04': '04 · Main Game — Spinning',
+  'screen-05': '05 · Cascade Animation',
+  'screen-06': '06 · Thunder Blessing Trigger',
+  'screen-07': '07 · Coin Toss',
+  'screen-08': '08 · Free Game Active',
+  'screen-09': '09 · Win Celebration',
+  'screen-10': '10 · Buy Feature',
+  'screen-11': '11 · Settings / Paytable',
+  'screen-12': '12 · Session History',
+};
+
+// ============================================================
+// PROTOTYPE ROUTER
 // ============================================================
 class PrototypeRouter {
   constructor() {
-    this.screens = {};
-    this.history = [];
+    this.screens   = {};
+    this.history   = [];
     this.currentScreen = null;
   }
 
@@ -62,18 +96,24 @@ class PrototypeRouter {
 
   navigate(id, options = {}) {
     const renderer = this.screens[id];
-    if (!renderer) { console.warn('[Router] Unknown screen:', id); return; }
+    if (!renderer) {
+      console.warn('[Router] Unknown screen:', id);
+      return;
+    }
 
     const container = document.getElementById('proto-content');
     if (!container) return;
 
-    // Deactivate current
+    // Deactivate current screen
     if (this.currentScreen) {
       const prev = document.getElementById(this.currentScreen);
-      if (prev) { prev.classList.remove('active'); prev.classList.add('hidden'); }
+      if (prev) {
+        prev.classList.remove('active');
+        prev.classList.add('hidden');
+      }
     }
 
-    // Render if not already in DOM
+    // Render (or re-render) the target screen
     let el = document.getElementById(id);
     if (!el || options.forceRender) {
       const html = renderer();
@@ -92,26 +132,27 @@ class PrototypeRouter {
     el.classList.remove('hidden');
     el.classList.add('active');
 
-    // Update history
+    // History
     if (!options.replace && this.currentScreen !== id && this.currentScreen) {
       this.history.push(this.currentScreen);
     }
     this.currentScreen = id;
 
-    // Update nav label
-    const label = document.getElementById('nav-screen-label');
-    if (label) label.textContent = SCREEN_LABELS[id] || id;
+    // Update nav breadcrumb
+    const breadcrumb = document.getElementById('proto-breadcrumb');
+    if (breadcrumb) breadcrumb.textContent = SCREEN_LABELS[id] || id;
 
     const backBtn = document.getElementById('nav-back-btn');
     if (backBtn) backBtn.disabled = this.history.filter(Boolean).length === 0;
 
-    // Bind events
-    if (this.screens[id + '_events']) {
-      this.screens[id + '_events']();
-    }
+    // Run event binders
+    const eventFn = this.screens[id + '_events'];
+    if (typeof eventFn === 'function') eventFn();
 
     // Audio
-    if (window.audioEngine) window.audioEngine.bindToScreen(id);
+    if (window.audioEngine && typeof window.audioEngine.bindToScreen === 'function') {
+      window.audioEngine.bindToScreen(id);
+    }
 
     // Scroll to top
     el.scrollTop = 0;
@@ -123,40 +164,60 @@ class PrototypeRouter {
   }
 
   init() {
-    const backBtn = document.getElementById('nav-back-btn');
-    if (backBtn) backBtn.addEventListener('click', () => this.back());
-    const flowBtn = document.getElementById('nav-flow-btn');
-    if (flowBtn) flowBtn.addEventListener('click', toggleFlowMap);
-    const audioBtn = document.getElementById('audio-unlock-btn');
-    if (audioBtn) {
-      audioBtn.addEventListener('click', async () => {
-        if (window.audioEngine) {
-          const ok = await window.audioEngine.unlock();
-          if (ok) {
-            audioBtn.classList.add('hidden');
-            window.audioEngine.playBGM('BGM_LOADING', { fadeIn: 0.5 });
-          }
+    document.getElementById('nav-back-btn')
+      ?.addEventListener('click', () => this.back());
+
+    // nav-flow-btn uses inline onclick="showFlowMap()" in index.html — no duplicate listener needed
+
+    document.getElementById('audio-unlock-btn')
+      ?.addEventListener('click', async () => {
+        if (!window.audioEngine) return;
+        const ok = await window.audioEngine.unlock();
+        if (ok) {
+          document.getElementById('audio-unlock-btn')?.classList.add('hidden');
         }
       });
-    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (!window.router) return;
+      if (e.key === 'm' || e.key === 'M') showFlowMap();
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('flow-map-modal');
+        if (modal && window.getComputedStyle(modal).display !== 'none') {
+          modal.classList.remove('open');
+          modal.style.display = 'none';
+        } else {
+          window.router.back();
+        }
+      }
+      // 1-9 jump to screen
+      const n = parseInt(e.key, 10);
+      if (n >= 1 && n <= 9 && !e.ctrlKey && !e.metaKey && !e.altKey
+          && document.activeElement.tagName !== 'INPUT') {
+        window.router.navigate(`screen-0${n}`, { forceRender: true });
+      }
+      if (e.key === '0' && document.activeElement.tagName !== 'INPUT') {
+        window.router.navigate('screen-10', { forceRender: true });
+      }
+    });
   }
 }
 
 // ============================================================
-// TOAST UTILITY (lightweight non-blocking notification)
+// TOAST UTILITY
 // ============================================================
 function showToast(message, durationMs = 2400) {
   let host = document.getElementById('proto-toast-host');
   if (!host) {
     host = document.createElement('div');
     host.id = 'proto-toast-host';
-    host.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+    host.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
     document.body.appendChild(host);
   }
   const toast = document.createElement('div');
-  toast.className = 'proto-toast';
   toast.textContent = message;
-  toast.style.cssText = 'padding:10px 18px;background:rgba(10,18,40,0.95);color:#FFD86B;border:1px solid rgba(255,216,107,0.4);border-radius:6px;font-size:14px;letter-spacing:0.5px;box-shadow:0 6px 24px rgba(0,0,0,0.4);opacity:0;transform:translateY(-8px);transition:opacity 200ms ease, transform 200ms ease;';
+  toast.style.cssText = 'padding:10px 18px;background:rgba(10,18,40,0.95);color:#FFD86B;border:1px solid rgba(255,216,107,0.4);border-radius:6px;font-size:14px;letter-spacing:0.5px;box-shadow:0 6px 24px rgba(0,0,0,0.4);opacity:0;transform:translateY(-8px);transition:opacity 200ms ease,transform 200ms ease;white-space:nowrap;';
   host.appendChild(toast);
   requestAnimationFrame(() => {
     toast.style.opacity = '1';
@@ -169,91 +230,50 @@ function showToast(message, durationMs = 2400) {
   }, durationMs);
 }
 
-const SCREEN_LABELS = {
-  'screen-01': '01 · LoadingScene',
-  'screen-02': '02 · LobbyScene',
-  'screen-03': '03 · GameScene IDLE',
-  'screen-04': '04 · GameScene SPINNING',
-  'screen-05': '05 · GameScene CASCADE',
-  'screen-06': '06 · THUNDER BLESSING',
-  'screen-07': '07 · Coin Toss',
-  'screen-08': '08 · Free Game',
-  'screen-09': '09 · Win Display',
-  'screen-10': '10 · Buy Feature',
-  'screen-11': '11 · Paytable',
-  'screen-12': '12 · Reconnect',
-};
-
 // ============================================================
-// HELPERS
+// SHARED RENDERERS
 // ============================================================
-function fmt(amount) {
-  return formatAmount(amount, gameState.currency);
-}
 
-function baseBet() { return getBaseBet(gameState); }
-function totalBet() { return getTotalBet(gameState); }
-
-function betLevels() {
-  return gameState.currency === 'USD'
-    ? GAME_CONFIG.betLevelsUSD
-    : GAME_CONFIG.betLevelsTWD;
-}
-
-function currentBetStr() {
-  return fmt(baseBet());
-}
-
-function totalBetStr() {
-  return fmt(totalBet());
-}
-
-// ============================================================
-// REEL GRID RENDERER
-// ============================================================
 function renderGrid(grid, options = {}) {
   const rows = grid[0] ? grid[0].length : 3;
   const rowClass = rows >= 5 ? 'rows-6' : '';
   let html = `<div class="reel-container ${rowClass}" id="reel-container">`;
   for (let col = 0; col < grid.length; col++) {
-    html += `<div class="reel-col" id="reel-col-${col}">`;
+    html += `<div class="reel-col" id="reel-col-${col}" data-reel="${col}">`;
     for (let row = 0; row < grid[col].length; row++) {
       const symId = grid[col][row];
-      const sym = SYMBOLS[symId] || SYMBOLS.GEM;
-      const isWin = options.winPositions && options.winPositions.some(p => p[0] === col && p[1] === row);
-      const isWild = sym.isWild;
-      const isScatter = sym.isScatter;
-      const hasLightning = gameState.lightningMarks.some(m => m[0] === col && m[1] === row);
-      const cellClasses = [
+      const sym   = SYMBOLS[symId] || SYMBOLS.L4;
+      const isWin     = options.winPositions
+        && options.winPositions.some(p => p[0] === col && p[1] === row);
+      const hasLightning = (gameState.lightningMarks || [])
+        .some(m => m[0] === col && m[1] === row);
+      const classes = [
         'symbol-cell',
-        isWin ? 'win' : '',
-        isWild ? 'is-wild' : '',
-        isScatter ? 'is-scatter' : '',
+        isWin       ? 'win'        : '',
+        sym.isWild  ? 'is-wild'    : '',
+        sym.isScatter ? 'is-scatter' : '',
       ].filter(Boolean).join(' ');
 
       html += `
-        <div class="${cellClasses}" id="cell-${col}-${row}" data-col="${col}" data-row="${row}" data-sym="${symId}">
+        <div class="${classes}" id="cell-${col}-${row}" data-col="${col}" data-row="${row}" data-sym="${symId}">
           <span class="symbol-emoji">${sym.emoji}</span>
           <span class="symbol-name">${sym.name}</span>
           ${hasLightning ? '<span class="lightning-mark">⚡</span>' : ''}
         </div>`;
     }
-    html += `</div>`;
+    html += '</div>';
   }
-  html += `</div>`;
+  html += '</div>';
   return html;
 }
 
-// ============================================================
-// FREE LETTER BAR
-// ============================================================
 function renderFreeLetterBar(progress) {
   const letters = ['F', 'R', 'E', 'E'];
   return `
     <div class="free-letter-bar">
       <span class="free-letter-bar-label">FREE</span>
       ${letters.map((l, i) => `
-        <div class="free-letter" data-lit="${i < progress ? 'true' : 'false'}">${l}</div>
+        <div class="free-letter" data-lit="${i < progress}">${l}</div>
       `).join('')}
       <span style="font-size:9px;color:rgba(245,240,232,0.4);margin-left:8px;letter-spacing:1px;">
         ${progress >= 4 ? '→ COIN TOSS' : `${progress}/4`}
@@ -261,9 +281,6 @@ function renderFreeLetterBar(progress) {
     </div>`;
 }
 
-// ============================================================
-// FG MULTIPLIER BAR
-// ============================================================
 function renderFGMultBar(currentLevel, spinsLeft) {
   const mults = GAME_CONFIG.fgMultipliers;
   return `
@@ -273,12 +290,10 @@ function renderFGMultBar(currentLevel, spinsLeft) {
         ${mults.map((m, i) => {
           const reached = i < currentLevel;
           const current = i === currentLevel;
-          const cls = reached ? 'reached' : (current ? 'current' : '');
+          const cls = reached ? 'reached' : current ? 'current' : '';
           return `
             <div class="fg-mult-node">
-              <div class="fg-mult-dot ${cls}">
-                ${reached ? '✓' : (current ? '★' : '')}
-              </div>
+              <div class="fg-mult-dot ${cls}">${reached ? '✓' : current ? '★' : ''}</div>
               <div class="fg-mult-val ${cls}">×${m}</div>
             </div>`;
         }).join('')}
@@ -287,9 +302,6 @@ function renderFGMultBar(currentLevel, spinsLeft) {
     </div>`;
 }
 
-// ============================================================
-// TOP BAR
-// ============================================================
 function renderTopBar(options = {}) {
   const bal = fmt(gameState.balance);
   const win = gameState.currentWin > 0 ? fmt(gameState.currentWin) : '—';
@@ -314,24 +326,21 @@ function renderTopBar(options = {}) {
         </div>` : ''}
       </div>
       <div class="top-bar-section topbar-icon-btns">
-        ${gameState.fgActive ? '' : '<button class="topbar-icon-btn" id="btn-buy-feature" title="Buy Free Game">💰</button>'}
-        <button class="topbar-icon-btn" id="btn-paytable" title="賠率表">📋</button>
-        <button class="topbar-icon-btn" id="btn-settings" title="設定">⚙️</button>
+        ${gameState.fgActive ? '' : '<button class="topbar-icon-btn" id="btn-buy-feature" title="Buy Feature">💰</button>'}
+        <button class="topbar-icon-btn" id="btn-paytable" title="Paytable">📋</button>
+        <button class="topbar-icon-btn" id="btn-settings" title="Settings">⚙️</button>
       </div>
     </div>`;
 }
 
-// ============================================================
-// BOTTOM HUD
-// ============================================================
 function renderHUD(options = {}) {
-  const bet = currentBetStr();
-  const isSpinning = options.spinning || false;
-  const isFG = gameState.fgActive;
-  const spinIcon = isSpinning ? '⏸' : (isFG ? '▶' : '▶');
-  const spinLabel = isSpinning ? 'STOP' : (isFG ? 'FG SPIN' : 'SPIN');
-  const extraBadge = gameState.extraBetActive
-    ? `<span class="hud-extra-bet-badge">+EXTRA</span>` : '';
+  const bet       = currentBetStr();
+  const isSpinning= options.spinning || false;
+  const isFG      = gameState.fgActive;
+  const spinIcon  = isSpinning ? '⏸' : '▶';
+  const spinLabel = isSpinning ? 'STOP' : isFG ? 'FG SPIN' : 'SPIN';
+  const extraBadge= gameState.extraBetActive
+    ? '<span class="hud-extra-bet-badge">+EXTRA</span>' : '';
 
   return `
     <div class="hud-bottom">
@@ -382,6 +391,7 @@ function renderHUD(options = {}) {
 
 // ============================================================
 // SCREEN 01 — LOADING
+// Zeus logo + animated progress bar, auto-navigates to screen-02
 // ============================================================
 function renderScreen01() {
   return `
@@ -397,9 +407,7 @@ function renderScreen01() {
         </div>
         <div class="loading-pct" id="loading-pct">0%</div>
       </div>
-      <div class="loading-tip" id="loading-tip">
-        正在載入遊戲資源，請稍候…
-      </div>
+      <div class="loading-tip" id="loading-tip">正在載入遊戲資源，請稍候…</div>
     </div>`;
 }
 
@@ -408,7 +416,7 @@ function bindScreen01Events() {
     '集滿 FREE 字母觸發 Coin Toss，解鎖最高 ×77 倍率！',
     '雷神祝福：5個以上 SC 符號引爆全盤雷霆！',
     '連鎖消除讓每一次旋轉都充滿無限可能。',
-    '最高中獎倍率：30,000×BET',
+    '最高中獎倍率：30,000× BET · RTP 96.5%',
   ];
   const bar = document.getElementById('loading-bar');
   const pct = document.getElementById('loading-pct');
@@ -416,33 +424,34 @@ function bindScreen01Events() {
   if (!bar) return;
 
   let progress = 0;
-  let tipIdx = 0;
-  const interval = setInterval(() => {
+  let tipIdx   = 0;
+  const iv = setInterval(() => {
     progress += Math.random() * 18 + 8;
     if (progress >= 100) progress = 100;
     bar.style.width = progress + '%';
     if (pct) pct.textContent = Math.floor(progress) + '%';
     if (tip && progress > 30 && tipIdx < tips.length) {
       tip.textContent = tips[Math.floor(tipIdx)];
-      tipIdx += 0.4;
+      tipIdx += 0.5;
     }
     if (progress >= 100) {
-      clearInterval(interval);
+      clearInterval(iv);
       setTimeout(() => router.navigate('screen-02'), 600);
     }
-  }, 180);
+  }, 160);
 }
 
 // ============================================================
 // SCREEN 02 — LOBBY
+// Balance display, bet level selector, extra bet toggle,
+// Buy Feature link → screen-10, START → screen-03
 // ============================================================
 function renderScreen02() {
-  const bet = currentBetStr();
-  const bal = fmt(gameState.balance);
-  const buyCost = fmt(getBuyFeatureCost(gameState));
+  const bet    = currentBetStr();
+  const bal    = fmt(gameState.balance);
+  const buyCost= fmt(getBuyFeatureCost(gameState));
   const levels = betLevels();
-  const pipCount = Math.min(levels.length, 40);
-  const pips = Array.from({ length: pipCount }, (_, i) =>
+  const pips   = Array.from({ length: Math.min(levels.length, 40) }, (_, i) =>
     `<div class="bet-pip ${i === gameState.betIndex ? 'active' : ''}"></div>`
   ).join('');
 
@@ -497,7 +506,7 @@ function renderScreen02() {
           <div class="balance-row">
             <div>
               <div style="font-size:10px;color:rgba(245,240,232,0.45);letter-spacing:1px;text-transform:uppercase;">餘額 Balance</div>
-              <div class="balance-val">${bal}</div>
+              <div class="balance-val" id="lobby-balance">${bal}</div>
             </div>
             <span class="buy-feature-link" id="lobby-buy-feature">購買自由遊戲 (${buyCost})</span>
           </div>
@@ -518,32 +527,37 @@ function bindScreen02Events() {
   const betDisplay = document.getElementById('lobby-bet-display');
   function refreshBet() {
     if (betDisplay) betDisplay.textContent = currentBetStr();
-    // Refresh pip indicators
-    const pips = document.querySelectorAll('.bet-pip');
-    pips.forEach((p, i) => {
+    document.querySelectorAll('.bet-pip').forEach((p, i) => {
       p.classList.toggle('active', i === gameState.betIndex);
     });
   }
+
   document.getElementById('lobby-bet-down')?.addEventListener('click', () => {
-    if (gameState.betIndex > 0) { updateState({ betIndex: gameState.betIndex - 1 }); refreshBet(); }
+    if (gameState.betIndex > 0) {
+      updateState({ betIndex: gameState.betIndex - 1 });
+      refreshBet();
+    }
   });
   document.getElementById('lobby-bet-up')?.addEventListener('click', () => {
     const max = betLevels().length - 1;
-    if (gameState.betIndex < max) { updateState({ betIndex: gameState.betIndex + 1 }); refreshBet(); }
+    if (gameState.betIndex < max) {
+      updateState({ betIndex: gameState.betIndex + 1 });
+      refreshBet();
+    }
   });
   document.getElementById('cur-usd')?.addEventListener('click', () => {
-    updateState({ currency: 'USD', betIndex: Math.min(gameState.betIndex, GAME_CONFIG.betLevelsUSD.length - 1) });
+    updateState({ currency: 'USD' });
     router.navigate('screen-02', { forceRender: true });
   });
   document.getElementById('cur-twd')?.addEventListener('click', () => {
-    updateState({ currency: 'TWD', betIndex: Math.min(gameState.betIndex, GAME_CONFIG.betLevelsTWD.length - 1) });
+    updateState({ currency: 'TWD' });
     router.navigate('screen-02', { forceRender: true });
   });
   document.getElementById('extra-bet-toggle')?.addEventListener('change', (e) => {
     updateState({ extraBetActive: e.target.checked });
   });
   document.getElementById('lobby-start-btn')?.addEventListener('click', () => {
-    if (window.audioEngine) window.audioEngine.playButtonClick();
+    if (window.audioEngine) window.audioEngine.playSFX('SFX-BUTTON');
     router.navigate('screen-03');
   });
   document.getElementById('lobby-buy-feature')?.addEventListener('click', () => {
@@ -552,7 +566,8 @@ function bindScreen02Events() {
 }
 
 // ============================================================
-// SCREEN 03 — GAME IDLE
+// SCREEN 03 — MAIN GAME (Idle)
+// 5×3 slot grid, win/bet display, SPIN button
 // ============================================================
 function renderScreen03() {
   return `
@@ -562,23 +577,26 @@ function renderScreen03() {
         ${renderFreeLetterBar(gameState.freeLetterProgress)}
         <div class="reel-frame" id="reel-frame">
           <div class="reel-frame-glow" id="reel-glow"></div>
-          ${renderGrid(gameState.grid)}
+          ${renderGrid(gameState.grid, { winPositions: gameState.lastResult ? gameState.lastResult.winPositions : [] })}
           <div class="win-line-overlay" id="win-overlay"></div>
         </div>
+        ${gameState.currentWin > 0 ? `
+          <div class="win-amount-popup" id="win-popup">+${fmt(gameState.currentWin)}</div>
+        ` : ''}
       </div>
       ${renderHUD()}
     </div>`;
 }
 
 function bindScreen03Events() {
-  bindGameHUDEvents('screen-03');
+  bindGameHUDEvents();
 }
 
 // ============================================================
 // SCREEN 04 — SPINNING
+// Shows spinning state; resolves after 2s (1s in turbo)
 // ============================================================
 function renderScreen04() {
-  // Show spinning state with blur effect via CSS class
   const spinGrid = generateRandomGrid(5, gameState.rowCount);
   return `
     <div id="screen-04" class="screen game-scene hidden">
@@ -586,11 +604,12 @@ function renderScreen04() {
       <div class="game-area">
         ${renderFreeLetterBar(gameState.freeLetterProgress)}
         <div class="reel-frame" id="reel-frame">
-          <div class="reel-frame-glow active" id="reel-glow"></div>
+          <div class="reel-frame-glow active"></div>
           ${renderGrid(spinGrid)}
           <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);">
-            <span class="state-badge cascade" style="background:rgba(255,215,0,0.15);color:var(--color-gold-bright);border-color:var(--color-gold-bright);">
-              ⚡ SPINNING...
+            <span class="state-badge cascade"
+                  style="background:rgba(255,215,0,0.15);color:var(--color-gold-bright);border-color:var(--color-gold-bright);">
+              ⚡ SPINNING…
             </span>
           </div>
         </div>
@@ -600,26 +619,35 @@ function renderScreen04() {
 }
 
 function bindScreen04Events() {
-  // Auto-stop after spin duration
-  const delay = gameState.turboMode ? 800 : 1800;
-  const cols = document.querySelectorAll('.reel-col');
-  cols.forEach((col, i) => {
+  // Animate reel columns
+  document.querySelectorAll('.reel-col').forEach((col, i) => {
     setTimeout(() => col.classList.add('spinning'), i * 60);
   });
 
-  setTimeout(() => {
-    resolveSpinResult();
-  }, delay);
+  const spinDelay = gameState.turboMode ? 900 : 2000;
+
+  // Stagger reel stops
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      if (window.fxEngine) window.fxEngine.reelStop(i);
+      if (window.audioEngine) window.audioEngine.playSFX('SFX-REEL-STOP');
+    }, spinDelay + i * 120);
+  }
+
+  // Resolve after all reels stop
+  setTimeout(() => resolveSpinResult(), spinDelay + 5 * 120 + 100);
 }
 
 // ============================================================
-// SCREEN 05 — CASCADE
+// SCREEN 05 — CASCADE ANIMATION
+// Animated sequence: eliminate winning symbols, drop new ones,
+// then navigate to screen-06 if Thunder Blessing triggered
 // ============================================================
 function renderScreen05() {
-  const result = gameState.lastResult || SPIN_RESULTS.cascade_3steps;
-  const step = gameState.cascadeStep;
+  const result  = gameState.lastResult || {};
+  const step    = gameState.cascadeStep;
   const cascade = result.cascades && result.cascades[step];
-  const winPos = cascade ? cascade.explodedPositions || [] : [];
+  const winPos  = cascade ? cascade.eliminated || [] : [];
 
   return `
     <div id="screen-05" class="screen game-scene hidden">
@@ -627,10 +655,10 @@ function renderScreen05() {
       <div class="game-area">
         ${renderFreeLetterBar(gameState.freeLetterProgress)}
         <div class="reel-frame" id="reel-frame" style="position:relative;">
-          <div class="reel-frame-glow active" id="reel-glow"></div>
+          <div class="reel-frame-glow active"></div>
           ${renderGrid(gameState.grid, { winPositions: winPos })}
           <div class="cascade-counter" id="cascade-counter">
-            ⚡ CASCADE ×${step + 1}  +${fmt(cascade ? cascade.stepWin || 0 : 0)}
+            ⚡ CASCADE ×${step + 1} &nbsp;+${fmt(cascade ? cascade.stepWin || 0 : 0)}
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
@@ -646,30 +674,38 @@ function renderScreen05() {
 
 function bindScreen05Events() {
   const result = gameState.lastResult;
-  if (!result || !result.cascades) return;
-  const step = gameState.cascadeStep;
+  if (!result || !result.cascades) { finishCascades(); return; }
+
+  const step    = gameState.cascadeStep;
   const cascade = result.cascades[step];
-  if (!cascade) { finishCascades(); return; }
+  if (!cascade)  { finishCascades(); return; }
 
-  // SFX
-  if (window.audioEngine) window.audioEngine.playSFX('cascade', { freq: 440 + step * 60 });
-  if (cascade.lightningMarks?.length && window.audioEngine) {
-    window.audioEngine.playSFX('lightning');
-  }
+  if (window.audioEngine) window.audioEngine.playSFX('SFX-CASCADE');
 
-  const delay = gameState.turboMode ? 600 : 1200;
+  // Animate eliminating cells
+  (cascade.eliminated || []).forEach(([col, row]) => {
+    const cell = document.getElementById(`cell-${col}-${row}`);
+    if (cell) cell.classList.add('exploding');
+  });
+
+  const delay = gameState.turboMode ? 600 : 1100;
   setTimeout(() => {
-    // Accumulate win
     const stepWin = cascade.stepWin || 0;
     updateState({
-      currentWin: gameState.currentWin + stepWin,
-      balance: gameState.balance + stepWin,
-      cascadeStep: step + 1,
+      currentWin:         gameState.currentWin + stepWin,
+      balance:            gameState.balance + stepWin,
+      cascadeStep:        step + 1,
       freeLetterProgress: Math.min(4, gameState.freeLetterProgress + (cascade.freeLetterDelta || 0)),
     });
+    // Drop new symbols (visual only; use existing grid)
+    if (window.fxEngine) {
+      document.querySelectorAll('.symbol-cell:not(.exploding)').forEach((cell, i) => {
+        window.fxEngine.symbolDrop(cell, i * 30);
+      });
+    }
 
-    const nextStep = gameState.cascadeStep;
-    if (result.cascades[nextStep]) {
+    const nextCascade = result.cascades[gameState.cascadeStep];
+    if (nextCascade) {
       router.navigate('screen-05', { forceRender: true });
     } else {
       finishCascades();
@@ -678,35 +714,32 @@ function bindScreen05Events() {
 }
 
 function finishCascades() {
-  // Check if we need Thunder Blessing
-  if (gameState.lastResult && gameState.lastResult.triggerThunderBlessing) {
-    router.navigate('screen-06');
+  if (gameState.lastResult && gameState.lastResult.isThunderBlessing) {
+    router.navigate('screen-06', { forceRender: true });
     return;
   }
-  // Check if FREE letters are full → Coin Toss
   if (gameState.freeLetterProgress >= 4) {
     updateState({ freeLetterProgress: 0, coinTossHeads: 0 });
     setTimeout(() => router.navigate('screen-07'), 600);
     return;
   }
-  // Check win amount for overlay
   if (gameState.currentWin >= totalBet() * 5) {
     showWinOverlay(gameState.currentWin);
     return;
   }
-  // Back to idle
   setTimeout(() => {
     updateState({ cascadeStep: 0 });
     router.navigate('screen-03', { forceRender: true });
-  }, 800);
+  }, 700);
 }
 
 // ============================================================
-// SCREEN 06 — THUNDER BLESSING
+// SCREEN 06 — THUNDER BLESSING TRIGGER
+// Full-screen lightning overlay, Zeus imagery, auto-navigates
+// to screen-07 (Coin Toss) after countdown
 // ============================================================
 function renderScreen06() {
-  const result = gameState.lastResult || SPIN_RESULTS.thunder_blessing;
-  // Show all SC positions as "thunder" cells
+  const result = gameState.lastResult || {};
   const scGrid = result.grid || gameState.grid;
 
   return `
@@ -718,15 +751,20 @@ function renderScreen06() {
           <div class="reel-frame-glow active"></div>
           ${renderGrid(scGrid)}
           <div class="thunder-blessing-overlay" id="thunder-overlay">
+            <div style="font-size:64px;filter:drop-shadow(0 0 20px #FFD700);animation:zeus-glow 2s ease-in-out infinite;">⚡</div>
             <div class="thunder-blessing-title">⚡ THUNDER BLESSING ⚡</div>
             <div class="thunder-blessing-sub">雷霆祝福 · SC 引爆</div>
+            <div style="font-size:48px;margin-top:8px;opacity:0.7;">🌩 ZEUS 🌩</div>
+            <div id="thunder-countdown"
+                 style="font-family:Orbitron,sans-serif;font-size:28px;color:var(--color-gold-divine);margin-top:12px;min-height:40px;text-shadow:0 0 20px #FFD700;">
+            </div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
           <span class="state-badge thunder">⚡ THUNDER BLESSING</span>
-          <span style="font-size:12px;color:var(--color-gold-divine);font-family:Orbitron,sans-serif;">
-            ${result.thunderBlessingWin ? `WIN: ${fmt(result.thunderBlessingWin)}` : ''}
-          </span>
+          ${result.thunderBlessingWin
+            ? `<span style="font-size:12px;color:var(--color-gold-divine);font-family:Orbitron,sans-serif;">WIN: ${fmt(result.thunderBlessingWin)}</span>`
+            : ''}
         </div>
       </div>
       ${renderHUD({ spinning: true })}
@@ -736,34 +774,45 @@ function renderScreen06() {
 function bindScreen06Events() {
   if (window.audioEngine) window.audioEngine.playThunderBlessingSequence();
   if (window.fxEngine) {
-    const cells = document.querySelectorAll('.symbol-cell.is-scatter');
-    window.fxEngine.thunderBlessingBurst(Array.from(cells), Array.from(cells));
+    window.fxEngine.lightningFlash();
+    const scatterEls = Array.from(document.querySelectorAll('.symbol-cell.is-scatter'));
+    if (scatterEls.length) window.fxEngine.thunderBlessingBurst(scatterEls);
   }
 
-  const delay = gameState.turboMode ? 1200 : 2800;
+  const totalDelay = gameState.turboMode ? 1500 : 3000;
+
+  // Countdown 3-2-1
+  const cdEl = document.getElementById('thunder-countdown');
+  let count = 3;
+  const cdIv = setInterval(() => {
+    if (!cdEl) { clearInterval(cdIv); return; }
+    cdEl.textContent = count > 0 ? count : '';
+    count--;
+    if (count < 0) clearInterval(cdIv);
+  }, totalDelay / 4);
+
   setTimeout(() => {
-    const result = gameState.lastResult;
-    const bonus = result && result.thunderBlessingWin ? result.thunderBlessingWin : 50;
+    const bonus = (gameState.lastResult && gameState.lastResult.thunderBlessingWin)
+      ? gameState.lastResult.thunderBlessingWin : 50;
     updateState({
-      currentWin: gameState.currentWin + bonus,
-      balance: gameState.balance + bonus,
+      currentWin:         gameState.currentWin + bonus,
+      balance:            gameState.balance + bonus,
       freeLetterProgress: Math.min(4, gameState.freeLetterProgress + 2),
     });
-    // Check FREE letters
     if (gameState.freeLetterProgress >= 4) {
       updateState({ freeLetterProgress: 0, coinTossHeads: 0 });
       router.navigate('screen-07');
-    } else if (gameState.currentWin >= totalBet() * 5) {
-      showWinOverlay(gameState.currentWin);
     } else {
       updateState({ cascadeStep: 0 });
       router.navigate('screen-03', { forceRender: true });
     }
-  }, delay);
+  }, totalDelay);
 }
 
 // ============================================================
 // SCREEN 07 — COIN TOSS
+// Large 3-D flipping coin, ×1 or ×2 multiplier result,
+// confirm → screen-08
 // ============================================================
 function renderScreen07() {
   const heads = gameState.coinTossHeads;
@@ -776,11 +825,11 @@ function renderScreen07() {
     </div>`).join('');
 
   const multRow = mults.map((m, i) => {
-    const cls = i < heads ? 'unlocked' : (i === heads ? 'current' : '');
+    const cls = i < heads ? 'unlocked' : i === heads ? 'current' : '';
     return `
       <div class="coin-toss-mult-item ${cls}">
         <div class="mult-val">×${m}</div>
-        <div class="mult-heads">${probs[i] ? Math.round(probs[i] * 100) + '%' : '—'}</div>
+        <div class="mult-heads">${probs[i] != null ? Math.round(probs[i] * 100) + '%' : '—'}</div>
       </div>`;
   }).join('');
 
@@ -793,8 +842,8 @@ function renderScreen07() {
         <div class="coin-toss-title">⚡ COIN TOSS ⚡</div>
         <div class="coin-toss-subtitle">
           ${heads === 0 ? '翻轉硬幣，解鎖自由遊戲倍率！' :
-            heads >= 5 ? '🎉 恭喜！達成最高倍率 ×77！' :
-            `已連續 ${heads} 次 HEADS！下次 HEADS 機率：${Math.round((probs[heads] || 0) * 100)}%`}
+            heads >= 5  ? '🎉 恭喜！達成最高倍率 ×77！' :
+            `連續 ${heads} 次 HEADS！下次機率：${probs[heads] != null ? Math.round(probs[heads] * 100) : 0}%`}
         </div>
 
         <div class="coin-wrap">
@@ -810,8 +859,11 @@ function renderScreen07() {
           </div>
         </div>
 
-        <div id="coin-result-display" style="min-height:44px;display:flex;align-items:center;justify-content:center;">
-          ${heads > 0 ? `<div class="coin-result-text heads">HEADS ×${heads}</div>` : ''}
+        <div id="coin-result-display"
+             style="min-height:44px;display:flex;align-items:center;justify-content:center;">
+          ${heads > 0
+            ? `<div class="coin-result-text heads">HEADS ×${heads}</div>`
+            : '<div style="font-size:13px;color:rgba(245,240,232,0.4);">翻轉硬幣決定倍率</div>'}
         </div>
 
         <div class="coin-toss-progress">
@@ -822,30 +874,28 @@ function renderScreen07() {
         <div class="coin-toss-mult-row">${multRow}</div>
 
         <div style="text-align:center;font-size:11px;color:rgba(245,240,232,0.5);">
-          ${heads === 0 ? `當前倍率：— &nbsp;→&nbsp; 下一倍率：<b style="color:var(--color-fg-blue)">×${nextMult}</b>` :
-            heads >= 5 ? `🏆 最高倍率達成 <b style="color:var(--color-gold-bright)">×77</b>` :
-            `當前倍率：<b style="color:var(--color-fg-blue)">×${currentMult}</b> &nbsp;→&nbsp; 下一倍率：<b style="color:var(--color-gold-bright)">×${nextMult}</b>`}
+          ${heads === 0
+            ? `當前：— &nbsp;→&nbsp; 下一：<b style="color:var(--color-fg-blue)">×${nextMult}</b>`
+            : heads >= 5
+              ? `🏆 最高倍率 <b style="color:var(--color-gold-bright)">×77</b> 已達成`
+              : `當前：<b style="color:var(--color-fg-blue)">×${currentMult}</b> &nbsp;→&nbsp; 下一：<b style="color:var(--color-gold-bright)">×${nextMult}</b>`}
         </div>
 
         <button class="btn-toss" id="btn-toss" ${heads >= 5 ? 'disabled' : ''}>
-          ${heads >= 5 ? '🎉 進入自由遊戲 ×77' : `翻轉硬幣 (HEADS 機率 ${probs[heads] ? Math.round(probs[heads] * 100) : 0}%)`}
+          ${heads >= 5 ? '🎉 進入自由遊戲 ×77' : `翻轉硬幣 (HEADS 機率 ${probs[heads] != null ? Math.round(probs[heads] * 100) : 0}%)`}
         </button>
         ${heads >= 5 ? `
-          <button class="btn-toss" id="btn-enter-fg"
-                  style="background:var(--color-fg-blue);margin-top:-4px;">
-            ▶ 進入自由遊戲
-          </button>` : ''}
+        <button class="btn-toss" id="btn-enter-fg"
+                style="background:var(--color-fg-blue);color:#000;margin-top:-4px;">
+          ▶ 進入自由遊戲
+        </button>` : ''}
       </div>
     </div>`;
 }
 
 function bindScreen07Events() {
-  document.getElementById('btn-toss')?.addEventListener('click', () => {
-    handleCoinToss();
-  });
-  document.getElementById('btn-enter-fg')?.addEventListener('click', () => {
-    enterFreeGame();
-  });
+  document.getElementById('btn-toss')?.addEventListener('click', handleCoinToss);
+  document.getElementById('btn-enter-fg')?.addEventListener('click', enterFreeGame);
 }
 
 function handleCoinToss() {
@@ -853,69 +903,62 @@ function handleCoinToss() {
   const prob  = GAME_CONFIG.coinProbs[heads] ?? 0;
   const result = Math.random() < prob ? 'HEADS' : 'TAILS';
 
-  const coin = document.getElementById('toss-coin');
-  const btn  = document.getElementById('btn-toss');
+  const coinEl = document.getElementById('toss-coin');
+  const btn    = document.getElementById('btn-toss');
   if (btn) btn.disabled = true;
 
-  if (window.audioEngine) window.audioEngine.playCoinTossFlip();
+  if (window.audioEngine) window.audioEngine.playCoinFlip();
+
   if (window.fxEngine) {
-    window.fxEngine.coinFlip(coin, result, () => {
-      processCoinResult(result);
-    });
+    window.fxEngine.coinFlip(coinEl, result, () => processCoinResult(result));
   } else {
-    setTimeout(() => processCoinResult(result), 1300);
+    setTimeout(() => processCoinResult(result), 750);
   }
 }
 
 function processCoinResult(result) {
-  if (window.audioEngine) window.audioEngine.playCoinResult(result === 'HEADS');
+  const display = document.getElementById('coin-result-display');
 
   if (result === 'HEADS') {
+    if (window.audioEngine) window.audioEngine.playSFX('SFX-COIN-HEADS');
     const newHeads = gameState.coinTossHeads + 1;
-    const newLevel = newHeads - 1;
     updateState({
-      coinTossHeads: newHeads,
-      fgMultiplierLevel: Math.min(newLevel, GAME_CONFIG.fgMultipliers.length - 1),
+      coinTossHeads:     newHeads,
+      fgMultiplierLevel: Math.min(newHeads - 1, GAME_CONFIG.fgMultipliers.length - 1),
     });
-
     if (newHeads >= 5) {
-      // Max multiplier reached
       setTimeout(() => router.navigate('screen-07', { forceRender: true }), 400);
       return;
     }
-
-    if (window.audioEngine) window.audioEngine.playLetterLight(newLevel);
     setTimeout(() => router.navigate('screen-07', { forceRender: true }), 600);
   } else {
-    // TAILS — enter FG with current multiplier
+    if (window.audioEngine) window.audioEngine.playSFX('SFX-COIN-TAILS');
+    if (display) display.innerHTML = '<div class="coin-result-text tails">TAILS</div>';
     const level = Math.max(0, gameState.coinTossHeads - 1);
-    updateState({ fgMultiplierLevel: Math.max(0, level) });
-    const resultDisplay = document.getElementById('coin-result-display');
-    if (resultDisplay) {
-      resultDisplay.innerHTML = '<div class="coin-result-text tails">TAILS</div>';
-    }
+    updateState({ fgMultiplierLevel: level });
     setTimeout(() => enterFreeGame(), 1200);
   }
 }
 
 function enterFreeGame() {
-  if (window.audioEngine) window.audioEngine.playFGEnterSequence();
   updateState({
-    fgActive: true,
-    fgSpinsRemaining: 10,
-    fgTotalWin: 0,
-    currentWin: 0,
-    coinTossHeads: 0,
+    fgActive:          true,
+    fgSpinsRemaining:  GAME_CONFIG.fgSpinsPerRound,
+    fgTotalWin:        0,
+    currentWin:        0,
+    coinTossHeads:     0,
   });
-  setTimeout(() => router.navigate('screen-08'), 800);
+  router.navigate('screen-08');
 }
 
 // ============================================================
-// SCREEN 08 — FREE GAME
+// SCREEN 08 — FREE GAME ACTIVE
+// Like main game but with FG banner, multiplier bar,
+// and spins countdown; auto-completes when spins reach 0
 // ============================================================
 function renderScreen08() {
   const multLevel = gameState.fgMultiplierLevel;
-  const mult = GAME_CONFIG.fgMultipliers[multLevel] || 3;
+  const mult      = GAME_CONFIG.fgMultipliers[multLevel] || 3;
   const spinsLeft = gameState.fgSpinsRemaining;
 
   return `
@@ -938,57 +981,46 @@ function renderScreen08() {
         ${renderFreeLetterBar(gameState.freeLetterProgress)}
         <div class="reel-frame" id="reel-frame"
              style="border-color:rgba(0,191,255,0.5);box-shadow:0 0 30px rgba(0,191,255,0.2);">
-          <div class="reel-frame-glow" style="box-shadow:0 0 20px rgba(0,191,255,0.5)"></div>
+          <div class="reel-frame-glow" style="box-shadow:0 0 20px rgba(0,191,255,0.4)"></div>
           ${renderGrid(gameState.grid)}
         </div>
         ${spinsLeft <= 0 ? `
-          <div style="margin-top:12px;">
-            <span class="state-badge free-game">🎯 FREE GAME 結束</span>
-          </div>` : ''}
+        <div style="margin-top:12px;">
+          <span class="state-badge free-game">🎯 FREE GAME 結束</span>
+        </div>` : ''}
       </div>
       ${renderHUD({ spinning: false })}
     </div>`;
 }
 
 function bindScreen08Events() {
-  if (window.audioEngine) {
-    const multLevel = gameState.fgMultiplierLevel;
-    const bgm = multLevel >= 4 ? 'BGM_77X' : 'BGM_FREE_GAME';
-    window.audioEngine.playBGM(bgm, { force: true });
-  }
+  if (window.audioEngine) window.audioEngine.playBGM('BGM_FG', { force: true });
 
-  const spinBtn = document.getElementById('btn-spin');
-  if (spinBtn) {
-    spinBtn.addEventListener('click', () => handleFGSpin());
-  }
-  bindBetControls();
-
+  document.getElementById('btn-spin')?.addEventListener('click', handleFGSpin);
   document.getElementById('btn-paytable')?.addEventListener('click', () => router.navigate('screen-11'));
-  document.getElementById('btn-settings')?.addEventListener('click', () => showToast('⚙️ 設定功能即將推出'));
+  document.getElementById('btn-settings')?.addEventListener('click', () => router.navigate('screen-11'));
+  bindBetControls();
 }
 
 function handleFGSpin() {
-  if (gameState.fgSpinsRemaining <= 0) {
-    endFreeGame();
-    return;
-  }
+  if (gameState.fgSpinsRemaining <= 0) { endFreeGame(); return; }
 
-  updateState({ fgSpinsRemaining: gameState.fgSpinsRemaining - 1 });
-  const bet = totalBet();
+  const bet     = totalBet();
   const baseWin = bet * (Math.random() * 8 + 1);
-  const mult = GAME_CONFIG.fgMultipliers[gameState.fgMultiplierLevel] || 3;
+  const mult    = GAME_CONFIG.fgMultipliers[gameState.fgMultiplierLevel] || 3;
   const spinWin = baseWin * mult;
   const newGrid = generateRandomGrid(5, gameState.rowCount);
 
   updateState({
-    grid: newGrid,
-    currentWin: spinWin,
-    balance: gameState.balance + spinWin,
-    fgTotalWin: gameState.fgTotalWin + spinWin,
-    sessionWin: gameState.sessionWin + spinWin,
+    fgSpinsRemaining: gameState.fgSpinsRemaining - 1,
+    grid:             newGrid,
+    currentWin:       spinWin,
+    balance:          gameState.balance + spinWin,
+    fgTotalWin:       gameState.fgTotalWin + spinWin,
+    sessionWin:       gameState.sessionWin + spinWin,
   });
 
-  if (window.audioEngine) window.audioEngine.playSFX('win_small');
+  if (window.audioEngine) window.audioEngine.playSFX('SFX-WIN-SMALL');
   router.navigate('screen-08', { forceRender: true });
 
   if (gameState.fgSpinsRemaining <= 0) {
@@ -1000,34 +1032,37 @@ function endFreeGame() {
   const totalFGWin = gameState.fgTotalWin;
   updateState({ fgActive: false, fgMultiplierLevel: 0, fgTotalWin: 0, fgSpinsRemaining: 0 });
 
-  if (totalFGWin >= totalBet() * 15) {
-    showWinOverlay(totalFGWin, 'mega-win');
-  } else if (totalFGWin >= totalBet() * 5) {
-    showWinOverlay(totalFGWin, 'big-win');
-  } else {
-    router.navigate('screen-03', { forceRender: true });
-  }
+  const tier = totalFGWin >= totalBet() * 50 ? 'ultra'
+             : totalFGWin >= totalBet() * 15 ? 'mega'
+             : totalFGWin >= totalBet() * 5  ? 'big'
+             : 'normal';
+  showWinOverlay(totalFGWin, tier);
 }
 
 // ============================================================
-// SCREEN 09 — WIN DISPLAY OVERLAY
+// SCREEN 09 — WIN CELEBRATION
+// Full-screen overlay: BIG WIN / MEGA WIN / ULTRA WIN text,
+// animated counter, gold coin burst via fxEngine.coinBurst()
 // ============================================================
 function renderScreen09() {
-  const tier = gameState._winTier || 'big-win';
-  const amount = gameState.currentWin || 0;
-  const tierData = Object.values(GAME_CONFIG.winTiers).find(t => t.tier === tier)
-    || GAME_CONFIG.winTiers.big;
+  const tier    = gameState._winTier || 'big';
+  const amount  = gameState.currentWin || 0;
+  const tierCfg = Object.values(GAME_CONFIG.winTiers).find(t => t.tier === tier)
+                  || GAME_CONFIG.winTiers.big;
 
-  const starsHtml = '⭐'.repeat(
-    tier === 'max-win' ? 5 : tier === 'jackpot-win' ? 4 : tier === 'mega-win' ? 3 : 2
-  );
+  const bannerClass = tier === 'maxwin' ? 'max-win'
+                    : tier === 'ultra'  ? 'jackpot-win'
+                    : tier === 'mega'   ? 'mega-win'
+                    : 'big-win';
+
+  const stars = '⭐'.repeat(tierCfg.stars || 2);
 
   return `
     <div id="screen-09" class="screen hidden">
       <div class="win-starburst"></div>
       <div class="win-overlay-container">
-        <div class="win-tier-banner ${tier}">${tierData.label}</div>
-        <div class="win-stars-row">${starsHtml}</div>
+        <div class="win-tier-banner ${bannerClass}">${tierCfg.label}</div>
+        <div class="win-stars-row">${stars}</div>
         <div class="win-amount-display" id="win-counter-display">${fmt(amount)}</div>
         <div class="win-subtitle">TOTAL WIN · 恭喜中獎</div>
         <button class="btn-collect" id="btn-collect-win">COLLECT 領取</button>
@@ -1036,34 +1071,44 @@ function renderScreen09() {
 }
 
 function bindScreen09Events() {
+  const tier   = gameState._winTier || 'big';
+  const amount = gameState.currentWin || 0;
+
   if (window.audioEngine) {
-    const tier = gameState._winTier || 'big-win';
     window.audioEngine.playWinSound(tier);
-    window.audioEngine.bindToScreen('screen-09');
   }
 
-  // Animate counter
+  // Animated counter roll-up
   const counterEl = document.getElementById('win-counter-display');
   if (counterEl && window.fxEngine) {
-    const amount = gameState.currentWin || 0;
     const sym = gameState.currency === 'USD' ? '$' : 'NT$';
-    const decimals = gameState.currency === 'USD' ? 2 : 0;
-    window.fxEngine.animateCounter(
-      counterEl, 0, amount, 1800,
-      v => `${sym}${decimals === 0 ? Math.round(v).toLocaleString() : v.toFixed(decimals)}`
-    );
+    const dec = gameState.currency === 'USD' ? 2 : 0;
+    window.fxEngine.animateCounter(counterEl, 0, amount, 1800,
+      v => `${sym}${dec === 0 ? Math.round(v).toLocaleString() : v.toFixed(dec)}`);
   }
 
-  // Coin rain
+  // Coin burst from center screen
   if (window.fxEngine) {
-    window.fxEngine.goldCoinRain(window.innerWidth / 2, 0, 60);
+    window.fxEngine.coinBurst(window.innerWidth / 2, window.innerHeight * 0.4, 60);
+    window.fxEngine.goldCoinRain(window.innerWidth / 2, 0, 50);
   }
+
+  // Record spin in lastSpins
+  const spinRecord = {
+    spinId: `spin-${Date.now()}`,
+    bet:    totalBet(),
+    win:    amount,
+    result: tier === 'normal' ? 'WIN' : tier.toUpperCase(),
+    time:   new Date().toTimeString().slice(0, 8),
+    tier,
+  };
+  updateState({ lastSpins: [spinRecord, ...gameState.lastSpins].slice(0, 10) });
 
   document.getElementById('btn-collect-win')?.addEventListener('click', () => {
+    updateState({ currentWin: 0, cascadeStep: 0 });
     if (gameState.fgActive) {
       router.navigate('screen-08', { forceRender: true });
     } else {
-      updateState({ currentWin: 0, cascadeStep: 0 });
       router.navigate('screen-03', { forceRender: true });
     }
   });
@@ -1076,11 +1121,12 @@ function showWinOverlay(amount, tierOverride) {
 }
 
 // ============================================================
-// SCREEN 10 — BUY FEATURE DIALOG
+// SCREEN 10 — BUY FEATURE
+// Shows cost (100× betAmount), balance check, confirm → screen-07
 // ============================================================
 function renderScreen10() {
-  const buyCost100 = fmt(getBuyFeatureCost(gameState));
-  const buyCost50  = fmt(getBuyFeatureCost(gameState) * 0.5);
+  const costFull = fmt(getBuyFeatureCost(gameState));
+  const costHalf = fmt(getBuyFeatureCost(gameState) * 0.5);
 
   return `
     <div id="screen-10" class="screen hidden">
@@ -1093,22 +1139,21 @@ function renderScreen10() {
         <div class="buy-feature-options">
           <div class="buy-option-card selected" id="buy-opt-100" data-opt="100">
             <div>
-              <div class="buy-option-name">⚡ 標準購買</div>
-              <div class="buy-option-desc">100× BET · 保證5次 Coin Toss，有機會達成 ×77</div>
+              <div class="buy-option-name">⚡ 標準購買 (100× BET)</div>
+              <div class="buy-option-desc">保證5次 Coin Toss · 有機會達成 ×77 倍率</div>
             </div>
-            <div class="buy-option-price">${buyCost100}</div>
+            <div class="buy-option-price">${costFull}</div>
           </div>
           <div class="buy-option-card" id="buy-opt-50" data-opt="50">
             <div>
-              <div class="buy-option-name">🌙 折扣購買</div>
-              <div class="buy-option-desc">50× BET · 保證3次 Coin Toss，最高倍率 ×17</div>
+              <div class="buy-option-name">🌙 折扣購買 (50× BET)</div>
+              <div class="buy-option-desc">已有2次 HEADS · 最高倍率 ×17</div>
             </div>
-            <div class="buy-option-price">${buyCost50}</div>
+            <div class="buy-option-price">${costHalf}</div>
           </div>
         </div>
 
         <div class="divider"></div>
-
         <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(245,240,232,0.5);margin-bottom:12px;">
           <span>當前餘額</span>
           <span style="color:var(--color-gold-bright);">${fmt(gameState.balance)}</span>
@@ -1136,36 +1181,33 @@ function bindScreen10Events() {
     });
   });
 
-  document.getElementById('btn-buy-cancel')?.addEventListener('click', () => {
-    router.back();
-  });
+  document.getElementById('btn-buy-cancel')?.addEventListener('click', () => router.back());
 
   document.getElementById('btn-buy-confirm')?.addEventListener('click', () => {
     const cost = baseBet() * selectedOpt;
     if (gameState.balance < cost) {
-      alert('餘額不足');
+      showToast('⚠️ 餘額不足，請降低投注額');
       return;
     }
-    if (window.audioEngine) window.audioEngine.playSFX('buy_feature');
+    if (window.audioEngine) window.audioEngine.playSFX('SFX-BUY');
     updateState({
-      balance: gameState.balance - cost,
-      coinTossHeads: 0,
-      fgMultiplierLevel: 0,
+      balance:          gameState.balance - cost,
+      coinTossHeads:    selectedOpt === 50 ? 2 : 0,
+      fgMultiplierLevel: selectedOpt === 50 ? 1 : 0,
     });
-    // Buy Feature → guaranteed Coin Toss with boosted heads
-    if (selectedOpt === 100) {
-      updateState({ coinTossHeads: 0 });  // Full 5-toss sequence
-    } else {
-      updateState({ coinTossHeads: 2 });  // Start at 2 heads already
-    }
     router.navigate('screen-07', { forceRender: true });
   });
 }
 
 // ============================================================
-// SCREEN 11 — PAYTABLE
+// SCREEN 11 — SETTINGS / PAYTABLE
+// BGM volume, SFX volume, turbo mode, game speed, back button
+// Also includes full paytable when "Paytable" tab is active
 // ============================================================
 function renderScreen11() {
+  const bgmPct = Math.round((window.audioEngine?._bgmVol ?? 0.7) * 100);
+  const sfxPct = Math.round((window.audioEngine?._sfxVol ?? 0.8) * 100);
+
   const highSyms = PAYTABLE.highSymbols.map(s => renderPaytableCard(s)).join('');
   const lowSyms  = PAYTABLE.lowSymbols.map(s => renderPaytableCard(s)).join('');
   const features = PAYTABLE.features.map(f => `
@@ -1178,19 +1220,90 @@ function renderScreen11() {
   return `
     <div id="screen-11" class="screen hidden" style="background:rgba(10,15,30,0.97);">
       <div class="paytable-header">
-        <div class="paytable-title">📋 賠率表 Paytable</div>
-        <div style="font-size:10px;color:rgba(245,240,232,0.4);margin-top:4px;">
-          基於單次投注額計算 · 57條連線 · Cascade消除
-        </div>
+        <div class="paytable-title">⚙️ 設定 &amp; 賠率表</div>
       </div>
       <button class="paytable-close-btn" id="paytable-close-btn">✕</button>
+
       <div class="paytable-tabs">
-        <div class="paytable-tab active" data-tab="symbols">符號賠率</div>
-        <div class="paytable-tab" data-tab="features">遊戲功能</div>
-        <div class="paytable-tab" data-tab="rules">規則說明</div>
+        <div class="paytable-tab active" data-tab="settings">設定</div>
+        <div class="paytable-tab" data-tab="symbols">符號賠率</div>
+        <div class="paytable-tab" data-tab="features">功能說明</div>
       </div>
+
       <div class="paytable-body scrollable" id="paytable-body">
-        <div id="paytable-tab-symbols">
+        <!-- SETTINGS TAB -->
+        <div id="paytable-tab-settings">
+          <div class="paytable-section-title">音效設定 Audio</div>
+          <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px;">
+
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:12px;color:var(--color-arc-white);min-width:80px;">🎵 BGM音量</span>
+              <input type="range" id="bgm-vol" min="0" max="100" value="${bgmPct}"
+                     style="flex:1;accent-color:var(--color-gold-primary);">
+              <span style="font-size:12px;color:var(--color-gold-bright);min-width:36px;text-align:right;"
+                    id="bgm-vol-val">${bgmPct}%</span>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:12px;color:var(--color-arc-white);min-width:80px;">🔊 SFX音量</span>
+              <input type="range" id="sfx-vol" min="0" max="100" value="${sfxPct}"
+                     style="flex:1;accent-color:var(--color-gold-primary);">
+              <span style="font-size:12px;color:var(--color-gold-bright);min-width:36px;text-align:right;"
+                    id="sfx-vol-val">${sfxPct}%</span>
+            </div>
+          </div>
+
+          <div class="paytable-section-title">遊戲設定 Gameplay</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:13px;color:var(--color-arc-white);font-weight:600;">⚡ Turbo Mode</div>
+                <div style="font-size:11px;color:rgba(245,240,232,0.45);">縮短旋轉動畫時間</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="turbo-toggle" ${gameState.turboMode ? 'checked' : ''}>
+                <div class="toggle-track"></div>
+              </label>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:13px;color:var(--color-arc-white);font-weight:600;">🎮 遊戲速度</div>
+                <div style="font-size:11px;color:rgba(245,240,232,0.45);">Normal / Fast / Turbo</div>
+              </div>
+              <select id="speed-select"
+                      style="background:rgba(27,42,74,0.8);color:var(--color-gold-bright);border:1px solid rgba(220,163,49,0.4);border-radius:6px;padding:6px 10px;font-size:12px;">
+                <option value="normal" ${!gameState.turboMode ? 'selected' : ''}>Normal</option>
+                <option value="fast">Fast</option>
+                <option value="turbo" ${gameState.turboMode ? 'selected' : ''}>Turbo</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="paytable-section-title" style="margin-top:16px;">遊戲資訊</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;color:rgba(245,240,232,0.5);">
+            <div style="display:flex;justify-content:space-between;">
+              <span>RTP</span><span style="color:var(--color-gold-bright);">96.5%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span>最高倍率</span><span style="color:var(--color-gold-bright);">30,000×</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span>連線數</span><span style="color:var(--color-gold-bright);">57</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span>版本</span><span style="color:var(--color-gold-bright);">1.0.0-prototype</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span>Session ID</span><span style="color:rgba(245,240,232,0.4);font-size:10px;">${gameState.sessionId}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SYMBOLS TAB -->
+        <div id="paytable-tab-symbols" style="display:none;">
           <div class="paytable-section-title">高價值符號</div>
           <div class="paytable-grid">${highSyms}</div>
           <div class="paytable-section-title">低價值符號</div>
@@ -1201,44 +1314,21 @@ function renderScreen11() {
               <div class="paytable-symbol-icon">⚡</div>
               <div class="paytable-symbol-info">
                 <div class="paytable-symbol-name">Wild 替換符號</div>
-                <div class="paytable-payouts"><div class="paytable-payout-row"><span class="combo">替換所有普通符號</span></div></div>
+                <div class="paytable-payouts"><div class="paytable-payout-row"><span class="combo">替換除 SC 外所有符號</span></div></div>
               </div>
             </div>
             <div class="paytable-card">
               <div class="paytable-symbol-icon">⚙️</div>
               <div class="paytable-symbol-info">
                 <div class="paytable-symbol-name">Scatter SC</div>
-                <div class="paytable-payouts"><div class="paytable-payout-row"><span class="combo">×5+ 觸發雷霆祝福</span></div></div>
+                <div class="paytable-payouts"><div class="paytable-payout-row"><span class="combo">3+ 觸發 Thunder Blessing</span></div></div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- FEATURES TAB -->
         <div id="paytable-tab-features" style="display:none;">${features}</div>
-        <div id="paytable-tab-rules" style="display:none;">
-          <div class="feature-card">
-            <div class="feature-card-title">🎰 基本規則</div>
-            <div class="feature-card-desc">5×3 滾輪，57條固定連線。從最左側滾輪開始，向右連續3個以上相同符號即獲勝。</div>
-            <ul class="feature-card-list">
-              <li>所有獲勝按投注額倍率計算</li>
-              <li>Wild 符號替換除 SC 外的所有符號</li>
-              <li>Cascade 消除：獲勝符號消除，上方符號落下填補，持續至無新獲勝為止</li>
-              <li>最高單次獲勝上限：30,000× BET</li>
-              <li>RTP：96.5%</li>
-            </ul>
-          </div>
-          <div class="feature-card">
-            <div class="feature-card-title">💰 FG 倍率序列</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-              ${GAME_CONFIG.fgMultipliers.map((m, i) => `
-                <div style="background:rgba(0,191,255,0.1);border:1px solid rgba(0,191,255,0.3);
-                            border-radius:8px;padding:8px 12px;text-align:center;">
-                  <div style="font-family:Orbitron,sans-serif;font-size:16px;color:var(--color-fg-blue);">×${m}</div>
-                  <div style="font-size:9px;color:rgba(245,240,232,0.4);">第${i + 1}次 HEADS</div>
-                  <div style="font-size:9px;color:rgba(255,215,0,0.7);">機率 ${Math.round(GAME_CONFIG.coinProbs[i] * 100)}%</div>
-                </div>`).join('')}
-            </div>
-          </div>
-        </div>
       </div>
     </div>`;
 }
@@ -1256,7 +1346,9 @@ function renderPaytableCard(sym) {
       <div class="paytable-symbol-icon">${sym.emoji}</div>
       <div class="paytable-symbol-info">
         <div class="paytable-symbol-name">${sym.name}</div>
-        <div class="paytable-payouts">${rows || '<div class="paytable-payout-row" style="font-size:10px;color:rgba(245,240,232,0.4);">特殊功能</div>'}</div>
+        <div class="paytable-payouts">
+          ${rows || '<div class="paytable-payout-row" style="font-size:10px;color:rgba(245,240,232,0.4);">特殊功能</div>'}
+        </div>
       </div>
     </div>`;
 }
@@ -1264,111 +1356,203 @@ function renderPaytableCard(sym) {
 function bindScreen11Events() {
   document.getElementById('paytable-close-btn')?.addEventListener('click', () => router.back());
 
+  // Tab switching
   document.querySelectorAll('.paytable-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.paytable-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       const name = tab.dataset.tab;
-      ['symbols', 'features', 'rules'].forEach(t => {
+      ['settings', 'symbols', 'features'].forEach(t => {
         const el = document.getElementById(`paytable-tab-${t}`);
         if (el) el.style.display = t === name ? '' : 'none';
       });
     });
   });
+
+  // BGM volume
+  document.getElementById('bgm-vol')?.addEventListener('input', (e) => {
+    const v = e.target.value / 100;
+    if (window.audioEngine) window.audioEngine.setBGMVolume(v);
+    const lbl = document.getElementById('bgm-vol-val');
+    if (lbl) lbl.textContent = e.target.value + '%';
+  });
+
+  // SFX volume
+  document.getElementById('sfx-vol')?.addEventListener('input', (e) => {
+    const v = e.target.value / 100;
+    if (window.audioEngine) window.audioEngine.setSFXVolume(v);
+    const lbl = document.getElementById('sfx-vol-val');
+    if (lbl) lbl.textContent = e.target.value + '%';
+  });
+
+  // Turbo toggle
+  document.getElementById('turbo-toggle')?.addEventListener('change', (e) => {
+    updateState({ turboMode: e.target.checked });
+    const sel = document.getElementById('speed-select');
+    if (sel) sel.value = e.target.checked ? 'turbo' : 'normal';
+  });
+
+  // Speed selector
+  document.getElementById('speed-select')?.addEventListener('change', (e) => {
+    const turbo = e.target.value === 'turbo' || e.target.value === 'fast';
+    updateState({ turboMode: turbo });
+    const chk = document.getElementById('turbo-toggle');
+    if (chk) chk.checked = turbo;
+  });
 }
 
 // ============================================================
-// SCREEN 12 — RECONNECT
+// SCREEN 12 — SESSION HISTORY
+// Table of last 10 spins, session stats, back button
 // ============================================================
 function renderScreen12() {
+  const spins = [...SESSION_HISTORY, ...gameState.lastSpins].slice(0, 10);
+  const stats = SESSION_STATS;
+
+  const rows = spins.map(s => {
+    const tierColor = s.tier === 'ultra' ? 'var(--color-gold-divine)'
+                    : s.tier === 'mega'  ? '#FF6B35'
+                    : s.tier === 'big'   ? 'var(--color-gold-bright)'
+                    : s.tier === 'none'  ? 'rgba(245,240,232,0.3)'
+                    : 'var(--color-arc-white)';
+    return `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+        <td style="padding:8px 4px;font-size:10px;color:rgba(245,240,232,0.4);">${s.time || '—'}</td>
+        <td style="padding:8px 4px;font-size:11px;color:var(--color-arc-white);">$${(s.bet||0).toFixed(2)}</td>
+        <td style="padding:8px 4px;font-size:11px;color:${tierColor};font-weight:${s.win>0?700:400};">
+          ${s.win > 0 ? '$' + s.win.toFixed(2) : '—'}
+        </td>
+        <td style="padding:8px 4px;font-size:10px;color:${tierColor};">${s.result || '—'}</td>
+      </tr>`;
+  }).join('');
+
   return `
-    <div id="screen-12" class="screen hidden">
-      <div class="reconnect-dialog">
-        <div class="reconnect-icon">🔄</div>
-        <div class="reconnect-title">連線中斷</div>
-        <div class="reconnect-subtitle" style="font-family:Orbitron,sans-serif;font-size:13px;color:rgba(245,240,232,0.5);">
-          Connection Lost
+    <div id="screen-12" class="screen hidden" style="background:rgba(10,15,30,0.97);display:flex;flex-direction:column;align-items:center;">
+      <div style="width:100%;max-width:600px;padding:16px 20px 0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:Orbitron,sans-serif;font-size:16px;color:var(--color-gold-bright);font-weight:700;">
+            📊 遊戲記錄
+          </div>
+          <button class="btn-dialog-cancel" id="btn-history-back"
+                  style="padding:6px 14px;">← 返回</button>
         </div>
-        <div class="reconnect-desc">
-          正在嘗試重新連線至遊戲伺服器，<br>請稍候或手動重試。
+
+        <!-- Session summary -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+          ${[
+            ['總旋轉', stats.totalSpins],
+            ['總投注', '$' + (stats.totalBet || 0).toFixed(2)],
+            ['總獲獎', '$' + (stats.totalWin || 0).toFixed(2)],
+            ['最大單筆', '$' + (stats.biggestWin || 0).toFixed(2)],
+            ['勝率', stats.winRate],
+            ['時長', stats.sessionDuration],
+          ].map(([label, val]) => `
+            <div style="background:rgba(27,42,74,0.5);border:1px solid rgba(220,163,49,0.2);border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:9px;color:rgba(245,240,232,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${label}</div>
+              <div style="font-family:Orbitron,sans-serif;font-size:13px;color:var(--color-gold-bright);font-weight:700;">${val}</div>
+            </div>`).join('')}
         </div>
-        <div class="reconnect-progress-track">
-          <div class="reconnect-progress-fill"></div>
+
+        <!-- Spin table -->
+        <div style="background:rgba(27,42,74,0.4);border:1px solid rgba(220,163,49,0.15);border-radius:10px;overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:rgba(0,0,0,0.3);">
+                <th style="padding:8px 4px;font-size:10px;color:rgba(245,240,232,0.4);text-transform:uppercase;letter-spacing:1px;text-align:left;font-weight:600;">時間</th>
+                <th style="padding:8px 4px;font-size:10px;color:rgba(245,240,232,0.4);text-transform:uppercase;letter-spacing:1px;text-align:left;font-weight:600;">BET</th>
+                <th style="padding:8px 4px;font-size:10px;color:rgba(245,240,232,0.4);text-transform:uppercase;letter-spacing:1px;text-align:left;font-weight:600;">WIN</th>
+                <th style="padding:8px 4px;font-size:10px;color:rgba(245,240,232,0.4);text-transform:uppercase;letter-spacing:1px;text-align:left;font-weight:600;">結果</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
         </div>
-        <button class="btn-reconnect" id="btn-reconnect">重新連線 Reconnect</button>
-        <div class="reconnect-server-info">
-          SERVER: game-srv-01.thunder-blessing.dev<br>
-          SESSION: TB-${Date.now().toString(36).toUpperCase()}<br>
-          BALANCE SAVED · 遊戲進度已保留
+
+        <div style="text-align:center;margin-top:12px;font-size:10px;color:rgba(245,240,232,0.25);">
+          Session: ${gameState.sessionId} · 模擬資料 (Prototype Demo)
         </div>
-        <button class="btn-dialog-cancel" style="width:100%;margin-top:4px;" id="btn-reconnect-lobby">
-          返回大廳
-        </button>
       </div>
     </div>`;
 }
 
 function bindScreen12Events() {
-  document.getElementById('btn-reconnect')?.addEventListener('click', () => {
-    if (window.audioEngine) window.audioEngine.playSFX('reconnect');
-    setTimeout(() => router.navigate('screen-03', { forceRender: true }), 1000);
-  });
-  document.getElementById('btn-reconnect-lobby')?.addEventListener('click', () => {
-    router.navigate('screen-02', { forceRender: true });
-  });
+  document.getElementById('btn-history-back')?.addEventListener('click', () => router.back());
 }
 
 // ============================================================
-// GAME FLOW — SPIN HANDLING
+// SPIN SIMULATION
 // ============================================================
 function handleSpin() {
   const bet = totalBet();
-  if (gameState.balance < bet) { alert('餘額不足，請降低投注額。'); return; }
-
+  if (gameState.balance < bet) {
+    showToast('⚠️ 餘額不足，請降低投注額');
+    return;
+  }
   updateState({
-    balance: gameState.balance - bet,
-    currentWin: 0,
-    sessionSpins: gameState.sessionSpins + 1,
-    cascadeStep: 0,
+    balance:       gameState.balance - bet,
+    currentWin:    0,
+    sessionSpins:  gameState.sessionSpins + 1,
+    cascadeStep:   0,
     lightningMarks: [],
   });
-
-  if (window.audioEngine) window.audioEngine.playSFX('spin_start');
-
-  // Navigate to SPINNING screen
+  if (window.audioEngine) window.audioEngine.playSFX('SFX-SPIN');
   router.navigate('screen-04', { forceRender: true });
 }
 
-function resolveSpinResult() {
-  // Pick a random sample result for prototype demonstration
-  const resultKeys = Object.keys(SPIN_RESULTS);
-  const key = resultKeys[Math.floor(Math.random() * resultKeys.length)];
-  const result = SPIN_RESULTS[key];
+/**
+ * simulateSpin — async spin function.
+ * 2-second delay, picks random result from SPIN_RESULTS,
+ * then navigates through the cascade / thunder / FG flow.
+ */
+async function simulateSpin() {
+  // Animate reels stopping
+  for (let i = 0; i < 5; i++) {
+    if (window.fxEngine) window.fxEngine.reelSpin(i);
+  }
+  const spinDuration = gameState.turboMode ? 900 : 2000;
+  await new Promise(r => setTimeout(r, spinDuration));
 
+  for (let i = 0; i < 5; i++) {
+    await new Promise(r => setTimeout(r, 120));
+    if (window.fxEngine) window.fxEngine.reelStop(i);
+    if (window.audioEngine) window.audioEngine.playSFX('SFX-REEL-STOP');
+  }
+
+  resolveSpinResult();
+}
+
+function resolveSpinResult() {
+  // Pick random result from the SPIN_RESULTS array
+  const result = SPIN_RESULTS[Math.floor(Math.random() * SPIN_RESULTS.length)];
   const newGrid = result.grid || generateRandomGrid(5, gameState.rowCount);
+
   updateState({
-    lastResult: result,
-    grid: newGrid,
-    lightningMarks: result.lightningMarks || [],
+    lastResult:         result,
+    grid:               newGrid,
+    lightningMarks:     result.lightningMarks || [],
     freeLetterProgress: Math.min(4,
       gameState.freeLetterProgress + (result.freeLetterDelta || 0)),
-    currentWin: result.wins ? result.wins.reduce((a, w) => a + (w.winAmount || 0), 0) : 0,
+    currentWin: 0,
   });
 
-  if (window.audioEngine) window.audioEngine.playSpinSequence(5);
+  if (window.audioEngine) window.audioEngine.playReelStops(5);
 
   setTimeout(() => {
     if (result.cascades && result.cascades.length > 0) {
+      // First apply base win from result
+      updateState({ currentWin: result.baseWin || 0, balance: gameState.balance + (result.baseWin || 0) });
       updateState({ cascadeStep: 0 });
       router.navigate('screen-05', { forceRender: true });
-    } else if (result.triggerThunderBlessing) {
+    } else if (result.isThunderBlessing) {
       router.navigate('screen-06', { forceRender: true });
-    } else if (result.freeLetterDelta && gameState.freeLetterProgress >= 4) {
+    } else if (gameState.freeLetterProgress >= 4) {
       updateState({ freeLetterProgress: 0, coinTossHeads: 0 });
       router.navigate('screen-07', { forceRender: true });
-    } else if (gameState.currentWin >= totalBet() * 5) {
-      showWinOverlay(gameState.currentWin);
+    } else if (result.totalWin >= totalBet() * 5) {
+      updateState({ currentWin: result.totalWin, balance: gameState.balance + result.totalWin });
+      showWinOverlay(result.totalWin);
     } else {
+      updateState({ currentWin: result.totalWin || 0, balance: gameState.balance + (result.totalWin || 0) });
       router.navigate('screen-03', { forceRender: true });
     }
   }, 500);
@@ -1397,113 +1581,104 @@ function bindBetControls() {
   });
   document.getElementById('btn-turbo')?.addEventListener('click', () => {
     updateState({ turboMode: !gameState.turboMode });
-    const btn = document.getElementById('btn-turbo');
-    if (btn) btn.classList.toggle('active', gameState.turboMode);
+    document.getElementById('btn-turbo')?.classList.toggle('active', gameState.turboMode);
   });
 }
 
 function refreshHUDValues() {
   const betEl = document.getElementById('hud-bet-val');
   if (betEl) betEl.textContent = currentBetStr();
-  const totalEl = document.getElementById('hud-totalbet-val');
-  if (totalEl) totalEl.textContent = totalBetStr();
+  const totEl = document.getElementById('hud-totalbet-val');
+  if (totEl) totEl.textContent = totalBetStr();
 }
 
-function bindGameHUDEvents(screenId) {
+function bindGameHUDEvents() {
   bindBetControls();
 
   document.getElementById('btn-spin')?.addEventListener('click', () => {
-    if (gameState.fgActive) {
-      handleFGSpin();
-    } else {
-      handleSpin();
-    }
+    if (gameState.fgActive) handleFGSpin();
+    else handleSpin();
   });
 
-  document.getElementById('btn-paytable')?.addEventListener('click', () => {
-    router.navigate('screen-11');
-  });
-
-  document.getElementById('btn-buy-feature')?.addEventListener('click', () => {
-    router.navigate('screen-10');
-  });
-
-  document.getElementById('btn-settings')?.addEventListener('click', () => {
-    showToast('⚙️ 設定功能即將推出');
-  });
+  document.getElementById('btn-paytable')?.addEventListener('click', () => router.navigate('screen-11'));
+  document.getElementById('btn-settings')?.addEventListener('click', () => router.navigate('screen-11'));
+  document.getElementById('btn-buy-feature')?.addEventListener('click', () => router.navigate('screen-10'));
 }
 
 // ============================================================
 // FLOW MAP
+// Modal showing all 12 screens in a grid, clickable
 // ============================================================
 const FLOW_MAP_SCREENS = [
-  { id: 'screen-01', title: 'LoadingScene',        desc: 'Zeus logo + 進度條，自動跳轉' },
-  { id: 'screen-02', title: 'LobbyScene',           desc: 'BET選擇/幣種/START' },
-  { id: 'screen-03', title: 'GameScene IDLE',       desc: '主遊戲5×3滾輪，SPIN按鈕' },
-  { id: 'screen-04', title: 'GameScene SPINNING',   desc: '旋轉動畫效果' },
-  { id: 'screen-05', title: 'GameScene CASCADE',    desc: '連鎖消除符號落下' },
-  { id: 'screen-06', title: 'THUNDER BLESSING',     desc: 'SC引爆雷霆祝福特效' },
-  { id: 'screen-07', title: 'Coin Toss',            desc: '硬幣翻轉倍率進度' },
-  { id: 'screen-08', title: 'Free Game',            desc: '自由遊戲含倍率顯示' },
-  { id: 'screen-09', title: 'Win Display',          desc: 'BIG WIN/MEGA WIN計數器' },
-  { id: 'screen-10', title: 'Buy Feature',          desc: '購買自由遊戲確認框' },
-  { id: 'screen-11', title: 'Paytable',             desc: '賠率表完整說明' },
-  { id: 'screen-12', title: 'Reconnect',            desc: '重連畫面' },
+  { id: 'screen-01', title: 'Loading',              desc: 'Zeus logo + progress bar → Lobby' },
+  { id: 'screen-02', title: 'Lobby',                desc: 'BET / Currency / Extra Bet / START' },
+  { id: 'screen-03', title: 'Main Game — Idle',     desc: '5×3 reels, SPIN, HUD' },
+  { id: 'screen-04', title: 'Main Game — Spinning', desc: 'Reel animation, stops after 2s' },
+  { id: 'screen-05', title: 'Cascade Animation',    desc: 'Symbol elimination + drop' },
+  { id: 'screen-06', title: 'Thunder Blessing',     desc: 'SC trigger lightning overlay' },
+  { id: 'screen-07', title: 'Coin Toss',            desc: '3-D coin, ×3→×77 multiplier path' },
+  { id: 'screen-08', title: 'Free Game Active',     desc: '10 spins with multiplier' },
+  { id: 'screen-09', title: 'Win Celebration',      desc: 'BIG/MEGA/ULTRA WIN overlay' },
+  { id: 'screen-10', title: 'Buy Feature',          desc: '100× BET → Coin Toss' },
+  { id: 'screen-11', title: 'Settings / Paytable',  desc: 'Volume, turbo, paytable tabs' },
+  { id: 'screen-12', title: 'Session History',      desc: 'Last 10 spins table + stats' },
 ];
 
-function toggleFlowMap() {
+function showFlowMap() {
   const modal = document.getElementById('flow-map-modal');
   if (!modal) return;
-  const isOpen = modal.classList.contains('open');
-  if (isOpen) {
-    modal.classList.remove('open');
-  } else {
-    renderFlowMapContent();
-    modal.classList.add('open');
-  }
-}
 
-function renderFlowMapContent() {
-  const modal = document.getElementById('flow-map-modal');
-  if (!modal) return;
-  const grid = FLOW_MAP_SCREENS.map(s => `
-    <div class="flow-map-card ${router.currentScreen === s.id ? 'active-screen' : ''}"
+  const isVisible = window.getComputedStyle(modal).display !== 'none';
+  if (isVisible) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+    return;
+  }
+
+  // Build grid content
+  const gridHtml = FLOW_MAP_SCREENS.map(s => `
+    <div class="flow-map-card ${router && router.currentScreen === s.id ? 'active-screen' : ''}"
          data-target="${s.id}">
-      <div class="flow-card-num">${s.id.replace('screen-', '').padStart(2, '0')}</div>
+      <div class="flow-card-num">${s.id.replace('screen-', '')}</div>
       <div class="flow-card-title">${s.title}</div>
       <div class="flow-card-desc">${s.desc}</div>
     </div>`).join('');
 
-  modal.innerHTML = `
-    <span class="flow-map-close" id="flow-map-close">✕</span>
-    <div class="flow-map-title">⚡ 畫面流程地圖</div>
-    <div class="flow-map-grid">${grid}</div>
-    <div style="margin-top:12px;font-size:10px;color:rgba(245,240,232,0.3);text-align:center;">
-      點擊任意畫面直接跳轉 · 當前：${SCREEN_LABELS[router.currentScreen] || '—'}
-    </div>`;
+  const screenGrid = document.getElementById('screen-grid');
+  if (screenGrid) screenGrid.innerHTML = gridHtml;
 
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => modal.classList.add('open'));
+
+  // Wire card clicks
   modal.querySelectorAll('.flow-map-card').forEach(card => {
     card.addEventListener('click', () => {
-      const target = card.dataset.target;
       modal.classList.remove('open');
-      router.navigate(target, { forceRender: true });
+      modal.style.display = 'none';
+      if (router) router.navigate(card.dataset.target, { forceRender: true });
     });
   });
 
-  document.getElementById('flow-map-close')?.addEventListener('click', () => {
-    modal.classList.remove('open');
-  });
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('open');
+      modal.style.display = 'none';
+    }
+  }, { once: true });
 }
 
+// Expose for inline onclick in index.html
+window.showFlowMap = showFlowMap;
+
 // ============================================================
-// ROUTER INSTANCE + REGISTRATION
+// ROUTER INIT
 // ============================================================
 let router;
 
 function initPrototype() {
   router = new PrototypeRouter();
 
-  // Register all screens with their renderers and event binders
   const screenDefs = [
     ['screen-01', renderScreen01,  bindScreen01Events],
     ['screen-02', renderScreen02,  bindScreen02Events],
@@ -1519,24 +1694,22 @@ function initPrototype() {
     ['screen-12', renderScreen12,  bindScreen12Events],
   ];
 
-  screenDefs.forEach(([id, renderer, events]) => {
+  screenDefs.forEach(([id, renderer, eventBinder]) => {
     router.register(id, renderer);
-    router.screens[id + '_events'] = events;
+    router.screens[id + '_events'] = eventBinder;
   });
 
   router.init();
 
-  // Expose globals
-  window.router   = router;
-  window.gameState = gameState; // for debugging
+  window.router    = router;
+  window.gameState = gameState;
+  window.updateState = updateState;
 
   // Start at loading screen
   router.navigate('screen-01');
 
-  console.log('[Prototype] Initialized — Thunder Blessing v1.0.0');
+  console.log('[Prototype] Thunder Blessing v1.0.0-prototype initialized.');
+  console.log('[Keys] 1-9: screens | M: flow map | Esc: back');
 }
 
-// ============================================================
-// EXPORT
-// ============================================================
 window.initPrototype = initPrototype;

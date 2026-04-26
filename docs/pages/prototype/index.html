@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0A0F1E" />
-  <title>雷神賜福 Thunder Blessing — Prototype</title>
+  <title>Thunder Blessing — Interactive Prototype</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,8 +18,66 @@
   <link rel="stylesheet" href="assets/prototype.css" />
 
   <style>
-    /* Inline critical: prevent flash of unstyled shell before CSS loads */
-    #proto-shell { background: #0A0F1E; }
+    /* Prevent flash of unstyled body */
+    body { background: #0A0F1E; }
+
+    /* Flow map modal — inline style supplement */
+    #flow-map-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 9990;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 720px;
+      position: relative;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .modal-header h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      color: #FFD700;
+      letter-spacing: 2px;
+    }
+    .modal-header button {
+      font-size: 20px;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      transition: color 120ms;
+    }
+    .modal-header button:hover { color: #fff; }
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    /* Nav link style */
+    .nav-link {
+      background: rgba(220,163,49,0.15);
+      border: 1px solid rgba(220,163,49,0.4);
+      color: #DCA331;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 120ms;
+    }
+    .nav-link:hover { background: rgba(220,163,49,0.3); }
   </style>
 </head>
 <body>
@@ -29,26 +87,49 @@
      ============================================================ -->
 <div id="proto-shell">
 
-  <!-- Top navigation bar (prototype chrome) -->
+  <!-- Top prototype navigation bar -->
   <nav id="proto-nav" aria-label="Prototype navigation">
-    <button id="nav-back-btn" class="nav-btn" disabled aria-label="返回上一畫面">← 返回</button>
-    <span id="nav-screen-label" aria-live="polite">載入中…</span>
-    <button id="nav-flow-btn" class="nav-btn" aria-label="開啟流程地圖">📍 流程地圖</button>
-    <button id="nav-demo-btn" class="nav-btn" aria-label="隨機演示">🎲 Demo</button>
+    <a href="../../index.html" class="nav-link" id="nav-back-btn">← Docs</a>
+    <span id="proto-breadcrumb">Thunder Blessing Prototype</span>
+    <div class="nav-actions" style="display:flex;gap:6px;align-items:center;">
+      <a href="api-explorer/index.html" class="nav-link">🔌 API Explorer</a>
+      <button class="nav-btn" id="nav-flow-btn" onclick="showFlowMap()">📍 Flow Map</button>
+      <button class="nav-btn" id="audio-unlock-btn">🔊 Enable Audio</button>
+    </div>
   </nav>
 
   <!-- Screen container — all 12 screens render here -->
-  <main id="proto-content" aria-label="遊戲畫面容器">
-    <!-- Screens are injected dynamically by PrototypeRouter -->
+  <main id="proto-content" aria-label="Game screen container">
+    <!-- Screens injected by PrototypeRouter -->
   </main>
 
 </div><!-- /#proto-shell -->
 
 <!-- ============================================================
      FLOW MAP MODAL
+     All 12 screens shown as a clickable grid
      ============================================================ -->
-<div id="flow-map-modal" role="dialog" aria-label="畫面流程地圖" aria-modal="true">
-  <!-- Content rendered by renderFlowMapContent() -->
+<div id="flow-map-modal" role="dialog" aria-label="Game Flow Map" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>⚡ Game Flow Map</h2>
+      <button onclick="document.getElementById('flow-map-modal').style.display='none'" aria-label="Close">✕</button>
+    </div>
+    <div id="screen-grid" class="screen-grid">
+      <!-- Populated by showFlowMap() -->
+    </div>
+    <div style="margin-top:12px;font-size:10px;color:rgba(245,240,232,0.3);text-align:center;">
+      Click any screen to jump directly · Press M to toggle · Esc to close
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LIGHTNING OVERLAY — full-screen flash for Thunder Blessing
+     ============================================================ -->
+<div id="lightning-overlay"
+     style="position:fixed;inset:0;background:#c8e8ff;pointer-events:none;z-index:999;opacity:0;transition:opacity 50ms"
+     aria-hidden="true">
 </div>
 
 <!-- ============================================================
@@ -61,22 +142,11 @@
 ></canvas>
 
 <!-- ============================================================
-     AUDIO UNLOCK BUTTON
-     ============================================================ -->
-<button
-  id="audio-unlock-btn"
-  aria-label="解鎖音效"
-  title="點擊解鎖音效 (iOS 需要使用者互動)"
->
-  🔊 解鎖音效
-</button>
-
-<!-- ============================================================
      SCRIPTS — load order matters
      1. mock-data    (GAME_CONFIG, SYMBOLS, SPIN_RESULTS, helpers)
-     2. audio-engine (AudioEngine class)
-     3. fx-engine    (FXEngine class)
-     4. prototype    (Router + screens + game logic)
+     2. audio-engine (AudioEngine class — Web Audio synthesis)
+     3. fx-engine    (FXEngine class — canvas particles + CSS helpers)
+     4. prototype    (Router + 12 screen renderers + game logic)
      ============================================================ -->
 <script src="assets/mock-data.js"></script>
 <script src="assets/audio-engine.js"></script>
@@ -86,91 +156,52 @@
 <script>
   'use strict';
 
-  // ----------------------------------------------------------
-  // INIT on DOMContentLoaded
-  // ----------------------------------------------------------
-  document.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('load', () => {
 
-    // 1. Resize and start FX canvas
-    const canvas = document.getElementById('fx-canvas');
-    window.fxEngine = new FXEngine(canvas);
-    window.fxEngine.resize();
-    window.fxEngine.startAnimationLoop();
-    window.fxEngine.startAmbientSparkle(0.3);
+    // 1. FX Engine — init canvas (also starts animation loop + ambient sparkle)
+    window.fxEngine.init('fx-canvas');
 
-    window.addEventListener('resize', () => {
-      window.fxEngine.resize();
-    });
-
-    // 2. Create AudioEngine (not unlocked until user clicks)
+    // 2. Audio Engine — create instance (unlocked on user gesture)
     window.audioEngine = new AudioEngine();
 
-    // 3. Init prototype router and navigate to screen-01
+    // Wire the audio unlock button
+    document.getElementById('audio-unlock-btn')?.addEventListener('click', async () => {
+      if (!window.audioEngine) return;
+      const ok = await window.audioEngine.unlock();
+      if (ok) {
+        const btn = document.getElementById('audio-unlock-btn');
+        if (btn) {
+          btn.textContent = '🔊 Audio ON';
+          btn.style.opacity = '0.6';
+          btn.style.pointerEvents = 'none';
+        }
+        window.audioEngine.playBGM('BGM_LOBBY');
+      }
+    });
+
+    // 3. Init prototype router → navigates to screen-01
     initPrototype();
 
-    // 4. Demo button — cycle through a random screen for quick inspection
+    // 4. Demo button — cycle through interesting screens
     const demoScenes = [
       'screen-03', 'screen-05', 'screen-06',
       'screen-07', 'screen-08', 'screen-09',
       'screen-10', 'screen-11', 'screen-12',
     ];
     let demoIdx = 0;
-    document.getElementById('nav-demo-btn')?.addEventListener('click', () => {
+    const demoBtn = document.createElement('button');
+    demoBtn.className = 'nav-btn';
+    demoBtn.textContent = '🎲 Demo';
+    demoBtn.title = 'Cycle through screens for quick inspection';
+    demoBtn.addEventListener('click', () => {
       const target = demoScenes[demoIdx % demoScenes.length];
       demoIdx++;
-      if (window.router) {
-        window.router.navigate(target, { forceRender: true });
-      }
+      if (window.router) window.router.navigate(target, { forceRender: true });
     });
-
-    // 5. Close flow-map modal when clicking backdrop
-    const flowModal = document.getElementById('flow-map-modal');
-    if (flowModal) {
-      flowModal.addEventListener('click', (e) => {
-        if (e.target === flowModal) {
-          flowModal.classList.remove('open');
-        }
-      });
-    }
-
-    // 6. Keyboard shortcuts (dev convenience)
-    document.addEventListener('keydown', (e) => {
-      if (!window.router) return;
-      // M → flow map
-      if (e.key === 'm' || e.key === 'M') {
-        if (typeof toggleFlowMap === 'function') toggleFlowMap();
-      }
-      // Escape → back
-      if (e.key === 'Escape') {
-        const modal = document.getElementById('flow-map-modal');
-        if (modal && modal.classList.contains('open')) {
-          modal.classList.remove('open');
-        } else {
-          window.router.back();
-        }
-      }
-      // Number keys 1–9 → quick screen jump
-      const n = parseInt(e.key, 10);
-      if (n >= 1 && n <= 9 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const target = `screen-0${n}`;
-        if (document.activeElement.tagName !== 'INPUT') {
-          window.router.navigate(target, { forceRender: true });
-        }
-      }
-      // 0 → screen-10, - → screen-11, = → screen-12
-      if (e.key === '0' && document.activeElement.tagName !== 'INPUT') {
-        window.router.navigate('screen-10', { forceRender: true });
-      }
-      if ((e.key === '-' || e.key === '_') && document.activeElement.tagName !== 'INPUT') {
-        window.router.navigate('screen-11', { forceRender: true });
-      }
-      if ((e.key === '=' || e.key === '+') && document.activeElement.tagName !== 'INPUT') {
-        window.router.navigate('screen-12', { forceRender: true });
-      }
-    });
+    document.querySelector('.nav-actions')?.appendChild(demoBtn);
 
     console.log('[Init] Thunder Blessing Prototype ready.');
-    console.log('[Keyboard] 1-9: jump to screen | M: flow map | Esc: back | 🎲 Demo button: cycle screens');
+    console.log('[Keys] 1-9: jump to screen | M: flow map | Esc: back');
   });
 </script>
 

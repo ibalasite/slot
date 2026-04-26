@@ -1,647 +1,483 @@
 /**
- * Thunder Blessing — FX Engine
- * Canvas-based particle system + CSS animation controller
+ * Thunder Blessing — FX & Animation Engine
+ * Canvas particle system + CSS animation helpers.
+ * All public methods guard against null canvas / missing elements.
  */
 
+'use strict';
+
 // ============================================================
-// Particle System
+// Particle (internal)
 // ============================================================
 class Particle {
-  constructor(config) {
-    this.x       = config.x ?? 0;
-    this.y       = config.y ?? 0;
-    this.vx      = config.vx ?? (Math.random() - 0.5) * 6;
-    this.vy      = config.vy ?? (Math.random() - 0.5) * 6;
-    this.ax      = config.ax ?? 0;
-    this.ay      = config.ay ?? 0.18;   // gravity
-    this.life    = config.life ?? 1.0;
-    this.decay   = config.decay ?? (0.012 + Math.random() * 0.015);
-    this.size    = config.size ?? (4 + Math.random() * 6);
-    this.sizeDecay = config.sizeDecay ?? 0.02;
-    this.color   = config.color ?? '#FFD700';
-    this.alpha   = config.alpha ?? 1.0;
-    this.shape   = config.shape ?? 'circle';  // circle | square | star | line
-    this.rotation = config.rotation ?? 0;
-    this.rotSpeed = config.rotSpeed ?? (Math.random() - 0.5) * 0.2;
-    this.glow    = config.glow ?? false;
-    this.glowColor = config.glowColor ?? this.color;
+  constructor(cfg) {
+    this.x        = cfg.x  ?? 0;
+    this.y        = cfg.y  ?? 0;
+    this.vx       = cfg.vx ?? (Math.random() - 0.5) * 8;
+    this.vy       = cfg.vy ?? (Math.random() * -6 - 2);
+    this.ay       = cfg.ay ?? 0.22;
+    this.life     = 1.0;
+    this.decay    = cfg.decay ?? (0.010 + Math.random() * 0.014);
+    this.size     = cfg.size  ?? (4 + Math.random() * 6);
+    this.color    = cfg.color ?? '#FFD700';
+    this.shape    = cfg.shape ?? 'circle';   // circle | square | star
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.18;
+    this.glow     = cfg.glow     ?? false;
+    this.glowColor= cfg.glowColor ?? this.color;
   }
 
   update(dt) {
-    this.vx += this.ax * dt;
     this.vy += this.ay * dt;
     this.x  += this.vx * dt;
     this.y  += this.vy * dt;
     this.life -= this.decay * dt;
-    this.alpha = Math.max(0, this.life);
-    this.size = Math.max(0, this.size - this.sizeDecay * dt);
     this.rotation += this.rotSpeed * dt;
     return this.life > 0;
   }
 
   draw(ctx) {
-    if (this.alpha <= 0 || this.size <= 0) return;
+    if (this.life <= 0 || this.size <= 0) return;
     ctx.save();
-    ctx.globalAlpha = this.alpha;
+    ctx.globalAlpha = Math.max(0, this.life);
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rotation);
-
     if (this.glow) {
-      ctx.shadowBlur = this.size * 2.5;
+      ctx.shadowBlur  = this.size * 2;
       ctx.shadowColor = this.glowColor;
     }
-
     ctx.fillStyle = this.color;
-
-    switch (this.shape) {
-      case 'square':
-        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-        break;
-      case 'star': {
-        const s = this.size;
-        ctx.beginPath();
-        for (let i = 0; i < 5; i++) {
-          const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-          const r = i % 2 === 0 ? s : s * 0.4;
-          ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
-        }
-        ctx.closePath();
-        ctx.fill();
-        break;
+    if (this.shape === 'square') {
+      const h = this.size * this.life;
+      ctx.fillRect(-h / 2, -h / 2, h, h);
+    } else if (this.shape === 'star') {
+      const s = this.size * this.life;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        const r = i % 2 === 0 ? s : s * 0.38;
+        ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
       }
-      case 'line': {
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(-this.size / 2, 0);
-        ctx.lineTo(this.size / 2, 0);
-        ctx.stroke();
-        break;
-      }
-      default: // circle
-        ctx.beginPath();
-        ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
-        ctx.fill();
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      const r = (this.size / 2) * this.life;
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(0.1, r), 0, Math.PI * 2);
+      ctx.fill();
     }
-
     ctx.restore();
   }
 }
 
 // ============================================================
-// FXEngine Class
+// FXEngine
 // ============================================================
 class FXEngine {
   constructor(canvas) {
-    this.canvas = canvas;
-    this.ctx = canvas ? canvas.getContext('2d') : null;
-    this.particles = [];
-    this.running = false;
-    this.lastTime = 0;
-    this.raf = null;
-    // Tracks all active lightning animation frame handles so they can be
-    // cancelled on destroy() regardless of how many are in-flight at once.
-    this._lightningRafs = new Set();
-    // Per-column timeout handles for reel spin/stop so rapid consecutive calls
-    // cancel any previously queued timeout instead of stacking them.
-    this._reelSpinTimeouts = {};   // colIndex → timeoutId
-    this._reelStopTimeouts = {};   // colIndex → timeoutId
-
-    // Bind
-    this._frame = this._frame.bind(this);
+    this._canvas      = canvas || null;
+    this._ctx         = canvas ? canvas.getContext('2d') : null;
+    this._particles   = [];
+    this._rafId       = null;
+    this._running     = false;
+    this._lastTime    = 0;
+    this._ambientTimer= null;
   }
 
   // ----------------------------------------------------------
-  // Animation Loop
+  // INIT — accepts either a canvas element or a canvas id string
+  // ----------------------------------------------------------
+  init(canvasOrId) {
+    if (typeof canvasOrId === 'string') {
+      const el = document.getElementById(canvasOrId);
+      if (el) {
+        this._canvas = el;
+        this._ctx    = el.getContext('2d');
+      }
+    } else if (canvasOrId instanceof HTMLCanvasElement) {
+      this._canvas = canvasOrId;
+      this._ctx    = canvasOrId.getContext('2d');
+    }
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    this.startAnimationLoop();
+    this.startAmbientSparkle(0.3);
+  }
+
+  // ----------------------------------------------------------
+  // Canvas sizing
+  // ----------------------------------------------------------
+  resize() {
+    if (!this._canvas) return;
+    this._canvas.width  = window.innerWidth;
+    this._canvas.height = window.innerHeight;
+  }
+
+  // ----------------------------------------------------------
+  // Animation loop
   // ----------------------------------------------------------
   startAnimationLoop() {
-    if (this.running) return;
-    this.running = true;
-    this.lastTime = performance.now();
-    this.raf = requestAnimationFrame(this._frame);
+    if (this._running) return;
+    this._running  = true;
+    this._lastTime = performance.now();
+    const loop = (now) => {
+      if (!this._running) return;
+      this._rafId = requestAnimationFrame(loop);
+      const dt = Math.min((now - this._lastTime) / 16.67, 3);
+      this._lastTime = now;
+      this._tick(dt);
+    };
+    this._rafId = requestAnimationFrame(loop);
   }
 
   stopAnimationLoop() {
-    this.running = false;
-    if (this.raf) {
-      cancelAnimationFrame(this.raf);
-      this.raf = null;
+    this._running = false;
+    if (this._rafId !== null) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = null;
     }
   }
 
-  _frame(now) {
-    if (!this.running) return;
-    const dt = Math.min((now - this.lastTime) / 16.67, 3); // clamp delta
-    this.lastTime = now;
-    this.update(dt);
-    this.render();
-    this.raf = requestAnimationFrame(this._frame);
+  _tick(dt) {
+    if (!this._ctx || !this._canvas) return;
+    this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+    this._particles = this._particles.filter(p => p.update(dt));
+    for (const p of this._particles) p.draw(this._ctx);
   }
 
   // ----------------------------------------------------------
-  // Update + Render
+  // Ambient sparkle
   // ----------------------------------------------------------
-  update(dt) {
-    this.particles = this.particles.filter(p => p.update(dt));
-  }
-
-  render() {
-    if (!this.ctx || !this.canvas) return;
-    const { width, height } = this.canvas;
-    this.ctx.clearRect(0, 0, width, height);
-    for (const p of this.particles) {
-      p.draw(this.ctx);
-    }
-  }
-
-  // ----------------------------------------------------------
-  // Resize canvas to fill window
-  // ----------------------------------------------------------
-  resize() {
-    if (!this.canvas) return;
-    this.canvas.width  = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-  }
-
-  // ----------------------------------------------------------
-  // Particle factory
-  // ----------------------------------------------------------
-  createParticles(config) {
-    const count = config.count ?? 20;
-    for (let i = 0; i < count; i++) {
-      this.particles.push(new Particle({ ...config, ...this._particleVariance(config) }));
-    }
-  }
-
-  _particleVariance(config) {
-    const spread = config.spread ?? 30;
-    return {
-      x: (config.x ?? 0) + (Math.random() - 0.5) * spread,
-      y: (config.y ?? 0) + (Math.random() - 0.5) * spread,
-      vx: (config.vxBase ?? 0) + (Math.random() - 0.5) * (config.vxSpread ?? 8),
-      vy: (config.vyBase ?? -4) + (Math.random() - 0.5) * (config.vySpread ?? 6),
-      life: (config.life ?? 1.0) * (0.7 + Math.random() * 0.5),
-      size: (config.size ?? 6) * (0.5 + Math.random() * 1.2),
-      decay: (config.decay ?? 0.012) * (0.7 + Math.random() * 0.6),
-      rotation: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.3,
-    };
-  }
-
-  // ----------------------------------------------------------
-  // Get element center in viewport coordinates
-  // ----------------------------------------------------------
-  _getElCenter(el) {
-    if (!el) return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    // Accept plain {x, y} coordinate objects as well as real DOM elements so
-    // callers never need to construct synthetic duck-typed wrapper objects.
-    if (typeof el.x === 'number' && typeof el.y === 'number' && !el.getBoundingClientRect) {
-      return { x: el.x, y: el.y };
-    }
-    const r = el.getBoundingClientRect();
-    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-  }
-
-  // ----------------------------------------------------------
-  // GOLD COIN RAIN
-  // ----------------------------------------------------------
-  goldCoinRain(x, y, count = 30) {
-    const colors = ['#FFD700', '#FFE55C', '#DCA331', '#FFA500'];
-    for (let i = 0; i < count; i++) {
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      this.particles.push(new Particle({
-        x: x + (Math.random() - 0.5) * 200,
-        y: y,
-        vx: (Math.random() - 0.5) * 10,
-        vy: -(4 + Math.random() * 8),
-        ay: 0.35,
-        life: 1.0,
+  startAmbientSparkle(density = 0.4) {
+    this.stopAmbientSparkle();
+    const intervalMs = Math.max(40, 120 / density);
+    this._ambientTimer = setInterval(() => {
+      if (!this._canvas) return;
+      const x = Math.random() * this._canvas.width;
+      const y = Math.random() * this._canvas.height * 0.7;
+      this._emit(1, x, y, {
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: -Math.random() * 1,
+        ay: -0.03,
+        size: 1.5 + Math.random() * 2,
+        color: Math.random() > 0.5 ? '#FFD700' : '#C0A030',
         decay: 0.008 + Math.random() * 0.008,
-        size: 8 + Math.random() * 10,
-        color,
-        shape: Math.random() > 0.5 ? 'circle' : 'square',
         glow: true,
-        glowColor: '#FFD700',
-        rotation: Math.random() * Math.PI,
-        rotSpeed: (Math.random() - 0.5) * 0.25,
-      }));
-    }
-  }
-
-  // ----------------------------------------------------------
-  // SYMBOL EXPLODE
-  // ----------------------------------------------------------
-  symbolExplode(cellEl, count = 18) {
-    const c = this._getElCenter(cellEl);
-    const colors = ['#FFE55C', '#FF8C00', '#FFD700', '#FFF', '#DCA331'];
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2;
-      const speed = 3 + Math.random() * 7;
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      this.particles.push(new Particle({
-        x: c.x, y: c.y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        ay: 0.15,
-        life: 0.9,
-        decay: 0.018 + Math.random() * 0.015,
-        size: 4 + Math.random() * 8,
-        color,
-        shape: Math.random() > 0.6 ? 'square' : 'circle',
-        glow: Math.random() > 0.5,
-        glowColor: color,
-        rotation: angle,
-        rotSpeed: (Math.random() - 0.5) * 0.4,
-      }));
-    }
-  }
-
-  // ----------------------------------------------------------
-  // CASCADE EXPLOSION (multiple cells)
-  // ----------------------------------------------------------
-  cascadeExplosion(cellEls) {
-    cellEls.forEach((el, i) => {
-      setTimeout(() => this.symbolExplode(el, 12), i * 30);
-    });
-  }
-
-  // ----------------------------------------------------------
-  // LIGHTNING ARC (canvas drawn line with glow)
-  // ----------------------------------------------------------
-  lightningArc(fromEl, toEl) {
-    if (!this.ctx) return;
-    const from = this._getElCenter(fromEl);
-    const to = toEl ? this._getElCenter(toEl) : { x: from.x + 60, y: from.y - 80 };
-
-    // Draw lightning bolt as a series of jagged line segments.
-    // Each active animation RAF handle is registered in this._lightningRafs so
-    // destroy() can cancel all of them even when multiple arcs are in-flight.
-    const drawLightning = (duration = 400) => {
-      const start = performance.now();
-      let handle = null;
-      let frameCount = 0;
-
-      const scheduleNext = () => {
-        handle = requestAnimationFrame(draw);
-        this._lightningRafs.add(handle);
-      };
-
-      const draw = () => {
-        const elapsed = performance.now() - start;
-
-        // Remove the handle that just fired now that we know we entered the
-        // callback. Doing this after the elapsed check would leave a stale
-        // handle in the Set if we return early, so we always clean up first.
-        this._lightningRafs.delete(handle);
-        handle = null;
-
-        if (elapsed >= duration) return;   // hard stop — no further scheduling
-
-        frameCount++;
-        // Draw every other frame for a flickering look
-        if (frameCount % 2 === 0) {
-          const points = this._jaggedPath(from, to, 6);
-          const alpha = 0.8 * (1 - elapsed / duration);
-          this.ctx.save();
-          this.ctx.globalAlpha = alpha;
-          this.ctx.strokeStyle = '#FFE55C';
-          this.ctx.lineWidth = 2;
-          this.ctx.shadowBlur = 12;
-          this.ctx.shadowColor = '#FFD700';
-          this.ctx.beginPath();
-          this.ctx.moveTo(points[0].x, points[0].y);
-          for (let i = 1; i < points.length; i++) {
-            this.ctx.lineTo(points[i].x, points[i].y);
-          }
-          this.ctx.stroke();
-
-          // Core bright line
-          this.ctx.strokeStyle = '#FFF';
-          this.ctx.lineWidth = 1;
-          this.ctx.shadowBlur = 4;
-          this.ctx.stroke();
-          this.ctx.restore();
-        }
-
-        scheduleNext();
-      };
-
-      scheduleNext();
-    };
-
-    drawLightning(500);
-
-    // Add sparks at endpoints
-    this.createParticles({
-      x: from.x, y: from.y,
-      count: 8,
-      color: '#FFE55C',
-      size: 4,
-      decay: 0.04,
-      vxSpread: 6, vySpread: 6, vyBase: -2,
-      glow: true, glowColor: '#FFD700',
-      spread: 5,
-    });
-    this.createParticles({
-      x: to.x, y: to.y,
-      count: 8,
-      color: '#FFE55C',
-      size: 4,
-      decay: 0.04,
-      vxSpread: 6, vySpread: 6, vyBase: -2,
-      glow: true, glowColor: '#FFD700',
-      spread: 5,
-    });
-  }
-
-  _jaggedPath(from, to, segments) {
-    const points = [from];
-    for (let i = 1; i < segments; i++) {
-      const t = i / segments;
-      const bx = from.x + (to.x - from.x) * t;
-      const by = from.y + (to.y - from.y) * t;
-      const jitter = 25 * (1 - Math.abs(t - 0.5) * 2);
-      points.push({
-        x: bx + (Math.random() - 0.5) * jitter * 2,
-        y: by + (Math.random() - 0.5) * jitter * 2,
-      });
-    }
-    points.push(to);
-    return points;
-  }
-
-  // ----------------------------------------------------------
-  // THUNDER BLESSING BURST
-  // ----------------------------------------------------------
-  thunderBlessingBurst(cellEls, markerEls) {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-
-    // White flash effect (done via DOM, not canvas)
-    this.whiteFlash(0.85);
-
-    // Lightning from a virtual center point to each real DOM marker element.
-    // _getElCenter already accepts real DOM elements via getBoundingClientRect,
-    // so we pass a plain coordinate object for the fixed source and the actual
-    // DOM element for the destination — no duck-typed synthetic wrapper needed.
-    if (markerEls && markerEls.length) {
-      markerEls.forEach((el, i) => {
-        setTimeout(() => {
-          const dest = this._getElCenter(el);
-          this.lightningArc({ x: centerX, y: centerY }, dest);
-        }, i * 80);
-      });
-    }
-
-    // Explode each cell with delay cascade
-    cellEls.forEach((el, i) => {
-      setTimeout(() => {
-        this.symbolExplode(el, 22);
-        const c = this._getElCenter(el);
-        // Gold ring burst
-        for (let j = 0; j < 16; j++) {
-          const angle = (j / 16) * Math.PI * 2;
-          this.particles.push(new Particle({
-            x: c.x, y: c.y,
-            vx: Math.cos(angle) * (5 + Math.random() * 5),
-            vy: Math.sin(angle) * (5 + Math.random() * 5),
-            ay: 0.05,
-            life: 0.7,
-            decay: 0.025,
-            size: 5 + Math.random() * 5,
-            color: '#FFE55C',
-            shape: 'star',
-            glow: true, glowColor: '#FFD700',
-          }));
-        }
-      }, i * 100 + 200);
-    });
-
-    // Final coin rain from top
-    setTimeout(() => {
-      this.goldCoinRain(centerX, 0, 50);
-      this.goldCoinRain(centerX - 150, -50, 20);
-      this.goldCoinRain(centerX + 150, -50, 20);
-    }, cellEls.length * 100 + 400);
-  }
-
-  // ----------------------------------------------------------
-  // WHITE FLASH
-  // ----------------------------------------------------------
-  whiteFlash(intensity = 0.7) {
-    const el = document.createElement('div');
-    el.style.cssText = `
-      position: fixed; inset: 0; z-index: 7999;
-      background: rgba(255,255,255,${intensity});
-      pointer-events: none;
-      animation: none;
-      opacity: ${intensity};
-      transition: opacity 0.4s ease-out;
-    `;
-    document.body.appendChild(el);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.style.opacity = '0';
-        setTimeout(() => el.remove(), 450);
-      });
-    });
-  }
-
-  // ----------------------------------------------------------
-  // CSS ANIMATION HELPERS
-  // ----------------------------------------------------------
-  applyCSS(el, animClass, duration = 500) {
-    if (!el) return Promise.resolve();
-    el.classList.add(animClass);
-    return new Promise(resolve => {
-      setTimeout(() => {
-        el.classList.remove(animClass);
-        resolve();
-      }, duration);
-    });
-  }
-
-  // Apply class then auto-remove after CSS animation ends
-  animate(el, animClass) {
-    if (!el) return Promise.resolve();
-    return new Promise(resolve => {
-      const onEnd = () => {
-        el.classList.remove(animClass);
-        el.removeEventListener('animationend', onEnd);
-        resolve();
-      };
-      el.addEventListener('animationend', onEnd, { once: true });
-      el.classList.add(animClass);
-      // Fallback
-      setTimeout(() => {
-        el.classList.remove(animClass);
-        resolve();
-      }, 2000);
-    });
-  }
-
-  // ----------------------------------------------------------
-  // REEL SPIN / STOP
-  // ----------------------------------------------------------
-  reelSpin(colIndex, duration = 1500) {
-    const col = document.querySelectorAll('.reel-col')[colIndex];
-    if (!col) return;
-    // Cancel any pending spin timeout for this column before queuing a new one.
-    clearTimeout(this._reelSpinTimeouts[colIndex]);
-    col.classList.add('spinning');
-    this._reelSpinTimeouts[colIndex] = setTimeout(() => {
-      delete this._reelSpinTimeouts[colIndex];
-      col.classList.remove('spinning');
-      this.reelStop(colIndex);
-    }, duration);
-  }
-
-  reelStop(colIndex) {
-    const col = document.querySelectorAll('.reel-col')[colIndex];
-    if (!col) return;
-    // Cancel any pending stop timeout for this column before queuing a new one.
-    clearTimeout(this._reelStopTimeouts[colIndex]);
-    col.classList.add('stopping');
-    this._reelStopTimeouts[colIndex] = setTimeout(() => {
-      delete this._reelStopTimeouts[colIndex];
-      col.classList.remove('stopping');
-    }, 350);
-  }
-
-  reelSpinAll(numCols = 5, stopDelay = 300) {
-    for (let i = 0; i < numCols; i++) {
-      const spinDuration = 1200 + i * stopDelay;
-      setTimeout(() => this.reelSpin(i, spinDuration), 0);
-    }
-  }
-
-  reelStopAll(numCols = 5, stopDelay = 250) {
-    for (let i = 0; i < numCols; i++) {
-      setTimeout(() => this.reelStop(i), i * stopDelay);
-    }
-  }
-
-  // ----------------------------------------------------------
-  // COIN FLIP
-  // ----------------------------------------------------------
-  coinFlip(coinEl, result, onComplete) {
-    if (!coinEl) { onComplete && onComplete(); return; }
-    coinEl.classList.remove('heads-result', 'tails-result', 'flipping');
-
-    // Force reflow
-    void coinEl.offsetWidth;
-
-    coinEl.classList.add('flipping');
-
-    const duration = 1200;
-    setTimeout(() => {
-      coinEl.classList.remove('flipping');
-      coinEl.classList.add(result === 'HEADS' ? 'heads-result' : 'tails-result');
-      // Coin land particles
-      const c = this._getElCenter(coinEl);
-      this.createParticles({
-        x: c.x, y: c.y,
-        count: result === 'HEADS' ? 20 : 10,
-        color: result === 'HEADS' ? '#FFD700' : '#888',
-        size: 5,
-        decay: 0.025,
-        spread: 20,
-        vyBase: -5, vxSpread: 10, vySpread: 4,
-        glow: result === 'HEADS',
         glowColor: '#FFD700',
         shape: 'circle',
       });
-      onComplete && onComplete();
-    }, duration);
-  }
-
-  // ----------------------------------------------------------
-  // WIN NUMBER COUNTER (visual)
-  // ----------------------------------------------------------
-  animateCounter(el, fromVal, toVal, duration = 1500, format) {
-    if (!el) return;
-    const startTime = performance.now();
-    const diff = toVal - fromVal;
-    const fmt = format || (v => v.toFixed(2));
-
-    const tick = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // Ease-out-expo
-      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      el.textContent = fmt(fromVal + diff * eased);
-      if (progress < 1) {
-        requestAnimationFrame(tick);
-      } else {
-        el.textContent = fmt(toVal);
-      }
-    };
-    requestAnimationFrame(tick);
-  }
-
-  // ----------------------------------------------------------
-  // BACKGROUND SPARKLE (ambient)
-  // ----------------------------------------------------------
-  startAmbientSparkle(rate = 0.5) {
-    if (this._sparkleInterval) return;
-    this._sparkleInterval = setInterval(() => {
-      if (Math.random() < rate) {
-        this.particles.push(new Particle({
-          x: Math.random() * window.innerWidth,
-          y: Math.random() * window.innerHeight * 0.6,
-          vx: (Math.random() - 0.5) * 1.5,
-          vy: -(0.5 + Math.random() * 2),
-          ay: 0,
-          life: 1.0,
-          decay: 0.006 + Math.random() * 0.01,
-          size: 2 + Math.random() * 4,
-          color: ['#FFD700', '#FFE55C', '#FFF', '#00BFFF'][Math.floor(Math.random() * 4)],
-          shape: 'star',
-          glow: true,
-          glowColor: '#FFD700',
-        }));
-      }
-    }, 60);
+    }, intervalMs);
   }
 
   stopAmbientSparkle() {
-    if (this._sparkleInterval) {
-      clearInterval(this._sparkleInterval);
-      this._sparkleInterval = null;
+    if (this._ambientTimer !== null) {
+      clearInterval(this._ambientTimer);
+      this._ambientTimer = null;
     }
   }
 
   // ----------------------------------------------------------
-  // CLEANUP
+  // Emitter helper
   // ----------------------------------------------------------
-  clearParticles() {
-    this.particles = [];
+  _emit(count, x, y, overrides = {}) {
+    for (let i = 0; i < count; i++) {
+      this._particles.push(new Particle({ x, y, ...overrides }));
+    }
   }
 
-  destroy() {
-    this.stopAnimationLoop();
-    this.stopAmbientSparkle();
-    this.clearParticles();
-    // Cancel every in-flight lightning arc animation frame.
-    for (const handle of this._lightningRafs) {
-      cancelAnimationFrame(handle);
+  // ----------------------------------------------------------
+  // PUBLIC FX METHODS
+  // ----------------------------------------------------------
+
+  /**
+   * Gold coin burst — radiates gold particles from (x, y).
+   * Used on Win Celebration (screen-09).
+   */
+  coinBurst(x, y, count = 60) {
+    const colors = ['#FFD700', '#DCA331', '#FFE55C', '#C8860A', '#FFC000'];
+    const shapes = ['circle', 'square', 'star'];
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 3 + Math.random() * 9;
+      this._particles.push(new Particle({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 4,
+        ay: 0.28,
+        size:  5 + Math.random() * 7,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        shape: shapes[Math.floor(Math.random() * shapes.length)],
+        decay: 0.007 + Math.random() * 0.010,
+        glow: i % 4 === 0,
+        glowColor: '#FFD700',
+      }));
     }
-    this._lightningRafs.clear();
-    // Cancel all pending reel spin/stop timeouts so callbacks never fire after
-    // the engine has been destroyed.
-    for (const id of Object.values(this._reelSpinTimeouts)) {
-      clearTimeout(id);
+  }
+
+  /**
+   * Gold coin rain — continuous rain from top of screen.
+   */
+  goldCoinRain(centerX, topY, count = 50) {
+    const spread = Math.min(centerX, (this._canvas ? this._canvas.width : 800) - centerX);
+    for (let i = 0; i < count; i++) {
+      const x = centerX + (Math.random() - 0.5) * spread * 1.8;
+      this._particles.push(new Particle({
+        x, y: topY - Math.random() * 80,
+        vx: (Math.random() - 0.5) * 3,
+        vy: 2 + Math.random() * 5,
+        ay: 0.15,
+        size:  6 + Math.random() * 6,
+        color: ['#FFD700', '#DCA331', '#FFE55C'][Math.floor(Math.random() * 3)],
+        shape: Math.random() > 0.4 ? 'circle' : 'star',
+        decay: 0.004 + Math.random() * 0.008,
+        glow: Math.random() > 0.6,
+        glowColor: '#FFD700',
+      }));
     }
-    this._reelSpinTimeouts = {};
-    for (const id of Object.values(this._reelStopTimeouts)) {
-      clearTimeout(id);
+  }
+
+  /**
+   * Lightning flash — full-screen DOM overlay + canvas sparks.
+   * Used for Thunder Blessing trigger (screen-06).
+   */
+  lightningFlash() {
+    // DOM flash overlay
+    const flash = document.createElement('div');
+    flash.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:7900',
+      'background:radial-gradient(ellipse,rgba(255,229,92,0.55) 0%,rgba(255,140,0,0.25) 50%,transparent 80%)',
+      'pointer-events:none',
+      'animation:_lf-anim 0.55s ease-out forwards',
+    ].join(';');
+
+    if (!document.getElementById('_lf-kf')) {
+      const style = document.createElement('style');
+      style.id = '_lf-kf';
+      style.textContent = `@keyframes _lf-anim {
+        0%   { opacity:0; }
+        15%  { opacity:1; }
+        40%  { opacity:0.6; }
+        70%  { opacity:0.2; }
+        100% { opacity:0; }
+      }`;
+      document.head.appendChild(style);
     }
-    this._reelStopTimeouts = {};
+    document.body.appendChild(flash);
+    setTimeout(() => { if (flash.parentNode) flash.parentNode.removeChild(flash); }, 600);
+
+    // Canvas sparks
+    if (this._canvas) {
+      const cx = this._canvas.width / 2;
+      const cy = this._canvas.height * 0.3;
+      for (let i = 0; i < 30; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 4 + Math.random() * 10;
+        this._particles.push(new Particle({
+          x: cx + (Math.random() - 0.5) * 300,
+          y: cy + (Math.random() - 0.5) * 200,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          ay: 0.05,
+          size: 2 + Math.random() * 4,
+          color: Math.random() > 0.5 ? '#FFE55C' : '#FF8C00',
+          shape: 'circle',
+          decay: 0.018 + Math.random() * 0.020,
+          glow: true,
+          glowColor: '#FFE55C',
+        }));
+      }
+    }
+  }
+
+  /**
+   * Thunder Blessing burst — fires from each scatter symbol element.
+   * @param {Element[]} scatterEls
+   */
+  thunderBlessingBurst(scatterEls) {
+    this.lightningFlash();
+    for (const el of (scatterEls || [])) {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width  / 2;
+      const cy = rect.top  + rect.height / 2;
+      this.coinBurst(cx, cy, 12);
+    }
+  }
+
+  // ----------------------------------------------------------
+  // SCREEN ENTER — opacity + scale fade-in
+  // ----------------------------------------------------------
+  screenEnter(el) {
+    if (!el) return;
+    el.style.opacity   = '0';
+    el.style.transform = 'scale(0.97)';
+    el.style.transition = 'opacity 300ms ease, transform 300ms ease';
+    requestAnimationFrame(() => {
+      el.style.opacity   = '1';
+      el.style.transform = 'scale(1)';
+    });
+  }
+
+  // ----------------------------------------------------------
+  // SYMBOL DROP — bounce-fall animation for cascade new symbols
+  // ----------------------------------------------------------
+  symbolDrop(cellEl, delayMs = 0) {
+    if (!cellEl) return;
+    cellEl.style.animation = 'none';
+    cellEl.style.transform = 'translateY(-60px)';
+    cellEl.style.opacity   = '0';
+    setTimeout(() => {
+      cellEl.style.transition = 'none';
+      cellEl.style.animation  =
+        `_sym-drop 400ms ${delayMs}ms cubic-bezier(0.34,1.56,0.64,1) both`;
+    }, 10);
+
+    if (!document.getElementById('_sym-drop-kf')) {
+      const style = document.createElement('style');
+      style.id = '_sym-drop-kf';
+      style.textContent = `@keyframes _sym-drop {
+        0%   { transform:translateY(-60px); opacity:0; }
+        60%  { transform:translateY(8px);  opacity:1; }
+        80%  { transform:translateY(-4px); }
+        100% { transform:translateY(0);    opacity:1; }
+      }`;
+      document.head.appendChild(style);
+    }
+  }
+
+  // ----------------------------------------------------------
+  // COIN FLIP — 3-D rotateY for Coin Toss
+  // @param {Element}  coinEl
+  // @param {string}   result  'HEADS' | 'TAILS'
+  // @param {Function} onDone  callback after animation
+  // ----------------------------------------------------------
+  coinFlip(coinEl, result, onDone) {
+    if (!coinEl) { if (onDone) onDone(); return; }
+
+    if (!document.getElementById('_cf-kf')) {
+      const style = document.createElement('style');
+      style.id = '_cf-kf';
+      style.textContent = `
+        @keyframes _cf-heads {
+          0%   { transform:rotateY(0deg)   scale(1);    }
+          40%  { transform:rotateY(540deg) scale(1.15); }
+          100% { transform:rotateY(720deg) scale(1);    }
+        }
+        @keyframes _cf-tails {
+          0%   { transform:rotateY(0deg)   scale(1);    }
+          40%  { transform:rotateY(540deg) scale(1.15); }
+          100% { transform:rotateY(900deg) scale(1);    }
+        }`;
+      document.head.appendChild(style);
+    }
+
+    const animName = result === 'HEADS' ? '_cf-heads' : '_cf-tails';
+    coinEl.style.animation = `${animName} 700ms cubic-bezier(0.4,0,0.2,1) forwards`;
+
+    let called = false;
+    const done = () => {
+      if (called) return;
+      called = true;
+      coinEl.removeEventListener('animationend', done);
+      if (onDone) onDone();
+    };
+    coinEl.addEventListener('animationend', done);
+    setTimeout(done, 800); // safety fallback
+  }
+
+  // ----------------------------------------------------------
+  // WIN COUNTER — animated number roll-up (ease-out cubic)
+  // @param {Element}  el
+  // @param {number}   from
+  // @param {number}   to
+  // @param {number}   durationMs
+  // @param {Function} formatter  (value) => string
+  // ----------------------------------------------------------
+  animateCounter(el, from, to, durationMs, formatter) {
+    if (!el) return;
+    const start = performance.now();
+    const range = to - from;
+    const fmt   = typeof formatter === 'function' ? formatter : v => v.toFixed(2);
+
+    const step = (now) => {
+      const elapsed  = now - start;
+      const progress = Math.min(elapsed / durationMs, 1);
+      const eased    = 1 - Math.pow(1 - progress, 3);
+      el.textContent = fmt(from + range * eased);
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Alias used by prototype.js
+  rollUp(el, from, to, durationMs) {
+    this.animateCounter(el, from, to, durationMs || 1500);
+  }
+
+  // ----------------------------------------------------------
+  // MULTIPLIER POP — scale-bounce for FG multiplier badges
+  // ----------------------------------------------------------
+  multiplierPop(el) {
+    if (!el) return;
+    if (!document.getElementById('_mp-kf')) {
+      const style = document.createElement('style');
+      style.id = '_mp-kf';
+      style.textContent = `@keyframes _mp {
+        0%   { transform:scale(0.5);  opacity:0; }
+        60%  { transform:scale(1.25); opacity:1; }
+        80%  { transform:scale(0.92); }
+        100% { transform:scale(1);    opacity:1; }
+      }`;
+      document.head.appendChild(style);
+    }
+    el.style.animation = 'none';
+    requestAnimationFrame(() => {
+      el.style.animation = '_mp 400ms cubic-bezier(0.34,1.56,0.64,1) forwards';
+    });
+  }
+
+  // Alias: scalePop
+  scalePop(el) { this.multiplierPop(el); }
+
+  // ----------------------------------------------------------
+  // REEL SPIN / STOP — toggle CSS classes on reel columns
+  // ----------------------------------------------------------
+  reelSpin(reelIndex) {
+    const col = document.getElementById(`reel-col-${reelIndex}`);
+    if (!col) return;
+    col.classList.add('spinning');
+    col.classList.remove('stopping');
+  }
+
+  reelStop(reelIndex) {
+    const col = document.getElementById(`reel-col-${reelIndex}`);
+    if (!col) return;
+    col.classList.remove('spinning');
+    col.classList.add('stopping');
+    // Drop each symbol with stagger
+    const cells = col.querySelectorAll('.symbol-cell');
+    cells.forEach((cell, i) => this.symbolDrop(cell, i * 60));
+    setTimeout(() => col.classList.remove('stopping'), 400);
+  }
+
+  // ----------------------------------------------------------
+  // SCREEN TRANSITION — fade between two screen elements
+  // ----------------------------------------------------------
+  screenTransition(fromEl, toEl) {
+    if (fromEl) {
+      fromEl.style.transition = 'opacity 200ms ease';
+      fromEl.style.opacity = '0';
+    }
+    setTimeout(() => {
+      if (fromEl) fromEl.style.display = 'none';
+      if (toEl) {
+        toEl.style.display = 'block';
+        this.screenEnter(toEl);
+      }
+    }, 200);
   }
 }
 
-// ============================================================
-// Export
-// ============================================================
+// Expose globally — prototype.js and index.html both reference window.fxEngine
 window.FXEngine = FXEngine;
-console.log('[FXEngine] Module loaded');
+// Create default instance; init() is called after DOM ready
+window.fxEngine = new FXEngine();

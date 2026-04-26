@@ -1,1641 +1,1551 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thunder Blessing — API Explorer</title>
-<style>
-:root {
-  --bg-deep:    #0d1824;
-  --bg-main:    #1B2A4A;
-  --bg-panel:   #162035;
-  --bg-card:    #1e2e50;
-  --bg-input:   #0f1d33;
-  --border:     #2a3e6a;
-  --border-lit: #DCA331;
-  --gold:       #DCA331;
-  --gold-bright:#FFD700;
-  --gold-dim:   #8a6418;
-  --text-main:  #e8eaf0;
-  --text-muted: #7a8aaa;
-  --text-dim:   #4a5a7a;
-  --green:      #2ecc71;
-  --red:        #e74c3c;
-  --blue:       #4a9eff;
-  --purple:     #9b59b6;
-  --tag-bg:     #1a2a47;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thunder Blessing — API Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  --radius-sm:  4px;
-  --radius-md:  8px;
-  --radius-lg:  12px;
+  <style>
+    /* ─── Design Tokens ─────────────────────────────────────────── */
+    :root {
+      --bg-base:        #0D1626;
+      --bg-surface:     #131F36;
+      --bg-card:        #1B2A4A;
+      --bg-elevated:    #1E2F52;
+      --bg-input:       #0A1220;
+      --bg-code:        #060E1C;
 
-  --duration-fast: 120ms;
-  --duration-normal: 250ms;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-}
+      --border-subtle:  rgba(220,163,49,0.12);
+      --border-muted:   rgba(220,163,49,0.22);
+      --border-active:  rgba(220,163,49,0.55);
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+      --gold:           #DCA331;
+      --gold-dim:       #B8872A;
+      --gold-glow:      rgba(220,163,49,0.10);
+      --text-primary:   #E8EDF5;
+      --text-secondary: #8B9EC4;
+      --text-muted:     #506080;
 
-body {
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-  background: var(--bg-deep);
-  color: var(--text-main);
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+      --get:    #60A5FA;
+      --post:   #34D399;
+      --delete: #F87171;
+      --patch:  #FB923C;
 
-/* ─── TOP BAR ─── */
-.topbar {
-  height: 52px;
-  background: var(--bg-main);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  gap: 16px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 10;
-}
-.topbar-back {
-  color: var(--gold);
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  opacity: 0.85;
-  transition: opacity var(--duration-fast);
-}
-.topbar-back:hover { opacity: 1; }
-.topbar-sep { color: var(--text-dim); font-size: 14px; }
-.topbar-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--gold-bright);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.topbar-title .bolt { font-size: 18px; }
-.topbar-tag {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 100px;
-  background: rgba(220,163,49,0.12);
-  color: var(--gold);
-  border: 1px solid rgba(220,163,49,0.3);
-  letter-spacing: 0.05em;
-}
-.topbar-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.auth-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.auth-label {
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-.auth-input {
-  width: 240px;
-  height: 28px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-main);
-  font-size: 11px;
-  padding: 0 10px;
-  font-family: inherit;
-  transition: border-color var(--duration-fast);
-}
-.auth-input:focus { outline: none; border-color: var(--gold); }
-.auth-input::placeholder { color: var(--text-dim); }
-.auth-status {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--text-dim);
-  flex-shrink: 0;
-  transition: background var(--duration-normal);
-}
-.auth-status.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+      --s200: #34D399;
+      --s400: #FBBF24;
+      --s401: #F87171;
+      --s403: #F87171;
+      --s409: #FB923C;
 
-/* ─── LAYOUT ─── */
-.layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
+      --sidebar-w: 296px;
+      --header-h:  56px;
+      --radius:    8px;
+      --radius-sm: 5px;
+      --duration:  180ms;
+      --ease:      cubic-bezier(0.16, 1, 0.3, 1);
 
-/* ─── SIDEBAR ─── */
-.sidebar {
-  width: 280px;
-  flex-shrink: 0;
-  background: var(--bg-panel);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.search-wrap {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.search-input {
-  width: 100%;
-  height: 30px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-main);
-  font-size: 12px;
-  padding: 0 10px 0 30px;
-  font-family: inherit;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234a5a7a' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: 10px center;
-}
-.search-input:focus { outline: none; border-color: var(--gold); }
-.search-input::placeholder { color: var(--text-dim); }
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
 
-.sidebar-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 0;
-}
-.sidebar-nav::-webkit-scrollbar { width: 4px; }
-.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    /* ─── Reset ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.5;
+      overflow: hidden;
+      height: 100vh;
+    }
+    a { color: inherit; }
 
-.group-label {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  padding: 12px 16px 4px;
-}
-.ep-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 14px;
-  cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: background var(--duration-fast), border-color var(--duration-fast);
-  text-decoration: none;
-}
-.ep-item:hover { background: rgba(220,163,49,0.05); }
-.ep-item.active {
-  background: rgba(220,163,49,0.08);
-  border-left-color: var(--gold);
-}
-.method-badge {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 2px 6px;
-  border-radius: 3px;
-  min-width: 36px;
-  text-align: center;
-  flex-shrink: 0;
-}
-.method-GET  { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.25); }
-.method-POST { background: rgba(74,158,255,0.15); color: #4a9eff; border: 1px solid rgba(74,158,255,0.25); }
-.ep-path {
-  font-size: 11px;
-  color: var(--text-main);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ep-item.active .ep-path { color: var(--gold); }
+    /* ─── Scrollbar ──────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(220,163,49,0.2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(220,163,49,0.4); }
 
-/* ─── MAIN PANEL ─── */
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.panel-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 28px 40px;
-}
-.panel-scroll::-webkit-scrollbar { width: 6px; }
-.panel-scroll::-webkit-scrollbar-track { background: transparent; }
-.panel-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    /* ─── Layout ────────────────────────────────────────────────── */
+    #app { display: flex; flex-direction: column; height: 100vh; }
 
-/* ─── ENDPOINT DETAIL ─── */
-.ep-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 20px;
-}
-.ep-method-lg {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  margin-top: 3px;
-}
-.ep-info h1 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-main);
-  letter-spacing: 0.02em;
-  margin-bottom: 4px;
-}
-.ep-url-display {
-  font-size: 13px;
-  color: var(--gold);
-  font-family: inherit;
-}
-.ep-summary {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.6;
-  margin-bottom: 24px;
-  max-width: 720px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
+    /* ─── Header ────────────────────────────────────────────────── */
+    header {
+      height: var(--header-h);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 18px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .header-logo {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(140deg, #DCA331 0%, #7A4D10 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      box-shadow: 0 2px 8px rgba(220,163,49,0.3);
+    }
+    .header-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--gold);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+    .header-subtitle {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .header-divider { width: 1px; height: 26px; background: var(--border-subtle); flex-shrink: 0; }
 
-.tags-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-.tag {
-  font-size: 10px;
-  padding: 3px 10px;
-  border-radius: 100px;
-  border: 1px solid;
-  letter-spacing: 0.04em;
-}
-.tag-auth   { background: rgba(155,89,182,0.1); color: #b07be6; border-color: rgba(155,89,182,0.3); }
-.tag-rate   { background: rgba(230,126,34,0.1);  color: #e67e22; border-color: rgba(230,126,34,0.3); }
-.tag-noauth { background: rgba(46,204,113,0.1);  color: #2ecc71; border-color: rgba(46,204,113,0.3); }
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      max-width: 500px;
+    }
+    .auth-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .auth-input {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 6px 10px;
+      outline: none;
+      transition: border-color var(--duration);
+      min-width: 0;
+    }
+    .auth-input:focus { border-color: var(--border-active); }
+    .auth-input::placeholder { color: var(--text-muted); font-family: var(--font-sans); font-size: 0.75rem; }
+    .auth-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(80,96,128,0.5);
+      flex-shrink: 0;
+      transition: background var(--duration), box-shadow var(--duration);
+    }
+    .auth-dot.active { background: var(--s200); box-shadow: 0 0 6px rgba(52,211,153,0.6); }
 
-/* ─── SECTION ─── */
-.section { margin-bottom: 28px; }
-.section-title {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.section-title::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(to right, rgba(220,163,49,0.3), transparent);
-}
+    .header-nav {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: color var(--duration), background var(--duration);
+    }
+    .nav-link:hover { color: var(--text-primary); background: var(--gold-glow); }
 
-/* ─── PARAMS TABLE ─── */
-.params-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.params-table th {
-  text-align: left;
-  padding: 6px 12px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid var(--border);
-}
-.params-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid rgba(42,62,106,0.5);
-  vertical-align: top;
-  line-height: 1.5;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-.param-name  { color: var(--gold); font-family: inherit; font-size: 12px; }
-.param-type  { color: var(--blue); font-family: inherit; font-size: 11px; }
-.param-req   { color: var(--red); font-size: 10px; }
-.param-opt   { color: var(--text-dim); font-size: 10px; }
-.param-desc  { color: var(--text-muted); font-size: 12px; }
-.param-enum  {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 5px;
-}
-.chip {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 100px;
-  background: var(--tag-bg);
-  color: var(--gold);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: background var(--duration-fast), border-color var(--duration-fast);
-  font-family: 'SF Mono', 'Cascadia Code', monospace;
-}
-.chip:hover { background: rgba(220,163,49,0.15); border-color: var(--gold); }
-.chip.selected { background: rgba(220,163,49,0.2); border-color: var(--gold); color: var(--gold-bright); }
+    /* ─── Body Layout ───────────────────────────────────────────── */
+    .body-area { display: flex; flex: 1; overflow: hidden; }
 
-/* ─── REQUEST FORM ─── */
-.try-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-.try-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(0,0,0,0.2);
-}
-.try-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.try-actions { display: flex; gap: 8px; }
+    /* ─── Sidebar ───────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .sidebar-search {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .search-wrap { position: relative; }
+    .search-icon {
+      position: absolute;
+      left: 9px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+    }
+    .sidebar-search-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      padding: 7px 10px 7px 30px;
+      outline: none;
+      transition: border-color var(--duration);
+    }
+    .sidebar-search-input:focus { border-color: var(--border-active); }
+    .sidebar-search-input::placeholder { color: var(--text-muted); }
 
-.btn {
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid;
-  cursor: pointer;
-  transition: all var(--duration-fast);
-  letter-spacing: 0.04em;
-}
-.btn-primary {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: #0d1824;
-}
-.btn-primary:hover {
-  background: var(--gold-bright);
-  border-color: var(--gold-bright);
-  box-shadow: 0 0 12px rgba(220,163,49,0.4);
-}
-.btn-secondary {
-  background: transparent;
-  border-color: var(--border);
-  color: var(--text-muted);
-}
-.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .sidebar-list { flex: 1; overflow-y: auto; padding: 6px 0 20px; }
 
-.try-body { padding: 16px; }
-.form-row { margin-bottom: 14px; }
-.form-row label {
-  display: block;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.form-input, .form-textarea, .form-select {
-  width: 100%;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-main);
-  font-family: inherit;
-  font-size: 12px;
-  transition: border-color var(--duration-fast);
-}
-.form-input, .form-select {
-  height: 32px;
-  padding: 0 10px;
-}
-.form-textarea {
-  padding: 10px;
-  resize: vertical;
-  min-height: 120px;
-  line-height: 1.6;
-}
-.form-input:focus, .form-textarea:focus, .form-select:focus {
-  outline: none;
-  border-color: var(--gold);
-}
-.form-input::placeholder, .form-textarea::placeholder { color: var(--text-dim); }
-.form-select option { background: var(--bg-input); }
+    .group-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 12px 14px 5px;
+      margin-top: 2px;
+    }
+    .group-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .group-name {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+    .group-count {
+      margin-left: auto;
+      font-size: 0.63rem;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
 
-.presets-row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-.preset-btn {
-  font-family: inherit;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--bg-input);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--duration-fast);
-  letter-spacing: 0.03em;
-}
-.preset-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .endpoint-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: background var(--duration), border-color var(--duration);
+      text-decoration: none;
+    }
+    .endpoint-item:hover { background: var(--gold-glow); }
+    .endpoint-item.active { background: rgba(220,163,49,0.07); border-left-color: var(--gold); }
 
-/* ─── RESPONSE PANEL ─── */
-.response-section {
-  margin-top: 20px;
-}
-.response-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.status-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
-  font-family: inherit;
-}
-.status-2xx { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
-.status-4xx { background: rgba(231,76,60,0.15);  color: var(--red);   border: 1px solid rgba(231,76,60,0.3); }
-.status-5xx { background: rgba(230,126,34,0.15); color: #e67e22;      border: 1px solid rgba(230,126,34,0.3); }
-.response-time {
-  font-size: 10px;
-  color: var(--text-dim);
-  margin-left: auto;
-}
+    .method-badge {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+      min-width: 46px;
+      text-align: center;
+    }
+    .m-GET    { background: rgba(96,165,250,0.14); color: var(--get); }
+    .m-POST   { background: rgba(52,211,153,0.14); color: var(--post); }
+    .m-DELETE { background: rgba(248,113,113,0.14); color: var(--delete); }
+    .m-PATCH  { background: rgba(251,146,60,0.14); color: var(--patch); }
 
-.response-body {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-.response-body pre {
-  padding: 14px 16px;
-  overflow-x: auto;
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--text-main);
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-.response-body::-webkit-scrollbar { height: 4px; }
+    .endpoint-path {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .endpoint-item.active .endpoint-path { color: var(--text-primary); }
 
-/* JSON syntax highlight */
-.json-key    { color: #4a9eff; }
-.json-string { color: #2ecc71; }
-.json-number { color: var(--gold); }
-.json-bool   { color: #9b59b6; }
-.json-null   { color: var(--text-dim); }
+    .sidebar-empty {
+      padding: 24px 14px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
 
-/* ─── LOADING SPINNER ─── */
-.spinner {
-  display: inline-block;
-  width: 14px; height: 14px;
-  border: 2px solid rgba(220,163,49,0.3);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  vertical-align: middle;
-  margin-right: 6px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+    /* ─── Main Panel ────────────────────────────────────────────── */
+    .main-panel { flex: 1; overflow-y: auto; }
 
-/* ─── ERROR CODES TABLE ─── */
-.error-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.error-table th {
-  text-align: left;
-  padding: 6px 12px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid var(--border);
-}
-.error-table td {
-  padding: 7px 12px;
-  border-bottom: 1px solid rgba(42,62,106,0.4);
-  vertical-align: top;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-.http-code {
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-}
-.http-2xx { color: var(--green); }
-.http-4xx { color: var(--red); }
-.http-5xx { color: #e67e22; }
-.err-code { color: var(--gold); font-family: 'SF Mono', monospace; font-size: 11px; }
-.err-desc { color: var(--text-muted); font-size: 12px; }
+    /* ─── Welcome ───────────────────────────────────────────────── */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 40px;
+      text-align: center;
+      min-height: calc(100vh - var(--header-h));
+    }
+    .welcome-glyph {
+      width: 68px; height: 68px;
+      background: linear-gradient(135deg, rgba(220,163,49,0.18), rgba(220,163,49,0.04));
+      border: 1px solid var(--border-muted);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 30px rgba(220,163,49,0.08);
+    }
+    .welcome h2 { font-size: 1.25rem; color: var(--text-primary); margin-bottom: 8px; font-weight: 600; }
+    .welcome p { color: var(--text-muted); font-size: 0.83rem; max-width: 340px; line-height: 1.65; }
+    .welcome-chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 20px;
+    }
+    .welcome-chip {
+      font-size: 0.7rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 4px 12px;
+      color: var(--text-muted);
+    }
 
-/* ─── WELCOME ─── */
-.welcome {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 16px;
-  text-align: center;
-  padding: 40px;
-}
-.welcome-bolt { font-size: 64px; line-height: 1; margin-bottom: 8px; }
-.welcome h2 {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--gold-bright);
-  letter-spacing: 0.05em;
-}
-.welcome p {
-  font-size: 14px;
-  color: var(--text-muted);
-  max-width: 400px;
-  line-height: 1.7;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-.welcome-hint {
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--text-dim);
-}
-.welcome-stats {
-  display: flex;
-  gap: 24px;
-  margin-top: 16px;
-}
-.stat-box {
-  text-align: center;
-  padding: 12px 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-.stat-num {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--gold);
-  display: block;
-}
-.stat-label {
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
+    /* ─── Endpoint View ─────────────────────────────────────────── */
+    .endpoint-view { padding: 24px 28px 56px; max-width: 860px; }
+    .hidden { display: none !important; }
 
-/* ─── BASE URL BAR ─── */
-.base-url-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  background: rgba(0,0,0,0.2);
-  border-bottom: 1px solid var(--border);
-  font-size: 11px;
-  flex-shrink: 0;
-}
-.base-url-label { color: var(--text-dim); }
-.base-url-val { color: var(--gold); font-family: inherit; }
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 16px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a { text-decoration: none; transition: color var(--duration); }
+    .breadcrumb a:hover { color: var(--gold); }
 
-/* ─── COPY CURL ─── */
-.curl-block {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.7;
-  position: relative;
-  word-break: break-all;
-  white-space: pre-wrap;
-}
-.curl-copy-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-family: inherit;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--duration-fast);
-}
-.curl-copy-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .base-url-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .base-url-tag .tag-label {
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      font-family: var(--font-sans);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+    }
 
-/* ─── HIDDEN ─── */
-.hidden { display: none !important; }
+    .ep-title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .ep-title-row .method-badge { font-size: 0.72rem; padding: 4px 10px; }
+    .ep-path {
+      font-family: var(--font-mono);
+      font-size: 1.0rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .ep-path .path-var { color: var(--gold); }
+    .ep-summary {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .ep-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin-bottom: 22px;
+    }
 
-/* ─── SCROLLBAR GLOBAL ─── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    /* ─── Section Cards ─────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(30,47,82,0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+    .card-head-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+    .card-body { padding: 14px; }
 
-/* ─── INLINE CODE ─── */
-code {
-  font-family: 'SF Mono', 'Cascadia Code', monospace;
-  background: rgba(220,163,49,0.1);
-  border: 1px solid rgba(220,163,49,0.2);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-size: 11px;
-  color: var(--gold);
-}
+    /* ─── Params Table ──────────────────────────────────────────── */
+    .ptable { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .ptable th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 3px 8px 7px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .ptable td { padding: 8px 8px; border-bottom: 1px solid rgba(220,163,49,0.05); vertical-align: top; }
+    .ptable tr:last-child td { border-bottom: none; }
+    .pname { font-family: var(--font-mono); color: var(--gold); font-size: 0.77rem; }
+    .p-req { font-size: 0.6rem; background: rgba(248,113,113,0.15); color: #F87171; padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
+    .p-opt { font-size: 0.6rem; background: rgba(80,96,128,0.15); color: var(--text-muted); padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
+    .ptype { font-family: var(--font-mono); color: #A78BFA; font-size: 0.72rem; }
+    .pdesc { color: var(--text-secondary); font-size: 0.76rem; }
 
-/* ─── GRID INPUT ─── */
-.inline-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
+    /* ─── Form Controls ─────────────────────────────────────────── */
+    .fg { margin-bottom: 12px; }
+    .flabel {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .finput, .ftextarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      padding: 7px 10px;
+      outline: none;
+      transition: border-color var(--duration);
+    }
+    .finput:focus, .ftextarea:focus { border-color: var(--border-active); }
+    .finput::placeholder { color: var(--text-muted); }
+    .ftextarea {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      min-height: 140px;
+      resize: vertical;
+      line-height: 1.65;
+    }
 
-/* ─── TOASTS ─── */
-#toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  font-size: 12px;
-  padding: 10px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--gold);
-  border-radius: var(--radius-md);
-  color: var(--gold);
-  z-index: 9999;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity var(--duration-normal), transform var(--duration-normal);
-  pointer-events: none;
-}
-#toast.show { opacity: 1; transform: translateY(0); }
-</style>
+    /* Inline param input */
+    .param-input-inline {
+      width: 100%;
+      margin-top: 5px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 5px 8px;
+      outline: none;
+      transition: border-color var(--duration);
+    }
+    .param-input-inline:focus { border-color: var(--border-active); }
+    .param-input-inline::placeholder { color: var(--text-muted); font-family: var(--font-sans); font-size: 0.72rem; }
+
+    /* ─── Buttons ───────────────────────────────────────────────── */
+    .btn-send {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--gold);
+      color: #0A0F1E;
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 9px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--duration), transform 80ms;
+      letter-spacing: 0.02em;
+    }
+    .btn-send:hover { background: #E8B040; }
+    .btn-send:active { transform: scale(0.97); }
+    .btn-send.sending { opacity: 0.65; pointer-events: none; }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 7px 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--duration);
+    }
+    .btn-ghost:hover { border-color: var(--border-muted); color: var(--text-primary); background: var(--gold-glow); }
+
+    .action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* ─── cURL Block ────────────────────────────────────────────── */
+    .curl-wrap { margin-top: 14px; }
+    .curl-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .code-block {
+      position: relative;
+      background: var(--bg-code);
+      border: 1px solid rgba(220,163,49,0.08);
+      border-radius: var(--radius-sm);
+      padding: 14px 14px 14px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      white-space: pre;
+      color: #8B9EC4;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 7px; right: 7px;
+      background: rgba(220,163,49,0.08);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-size: 0.63rem;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      padding: 3px 8px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: all var(--duration);
+    }
+    .copy-btn:hover { background: var(--gold-glow); color: var(--gold); border-color: var(--border-active); }
+    .copy-btn.copied { color: var(--s200); border-color: rgba(52,211,153,0.3); }
+
+    /* ─── Response Codes Bar ────────────────────────────────────── */
+    .rcodes { display: flex; flex-wrap: wrap; gap: 7px; padding: 12px 14px; }
+    .rcode-chip {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      background: var(--bg-input);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: border-color var(--duration), background var(--duration);
+      user-select: none;
+    }
+    .rcode-chip:hover { border-color: var(--border-muted); background: var(--gold-glow); }
+    .rcode-chip.active { border-color: var(--border-active); }
+    .rc-num { font-family: var(--font-mono); font-weight: 700; }
+    .rc-2xx { color: var(--s200); }
+    .rc-4xx { color: var(--s401); }
+    .rc-5xx { color: #FB923C; }
+    .rc-lbl { color: var(--text-muted); font-size: 0.68rem; }
+
+    /* ─── Response Output ───────────────────────────────────────── */
+    .resp-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: rgba(30,47,82,0.8);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .status-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: var(--radius-sm);
+    }
+    .pill-2xx { background: rgba(52,211,153,0.14); color: var(--s200); }
+    .pill-4xx { background: rgba(248,113,113,0.14); color: var(--s401); }
+    .pill-5xx { background: rgba(251,146,60,0.14); color: var(--patch); }
+    .resp-meta { font-size: 0.68rem; color: var(--text-muted); }
+    .resp-section-lbl {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-muted);
+    }
+
+    /* JSON syntax colors */
+    .jk { color: #93C5FD; }
+    .js { color: #86EFAC; }
+    .jn { color: #FCA5A5; }
+    .jb { color: #C4B5FD; }
+    .jl { color: #94A3B8; }
+    .jp { color: #475569; }
+
+    /* ─── Loading spinner ───────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(10,15,30,0.3);
+      border-top-color: #0A0F1E;
+      border-radius: 50%;
+      animation: spin 0.55s linear infinite;
+    }
+
+    /* ─── Toast ─────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius);
+      padding: 9px 14px;
+      font-size: 0.78rem;
+      color: var(--text-primary);
+      z-index: 9999;
+      transform: translateY(70px);
+      opacity: 0;
+      transition: all 280ms var(--ease);
+      display: flex; align-items: center; gap: 7px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+  </style>
 </head>
 <body>
+<div id="app">
 
-<!-- TOP BAR -->
-<header class="topbar">
-  <a href="../index.html" class="topbar-back">← 文件站</a>
-  <span class="topbar-sep">|</span>
-  <div class="topbar-title">
-    <span class="bolt">⚡</span>
-    Thunder Blessing
-    <span class="topbar-tag">API EXPLORER</span>
-  </div>
-  <div class="topbar-right">
-    <div class="auth-group">
-      <span class="auth-label">BEARER TOKEN</span>
-      <div id="authStatus" class="auth-status"></div>
+  <!-- ═══ Header ═════════════════════════════════════════════════ -->
+  <header>
+    <a href="../index.html" class="header-brand" title="Back to Prototype">
+      <div class="header-logo">⚡</div>
+      <div>
+        <div class="header-title">Thunder Blessing</div>
+        <div class="header-subtitle">API Explorer</div>
+      </div>
+    </a>
+    <div class="header-divider"></div>
+
+    <div class="auth-section">
+      <span class="auth-label">Bearer</span>
       <input
-        id="tokenInput"
+        id="auth-token"
+        type="text"
         class="auth-input"
-        type="password"
-        placeholder="eyJhbGciOiJSUzI1NiIsInR5cCI6Ik..."
+        placeholder="Paste JWT token to authenticate…"
         autocomplete="off"
-      />
+        spellcheck="false"
+      >
+      <div class="auth-dot" id="auth-dot" title="No token provided"></div>
     </div>
-  </div>
-</header>
 
-<!-- LAYOUT -->
-<div class="layout">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="search-wrap">
-      <input id="searchInput" class="search-input" type="text" placeholder="Search endpoints…" />
-    </div>
-    <nav class="sidebar-nav" id="sidebarNav">
-      <!-- populated by JS -->
+    <nav class="header-nav">
+      <a href="../index.html" class="nav-link">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="1" y="1" width="6" height="6" rx="1.2"/>
+          <rect x="9" y="1" width="6" height="6" rx="1.2"/>
+          <rect x="1" y="9" width="6" height="6" rx="1.2"/>
+          <rect x="9" y="9" width="6" height="6" rx="1.2"/>
+        </svg>
+        Prototype
+      </a>
+      <a href="../../index.html" class="nav-link">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M4 1.5h8a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2.5a1 1 0 0 1 1-1z"/>
+          <path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3.5"/>
+        </svg>
+        Docs
+      </a>
     </nav>
-  </aside>
+  </header>
 
-  <!-- MAIN PANEL -->
-  <main class="main">
-    <div class="base-url-bar">
-      <span class="base-url-label">BASE URL</span>
-      <span class="base-url-val">https://api.thunderblessing.io/v1</span>
-    </div>
-    <div class="panel-scroll" id="panelScroll">
-      <div id="welcomeView" class="welcome">
-        <div class="welcome-bolt">⚡</div>
-        <h2>Thunder Blessing API Explorer</h2>
-        <p>Interactive documentation for the Thunder Blessing slot game backend. Select an endpoint from the left to explore, test, and copy cURL commands.</p>
-        <div class="welcome-stats">
-          <div class="stat-box"><span class="stat-num">5</span><span class="stat-label">Endpoints</span></div>
-          <div class="stat-box"><span class="stat-num">RS256</span><span class="stat-label">JWT Auth</span></div>
-          <div class="stat-box"><span class="stat-num">5/s</span><span class="stat-label">Rate Limit</span></div>
-          <div class="stat-box"><span class="stat-num">97.5%</span><span class="stat-label">RTP Target</span></div>
+  <!-- ═══ Body ════════════════════════════════════════════════════ -->
+  <div class="body-area">
+
+    <!-- ─── Sidebar ───────────────────────────────────────────── -->
+    <nav class="sidebar">
+      <div class="sidebar-search">
+        <div class="search-wrap">
+          <span class="search-icon">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/>
+            </svg>
+          </span>
+          <input
+            id="search-input"
+            type="text"
+            class="sidebar-search-input"
+            placeholder="Search endpoints…"
+            autocomplete="off"
+          >
         </div>
-        <p class="welcome-hint">Paste a Bearer token in the top-right to enable Try It requests.</p>
       </div>
-      <div id="endpointView" class="hidden">
-        <!-- populated by JS -->
+      <div class="sidebar-list" id="sidebar-list"></div>
+    </nav>
+
+    <!-- ─── Main Panel ───────────────────────────────────────── -->
+    <main class="main-panel" id="main-panel">
+
+      <!-- Welcome -->
+      <div class="welcome" id="welcome-view">
+        <div class="welcome-glyph">⚡</div>
+        <h2>Thunder Blessing API Explorer</h2>
+        <p>Select an endpoint from the sidebar to view documentation, fill in parameters, send mock requests, and generate cURL commands.</p>
+        <div class="welcome-chips">
+          <span class="welcome-chip">11 endpoints</span>
+          <span class="welcome-chip">5 groups</span>
+          <span class="welcome-chip">Mock engine</span>
+          <span class="welcome-chip">cURL generator</span>
+          <span class="welcome-chip">Shareable links</span>
+        </div>
       </div>
-    </div>
-  </main>
 
-</div>
+      <!-- Endpoint Detail -->
+      <div class="endpoint-view hidden" id="endpoint-view">
 
-<div id="toast"></div>
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a href="#" id="bc-home">API Explorer</a>
+          <span>›</span>
+          <span id="bc-group" style="color:var(--text-secondary)"></span>
+          <span>›</span>
+          <span id="bc-name" style="color:var(--text-primary)"></span>
+        </div>
 
-<script>
-/* =====================================================================
-   MOCK DATABASE
-   ===================================================================== */
-const MOCK_DB = {
-  spinResults: [
-    {
-      spinId: "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-      sessionId: "sess-001",
-      playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
-      betLevel: 5,
-      baseBet: 0.50,
-      totalBet: 0.50,
-      totalWin: 2.50,
-      newBalance: 997.75,
-      currency: "USD",
-      extraBetActive: false,
-      buyFeatureActive: false,
-      initialGrid: [
-        ["P2","L1","P4","W","L3"],
-        ["L2","P1","L4","P3","L1"],
-        ["P4","L3","W","L2","P2"]
-      ],
-      finalGrid: [
-        ["L3","P2","L1","P4","W"],
-        ["P2","L2","P1","L4","P3"],
-        ["L4","P4","L3","W","L2"],
-        ["P3","L1","P2","L3","P4"]
-      ],
-      finalRows: 4,
-      cascadeSequence: {
-        steps: [
-          {
-            index: 0,
-            grid: [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
-            winLines: [{ paylineId: 3, symbolId: "L2", matchCount: 3, positions: [{"row":1,"col":0},{"row":1,"col":1},{"row":1,"col":2}], payout: 1.25 }],
-            stepWin: 1.25,
-            newLightningMarks: [{"row":1,"col":0},{"row":1,"col":1},{"row":1,"col":2}],
-            rows: 3
-          },
-          {
-            index: 1,
-            grid: [["L3","P2","L1","P4","W"],["P2","L2","P1","L4","P3"],["L4","P4","L3","W","L2"],["P3","L1","P2","L3","P4"]],
-            winLines: [{ paylineId: 1, symbolId: "P4", matchCount: 3, positions: [{"row":0,"col":3},{"row":2,"col":1},{"row":3,"col":4}], payout: 1.25 }],
-            stepWin: 1.25,
-            newLightningMarks: [{"row":0,"col":3},{"row":2,"col":1},{"row":3,"col":4}],
-            rows: 4
-          }
-        ],
-        totalWin: 2.50,
-        finalGrid: [["L3","P2","L1","P4","W"],["P2","L2","P1","L4","P3"],["L4","P4","L3","W","L2"],["P3","L1","P2","L3","P4"]],
-        finalRows: 4,
-        lightningMarks: { positions: [{"row":1,"col":0},{"row":1,"col":1},{"row":1,"col":2},{"row":0,"col":3},{"row":2,"col":1},{"row":3,"col":4}], count: 6 }
-      },
-      thunderBlessingTriggered: false, thunderBlessingFirstHit: false, thunderBlessingSecondHit: false,
-      upgradedSymbol: null, thunderBlessingResult: null,
-      coinTossTriggered: false, coinTossResult: null,
-      fgTriggered: false, fgMultiplier: null, fgRounds: [], fgBonusMultiplier: null, totalFGWin: null,
-      sessionFloorApplied: false, sessionFloorValue: null, nearMissApplied: false,
-      engineVersion: "1.0.0", timestamp: new Date().toISOString()
-    },
-    {
-      spinId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      sessionId: "sess-002",
-      playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
-      betLevel: 7,
-      baseBet: 1.00,
-      totalBet: 1.00,
-      totalWin: 364.75,
-      newBalance: 1364.25,
-      currency: "USD",
-      extraBetActive: false,
-      buyFeatureActive: false,
-      initialGrid: [
-        ["P1","L2","SC","P3","L4"],
-        ["L1","P2","L3","W","P4"],
-        ["P3","L4","P1","L2","L1"]
-      ],
-      finalGrid: [
-        ["L2","P2","L3","P1","L4"],
-        ["P4","L1","P3","L2","P2"],
-        ["L3","P4","L1","P3","L3"],
-        ["P2","L3","P4","L1","P4"],
-        ["L1","P1","L2","P4","L2"],
-        ["P3","L2","P1","L3","P1"]
-      ],
-      finalRows: 6,
-      cascadeSequence: {
-        steps: [{
-          index: 0,
-          grid: [["P1","L2","SC","P3","L4"],["L1","P2","L3","W","P4"],["P3","L4","P1","L2","L1"]],
-          winLines: [{ paylineId: 7, symbolId: "P1", matchCount: 3, positions: [{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}], payout: 3.00 }],
-          stepWin: 3.00,
-          newLightningMarks: [{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}],
-          rows: 3
-        }],
-        totalWin: 3.00,
-        finalGrid: [["L2","P2","L3","P1","L4"],["P4","L1","P3","L2","P2"],["L3","P4","L1","P3","L3"],["P2","L3","P4","L1","P4"],["L1","P1","L2","P4","L2"],["P3","L2","P1","L3","P1"]],
-        finalRows: 6,
-        lightningMarks: { positions: [{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}], count: 3 }
-      },
-      thunderBlessingTriggered: true, thunderBlessingFirstHit: true, thunderBlessingSecondHit: false,
-      upgradedSymbol: "P2",
-      thunderBlessingResult: { marksConverted: [{"row":0,"col":0},{"row":1,"col":1},{"row":2,"col":2}], convertedSymbol: "P2", firstHitApplied: true, secondHitApplied: false },
-      coinTossTriggered: true, coinTossResult: "HEADS",
-      fgTriggered: true, fgMultiplier: 7,
-      fgRounds: [
-        { round: 1, multiplier: 3, bonusMultiplier: 5, grid: [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]], cascadeSequence: { steps: [], totalWin: 8.50, finalGrid: [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]], finalRows: 3, lightningMarks: { positions: [{"row":0,"col":4}], count: 1 } }, roundWin: 8.50, coinTossResult: "HEADS", lightningMarksBefore: { positions: [], count: 0 }, lightningMarksAfter: { positions: [{"row":0,"col":4}], count: 1 } },
-        { round: 2, multiplier: 7, bonusMultiplier: 5, grid: [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]], cascadeSequence: { steps: [], totalWin: 4.95, finalGrid: [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]], finalRows: 3, lightningMarks: { positions: [], count: 0 } }, roundWin: 4.95, coinTossResult: "TAILS", lightningMarksBefore: { positions: [{"row":0,"col":4}], count: 1 }, lightningMarksAfter: { positions: [], count: 0 } }
-      ],
-      fgBonusMultiplier: 5,
-      totalFGWin: 13.45,
-      sessionFloorApplied: false, sessionFloorValue: null, nearMissApplied: false,
-      engineVersion: "1.0.0", timestamp: new Date().toISOString()
-    },
-    {
-      spinId: "deadbeef-cafe-1234-5678-90abcdef1234",
-      sessionId: "sess-003",
-      playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
-      betLevel: 10,
-      baseBet: 2.00,
-      totalBet: 2.00,
-      totalWin: 7500.00,
-      newBalance: 8499.75,
-      currency: "USD",
-      extraBetActive: false,
-      buyFeatureActive: false,
-      initialGrid: [
-        ["P1","SC","P1","SC","P1"],
-        ["L1","P2","L3","W","P3"],
-        ["P3","L4","P1","L2","L1"]
-      ],
-      finalGrid: [
-        ["P1","P2","P3","P4","P1"],
-        ["P2","P1","P2","P1","P2"],
-        ["P1","P2","P1","P2","P1"],
-        ["P3","P1","P3","P1","P3"],
-        ["P1","P3","P1","P3","P1"],
-        ["P2","P1","P2","P1","P2"]
-      ],
-      finalRows: 6,
-      cascadeSequence: {
-        steps: [{
-          index: 0,
-          grid: [["P1","SC","P1","SC","P1"],["L1","P2","L3","W","P3"],["P3","L4","P1","L2","L1"]],
-          winLines: [{ paylineId: 1, symbolId: "P1", matchCount: 5, positions: [{"row":0,"col":0},{"row":0,"col":1},{"row":0,"col":2},{"row":0,"col":3},{"row":0,"col":4}], payout: 100.00 }],
-          stepWin: 100.00,
-          newLightningMarks: [{"row":0,"col":0},{"row":0,"col":1},{"row":0,"col":2},{"row":0,"col":3},{"row":0,"col":4}],
-          rows: 6
-        }],
-        totalWin: 100.00,
-        finalGrid: [["P1","P2","P3","P4","P1"],["P2","P1","P2","P1","P2"],["P1","P2","P1","P2","P1"],["P3","P1","P3","P1","P3"],["P1","P3","P1","P3","P1"],["P2","P1","P2","P1","P2"]],
-        finalRows: 6,
-        lightningMarks: { positions: [{"row":0,"col":0},{"row":0,"col":1},{"row":0,"col":2},{"row":0,"col":3},{"row":0,"col":4}], count: 5 }
-      },
-      thunderBlessingTriggered: true, thunderBlessingFirstHit: true, thunderBlessingSecondHit: true,
-      upgradedSymbol: "P1",
-      thunderBlessingResult: { marksConverted: [{"row":0,"col":0},{"row":0,"col":1},{"row":0,"col":2},{"row":0,"col":3},{"row":0,"col":4}], convertedSymbol: "P1", firstHitApplied: true, secondHitApplied: true },
-      coinTossTriggered: true, coinTossResult: "HEADS",
-      fgTriggered: true, fgMultiplier: 77,
-      fgRounds: [
-        { round: 1, multiplier: 3, bonusMultiplier: 20, grid: [["P1","W","P1","W","P1"],["P2","P1","P2","P1","P2"],["P1","P2","P1","P2","P1"]], cascadeSequence: { steps: [], totalWin: 45.00, finalGrid: [["P1","W","P1","W","P1"],["P2","P1","P2","P1","P2"],["P1","P2","P1","P2","P1"]], finalRows: 3, lightningMarks: { positions: [{"row":0,"col":0},{"row":0,"col":2},{"row":0,"col":4}], count: 3 } }, roundWin: 45.00, coinTossResult: "HEADS", lightningMarksBefore: { positions: [], count: 0 }, lightningMarksAfter: { positions: [{"row":0,"col":0},{"row":0,"col":2},{"row":0,"col":4}], count: 3 } }
-      ],
-      fgBonusMultiplier: 20,
-      totalFGWin: 45.00,
-      sessionFloorApplied: false, sessionFloorValue: null, nearMissApplied: false,
-      engineVersion: "1.0.0", timestamp: new Date().toISOString()
-    }
-  ],
-  sessions: [
-    { sessionId: "sess-001", playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", status: "IDLE", baseBet: 0.50, currency: "USD", extraBet: false, buyFeature: false, fgRound: 0, fgMultiplier: null, fgBonusMultiplier: null, totalFGWin: 0, lightningMarks: { positions: [], count: 0 }, floorValue: null, completedRounds: [], remainingMaxRounds: 5, ttlSeconds: 1437 },
-    { sessionId: "sess-002", playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", status: "FG_ACTIVE", baseBet: 1.00, currency: "USD", extraBet: false, buyFeature: false, fgRound: 2, fgMultiplier: 7, fgBonusMultiplier: 5, totalFGWin: 8.50, lightningMarks: { positions: [{"row":0,"col":4},{"row":1,"col":2}], count: 2 }, floorValue: null, completedRounds: [{ round: 1, multiplier: 3, bonusMultiplier: 5, grid: [], cascadeSequence: { steps: [], totalWin: 8.50, finalGrid: [], finalRows: 3, lightningMarks: { positions: [], count: 0 } }, roundWin: 8.50, coinTossResult: "HEADS", lightningMarksBefore: { positions: [], count: 0 }, lightningMarksAfter: { positions: [{"row":0,"col":4},{"row":1,"col":2}], count: 2 } }], remainingMaxRounds: 4, ttlSeconds: 243 },
-    { sessionId: "sess-003", playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", status: "SPINNING", baseBet: 2.00, currency: "USD", extraBet: false, buyFeature: false, fgRound: 0, fgMultiplier: null, fgBonusMultiplier: null, totalFGWin: 0, lightningMarks: { positions: [], count: 0 }, floorValue: null, completedRounds: [], remainingMaxRounds: 5, ttlSeconds: 1792 }
-  ],
-  config: {
-    engineVersion: "1.0.0",
-    betRange: {
-      USD: {
-        minBetLevel: 1, maxBetLevel: 20,
-        levels: [
-          { level: 1,  baseBet: 0.10, extraBetCost: 0.30,  buyFeatureCost: 10.00  },
-          { level: 5,  baseBet: 0.50, extraBetCost: 1.50,  buyFeatureCost: 50.00  },
-          { level: 7,  baseBet: 1.00, extraBetCost: 3.00,  buyFeatureCost: 100.00 },
-          { level: 10, baseBet: 2.00, extraBetCost: 6.00,  buyFeatureCost: 200.00 },
-          { level: 15, baseBet: 5.00, extraBetCost: 15.00, buyFeatureCost: 500.00 },
-          { level: 20, baseBet: 10.00,extraBetCost: 30.00, buyFeatureCost: 1000.00}
-        ]
-      },
-      TWD: {
-        minBetLevel: 1, maxBetLevel: 320,
-        levels: [
-          { level: 1,   baseBet: 3,   extraBetCost: 9,    buyFeatureCost: 300   },
-          { level: 10,  baseBet: 30,  extraBetCost: 90,   buyFeatureCost: 3000  },
-          { level: 50,  baseBet: 150, extraBetCost: 450,  buyFeatureCost: 15000 },
-          { level: 100, baseBet: 300, extraBetCost: 900,  buyFeatureCost: 30000 },
-          { level: 320, baseBet: 600, extraBetCost: 1800, buyFeatureCost: 60000 }
-        ]
-      }
-    },
-    gameParameters: {
-      reels: 5, initialRows: 3, maxRows: 6,
-      paylines: { at3Rows: 25, at4Rows: 33, at5Rows: 45, at6Rows: 57 },
-      symbols: [
-        { id: "W",  name: "Wild (Divine Lightning)", isWild: true,  isScatter: false },
-        { id: "SC", name: "Thunder Blessing Scatter", isWild: false, isScatter: true  },
-        { id: "P1", name: "Zeus",    isWild: false, isScatter: false, tier: "premium" },
-        { id: "P2", name: "Pegasus", isWild: false, isScatter: false, tier: "premium" },
-        { id: "P3", name: "Athena",  isWild: false, isScatter: false, tier: "premium" },
-        { id: "P4", name: "Eagle",   isWild: false, isScatter: false, tier: "premium" },
-        { id: "L1", name: "Z",       isWild: false, isScatter: false, tier: "low" },
-        { id: "L2", name: "E",       isWild: false, isScatter: false, tier: "low" },
-        { id: "L3", name: "U",       isWild: false, isScatter: false, tier: "low" },
-        { id: "L4", name: "S",       isWild: false, isScatter: false, tier: "low" }
-      ],
-      fgMultiplierSequence: [3, 7, 17, 27, 77],
-      fgBonusMultipliers: [1, 5, 20, 100],
-      coinTossProbabilities: {
-        stage0_entry: 0.80, stage1_x7: 0.68, stage2_x17: 0.56, stage3_x27: 0.48, stage4_x77: 0.40
-      },
-      maxWin: { mainGame: 30000, buyFeature: 90000, extraBetBuyFeature: 90000, unit: "× baseBet" },
-      buyFeatureSessionFloor: 20,
-      extraBetCostMultiplier: 3,
-      buyFeatureCostMultiplier: 100
-    },
-    rtpTargets: {
-      mainGame:    { target: 97.5, tolerance: 1.0, unit: "%" },
-      extraBet:    { target: 97.5, tolerance: 1.0, unit: "%" },
-      buyFeature:  { target: 97.5, tolerance: 1.0, unit: "%" },
-      ebBuyFeature:{ target: 97.5, tolerance: 1.0, unit: "%" }
-    }
-  }
-};
+        <!-- Base URL tag -->
+        <div class="base-url-tag">
+          <span class="tag-label">Base URL</span>
+          https://api.thunder-blessing.example.com/v1
+        </div>
 
-/* =====================================================================
-   ENDPOINT DEFINITIONS
-   ===================================================================== */
-const ENDPOINTS = [
-  {
-    id: "post-spin",
-    method: "POST",
-    path: "/v1/spin",
-    group: "Game",
-    name: "Execute Spin",
-    summary: "Execute a single spin and receive the complete FullSpinOutcome including all Cascade steps, Thunder Blessing results, Coin Toss outcome, and all Free Game rounds. Single-trip endpoint — one POST returns everything needed to render the entire game round.",
-    auth: true,
-    rateLimit: "5 req/s",
-    params: [],
-    bodyFields: [
-      { name: "playerId", type: "string (UUID)", required: true, desc: "Player UUID — must match JWT sub claim" },
-      { name: "sessionId", type: "string | null", required: false, desc: "Session identifier (format: sess-{uuid}). Null for a new spin." },
-      { name: "betLevel", type: "integer (1–320)", required: true, desc: "Bet level index. USD: 1–20. TWD: 1–320." },
-      { name: "currency", type: "enum", required: true, desc: "Player's selected currency. Determines baseBet from BetRangeConfig.", enum: ["USD", "TWD"] },
-      { name: "extraBet", type: "boolean", required: true, desc: "If true: spin cost ×3; guaranteed Scatter in grid." },
-      { name: "buyFeature", type: "boolean", required: true, desc: "If true: spin cost ×100; guaranteed Heads×5 FG; session floor ≥ 20× baseBet." }
-    ],
-    presets: [
-      {
-        label: "Normal spin",
-        body: { playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", sessionId: null, betLevel: 5, currency: "USD", extraBet: false, buyFeature: false }
-      },
-      {
-        label: "Extra Bet",
-        body: { playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", sessionId: null, betLevel: 7, currency: "USD", extraBet: true, buyFeature: false }
-      },
-      {
-        label: "Buy Feature",
-        body: { playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", sessionId: null, betLevel: 5, currency: "USD", extraBet: false, buyFeature: true }
-      },
-      {
-        label: "TWD spin",
-        body: { playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234", sessionId: null, betLevel: 10, currency: "TWD", extraBet: false, buyFeature: false }
-      }
-    ],
-    getMockResponse(body) {
-      // Normal spin → index 0, TB triggered → index 1, big win → index 2
-      let idx = 0;
-      try {
-        const parsed = typeof body === 'string' ? JSON.parse(body) : body;
-        if (parsed.buyFeature) idx = 2;
-        else if (parsed.extraBet) idx = 1;
-        else if (parsed.betLevel >= 10) idx = 2;
-        else if (parsed.betLevel >= 7) idx = 1;
-      } catch(e) {}
-      const r = MOCK_DB.spinResults[idx];
-      const ts = new Date().toISOString();
-      return { success: true, requestId: randomUUID(), timestamp: ts, data: { ...r, timestamp: ts, newBalance: (999.00 - r.totalBet + r.totalWin).toFixed(2) - 0 } };
-    },
-    errors: [
-      { status: 400, code: "INSUFFICIENT_FUNDS", desc: "balance < totalBet" },
-      { status: 400, code: "INVALID_BET_LEVEL", desc: "betLevel out of range for given currency" },
-      { status: 400, code: "INVALID_CURRENCY", desc: "currency is not USD or TWD" },
-      { status: 400, code: "BUY_FEATURE_NOT_ALLOWED", desc: "buyFeature: true at an invalid bet level" },
-      { status: 400, code: "VALIDATION_ERROR", desc: "Missing required field, wrong type, or invalid enum" },
-      { status: 401, code: "UNAUTHORIZED", desc: "JWT missing, expired, or invalid signature" },
-      { status: 403, code: "FORBIDDEN", desc: "Account suspended" },
-      { status: 409, code: "SPIN_IN_PROGRESS", desc: "Redis concurrency lock already held for this session" },
-      { status: 422, code: "VALIDATION_ERROR", desc: "Semantically invalid payload (extraBet/buyFeature unavailable)" },
-      { status: 429, code: "RATE_LIMITED", desc: "More than 5 req/s per player" },
-      { status: 500, code: "INTERNAL_ERROR", desc: "Unexpected server-side error" },
-      { status: 503, code: "SERVICE_UNAVAILABLE", desc: "Circuit breaker open — DB or cache unavailable" },
-      { status: 504, code: "ENGINE_TIMEOUT", desc: "Engine took > 2000ms; compensating credit issued" }
-    ]
-  },
-  {
-    id: "get-session",
-    method: "GET",
-    path: "/v1/session/:sessionId",
-    group: "Session",
-    name: "Get Session State",
-    summary: "Reconnect endpoint. Returns current in-flight FG session state from Redis. Used when the client disconnects mid-FG sequence. Session expires after 1800s of inactivity.",
-    auth: true,
-    rateLimit: "5 req/s",
-    params: [
-      { name: "sessionId", type: "string", in: "path", required: true, desc: "Session ID returned in POST /v1/spin response (format: sess-{uuid})", enum: ["sess-001","sess-002","sess-003"] }
-    ],
-    bodyFields: [],
-    presets: [],
-    getMockResponse(body, pathParams) {
-      const sid = pathParams?.sessionId || "sess-001";
-      const session = MOCK_DB.sessions.find(s => s.sessionId === sid) || MOCK_DB.sessions[1];
-      return { success: true, requestId: randomUUID(), timestamp: new Date().toISOString(), data: { ...session, ttlSeconds: Math.floor(Math.random() * 1500 + 100) } };
-    },
-    errors: [
-      { status: 401, code: "UNAUTHORIZED", desc: "JWT missing or expired" },
-      { status: 403, code: "FORBIDDEN", desc: "playerId in session does not match JWT sub" },
-      { status: 404, code: "SESSION_NOT_FOUND", desc: "Session ID does not exist or TTL expired (1800s)" }
-    ]
-  },
-  {
-    id: "get-config",
-    method: "GET",
-    path: "/v1/config",
-    group: "Game",
-    name: "Get Game Config",
-    summary: "Returns game configuration for the frontend: bet level table (USD and TWD), game parameters summary, and RTP targets. Used at game startup to initialize the bet selector UI.",
-    auth: true,
-    rateLimit: "5 req/s",
-    params: [
-      { name: "currency", type: "enum", in: "query", required: false, desc: "Filter to USD or TWD bet levels only. Omit to return both.", enum: ["USD", "TWD"] }
-    ],
-    bodyFields: [],
-    presets: [],
-    getMockResponse(body) {
-      return { success: true, requestId: randomUUID(), timestamp: new Date().toISOString(), data: MOCK_DB.config };
-    },
-    errors: [
-      { status: 401, code: "UNAUTHORIZED", desc: "JWT missing or expired" },
-      { status: 429, code: "RATE_LIMITED", desc: "Rate limit exceeded" },
-      { status: 500, code: "INTERNAL_ERROR", desc: "Unexpected server error" }
-    ]
-  },
-  {
-    id: "get-health",
-    method: "GET",
-    path: "/health",
-    group: "Operations",
-    name: "Health Check",
-    summary: "Kubernetes liveness probe. Returns immediately without checking dependencies. If the process is up and the event loop is running, this returns 200.",
-    auth: false,
-    rateLimit: "None",
-    params: [],
-    bodyFields: [],
-    presets: [],
-    getMockResponse() {
-      return { status: "ok", timestamp: new Date().toISOString() };
-    },
-    errors: []
-  },
-  {
-    id: "get-ready",
-    method: "GET",
-    path: "/ready",
-    group: "Operations",
-    name: "Readiness Check",
-    summary: "Kubernetes readiness probe. Checks live connectivity to Supabase PostgreSQL and Redis before marking the pod ready. A pod that fails readiness is removed from the load balancer.",
-    auth: false,
-    rateLimit: "None",
-    params: [],
-    bodyFields: [],
-    presets: [],
-    getMockResponse() {
-      return {
-        status: "ready",
-        timestamp: new Date().toISOString(),
-        checks: {
-          postgresql: { status: "ok", latencyMs: 4 },
-          redis:      { status: "ok", latencyMs: 1 }
-        }
-      };
-    },
-    errors: [
-      { status: 503, code: "SERVICE_UNAVAILABLE", desc: "PostgreSQL or Redis check failed" }
-    ]
-  }
-];
+        <!-- Title -->
+        <div class="ep-title-row" id="ep-title"></div>
+        <div class="ep-summary" id="ep-summary"></div>
+        <p class="ep-desc" id="ep-desc"></p>
 
-/* =====================================================================
-   UTILITIES
-   ===================================================================== */
-function randomUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-  });
-}
+        <!-- Parameters -->
+        <div class="card" id="params-card">
+          <div class="card-head">
+            <div class="card-head-dot"></div>
+            Parameters
+          </div>
+          <div id="params-body"></div>
+        </div>
 
-function escapeHTML(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function syntaxHighlight(json) {
-  // Serialize to a string first, then HTML-escape the entire payload so that
-  // any <, >, &, or quote characters in JSON values cannot break out of the
-  // <span> tags we wrap them in.  The regex then matches on the already-escaped
-  // text, so all class labels and token boundaries remain correct.
-  if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
-  const safe = escapeHTML(json);
-  return safe.replace(/(&quot;(\\u[a-zA-Z0-9]{4}|\\[^u]|[^&\\"])*&quot;(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
-    let cls = 'json-number';
-    if (/^&quot;/.test(match)) {
-      cls = /:$/.test(match) ? 'json-key' : 'json-string';
-    } else if (/true|false/.test(match)) {
-      cls = 'json-bool';
-    } else if (/null/.test(match)) {
-      cls = 'json-null';
-    }
-    return `<span class="${cls}">${match}</span>`;
-  });
-}
-
-function buildCurl(endpoint, body, pathParams) {
-  const base = 'https://api.thunderblessing.io';
-  let url = base + endpoint.path;
-  if (pathParams) {
-    Object.entries(pathParams).forEach(([k, v]) => { url = url.replace(`:${k}`, v); });
-  }
-  const token = document.getElementById('tokenInput').value || '<your_bearer_token>';
-  let cmd = `curl -X ${endpoint.method} \\\n  "${url}"`;
-  cmd += ` \\\n  -H "Authorization: Bearer ${token}"`;
-  if (endpoint.method !== 'GET') {
-    cmd += ` \\\n  -H "Content-Type: application/json"`;
-    cmd += ` \\\n  -d '${typeof body === 'string' ? body : JSON.stringify(body, null, 2)}'`;
-  }
-  return cmd;
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
-
-/* =====================================================================
-   STATE
-   ===================================================================== */
-let activeEndpointId = null;
-
-/* =====================================================================
-   SIDEBAR
-   ===================================================================== */
-function buildSidebar(filter = '') {
-  const nav = document.getElementById('sidebarNav');
-  const groups = {};
-  ENDPOINTS.forEach(ep => {
-    if (filter && !ep.path.toLowerCase().includes(filter.toLowerCase()) && !ep.name.toLowerCase().includes(filter.toLowerCase())) return;
-    if (!groups[ep.group]) groups[ep.group] = [];
-    groups[ep.group].push(ep);
-  });
-  nav.innerHTML = '';
-  Object.entries(groups).forEach(([group, eps]) => {
-    const gl = document.createElement('div');
-    gl.className = 'group-label';
-    gl.textContent = group;
-    nav.appendChild(gl);
-    eps.forEach(ep => {
-      const item = document.createElement('a');
-      item.className = 'ep-item' + (ep.id === activeEndpointId ? ' active' : '');
-      item.href = '#endpoint-' + ep.id;
-      item.dataset.id = ep.id;
-      item.innerHTML = `
-        <span class="method-badge method-${ep.method}">${ep.method}</span>
-        <span class="ep-path">${ep.path}</span>
-      `;
-      item.addEventListener('click', e => { e.preventDefault(); selectEndpoint(ep.id); });
-      nav.appendChild(item);
-    });
-  });
-}
-
-/* =====================================================================
-   ENDPOINT VIEW
-   ===================================================================== */
-function selectEndpoint(id) {
-  activeEndpointId = id;
-  history.replaceState(null, '', '#endpoint-' + id);
-  buildSidebar(document.getElementById('searchInput').value);
-
-  const ep = ENDPOINTS.find(e => e.id === id);
-  if (!ep) return;
-
-  document.getElementById('welcomeView').classList.add('hidden');
-  document.getElementById('endpointView').classList.remove('hidden');
-
-  renderEndpoint(ep);
-}
-
-function renderEndpoint(ep) {
-  const view = document.getElementById('endpointView');
-  const methodClass = `method-${ep.method}`;
-  const methodLgClass = ep.method === 'GET' ? 'method-GET' : 'method-POST';
-
-  // Build params section
-  let paramsHTML = '';
-  if (ep.params.length > 0) {
-    paramsHTML = `
-      <div class="section">
-        <div class="section-title">Parameters</div>
-        <table class="params-table">
-          <thead><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
-          <tbody>
-            ${ep.params.map(p => `
-              <tr>
-                <td><span class="param-name">${p.name}</span></td>
-                <td><span class="param-type">${p.in || 'query'}</span></td>
-                <td><span class="param-type">${p.type}</span></td>
-                <td>${p.required ? '<span class="param-req">required</span>' : '<span class="param-opt">optional</span>'}</td>
-                <td>
-                  <span class="param-desc">${p.desc}</span>
-                  ${p.enum ? `<div class="param-enum">${p.enum.map(v => `<button class="chip" data-param="${p.name}" data-val="${v}">${v}</button>`).join('')}</div>` : ''}
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  // Build body fields
-  let bodyFieldsHTML = '';
-  if (ep.bodyFields.length > 0) {
-    bodyFieldsHTML = `
-      <div class="section">
-        <div class="section-title">Request Body Schema</div>
-        <table class="params-table">
-          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
-          <tbody>
-            ${ep.bodyFields.map(f => `
-              <tr>
-                <td><span class="param-name">${f.name}</span></td>
-                <td><span class="param-type">${f.type}</span></td>
-                <td>${f.required ? '<span class="param-req">required</span>' : '<span class="param-opt">optional</span>'}</td>
-                <td>
-                  <span class="param-desc">${f.desc}</span>
-                  ${f.enum ? `<div class="param-enum">${f.enum.map(v => `<button class="chip" data-field="${f.name}" data-val="${v}">${v}</button>`).join('')}</div>` : ''}
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  // Build errors section
-  let errorsHTML = '';
-  if (ep.errors.length > 0) {
-    errorsHTML = `
-      <div class="section">
-        <div class="section-title">Error Responses</div>
-        <table class="error-table">
-          <thead><tr><th>HTTP</th><th>Code</th><th>Description</th></tr></thead>
-          <tbody>
-            ${ep.errors.map(e => {
-              const cls = e.status < 400 ? 'http-2xx' : e.status < 500 ? 'http-4xx' : 'http-5xx';
-              return `<tr>
-                <td><span class="http-code ${cls}">${e.status}</span></td>
-                <td><span class="err-code">${e.code}</span></td>
-                <td><span class="err-desc">${e.desc}</span></td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  // Default body
-  const defaultBody = ep.presets.length > 0 ? JSON.stringify(ep.presets[0].body, null, 2) : '{}';
-  const defaultPathParam = ep.params.find(p => p.in === 'path');
-
-  view.innerHTML = `
-    <div class="ep-header">
-      <span class="method-badge ep-method-lg ${methodLgClass}">${ep.method}</span>
-      <div class="ep-info">
-        <h1>${ep.name}</h1>
-        <div class="ep-url-display">${ep.path}</div>
-      </div>
-    </div>
-    <p class="ep-summary">${ep.summary}</p>
-    <div class="tags-row">
-      ${ep.auth ? '<span class="tag tag-auth">⚿ JWT Required</span>' : '<span class="tag tag-noauth">Public</span>'}
-      ${ep.rateLimit !== 'None' ? `<span class="tag tag-rate">⏱ Rate Limit: ${ep.rateLimit}</span>` : ''}
-    </div>
-
-    ${paramsHTML}
-    ${bodyFieldsHTML}
-
-    <div class="section">
-      <div class="section-title">Try It</div>
-      <div class="try-section">
-        <div class="try-header">
-          <span class="try-title">Request</span>
-          <div class="try-actions">
-            <button class="btn btn-secondary" id="copyCurlBtn">Copy as cURL</button>
-            <button class="btn btn-primary" id="sendBtn">⚡ Send Request</button>
+        <!-- Request Body -->
+        <div class="card hidden" id="body-card">
+          <div class="card-head">
+            <div class="card-head-dot"></div>
+            Request Body <span style="color:var(--text-muted);margin-left:6px;font-weight:400;text-transform:none;letter-spacing:0">· application/json</span>
+          </div>
+          <div class="card-body">
+            <div class="fg">
+              <label class="flabel">JSON Body</label>
+              <textarea class="ftextarea" id="body-textarea" spellcheck="false"></textarea>
+            </div>
           </div>
         </div>
-        <div class="try-body">
-          ${defaultPathParam ? `
-            <div class="form-row">
-              <label>${defaultPathParam.name} <span class="param-req">(path)</span></label>
-              ${defaultPathParam.enum ? `
-                <div class="presets-row" style="margin-bottom: 6px;">
-                  ${defaultPathParam.enum.map((v, i) => `<button class="preset-btn path-preset" data-val="${v}">${v}</button>`).join('')}
-                </div>
-              ` : ''}
-              <input type="text" id="pathParamInput" class="form-input" value="${defaultPathParam.enum ? defaultPathParam.enum[0] : ''}" placeholder="${defaultPathParam.name}" />
+
+        <!-- Try It -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-dot"></div>
+            Try It
+          </div>
+          <div class="card-body">
+            <div class="action-row">
+              <button class="btn-send" id="send-btn" onclick="executeRequest()">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polygon points="3,2 15,8 3,14"/>
+                </svg>
+                Send Request
+              </button>
+              <button class="btn-ghost" onclick="copyCurl()">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <rect x="4" y="4" width="10" height="10" rx="1.2"/>
+                  <path d="M2 12V2.5A.5.5 0 0 1 2.5 2H12"/>
+                </svg>
+                Copy cURL
+              </button>
             </div>
-          ` : ''}
-          ${ep.bodyFields.length > 0 ? `
-            <div class="form-row">
-              <label>Request Body</label>
-              ${ep.presets.length > 0 ? `
-                <div class="presets-row">
-                  ${ep.presets.map((p, i) => `<button class="preset-btn body-preset" data-idx="${i}">${p.label}</button>`).join('')}
-                </div>
-              ` : ''}
-              <textarea id="bodyInput" class="form-textarea" style="min-height: 160px;">${defaultBody}</textarea>
+
+            <div class="curl-wrap">
+              <div class="curl-label">cURL Command</div>
+              <div class="code-block" id="curl-block">
+                <button class="copy-btn" id="curl-copy-btn" onclick="copyCurlInline()">Copy</button><span id="curl-content">Select parameters to generate command.</span>
+              </div>
             </div>
-          ` : ''}
-          ${ep.params.filter(p => p.in === 'query').length > 0 ? `
-            <div class="form-row">
-              <label>Query Parameters</label>
-              ${ep.params.filter(p => p.in === 'query').map(p => `
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                  <span style="font-size:11px;color:var(--gold);min-width:80px;">${p.name}</span>
-                  ${p.enum ? `
-                    <select id="queryparam_${p.name}" class="form-select" style="max-width:160px;">
-                      <option value="">— any —</option>
-                      ${p.enum.map(v => `<option value="${v}">${v}</option>`).join('')}
-                    </select>
-                  ` : `<input type="text" id="queryparam_${p.name}" class="form-input" style="max-width:200px;" placeholder="optional" />`}
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div id="responseSection" class="response-section hidden">
-      <div class="section-title">Response</div>
-      <div class="response-header">
-        <span id="statusBadge" class="status-badge"></span>
-        <span id="responseTime" class="response-time"></span>
-      </div>
-      <div class="response-body">
-        <pre id="responseBody"></pre>
-      </div>
-    </div>
+        <!-- Response Codes Reference -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-dot"></div>
+            Response Codes
+            <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);margin-left:6px;">Click to preview</span>
+          </div>
+          <div class="rcodes" id="rcodes"></div>
+        </div>
 
-    <div class="section" style="margin-top: 20px;">
-      <div class="section-title">cURL</div>
-      <div class="curl-block" id="curlBlock">
-        <button class="curl-copy-btn" id="curlCopyBtn2">Copy</button>
-        <span id="curlText"></span>
-      </div>
-    </div>
+        <!-- Response Output -->
+        <div class="card" id="resp-card" style="display:none;">
+          <div class="resp-head">
+            <span class="resp-section-lbl">Response</span>
+            <span class="status-pill" id="resp-pill"></span>
+            <span class="resp-meta" id="resp-meta"></span>
+          </div>
+          <div class="card-body">
+            <div class="code-block" id="resp-block">
+              <button class="copy-btn" id="resp-copy-btn" onclick="copyResponse()">Copy</button><span id="resp-content"></span>
+            </div>
+          </div>
+        </div>
 
-    ${errorsHTML}
-  `;
+      </div><!-- /endpoint-view -->
+    </main>
 
-  // Wire up initial curl
-  updateCurl(ep);
+  </div><!-- /body-area -->
+</div><!-- /app -->
 
-  // Event: send
-  document.getElementById('sendBtn').addEventListener('click', () => sendRequest(ep));
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span id="toast-icon">✓</span>
+  <span id="toast-msg">Copied!</span>
+</div>
 
-  // Event: copy curl (header button)
-  document.getElementById('copyCurlBtn').addEventListener('click', () => {
-    navigator.clipboard.writeText(document.getElementById('curlText').textContent);
-    showToast('cURL copied to clipboard');
-  });
-  // Event: copy curl (block button)
-  document.getElementById('curlCopyBtn2').addEventListener('click', () => {
-    navigator.clipboard.writeText(document.getElementById('curlText').textContent);
-    showToast('cURL copied to clipboard');
-  });
+<script>
+'use strict';
 
-  // Event: body presets
-  view.querySelectorAll('.body-preset').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.idx);
-      document.getElementById('bodyInput').value = JSON.stringify(ep.presets[idx].body, null, 2);
-      updateCurl(ep);
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS
+   ═══════════════════════════════════════════════════════════════ */
+const BASE_URL  = 'https://api.thunder-blessing.example.com/v1';
+const AUTH_KEY  = 'tb_api_explorer_jwt';
+
+/* ═══════════════════════════════════════════════════════════════
+   API SPEC DATA
+   ═══════════════════════════════════════════════════════════════ */
+const GROUPS = [
+  { id:'spin',    name:'Spin & Game Flow', color:'#DCA331', ids:['post-spin'] },
+  { id:'session', name:'Session',          color:'#4A7FA5', ids:['post-session','get-session','delete-session'] },
+  { id:'config',  name:'Config',           color:'#8B5CF6', ids:['get-config','get-config-bet-levels'] },
+  { id:'admin',   name:'Admin',            color:'#EF4444', ids:['get-admin-rtp-report','post-admin-force-close'] },
+  { id:'health',  name:'Health',           color:'#22C55E', ids:['get-health','get-health-ready'] },
+];
+
+const ENDPOINTS = {
+
+  /* ── POST /spin ─────────────────────────────────────────────── */
+  'post-spin': {
+    id:'post-spin', method:'POST', path:'/spin', group:'spin',
+    summary:'Execute Spin',
+    desc:'Execute a single slot spin and receive the full outcome including all cascade steps, Thunder Blessing activation, Coin Toss results, Free Game rounds, and final win amount. This is the core gameplay endpoint.',
+    pathParams:[],
+    queryParams:[],
+    bodyTpl: JSON.stringify({ betAmount:1.0, extraBet:false, sessionId:"sess_abc123" }, null, 2),
+    bodyParams:[
+      { name:'betAmount',  type:'number',  req:true,  desc:'Bet amount per spin. Must be a valid bet level for the session currency.' },
+      { name:'extraBet',   type:'boolean', req:true,  desc:'Enable extra bet for increased cascade win multiplier. Costs 1.5× the base bet.' },
+      { name:'sessionId',  type:'string',  req:true,  desc:'Active session identifier returned from POST /session.' },
+    ],
+    codes:[
+      {code:200,label:'OK',desc:'Full spin outcome returned successfully'},
+      {code:400,label:'Bad Request',desc:'Invalid betAmount or session not found'},
+      {code:401,label:'Unauthorized',desc:'Missing or invalid Bearer token'},
+      {code:403,label:'Forbidden',desc:'Insufficient balance for the requested bet'},
+      {code:409,label:'Conflict',desc:'Session already has an active spin in progress'},
+    ],
+    mocks:{
+      200:{success:true,data:{spinId:"550e8400-e29b-41d4-a716-446655440000",sessionId:"sess_abc123",betAmount:1.0,extraBet:false,initialGrid:[["P1","L2","P3","L1","P2"],["L3","W","P4","L4","P1"],["P2","L1","S","P3","L2"]],cascades:[{step:1,eliminatedPositions:[[1,1],[2,2]],newSymbols:["P3","L4"],cascadeWin:2.50,lightningMarkCount:2,multiplier:1},{step:2,eliminatedPositions:[[0,2],[1,2]],newSymbols:["L1","P2"],cascadeWin:1.25,lightningMarkCount:3,multiplier:2}],isThunderBlessing:false,coinToss:null,freeGame:null,baseWin:3.75,totalWin:3.75,newBalance:1253.75,newRowCount:3,timestamp:"2026-04-27T10:30:00Z"},requestId:"req_xyz789",timestamp:"2026-04-27T10:30:00Z"},
+      400:{success:false,data:null,error:{code:"INVALID_BET",message:"Bet amount 999.00 is not a valid level for USD. Valid levels: [0.20,0.50,1.00,2.00,5.00,10.00]"},requestId:"req_err001",timestamp:"2026-04-27T10:30:00Z"},
+      401:{success:false,data:null,error:{code:"UNAUTHORIZED",message:"Bearer token is missing or has expired. Please re-authenticate via Supabase Auth."},requestId:"req_unauth",timestamp:"2026-04-27T10:30:00Z"},
+      403:{success:false,data:null,error:{code:"INSUFFICIENT_BALANCE",message:"Balance 0.50 is insufficient for bet amount 1.00."},requestId:"req_bal01",timestamp:"2026-04-27T10:30:00Z"},
+      409:{success:false,data:null,error:{code:"SESSION_CONFLICT",message:"Session sess_abc123 already has an active spin (spin_prev999). Wait for it to complete."},requestId:"req_cf01",timestamp:"2026-04-27T10:30:00Z"},
+    }
+  },
+
+  /* ── POST /session ──────────────────────────────────────────── */
+  'post-session': {
+    id:'post-session', method:'POST', path:'/session', group:'session',
+    summary:'Create / Resume Session',
+    desc:"Create a new game session or resume an existing one for the given player. Returns the session identifier, current balance, and available bet levels for the player's currency.",
+    pathParams:[],
+    queryParams:[],
+    bodyTpl: JSON.stringify({ playerId:"player_001", currency:"USD", betLevel:5 }, null, 2),
+    bodyParams:[
+      { name:'playerId',  type:'string',       req:true, desc:'Unique player identifier (Supabase Auth user.id).' },
+      { name:'currency',  type:'"USD" | "TWD"', req:true, desc:'Session currency. Determines available bet levels and balance.' },
+      { name:'betLevel',  type:'number',        req:true, desc:'Initial bet level index (1-based). Must be within range for chosen currency.' },
+    ],
+    codes:[
+      {code:200,label:'OK',desc:'Session created or resumed successfully'},
+      {code:400,label:'Bad Request',desc:'Invalid currency or betLevel out of range'},
+      {code:401,label:'Unauthorized',desc:'Missing or invalid Bearer token'},
+    ],
+    mocks:{
+      200:{success:true,data:{sessionId:"sess_abc123",playerId:"player_001",balance:1250.50,currency:"USD",betLevels:[0.20,0.50,1.00,2.00,5.00,10.00],betLevel:5,betAmount:1.00,extraBet:false,status:"active",createdAt:"2026-04-27T10:00:00Z",resumedAt:null},requestId:"req_ses001",timestamp:"2026-04-27T10:00:00Z"},
+      400:{success:false,data:null,error:{code:"INVALID_BET_LEVEL",message:"betLevel 99 is out of range for USD. Max level: 6."},requestId:"req_se400",timestamp:"2026-04-27T10:00:00Z"},
+      401:{success:false,data:null,error:{code:"UNAUTHORIZED",message:"Bearer token is missing or has expired."},requestId:"req_unauth",timestamp:"2026-04-27T10:00:00Z"},
+    }
+  },
+
+  /* ── GET /session/{sessionId} ───────────────────────────────── */
+  'get-session': {
+    id:'get-session', method:'GET', path:'/session/{sessionId}', group:'session',
+    summary:'Get Session State',
+    desc:'Retrieve the current state of an active session including balance, bet configuration, last spin summary, and session statistics.',
+    pathParams:[
+      { name:'sessionId', type:'string', req:true, desc:'Session identifier returned from POST /session.' }
+    ],
+    queryParams:[],
+    bodyTpl:null, bodyParams:[],
+    codes:[
+      {code:200,label:'OK',desc:'Session state returned'},
+      {code:401,label:'Unauthorized',desc:'Missing or invalid Bearer token'},
+      {code:404,label:'Not Found',desc:'Session not found or has expired'},
+    ],
+    mocks:{
+      200:{success:true,data:{sessionId:"sess_abc123",playerId:"player_001",status:"active",balance:1253.75,currency:"USD",betLevel:5,betAmount:1.00,extraBet:false,totalSpins:42,totalBet:42.00,totalWin:45.75,lastSpin:{spinId:"550e8400-e29b-41d4-a716-446655440000",totalWin:3.75,timestamp:"2026-04-27T10:30:00Z"},createdAt:"2026-04-27T10:00:00Z",lastActivityAt:"2026-04-27T10:30:00Z"},requestId:"req_get001",timestamp:"2026-04-27T10:31:00Z"},
+      401:{success:false,data:null,error:{code:"UNAUTHORIZED",message:"Bearer token is missing or has expired."},requestId:"req_unauth",timestamp:"2026-04-27T10:31:00Z"},
+      404:{success:false,data:null,error:{code:"SESSION_NOT_FOUND",message:"Session sess_abc123 was not found or has expired."},requestId:"req_nf404",timestamp:"2026-04-27T10:31:00Z"},
+    }
+  },
+
+  /* ── DELETE /session/{sessionId} ────────────────────────────── */
+  'delete-session': {
+    id:'delete-session', method:'DELETE', path:'/session/{sessionId}', group:'session',
+    summary:'End Session',
+    desc:'Gracefully terminate an active session. Flushes any pending state, settles final balance, and returns full session statistics.',
+    pathParams:[
+      { name:'sessionId', type:'string', req:true, desc:'Session identifier to terminate.' }
+    ],
+    queryParams:[],
+    bodyTpl:null, bodyParams:[],
+    codes:[
+      {code:200,label:'OK',desc:'Session ended, statistics returned'},
+      {code:401,label:'Unauthorized',desc:'Missing or invalid Bearer token'},
+      {code:404,label:'Not Found',desc:'Session not found'},
+    ],
+    mocks:{
+      200:{success:true,data:{sessionId:"sess_abc123",finalBalance:1253.75,totalSpins:42,totalBet:42.00,totalWin:45.75,netResult:3.75,rtpActual:108.93,duration:"00:31:22",endedAt:"2026-04-27T10:31:22Z"},requestId:"req_del001",timestamp:"2026-04-27T10:31:22Z"},
+      401:{success:false,data:null,error:{code:"UNAUTHORIZED",message:"Bearer token is missing or has expired."},requestId:"req_unauth",timestamp:"2026-04-27T10:31:22Z"},
+      404:{success:false,data:null,error:{code:"SESSION_NOT_FOUND",message:"Session sess_abc123 was not found."},requestId:"req_nf404",timestamp:"2026-04-27T10:31:22Z"},
+    }
+  },
+
+  /* ── GET /config ─────────────────────────────────────────────── */
+  'get-config': {
+    id:'get-config', method:'GET', path:'/config', group:'config',
+    summary:'Get Game Configuration',
+    desc:'Returns the full game configuration: RTP target, bet levels for all currencies, max win multiplier, grid rules, and feature toggles.',
+    pathParams:[], queryParams:[], bodyTpl:null, bodyParams:[],
+    codes:[
+      {code:200,label:'OK',desc:'Configuration returned'},
+      {code:401,label:'Unauthorized',desc:'Missing or invalid Bearer token'},
+    ],
+    mocks:{
+      200:{success:true,data:{version:"1.0.0",gameId:"thunder-blessing",rtpTarget:96.50,maxWinMultiplier:5000,betLevels:{USD:[0.20,0.50,1.00,2.00,5.00,10.00],TWD:[6.00,15.00,30.00,60.00,150.00,300.00]},grid:{rows:3,cols:5,maxRows:5},cascadeRules:{matchMin:3,winMultiplierWithExtraBet:2,rowExpansionThreshold:8},features:{thunderBlessing:{enabled:true,lightningMarkThreshold:6},coinToss:{enabled:true,multipliers:[2,3,5,10,20]},freeGame:{enabled:true,triggerSymbol:"S",freeSpins:12,extraBetFreeSpins:18},extraBet:{enabled:true,costMultiplier:1.5}},symbols:{premium:["P1","P2","P3","P4"],low:["L1","L2","L3","L4"],wild:"W",scatter:"S"}},requestId:"req_cfg001",timestamp:"2026-04-27T10:00:00Z"},
+      401:{success:false,data:null,error:{code:"UNAUTHORIZED",message:"Bearer token is missing or has expired."},requestId:"req_unauth",timestamp:"2026-04-27T10:00:00Z"},
+    }
+  },
+
+  /* ── GET /config/bet-levels ──────────────────────────────────── */
+  'get-config-bet-levels': {
+    id:'get-config-bet-levels', method:'GET', path:'/config/bet-levels', group:'config',
+    summary:'Get Bet Levels',
+    desc:'Returns the list of available bet level amounts for the specified currency. Used to populate the bet selector in the game client.',
+    pathParams:[],
+    queryParams:[
+      { name:'currency', type:'"USD" | "TWD"', req:true, desc:'Currency code to retrieve bet levels for.' }
+    ],
+    bodyTpl:null, bodyParams:[],
+    codes:[
+      {code:200,label:'OK',desc:'Bet levels returned for currency'},
+      {code:400,label:'Bad Request',desc:'Unsupported or missing currency'},
+      {code:401,label:'Unauthorized',desc:'Missing or invalid Bearer token'},
+    ],
+    mocks:{
+      200:{success:true,data:{currency:"USD",levels:[0.20,0.50,1.00,2.00,5.00,10.00],defaultLevel:3,minBet:0.20,maxBet:10.00},requestId:"req_bl001",timestamp:"2026-04-27T10:00:00Z"},
+      400:{success:false,data:null,error:{code:"UNSUPPORTED_CURRENCY",message:"Currency EUR is not supported. Supported: USD, TWD."},requestId:"req_bl400",timestamp:"2026-04-27T10:00:00Z"},
+      401:{success:false,data:null,error:{code:"UNAUTHORIZED",message:"Bearer token is missing or has expired."},requestId:"req_unauth",timestamp:"2026-04-27T10:00:00Z"},
+    }
+  },
+
+  /* ── GET /admin/rtp-report ───────────────────────────────────── */
+  'get-admin-rtp-report': {
+    id:'get-admin-rtp-report', method:'GET', path:'/admin/rtp-report', group:'admin',
+    summary:'RTP Statistics Report',
+    desc:'Returns RTP statistics for a specified time window. Requires operator role JWT claim. Use for compliance monitoring and performance auditing.',
+    pathParams:[],
+    queryParams:[
+      { name:'from',     type:'ISO 8601',       req:true,  desc:'Report window start. e.g. 2026-04-01T00:00:00Z' },
+      { name:'to',       type:'ISO 8601',       req:true,  desc:'Report window end. e.g. 2026-04-27T23:59:59Z' },
+      { name:'currency', type:'"USD" | "TWD"',  req:false, desc:'Filter by currency. Omit to aggregate all currencies.' },
+    ],
+    bodyTpl:null, bodyParams:[],
+    codes:[
+      {code:200,label:'OK',desc:'RTP report returned'},
+      {code:400,label:'Bad Request',desc:'Invalid date range or missing required params'},
+      {code:401,label:'Unauthorized',desc:'Missing or invalid Bearer token'},
+      {code:403,label:'Forbidden',desc:'JWT lacks operator role claim'},
+    ],
+    mocks:{
+      200:{success:true,data:{period:{from:"2026-04-01T00:00:00Z",to:"2026-04-27T23:59:59Z"},currency:null,breakdown:[{currency:"USD",totalBet:124500.00,totalWin:120162.00,actualRtp:96.51,spinCount:124500,uniquePlayers:312,avgBet:1.00},{currency:"TWD",totalBet:3750000.00,totalWin:3615000.00,actualRtp:96.40,spinCount:125000,uniquePlayers:98,avgBet:30.00}],aggregate:{totalBet:4497750.00,totalWin:4338487.20,actualRtp:96.46,spinCount:249500,uniquePlayers:410},rtpTarget:96.50,deviation:-0.04},requestId:"req_rtp001",timestamp:"2026-04-27T10:00:00Z"},
+      400:{success:false,data:null,error:{code:"INVALID_DATE_RANGE",message:"'from' must be earlier than 'to'. Maximum range is 90 days."},requestId:"req_a400",timestamp:"2026-04-27T10:00:00Z"},
+      401:{success:false,data:null,error:{code:"UNAUTHORIZED",message:"Bearer token is missing or has expired."},requestId:"req_unauth",timestamp:"2026-04-27T10:00:00Z"},
+      403:{success:false,data:null,error:{code:"FORBIDDEN",message:"Access denied. This endpoint requires the 'operator' role claim in your JWT."},requestId:"req_a403",timestamp:"2026-04-27T10:00:00Z"},
+    }
+  },
+
+  /* ── POST /admin/session/force-close ─────────────────────────── */
+  'post-admin-force-close': {
+    id:'post-admin-force-close', method:'POST', path:'/admin/session/force-close', group:'admin',
+    summary:'Force Close Session',
+    desc:'Forcibly terminate an orphaned or stuck session. Requires operator role. Flushes in-flight spin state, settles pending wins, and records an audit entry.',
+    pathParams:[], queryParams:[],
+    bodyTpl: JSON.stringify({ sessionId:"sess_abc123", reason:"Session orphaned — client disconnected during spin" }, null, 2),
+    bodyParams:[
+      { name:'sessionId', type:'string', req:true, desc:'Session identifier to force-close.' },
+      { name:'reason',    type:'string', req:true, desc:'Human-readable reason. Recorded in the audit log.' },
+    ],
+    codes:[
+      {code:200,label:'OK',desc:'Session force-closed and settled'},
+      {code:401,label:'Unauthorized',desc:'Missing or invalid Bearer token'},
+      {code:403,label:'Forbidden',desc:'JWT lacks operator role claim'},
+      {code:404,label:'Not Found',desc:'Session not found'},
+    ],
+    mocks:{
+      200:{success:true,data:{closed:true,sessionId:"sess_abc123",finalBalance:1253.75,pendingWinSettled:0.00,reason:"Session orphaned — client disconnected during spin",closedBy:"operator_admin01",auditEntryId:"audit_0042",closedAt:"2026-04-27T10:35:00Z"},requestId:"req_fc001",timestamp:"2026-04-27T10:35:00Z"},
+      401:{success:false,data:null,error:{code:"UNAUTHORIZED",message:"Bearer token is missing or has expired."},requestId:"req_unauth",timestamp:"2026-04-27T10:35:00Z"},
+      403:{success:false,data:null,error:{code:"FORBIDDEN",message:"Access denied. This endpoint requires the 'operator' role claim in your JWT."},requestId:"req_fc403",timestamp:"2026-04-27T10:35:00Z"},
+      404:{success:false,data:null,error:{code:"SESSION_NOT_FOUND",message:"Session sess_abc123 was not found."},requestId:"req_nf404",timestamp:"2026-04-27T10:35:00Z"},
+    }
+  },
+
+  /* ── GET /health ─────────────────────────────────────────────── */
+  'get-health': {
+    id:'get-health', method:'GET', path:'/health', group:'health',
+    summary:'Service Health Check',
+    desc:'Returns the current health status of the API and its downstream dependencies (database, Redis, Supabase Auth). Use for liveness probes.',
+    pathParams:[], queryParams:[], bodyTpl:null, bodyParams:[],
+    codes:[
+      {code:200,label:'OK',desc:'Service is healthy'},
+      {code:503,label:'Service Unavailable',desc:'One or more dependencies are unhealthy'},
+    ],
+    mocks:{
+      200:{success:true,data:{status:"ok",version:"1.0.0",environment:"production",uptime:864321,dependencies:{db:{status:"ok",latencyMs:2},redis:{status:"ok",latencyMs:0},supabaseAuth:{status:"ok",latencyMs:8}},timestamp:"2026-04-27T10:00:00Z"},requestId:"req_h001",timestamp:"2026-04-27T10:00:00Z"},
+      503:{success:false,data:{status:"degraded",db:"ok",redis:"error",error:"Redis connection timeout after 5000ms"},error:null,requestId:"req_h503",timestamp:"2026-04-27T10:00:00Z"},
+    }
+  },
+
+  /* ── GET /health/ready ───────────────────────────────────────── */
+  'get-health-ready': {
+    id:'get-health-ready', method:'GET', path:'/health/ready', group:'health',
+    summary:'Readiness Probe',
+    desc:'Kubernetes-compatible readiness probe. Returns 200 when the service is ready to receive traffic — migrations applied and connection pools initialized.',
+    pathParams:[], queryParams:[], bodyTpl:null, bodyParams:[],
+    codes:[
+      {code:200,label:'OK',desc:'Service is ready to receive traffic'},
+      {code:503,label:'Service Unavailable',desc:'Service is starting up or not ready'},
+    ],
+    mocks:{
+      200:{success:true,data:{ready:true,migrationsApplied:true,connectionPoolReady:true,startupTimeMs:1842},requestId:"req_rdy01",timestamp:"2026-04-27T10:00:00Z"},
+      503:{success:false,data:{ready:false,migrationsApplied:false,reason:"Database migrations pending"},error:null,requestId:"req_rdy503",timestamp:"2026-04-27T10:00:00Z"},
+    }
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+let currentId   = null;
+let pathVals    = {};
+let queryVals   = {};
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════════════════════════ */
+function renderSidebar(q = '') {
+  const lcq = q.toLowerCase().trim();
+  let html = '';
+  let any  = false;
+
+  for (const grp of GROUPS) {
+    const visible = grp.ids.filter(id => {
+      if (!ENDPOINTS[id]) return false;
+      if (!lcq) return true;
+      const e = ENDPOINTS[id];
+      return (
+        e.path.toLowerCase().includes(lcq) ||
+        e.method.toLowerCase().includes(lcq) ||
+        e.summary.toLowerCase().includes(lcq) ||
+        grp.name.toLowerCase().includes(lcq)
+      );
     });
-  });
+    if (!visible.length) continue;
+    any = true;
 
-  // Event: path presets
-  view.querySelectorAll('.path-preset').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.getElementById('pathParamInput').value = btn.dataset.val;
-      updateCurl(ep);
-    });
-  });
+    html += `<div class="group-header">
+      <div class="group-dot" style="background:${grp.color}"></div>
+      <span class="group-name">${grp.name}</span>
+      <span class="group-count">${visible.length}</span>
+    </div>`;
 
-  // Event: chips (body fields)
-  view.querySelectorAll('.chip[data-field]').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const field = chip.dataset.field;
-      const val = chip.dataset.val;
-      // Toggle selection
-      view.querySelectorAll(`.chip[data-field="${field}"]`).forEach(c => c.classList.remove('selected'));
-      chip.classList.add('selected');
-      // Update textarea
-      try {
-        const ta = document.getElementById('bodyInput');
-        if (ta) {
-          const obj = JSON.parse(ta.value || '{}');
-          obj[field] = val;
-          ta.value = JSON.stringify(obj, null, 2);
-          updateCurl(ep);
-        }
-      } catch(e) {}
-    });
-  });
+    for (const id of visible) {
+      const e   = ENDPOINTS[id];
+      const cls = currentId === id ? ' active' : '';
+      html += `<a class="endpoint-item${cls}" href="#${id}" onclick="navigate('${id}');return false;">
+        <span class="method-badge m-${e.method}">${e.method}</span>
+        <span class="endpoint-path">${esc(e.path)}</span>
+      </a>`;
+    }
+  }
 
-  // Event: live textarea change
-  const bodyInput = document.getElementById('bodyInput');
-  if (bodyInput) bodyInput.addEventListener('input', () => updateCurl(ep));
-  const pathInput = document.getElementById('pathParamInput');
-  if (pathInput) pathInput.addEventListener('input', () => updateCurl(ep));
-
-  // Query param change
-  ep.params.filter(p => p.in === 'query').forEach(p => {
-    const el = document.getElementById(`queryparam_${p.name}`);
-    if (el) el.addEventListener('change', () => updateCurl(ep));
-  });
+  if (!any) html = `<div class="sidebar-empty">No results for "<strong>${esc(q)}</strong>"</div>`;
+  document.getElementById('sidebar-list').innerHTML = html;
 }
 
-function getPathParams(ep) {
-  const input = document.getElementById('pathParamInput');
-  const pathParam = ep.params.find(p => p.in === 'path');
-  if (!pathParam || !input) return {};
-  return { [pathParam.name]: input.value };
+/* ═══════════════════════════════════════════════════════════════
+   ENDPOINT VIEW
+   ═══════════════════════════════════════════════════════════════ */
+function renderEndpoint(id) {
+  const ep  = ENDPOINTS[id];
+  const grp = GROUPS.find(g => g.id === ep.group);
+
+  document.getElementById('welcome-view').classList.add('hidden');
+  document.getElementById('endpoint-view').classList.remove('hidden');
+
+  // Breadcrumb
+  document.getElementById('bc-group').textContent = grp ? grp.name : ep.group;
+  document.getElementById('bc-name').textContent  = ep.summary;
+
+  // Title row
+  document.getElementById('ep-title').innerHTML =
+    `<span class="method-badge m-${ep.method}" style="font-size:0.72rem;padding:4px 10px;">${ep.method}</span>
+     <span class="ep-path">${fmtPath(ep.path)}</span>`;
+
+  document.getElementById('ep-summary').textContent = ep.summary;
+  document.getElementById('ep-desc').textContent    = ep.desc;
+
+  // Params
+  renderParams(ep);
+
+  // Body
+  const bodyCard = document.getElementById('body-card');
+  const bodyTA   = document.getElementById('body-textarea');
+  if (ep.bodyTpl !== null) {
+    bodyCard.classList.remove('hidden');
+    bodyTA.value = ep.bodyTpl;
+  } else {
+    bodyCard.classList.add('hidden');
+  }
+
+  // Response codes
+  renderCodes(ep);
+
+  // Hide response output
+  document.getElementById('resp-card').style.display = 'none';
+
+  // cURL
+  refreshCurl(ep);
+
+  document.getElementById('main-panel').scrollTop = 0;
 }
 
-function getBody(ep) {
-  const input = document.getElementById('bodyInput');
-  if (!input) return null;
-  try { return JSON.parse(input.value); } catch(e) { return input.value; }
+function fmtPath(path) {
+  return esc(path).replace(/\{([^}]+)\}/g, '<span class="path-var">{$1}</span>');
 }
 
-function updateCurl(ep) {
-  const body = ep.bodyFields.length > 0 ? getBody(ep) : null;
-  const pathParams = getPathParams(ep);
-  const txt = document.getElementById('curlText');
-  if (txt) txt.textContent = buildCurl(ep, body, pathParams);
+function renderParams(ep) {
+  const card = document.getElementById('params-card');
+  const body = document.getElementById('params-body');
+
+  const allInteractive = [
+    ...ep.pathParams.map(p => ({ ...p, kind:'Path' })),
+    ...ep.queryParams.map(p => ({ ...p, kind:'Query' })),
+  ];
+  const hasParams = allInteractive.length > 0 || ep.bodyParams.length > 0;
+
+  if (!hasParams) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+
+  let html = '';
+
+  if (allInteractive.length > 0) {
+    html += `<div class="card-body" style="padding-bottom:0">
+      <table class="ptable"><thead><tr>
+        <th>Name</th><th>In</th><th>Type</th><th>Description</th>
+      </tr></thead><tbody>`;
+
+    for (const p of allInteractive) {
+      const reqBadge = p.req ? '<span class="p-req">required</span>' : '<span class="p-opt">optional</span>';
+      const stored   = p.kind === 'Path' ? (pathVals[p.name] || '') : (queryVals[p.name] || '');
+      html += `<tr>
+        <td>
+          <span class="pname">${esc(p.name)}</span>${reqBadge}
+          <br>
+          <input type="text" class="param-input-inline"
+            placeholder="Enter ${esc(p.name)}…"
+            value="${esc(stored)}"
+            data-pname="${esc(p.name)}"
+            data-pkind="${esc(p.kind)}"
+            oninput="onParamChange(this)"
+          >
+        </td>
+        <td><span class="ptype">${esc(p.kind)}</span></td>
+        <td><span class="ptype">${esc(p.type)}</span></td>
+        <td class="pdesc">${esc(p.desc)}</td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+
+  if (ep.bodyParams.length > 0) {
+    const topPad = allInteractive.length > 0 ? 'padding-top:12px;' : '';
+    html += `<div class="card-body" style="${topPad}padding-bottom:0">
+      <table class="ptable"><thead><tr>
+        <th>Name</th><th>In</th><th>Type</th><th>Description</th>
+      </tr></thead><tbody>`;
+    for (const p of ep.bodyParams) {
+      const reqBadge = p.req ? '<span class="p-req">required</span>' : '<span class="p-opt">optional</span>';
+      html += `<tr>
+        <td><span class="pname">${esc(p.name)}</span>${reqBadge}</td>
+        <td><span class="ptype">Body</span></td>
+        <td><span class="ptype">${esc(p.type)}</span></td>
+        <td class="pdesc">${esc(p.desc)}</td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+
+  html += '<div style="height:14px"></div>';
+  body.innerHTML = html;
 }
 
-function sendRequest(ep) {
-  const btn = document.getElementById('sendBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Sending…';
+function renderCodes(ep) {
+  const el  = document.getElementById('rcodes');
+  let   html = '';
+  for (const rc of ep.codes) {
+    const cls = rc.code >= 500 ? 'rc-5xx' : rc.code >= 400 ? 'rc-4xx' : 'rc-2xx';
+    html += `<div class="rcode-chip" onclick="previewCode('${ep.id}',${rc.code})" title="${esc(rc.desc)}">
+      <span class="rc-num ${cls}">${rc.code}</span>
+      <span class="rc-lbl">${esc(rc.label)}</span>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
 
-  const start = performance.now();
-  const delay = 150 + Math.random() * 80; // 150–230ms simulated
+/* ═══════════════════════════════════════════════════════════════
+   PARAM INTERACTIVITY
+   ═══════════════════════════════════════════════════════════════ */
+function onParamChange(input) {
+  const name = input.dataset.pname;
+  const kind = input.dataset.pkind;
+  if (kind === 'Path')  pathVals[name]  = input.value;
+  if (kind === 'Query') queryVals[name] = input.value;
+  if (currentId) refreshCurl(ENDPOINTS[currentId]);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   cURL GENERATOR
+   ═══════════════════════════════════════════════════════════════ */
+function buildUrl(ep) {
+  let path = ep.path;
+  for (const p of ep.pathParams) {
+    const v = pathVals[p.name] || `{${p.name}}`;
+    path = path.replace(`{${p.name}}`, encodeURIComponent(v));
+  }
+  const qParts = [];
+  for (const q of ep.queryParams) {
+    const v = queryVals[q.name];
+    if (v) qParts.push(`${encodeURIComponent(q.name)}=${encodeURIComponent(v)}`);
+  }
+  if (qParts.length) path += '?' + qParts.join('&');
+  return BASE_URL + path;
+}
+
+function refreshCurl(ep) {
+  if (!ep) return;
+  const token = document.getElementById('auth-token').value.trim();
+  const url   = buildUrl(ep);
+  const auth  = token
+    ? `\\\n  -H "Authorization: Bearer ${token}"`
+    : `\\\n  -H "Authorization: Bearer <YOUR_JWT_TOKEN>"`;
+
+  let cmd = `curl -X ${ep.method} "${url}" ${auth} \\\n  -H "Content-Type: application/json" \\\n  -H "Accept: application/json"`;
+
+  if (ep.bodyTpl !== null) {
+    const bodyTA = document.getElementById('body-textarea');
+    const body   = bodyTA ? bodyTA.value : ep.bodyTpl;
+    cmd += ` \\\n  -d '${compactJson(body)}'`;
+  }
+
+  document.getElementById('curl-content').textContent = cmd;
+}
+
+function compactJson(str) {
+  try { return JSON.stringify(JSON.parse(str)); }
+  catch { return str.replace(/\n\s*/g, ' ').trim(); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOCK ENGINE
+   ═══════════════════════════════════════════════════════════════ */
+function executeRequest() {
+  const ep = ENDPOINTS[currentId];
+  if (!ep) return;
+
+  const token        = document.getElementById('auth-token').value.trim();
+  const isPublic     = ep.group === 'health';
+  const isAdminGroup = ep.group === 'admin';
+
+  const btn = document.getElementById('send-btn');
+  btn.classList.add('sending');
+  btn.innerHTML = '<span class="spin"></span> Sending…';
+
+  const latency = 140 + Math.floor(Math.random() * 240);
 
   setTimeout(() => {
-    const elapsed = Math.round(performance.now() - start);
-    const body = ep.bodyFields.length > 0 ? getBody(ep) : null;
-    const pathParams = getPathParams(ep);
-    const resp = ep.getMockResponse(body, pathParams);
+    btn.classList.remove('sending');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="3,2 15,8 3,14"/></svg> Send Request`;
 
-    // Render response
-    const section = document.getElementById('responseSection');
-    const badge = document.getElementById('statusBadge');
-    const timeEl = document.getElementById('responseTime');
-    const bodyEl = document.getElementById('responseBody');
+    let code = 200;
+    if (!token && !isPublic) code = 401;
+    else if (token && isAdminGroup && !token.includes('operator')) code = 403;
 
-    section.classList.remove('hidden');
-    badge.textContent = '200 OK';
-    badge.className = 'status-badge status-2xx';
-    timeEl.textContent = `${elapsed}ms (simulated)`;
-    bodyEl.innerHTML = syntaxHighlight(JSON.stringify(resp, null, 2));
-
-    btn.disabled = false;
-    btn.innerHTML = '⚡ Send Request';
-
-    // Scroll to response
-    setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-  }, delay);
+    showResponse(ep, code, latency, false);
+  }, latency);
 }
 
-/* =====================================================================
-   AUTH
-   ===================================================================== */
+function previewCode(endpointId, code) {
+  const ep = ENDPOINTS[endpointId];
+  if (!ep || !ep.mocks[code]) return;
+  showResponse(ep, code, 0, true);
+}
+
+function showResponse(ep, code, latency, isPreview) {
+  const mock = ep.mocks[code] || ep.mocks[200];
+  const actualCode = ep.mocks[code] ? code : 200;
+
+  const card = document.getElementById('resp-card');
+  card.style.display = 'block';
+
+  const pill = document.getElementById('resp-pill');
+  const pillClass = actualCode >= 500 ? 'pill-5xx' : actualCode >= 400 ? 'pill-4xx' : 'pill-2xx';
+  pill.className = `status-pill ${pillClass}`;
+  pill.textContent = `${actualCode} ${codeLabel(actualCode)}`;
+
+  document.getElementById('resp-meta').textContent = isPreview ? '· preview' : `· ${latency}ms`;
+
+  const json = JSON.stringify(mock, null, 2);
+  document.getElementById('resp-content').innerHTML = highlight(json);
+
+  setTimeout(() => card.scrollIntoView({ behavior:'smooth', block:'nearest' }), 60);
+}
+
+function codeLabel(c) {
+  const m = {200:'OK',201:'Created',204:'No Content',400:'Bad Request',401:'Unauthorized',403:'Forbidden',404:'Not Found',409:'Conflict',503:'Service Unavailable'};
+  return m[c] || '';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SYNTAX HIGHLIGHT
+   ═══════════════════════════════════════════════════════════════ */
+function highlight(json) {
+  const safe = esc(json);
+  return safe.replace(
+    /(&quot;(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\&])*&quot;(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|[{}\[\],:])/g,
+    m => {
+      if (/^&quot;/.test(m)) {
+        if (/:$/.test(m)) return `<span class="jk">${m}</span>`;
+        return `<span class="js">${m}</span>`;
+      }
+      if (/true|false/.test(m)) return `<span class="jb">${m}</span>`;
+      if (/null/.test(m))       return `<span class="jl">${m}</span>`;
+      if (/[{}\[\]]/.test(m))   return `<span class="jp">${m}</span>`;
+      if (/[,:]/.test(m))       return `<span class="jp">${m}</span>`;
+      return `<span class="jn">${m}</span>`;
+    }
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COPY HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function copyCurl() {
+  writeClip(document.getElementById('curl-content').textContent, 'cURL command copied!');
+}
+
+function copyCurlInline() {
+  copyCurl();
+  flashBtn('curl-copy-btn');
+}
+
+function copyResponse() {
+  const ep = ENDPOINTS[currentId];
+  if (!ep) return;
+  const pill = document.getElementById('resp-pill').textContent;
+  const code = parseInt(pill);
+  const data = ep.mocks[code] || ep.mocks[200];
+  writeClip(JSON.stringify(data, null, 2), 'Response JSON copied!');
+  flashBtn('resp-copy-btn');
+}
+
+function flashBtn(id) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+}
+
+function writeClip(text, msg) {
+  navigator.clipboard.writeText(text)
+    .then(() => toast('✓', msg))
+    .catch(() => toast('⚠', 'Copy failed — check permissions'));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════════════ */
+let _toastTimer;
+function toast(icon, msg) {
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent  = msg;
+  const el = document.getElementById('toast');
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ROUTING
+   ═══════════════════════════════════════════════════════════════ */
+function navigate(id) {
+  if (!ENDPOINTS[id]) return;
+  currentId = id;
+  pathVals  = {};
+  queryVals = {};
+  window.location.hash = id;
+  renderSidebar(document.getElementById('search-input').value);
+  renderEndpoint(id);
+}
+
+function handleHash() {
+  const id = window.location.hash.slice(1);
+  if (id && ENDPOINTS[id]) navigate(id);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH TOKEN
+   ═══════════════════════════════════════════════════════════════ */
 function initAuth() {
-  const input = document.getElementById('tokenInput');
-  const status = document.getElementById('authStatus');
-  const saved = localStorage.getItem('tb_bearer_token');
-  if (saved) { input.value = saved; status.classList.add('active'); }
+  const stored = localStorage.getItem(AUTH_KEY) || '';
+  const input  = document.getElementById('auth-token');
+  if (stored) { input.value = stored; syncDot(stored); }
   input.addEventListener('input', () => {
-    const val = input.value.trim();
-    localStorage.setItem('tb_bearer_token', val);
-    status.classList.toggle('active', val.length > 20);
+    const v = input.value.trim();
+    localStorage.setItem(AUTH_KEY, v);
+    syncDot(v);
+    if (currentId) refreshCurl(ENDPOINTS[currentId]);
   });
 }
 
-/* =====================================================================
-   SEARCH
-   ===================================================================== */
-document.getElementById('searchInput').addEventListener('input', e => {
-  buildSidebar(e.target.value);
-});
-
-/* =====================================================================
-   DEEP LINK
-   ===================================================================== */
-function handleHash() {
-  const hash = location.hash;
-  if (hash.startsWith('#endpoint-')) {
-    const id = hash.replace('#endpoint-', '');
-    if (ENDPOINTS.find(e => e.id === id)) selectEndpoint(id);
-  }
+function syncDot(v) {
+  const dot = document.getElementById('auth-dot');
+  if (v.length > 8) { dot.classList.add('active'); dot.title = 'Token set'; }
+  else { dot.classList.remove('active'); dot.title = 'No token'; }
 }
 
-/* =====================================================================
+/* ═══════════════════════════════════════════════════════════════
+   UTILS
+   ═══════════════════════════════════════════════════════════════ */
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════════════════════════════════
    INIT
-   ===================================================================== */
-buildSidebar();
-initAuth();
-handleHash();
-window.addEventListener('hashchange', handleHash);
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+
+  document.getElementById('search-input').addEventListener('input', function() {
+    renderSidebar(this.value);
+  });
+
+  document.getElementById('body-textarea').addEventListener('input', () => {
+    if (currentId) refreshCurl(ENDPOINTS[currentId]);
+  });
+
+  document.getElementById('bc-home').addEventListener('click', e => {
+    e.preventDefault();
+    currentId = null;
+    window.location.hash = '';
+    document.getElementById('welcome-view').classList.remove('hidden');
+    document.getElementById('endpoint-view').classList.add('hidden');
+    renderSidebar(document.getElementById('search-input').value);
+  });
+
+  window.addEventListener('hashchange', handleHash);
+
+  renderSidebar();
+  handleHash();
+});
 </script>
 </body>
 </html>
