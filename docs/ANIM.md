@@ -603,7 +603,7 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 | 1 | `SFX_FG_BONUS_REVEAL` at t=1800ms | Standard reveal, 10–20 gold particles |
 | 5 | `SFX_FG_BONUS_5X` at t=1800ms | Moderate gold burst: 60–80 particles, radius 120px, `--color-gold-bright` |
 | 20 | `SFX_FG_BONUS_20X` at t=1800ms | Large burst: 150–200 particles, radius 200px; banner swells to scale 1.2 before settling |
-| 100 | `SFX_FG_BONUS_100X` at t=1800ms | Full-screen explosion: 3000 particles desktop / 800 mobile (VDD §5.4 exception); `fx_fg_bonus_100x.spine` plays; 3.0s burst window; BGM duck −9dB for 4000ms (state-observer owned) |
+| 100 | `SFX_FG_BONUS_100X` at t=1800ms | Full-screen explosion: 3000 particles desktop / 800 mobile (VDD §5.4 exception); `fx_fg_bonus_100x.spine` plays; 3.0s burst window; BGM duck −9dB for 4000ms (state-observer owned). **Flash compliance note:** `fx_fg_bonus_100x.spine` must not contain brightness-peak flashes exceeding 3Hz (WCAG 2.3.1); the Spine FX asset must be reviewed at QA against VDD §8.2 before ship. The 3000-particle burst itself does not constitute a flash event. |
 
 ### 6.2 FG Round HUD
 
@@ -782,6 +782,9 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 | `PS_TB_SECOND_HIT` | t=2300ms second hit (thunderBlessingSecondHit=true) | 20–30 per cell / 10–15 per cell | Additive | 300–600 | `--color-gold-divine`; upward radial; per converted cell |
 | `PS_NEAR_MISS` | nearMissApplied = true | None (no particles) | — | — | Near miss is positional only (reel twitch) |
 | `PS_CASCADE_TINT` | Cascade counter increment | None (CSS filter only) | — | — | WIN area background tint; no particles |
+| `PS_WIN_MEDIUM` | Medium Win overlay (5× ≤ win < 20× baseBet) | 20 / 10 | Additive | 500 | Gold radial burst from overlay center; `--color-gold-bright`; used in §7.2 Medium Win overlay |
+| `PS_WILD_IDLE_ARC` | Wild symbol idle (persistent, while rendered) | 2–4/s desktop / 1–2/s mobile | Additive | 400 | `--color-arc-white` micro-sparks drifting upward from Wild cell; continuous emitter; contributes to idle particle budget (§8.2) |
+| `PS_SC_IDLE_ARC` | Scatter symbol idle (persistent, while rendered) | 3–6/s desktop / 2–3/s mobile | Additive | 300–500 | `--color-sym-scatter-arc` rotating arc ring particles; continuous emitter; contributes to idle particle budget (§8.2) |
 
 ### 8.2 Performance Budget
 
@@ -929,7 +932,7 @@ When the session reconnects after a network interruption mid-spin, the game rest
 |:------------:|:---------------:|:----------------:|----------------------|
 | `NEAR_MISS` | §2.1 (Near Miss Twitch) | 200ms | `SFX_NEAR_MISS` at t=0ms |
 | `REEL_SPIN` (implicit; pre-AQ) | §2.1 | Variable (until API response) | `SFX_SPIN_START` immediate; `SFX_REEL_STOP_1–5` staggered 120ms |
-| `CASCADE_STEP` | §2.3, §3.1, §3.2, §3.3, §3.4 | 1500ms–2500ms | `SFX_WIN` / `SFX_SCATTER_WIN` at t=0ms; `SFX_CASCADE_EXPLODE` at ~800ms (no SC in step) or ~1800ms (SC present in win line — waits for 1800ms SC win animation per AUDIO.md §5.2); `SFX_LIGHTNING_MARK` concurrent with elimination; `SFX_REEL_EXPAND` at ~1000ms; `SFX_FREE_LETTER` concurrent; `SFX_CASCADE_DROP` staggered at drop-land |
+| `CASCADE_STEP` | §2.3, §3.1, §3.2, §3.3, §3.4 | 1500ms–2500ms | `SFX_WIN` / `SFX_SCATTER_WIN` at t=0ms; `SFX_CASCADE_EXPLODE` at t=[max symbol win duration in this step] — duration varies by highest-tier winning symbol per §2.3: L1–L4 only → ~800ms; P4 → ~1000ms; Wild/P3 → ~1200ms; P2 → ~1300ms; P1 → ~1500ms; SC present → ~1800ms (per AUDIO.md §5.2); `SFX_LIGHTNING_MARK` concurrent with elimination; `SFX_REEL_EXPAND` at ~1000ms; `SFX_FREE_LETTER` concurrent; `SFX_CASCADE_DROP` staggered at drop-land |
 | `THUNDER_BLESSING` | §4 | 3000ms (or 3000ms+) | `SFX_LIGHTNING_ACTIVATE` at t=200ms; `SFX_THUNDER_BLESSING` + `SFX_TB_FIRST_HIT` at t=800ms; `SFX_TB_SYMBOL_UPGRADE` at t=1500ms; `SFX_SECOND_HIT` at t=2300ms (if applicable); `SFX_TB_SETTLE` at t=3000ms |
 | `COIN_TOSS` | §5 | 3000ms–3500ms | `SFX_COIN_TOSS_START` at t=0ms; `SFX_COIN_TOSS_FLIP` [loop] at t=500ms; `SFX_COIN_HEADS` or `SFX_COIN_TAILS` at ~t=3500ms; `SFX_COIN_MULT_PROGRESS` on HEADS. TAILS in main-game → `WIN_DISPLAY`; TAILS in FG context → `FG_COMPLETE` (per AUDIO.md §5.6 FG caveat); `BGM_COIN_TOSS`→`BGM_MAIN` crossfade does NOT fire in FG context. |
 | `FG_ENTRY` | §6.1 | ~2600ms | `SFX_FG_ENTER` at t=0ms; `SFX_FG_BONUS_REVEAL` / `SFX_FG_BONUS_5X` / `SFX_FG_BONUS_20X` / `SFX_FG_BONUS_100X` at t=1800ms |
@@ -998,6 +1001,11 @@ Detected via `prefers-reduced-motion: reduce` CSS media query, or the in-game "L
 | Free letter pulse | Letters illuminate at full brightness instantly; no scale animation |
 | Win tier overlays (BIG WIN etc.) | Overlay appears at full opacity immediately; no slide or scale animation |
 | FG multiplier advance (old number explode + scale-in, 800ms; ×77 lightning strike visual, 600ms) | Multiplier number cross-fades to new value: `opacity` 0 → 1.0, 100ms, `linear`. Lightning strike visual omitted. Progress bar still animates to next node (500ms, `ease-in-out-cubic` — informational, not decorative) |
+| Symbol idle animations (4.0s loops — Wild, Scatter, P1–P4 Spine animations) | Spine idle animation halted at first frame (static pose); Bloom radius clamped to 2px; no idle particle emitters (`PS_WILD_IDLE_ARC`, `PS_SC_IDLE_ARC` disabled) |
+| Symbol win animations (800ms – 1800ms per §2.3) | Symbol brightness ramps to 120% and returns to 100% over 200ms, `linear`; no scale animation; no win-glow particles (`PS_SYMBOL_WIN_GLOW` disabled) |
+| Reel expansion sequence (~850ms, cloud layer + row animate) | New row appears at `opacity` 0 → 1.0 over 100ms, `linear`; cloud overlay removed instantly (cut); no scale or translate animation |
+| Max Win celebration — coin rain and Zeus strike (6000ms / 10000ms per §7.3) | Static MAX WIN or LEGENDARY WIN text at full opacity immediately; coin rain (`PS_WIN_MAX`) and Zeus lightning strike animation omitted; overlay holds for minimum display duration then dismisses |
+| FG Complete summary panel entrance (600ms slide-in per §6.4) | Summary panel appears at full opacity immediately; no `translateY` animation |
 
 ### 11.2 Colorblind Considerations
 
@@ -1017,7 +1025,7 @@ Win highlights, Lightning Mark indicators, and FREE letter progress must not rel
 
 **Flash frequency compliance (from VDD §8.2):**
 - Win flash: 0.8s cycle = 1.25Hz. Within WCAG 2.3.1 < 3Hz limit.
-- Thunder Blessing white flash: single 300ms impact, ≥ 1s gap between consecutive flashes, maximum 3 total per TB sequence.
+- Thunder Blessing white flash: single 300ms impact, ≥ 1s gap between consecutive flashes, maximum 2 total per TB sequence (one at t=800ms first hit; one optional at t=2300ms when `thunderBlessingSecondHit=true`).
 - FG Bonus ×100 celebration: flash peaks < 3 per second (one peak every ~400ms).
 
 ---
