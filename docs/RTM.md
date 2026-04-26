@@ -1,0 +1,354 @@
+# RTM — Requirements Traceability Matrix
+# Thunder Blessing Slot Game
+
+---
+
+## Document Control
+
+| Field | Content |
+|-------|---------|
+| **DOC-ID** | RTM-THUNDERBLESSING-20260426 |
+| **Product** | Thunder Blessing Slot Game |
+| **Version** | v1.0 |
+| **Status** | DRAFT |
+| **Author** | AI Generated (gendoc D13-RTM) |
+| **Date** | 2026-04-26 |
+| **Upstream Documents** | PRD.md v0.1, EDD.md v1.3, API.md v1.0, SCHEMA.md v1.0, test-plan.md v1.0 |
+| **Reviewers** | QA Lead, Engineering Lead |
+| **Approver** | QA Lead |
+
+### Change Log
+
+| Version | Date | Author | Summary |
+|---------|------|--------|---------|
+| v1.0 | 2026-04-26 | AI Generated (gendoc D13-RTM) | Initial generation from PRD, EDD, API, SCHEMA, test-plan, and BDD feature files |
+
+---
+
+## Table of Contents
+
+1. [Section 1: Requirement → Design Traceability](#section-1-requirement--design-traceability)
+2. [Section 2: Requirement → Test Coverage](#section-2-requirement--test-coverage)
+3. [Section 3: API Endpoint Coverage](#section-3-api-endpoint-coverage)
+4. [Section 4: Coverage Summary](#section-4-coverage-summary)
+5. [Section 5: Not-Covered / Risk Items](#section-5-not-covered--risk-items)
+
+---
+
+## Section 1: Requirement → Design Traceability
+
+Maps each PRD requirement / Acceptance Criteria to the EDD section and API endpoint that implements it.
+
+> **EDD §5.1** refers to the domain component table in EDD §1.3 (PRD Requirement Traceability table). Section references below use the canonical EDD component names.
+
+| Req ID | Requirement Summary | EDD Section / Component | API Endpoint | Design Artifact (SCHEMA / Config) |
+|--------|---------------------|------------------------|--------------|-----------------------------------|
+| **US-SPIN-001** | Base reel spin — 5×3 grid, P99 ≤ 500ms, Wild substitution, payline evaluation | §1.3: `SpinUseCase`, `SlotEngine.spin()` | `POST /v1/spin` | `spins` table (SCHEMA §2.2); `players` table (SCHEMA §2.1) |
+| US-SPIN-001 / AC-1 | Spin returns FullSpinOutcome within 500ms (extraBet OFF, no FG) | `SpinUseCase`, `SlotEngine.spin()` | `POST /v1/spin` → 200 | `spins.outcome_json`, `spins.total_win` |
+| US-SPIN-001 / AC-2 | Balance < baseBet → error, no request issued | `SpinUseCase` balance check | `POST /v1/spin` → 400 INSUFFICIENT_FUNDS | `players.balance CHECK (balance >= 0)` |
+| US-SPIN-001 / AC-3 | Expired / missing JWT → 401 | `JwtAuthGuard` (Fastify preHandler) | `POST /v1/spin` → 401 UNAUTHORIZED | Supabase Auth JWT RS256 |
+| US-SPIN-001 / AC-4 | Concurrent spin blocked (button locked, 409 on 2nd request) | `ConcurrencyLockGuard` (Redis NX lock) | `POST /v1/spin` → 409 SPIN_IN_PROGRESS | Redis `session:{id}:lock` key |
+| US-SPIN-001 / AC-5 | Wild substitutes all symbols except SC | `SlotEngine.generateGrid()`, `CascadeEngine.detectWinLines()` | `POST /v1/spin` | `spins.outcome_json` (winLines) |
+| **US-CASC-001** | Cascade chain elimination + Lightning Mark generation + row expansion | §1.3: `CascadeEngine`, `SlotEngine` | `POST /v1/spin` | `spins.thunder_blessing_triggered`, `cascadeSequence` in response |
+| US-CASC-001 / AC-1 | Win → Lightning Mark generated, symbols eliminated, rows expand 3→4, paylines 25→33 | `CascadeEngine.runCascade()`, `expandRows()`, `generateLightningMarks()` | `POST /v1/spin` | `cascadeSequence.steps[].newLightningMarks`, `cascadeSequence.steps[].rows` |
+| US-CASC-001 / AC-2 | rows = 6 (MAX_ROWS) — no further expansion, cascade continues | `CascadeEngine.expandRows()` MAX_ROWS guard | `POST /v1/spin` | `finalRows` ≤ 6 enforced |
+| US-CASC-001 / AC-3 | New Main Game spin resets Lightning Marks and rows to 3 | `SlotEngine.spin()` initialization | `POST /v1/spin` | Redis session cleared; `lightningMarks.count = 0` |
+| US-CASC-001 / AC-4 | Same payline wins not double-counted | `CascadeEngine.detectWinLines()` deduplication | `POST /v1/spin` | `cascadeSequence.steps[].winLines` |
+| US-CASC-001 / AC-5 | 3+ cascade steps — each CascadeStep records grid, wins, marks | `CascadeEngine.runCascade()` step tracking | `POST /v1/spin` | `cascadeSequence.steps[]` array |
+| **US-TBSC-001** | Thunder Blessing Scatter — dual-hit symbol upgrade when marks present | §1.3: `ThunderBlessingHandler` | `POST /v1/spin` | `spins.thunder_blessing_triggered`, `spins.upgraded_symbol` |
+| US-TBSC-001 / AC-1 | SC lands on marked grid → first hit converts all marks to same premium symbol | `ThunderBlessingHandler.applyFirstHit()` | `POST /v1/spin` | `thunderBlessingResult.convertedSymbol` |
+| US-TBSC-001 / AC-2 | RNG < 0.40 → second hit upgrades marked symbols one tier | `ThunderBlessingHandler.applySecondHit()` | `POST /v1/spin` | `thunderBlessingSecondHit = true` |
+| US-TBSC-001 / AC-3 | SC + no Lightning Marks → no Thunder Blessing | `ThunderBlessingHandler.evaluate()` | `POST /v1/spin` | `thunderBlessingTriggered = false` |
+| US-TBSC-001 / AC-4 | P1 upgrade boundary — stays P1 | `ThunderBlessingHandler.upgradeSymbol()` | `POST /v1/spin` | Upgrade jump table in `GameConfig.generated.ts` |
+| US-TBSC-001 / AC-5 | Thunder Blessing → Cascade continues if new win | `ThunderBlessingHandler` + `CascadeEngine` pipeline | `POST /v1/spin` | `cascadeSequence.steps[]` post-TB |
+| **US-COIN-001** | Coin Toss — rows=6 + cascade win → probability gate → FG entry | §1.3: `CoinTossEvaluator` | `POST /v1/spin` | `spins.coin_toss_result`, `spins.coin_toss_triggered` |
+| US-COIN-001 / AC-1 | rows=6 + Cascade success → mgFgTriggerProb (0.009624) → coinProbs[0]=0.80 for Heads | `CoinTossEvaluator.evaluate(rng, config, stage=0)` | `POST /v1/spin` | `coinTossTriggered`, `coinTossResult` |
+| US-COIN-001 / AC-2 | Coin Toss Heads (main game) → FG starts at ×3 | `FreeGameOrchestrator.runSequence()` | `POST /v1/spin` | `fgTriggered = true`, `fgMultiplier = 3` |
+| US-COIN-001 / AC-3 | Coin Toss Tails → no FG, spin ends | `CoinTossEvaluator.evaluate()` | `POST /v1/spin` | `fgTriggered = false` |
+| US-COIN-001 / AC-4 | buyFG mode → entryBuy=1.00, bypasses mgFgTriggerProb | `BuyFeatureUseCase`, `CoinTossEvaluator` | `POST /v1/spin` (buyFeature=true) | `spins.buy_feature_active` |
+| US-COIN-001 / AC-5 | rows < 6 → Coin Toss never triggered | `SlotEngine.spin()` rows guard | `POST /v1/spin` | `coinTossTriggered = false` when `finalRows < 6` |
+| **US-FGAM-001** | Free Game — Lightning Marks persist cross-Spin, ×3→×7→×17→×27→×77 sequence | §1.3: `FreeGameOrchestrator`, §5.6 | `POST /v1/spin` | `spins.fg_triggered`, `spins.fg_multiplier`, `fg_sessions` table (SCHEMA §2.4) |
+| US-FGAM-001 / AC-1 | FG round 1 uses freeGame weights, inherits marks from main game, win × 3 | `FreeGameOrchestrator.runSingleRound()` | `POST /v1/spin` | `fgRounds[0].lightningMarksBefore`, `fgRounds[0].multiplier = 3` |
+| US-FGAM-001 / AC-2 | 2nd FG Coin Toss Heads → multiplier upgrades ×3→×7 | `FreeGameOrchestrator.runSequence()` stage progression | `POST /v1/spin` | `fgRounds[1].multiplier = 7` |
+| US-FGAM-001 / AC-3 | Multiplier at ×77 with Heads → stays at ×77 | `FreeGameOrchestrator` max multiplier guard | `POST /v1/spin` | `fgMultiplier` enum [3,7,17,27,77] |
+| US-FGAM-001 / AC-4 | Any FG Coin Toss Tails → FG ends, marks cleared | `FreeGameOrchestrator.runSequence()` termination | `POST /v1/spin` | `fgRounds[n].coinTossResult = "TAILS"`, `lightningMarks = []` |
+| US-FGAM-001 / AC-5 | buyFG mode → exactly 5 FG rounds, multipliers [3,7,17,27,77] | `BuyFeatureUseCase`, `FreeGameOrchestrator` | `POST /v1/spin` (buyFeature=true) | `fgRounds.length === 5` |
+| US-FGAM-001 / AC-6 | FG Bonus multiplier drawn once (×1/×5/×20/×100) from fgBonus weights | `FreeGameOrchestrator.drawBonusMultiplier()` | `POST /v1/spin` | `fgBonusMultiplier`, `spins.bonus_multiplier` |
+| US-FGAM-001 / AC-7 | ×77 + Tails → FG ends immediately, marks cleared, totalWin returned | `FreeGameOrchestrator` termination + `SessionFloorGuard` | `POST /v1/spin` | `totalWin` in response |
+| **US-FGREC-001** | FG disconnection recovery — restore from Redis/PostgreSQL | §4.1: `RedisSessionCache`, `SupabaseSessionRepository` | `GET /v1/session/:sessionId` | `fg_sessions` table (SCHEMA §2.4); Redis `player_sessions` |
+| US-FGREC-001 / AC-1 | FG in progress + valid JWT → backend restores FG state from Redis | `RedisSessionCache.get()`, `GetSessionStateUseCase` | `GET /v1/session/:sessionId` → 200 | `fg_sessions.fg_multiplier`, `fg_sessions.lightning_marks` |
+| US-FGREC-001 / AC-2 | FG state restored → frontend resumes from breakpoint | `GetSessionStateUseCase` → `SessionStateDTO` | `GET /v1/session/:sessionId` | `status = "FG_ACTIVE"`, `completedRounds[]` |
+| US-FGREC-001 / AC-3 | JWT expired on reconnect → 401, FG state preserved | `JwtAuthGuard` | `GET /v1/session/:sessionId` → 401 | Session TTL not reset on auth failure |
+| US-FGREC-001 / AC-4 | FG not in progress → no recovery triggered | `GetSessionStateUseCase` fg_in_progress check | `GET /v1/session/:sessionId` | `status = "COMPLETE"` or `SPINNING` |
+| **US-EXBT-001** | Extra Bet — ×3 cost, guaranteed SC in visible 3 rows | §1.3: `SlotEngine.generateGrid()` (isExtraBet flag) | `POST /v1/spin` (extraBet=true) | `spins.extra_bet_active`, `extraBetActive` in response |
+| US-EXBT-001 / AC-1 | Extra Bet ON + baseBet=$0.25 → debit $0.75, use extraBet weights, SC guaranteed | `SlotEngine.generateGrid(isExtraBet=true)` | `POST /v1/spin` | `totalBet = baseBet × 3` |
+| US-EXBT-001 / AC-2 | Natural SC present → no forced injection | `SlotEngine.generateGrid()` SC check | `POST /v1/spin` | `forceScatter` flag logic |
+| US-EXBT-001 / AC-3 | No natural SC → random row 0-2 cell replaced with SC | `SlotEngine.generateGrid()` forced injection | `POST /v1/spin` | Grid positions with SC in rows 0-2 |
+| US-EXBT-001 / AC-4 | Extra Bet OFF → mainGame weights, baseBet debit | `SlotEngine.generateGrid(isExtraBet=false)` | `POST /v1/spin` (extraBet=false) | `extraBetActive = false` |
+| US-EXBT-001 / AC-5 | Extra Bet ON + Buy Feature → fee = 300 × baseBet | `BuyFeatureUseCase` fee calculation | `POST /v1/spin` (extraBet=true, buyFeature=true) | `totalBet = baseBet × 300` |
+| **US-BUYF-001** | Buy Feature — 100× baseBet, guaranteed 5 Heads, session floor ≥ 20× | §1.3: `BuyFeatureUseCase`, `SessionFloorGuard`, §5.7 | `POST /v1/spin` (buyFeature=true) | `spins.buy_feature_active`, `spins.session_floor_applied` |
+| US-BUYF-001 / AC-1 | Balance ≥ 100×, extraBet OFF → debit 100×, mode=buyFG, 5 rounds guaranteed | `BuyFeatureUseCase` | `POST /v1/spin` | `buyFeatureActive = true`, `fgRounds.length = 5` |
+| US-BUYF-001 / AC-2 | totalWin < 20× → floor applied, totalWin raised to 20× | `SessionFloorGuard.applyFloor()` | `POST /v1/spin` | `sessionFloorApplied = true`, `sessionFloorValue` |
+| US-BUYF-001 / AC-3 | Extra Bet + Buy Feature → fee=300×, floor=60× | `BuyFeatureUseCase` + `SessionFloorGuard` | `POST /v1/spin` | `sessionFloorValue = 60 × baseBet` |
+| US-BUYF-001 / AC-4 | Balance < 100× → 400 INSUFFICIENT_FUNDS | `SpinUseCase` balance check | `POST /v1/spin` → 400 | `players.balance` |
+| US-BUYF-001 / AC-5 | buyFG weights used exclusively | `SlotEngine.generateGrid()` weight selection | `POST /v1/spin` | `GameConfig.generated.ts` weights.buyFG |
+| US-BUYF-001 / AC-6 | Extra Bet ON + balance < 300× → 400 | `SpinUseCase` | `POST /v1/spin` → 400 INSUFFICIENT_FUNDS | `players.balance` |
+| **US-NRMS-001** | Near Miss — Excel-defined, toolchain configured, zero win | §14.7: `NearMissSelector` (config-driven) | `POST /v1/spin` | `nearMissApplied` in response; `spins.near_miss_applied` |
+| US-NRMS-001 / AC-1 | Excel DATA tab → build_config.js → GameConfig.generated.ts | `build_config.js` toolchain | N/A (build-time) | `GameConfig.generated.ts` nearMiss config block |
+| US-NRMS-001 / AC-2 | Near Miss trigger → win = 0, no RTP impact | `NearMissSelector.select()` | `POST /v1/spin` | `totalWin = 0`, `nearMissApplied = true` |
+| US-NRMS-001 / AC-3 | No hardcoded Near Miss in SlotEngine.ts | Code convention + CI check | N/A | `GameConfig.generated.ts` only source |
+| US-NRMS-001 / AC-4 | Near Miss does not affect RTP ±1% | `verify.js` 4-scenario check | N/A (toolchain) | `verify_report.txt` PASS |
+| **US-TOOL-001** | slot-engine toolchain — Excel → engine_config.json → GameConfig.generated.ts | §14.1: `build_config.js`, `excel_simulator.js`, `verify.js`, `engine_generator.js` | N/A (build-time toolchain) | `GameConfig.generated.ts`, `engine_config.json` |
+| US-TOOL-001 / AC-1 | Excel DATA tab edit → build_config.js → engine_config.json updated | `build_config.js` | N/A | `engine_config.json` |
+| US-TOOL-001 / AC-2 | engine_config.json → excel_simulator.js → 1M Monte Carlo → SIMULATION + DESIGN_VIEW tabs | `excel_simulator.js` | N/A | SIMULATION / DESIGN_VIEW Excel tabs |
+| US-TOOL-001 / AC-3 | SIMULATION written → verify.js → RTP ±1% → verify_report.txt PASS | `verify.js` | N/A | `verify_report.txt` |
+| US-TOOL-001 / AC-4 | verify.js PASS → engine_generator.js → GameConfig.generated.ts with no-edit header | `engine_generator.js` | N/A | `GameConfig.generated.ts` |
+| US-TOOL-001 / AC-5 | verify.js FAIL → engine_generator.js blocked | `verify.js` hard gate | N/A | CI exit code ≠ 0 |
+| **US-RTPV-001** | RTP verification — 4 scenarios ±1% via verify.js 1M Monte Carlo | §14.4: `verify.js` | N/A (toolchain) | `verify_report.txt` |
+| US-RTPV-001 / AC-1 | Scenario 1 (Main Game, EB Off): RTP 96.5%–98.5% | `verify.js` scenario 1 | N/A | `verify_report.txt` ✅ |
+| US-RTPV-001 / AC-2 | Scenario 2 (Main Game, EB On): RTP 96.5%–98.5% | `verify.js` scenario 2 | N/A | `verify_report.txt` ✅ |
+| US-RTPV-001 / AC-3 | Scenario 3 (FG, BuyFG Off): RTP 96.5%–98.5% | `verify.js` scenario 3 | N/A | `verify_report.txt` ✅ |
+| US-RTPV-001 / AC-4 | Scenario 4 (Buy Free Game): RTP 96.5%–98.5% | `verify.js` scenario 4 | N/A | `verify_report.txt` ✅ |
+| US-RTPV-001 / AC-5 | Any scenario fails → verify.js outputs ❌, blocks engine_generator.js | `verify.js` + CI gate | N/A | CI pipeline gate QG-06 |
+| **US-CURR-001** | USD / TWD currency — from BetRangeConfig.generated.ts, no hardcoded values | §6.3: `CurrencyFormatter` | `GET /v1/config` | `BetRangeConfig.generated.ts` |
+| US-CURR-001 / AC-1 | USD fetchBetRange: min $0.25, max $10.00, step $0.25 | `CurrencyFormatter`, `BetRangeConfig` | `GET /v1/config` | `betRange.USD.levels[]` |
+| US-CURR-001 / AC-2 | TWD fetchBetRange: min 10, max 320, step 10 | `CurrencyFormatter`, `BetRangeConfig` | `GET /v1/config` | `betRange.TWD.levels[]` |
+| US-CURR-001 / AC-3 | No hardcoded bet range in BetRangeService.ts | Code review gate | N/A | `BetRangeConfig.generated.ts` only source |
+| US-CURR-001 / AC-4 | Excel BET_MAX_LEVEL change → BetRangeConfig.generated.ts auto-updates | Toolchain propagation | `GET /v1/config` | `BetRangeConfig.generated.ts` |
+| **US-APIV-001** | Single-trip API — complete FG sequence in one response, JWT on every spin | §1.3: `JwtAuthGuard`, ADR-002 | `POST /v1/spin` | Full `FullSpinOutcome` JSON (API §3.1) |
+| US-APIV-001 / AC-1 | Main Game with FG (×3→×7→Tails): one response contains baseSpins + fgSpins | `FreeGameOrchestrator` embedded in `SpinUseCase` | `POST /v1/spin` | `fgRounds[]` in single response |
+| US-APIV-001 / AC-2 | buyFG: fgRounds.length = 5, multipliers [3,7,17,27,77] | `BuyFeatureUseCase` + `FreeGameOrchestrator` | `POST /v1/spin` | `fgRounds[0..4].multiplier` |
+| US-APIV-001 / AC-3 | Base spin P99 ≤ 500ms; FG sequence P99 ≤ 800ms at 100 RPS | API performance (k6) | `POST /v1/spin` | QG-07/QG-08 in CI |
+| US-APIV-001 / AC-4 | Invalid JWT → 401, no game logic executed | `JwtAuthGuard` | `POST /v1/spin` → 401 | Supabase Auth |
+| US-APIV-001 / AC-5 | UI displays outcome.totalWin only (not session.roundWin) | `SpinUseCase` authority rule | `POST /v1/spin` | `totalWin` sole authority |
+| **US-FEND-001** (P1) | Frontend animation — FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins | §4.1: `SpinResponse.dto.ts` | `POST /v1/spin` | Full `FullSpinOutcome` schema (API §3.1) |
+| US-FEND-001 / AC-1 | FullSpinOutcome contains cascadeSteps, lightningMarks, fgSpins with correct structure | `SpinResponse.dto.ts` serialization | `POST /v1/spin` | `cascadeSequence`, `fgRounds[]` |
+| US-FEND-001 / AC-2 | FG triggered: frontend plays fgSpins sequentially without extra API requests | Single-trip design (ADR-002) | `POST /v1/spin` | `fgRounds[]` array sequential |
+| US-FEND-001 / AC-3 | Frontend shows outcome.totalWin, not client-computed sum | API contract + Pure View | `POST /v1/spin` | `totalWin` field |
+| US-FEND-001 / AC-4 | No FG: fgRounds = [] handled gracefully | `SpinUseCase` conditional | `POST /v1/spin` | `fgRounds: []` |
+| US-FEND-001 / AC-5 | FullSpinOutcome matches OpenAPI spec | `SpinResponse.dto.ts` + AJV validation | `POST /v1/spin` | OpenAPI schema in API §3.1 |
+
+---
+
+## Section 2: Requirement → Test Coverage
+
+Maps each requirement to the BDD scenario tags that test it. Server BDD tags are from `features/*.feature` (excluding `features/client/`). Client BDD tags are from `features/client/**/*.feature`.
+
+**Coverage Status Legend:**
+- **COVERED** — At least one server BDD + one client BDD (or equivalent integration/unit) tag maps to this requirement
+- **PARTIAL** — BDD tags exist but only cover some ACs, or only server or client side is covered
+- **NOT-COVERED** — No BDD scenario tags directly testing this requirement
+
+| Req ID | Requirement Summary | Server BDD Tags | Client BDD Tags | Coverage Status |
+|--------|---------------------|----------------|-----------------|-----------------|
+| **US-SPIN-001** | Base reel spin (P99 ≤ 500ms, 5×3, Wild) | `TC-INT-API-001-HAPPY`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-CASC-002-HAPPY`, `TC-INT-API-004-ERROR`, `TC-INT-API-005-ERROR`, `TC-INT-API-006-ERROR`, `TC-INT-API-002-ERROR`, `TC-INT-API-003-ERROR`, `TC-UNIT-MAXWIN-001-BOUNDARY`, `TC-INT-API-011`, `TC-INT-API-016`, `TC-INT-API-017`, `TC-INT-API-019`, `TC-INT-API-020` | `TC-E2E-SPIN-001`, `TC-E2E-SPIN-002`, `TC-E2E-SPIN-003`, `TC-E2E-SPIN-004`, `TC-E2E-SPIN-005`, `TC-E2E-SPIN-006`, `TC-E2E-SPIN-007`, `TC-E2E-SPIN-008`, `TC-E2E-SPIN-009`, `TC-E2E-ERR-001`, `TC-E2E-ERR-002` | COVERED |
+| US-SPIN-001 / AC-1 | Spin returns FullSpinOutcome ≤ 500ms | `TC-INT-API-001-HAPPY` | `TC-E2E-SPIN-001` | COVERED |
+| US-SPIN-001 / AC-2 | Balance < baseBet → error | `TC-INT-API-004-ERROR` | `TC-E2E-ERR-001`, `TC-E2E-SPIN-002` | COVERED |
+| US-SPIN-001 / AC-3 | Expired/missing JWT → 401 | `TC-INT-API-002-ERROR`, `TC-INT-API-003-ERROR`, `TC-SEC-AUTH-001`, `TC-SEC-AUTH-003` | `TC-E2E-ERR-004` | COVERED |
+| US-SPIN-001 / AC-4 | Concurrent spin → 409, button locked | `TC-INT-API-012`, `TC-INT-API-021` | `TC-E2E-SPIN-003` | COVERED |
+| US-SPIN-001 / AC-5 | Wild substitution logic | `TC-UNIT-CASC-002-HAPPY` | — | PARTIAL |
+| **US-CASC-001** | Cascade elimination + Lightning Mark + row expansion | `TC-UNIT-CASC-002-HAPPY`, `TC-INT-API-010-HAPPY`, `TC-INT-FG-001-HAPPY`, `TC-INT-FG-002-HAPPY`, `TC-INT-FG-003-HAPPY` | `TC-E2E-CASC-001`, `TC-E2E-CASC-002`, `TC-E2E-CASC-003`, `TC-E2E-CASC-004`, `TC-E2E-CASC-005`, `TC-E2E-CASC-006`, `TC-E2E-CASC-007`, `TC-E2E-CASC-008` | COVERED |
+| US-CASC-001 / AC-1 | Win → mark, eliminate, rows 3→4, paylines 25→33 | `TC-UNIT-CASC-002-HAPPY`, `TC-INT-API-010-HAPPY` | `TC-E2E-CASC-001`, `TC-E2E-CASC-002` | COVERED |
+| US-CASC-001 / AC-2 | MAX_ROWS=6 boundary — no further expansion | — | `TC-E2E-CASC-005` | PARTIAL |
+| US-CASC-001 / AC-3 | New spin resets marks + rows | `TC-INT-FG-003-HAPPY` | — | PARTIAL |
+| US-CASC-001 / AC-4 | Same payline not double-counted | — | — | NOT-COVERED |
+| US-CASC-001 / AC-5 | 3+ cascade steps — each CascadeStep recorded | `TC-INT-API-010-HAPPY`, `TC-INT-FG-001-HAPPY` | `TC-E2E-CASC-003`, `TC-E2E-CASC-004` | COVERED |
+| **US-TBSC-001** | Thunder Blessing Scatter dual-hit upgrade | `TC-UNIT-TB-001-HAPPY`, `TC-UNIT-TB-002-HAPPY` | `TC-E2E-TB-001`, `TC-E2E-TB-002`, `TC-E2E-TB-003`, `TC-E2E-TB-004`, `TC-E2E-TB-005`, `TC-E2E-TB-006` | COVERED |
+| US-TBSC-001 / AC-1 | First hit: marks → same premium symbol | `TC-UNIT-TB-001-HAPPY` | `TC-E2E-TB-001`, `TC-E2E-TB-002` | COVERED |
+| US-TBSC-001 / AC-2 | Second hit (RNG<0.40): tier upgrade | `TC-UNIT-TB-002-HAPPY` | `TC-E2E-TB-003` | COVERED |
+| US-TBSC-001 / AC-3 | SC + no marks → no Thunder Blessing | — | `TC-E2E-TB-006` | PARTIAL |
+| US-TBSC-001 / AC-4 | P1 boundary — stays P1 | — | — | NOT-COVERED |
+| US-TBSC-001 / AC-5 | Post-TB cascade continues on win | — | `TC-E2E-TB-004` | PARTIAL |
+| **US-COIN-001** | Coin Toss — rows=6 + cascade win → FG entry | `TC-UNIT-COIN-004-HAPPY`, `TC-UNIT-COIN-006-BOUNDARY`, `TC-INT-FG-001-HAPPY` | `TC-E2E-COIN-001`, `TC-E2E-COIN-002`, `TC-E2E-COIN-003`, `TC-E2E-COIN-004`, `TC-E2E-COIN-005`, `TC-E2E-COIN-006`, `TC-E2E-COIN-007` | COVERED |
+| US-COIN-001 / AC-1 | mgFgTriggerProb + coinProbs[0]=0.80 | — | `TC-E2E-COIN-001` | PARTIAL |
+| US-COIN-001 / AC-2 | Heads → FG at ×3 | `TC-INT-FG-001-HAPPY` | `TC-E2E-COIN-002` | COVERED |
+| US-COIN-001 / AC-3 | Tails → no FG | — | `TC-E2E-COIN-003` | PARTIAL |
+| US-COIN-001 / AC-4 | buyFG → entryBuy=1.00, guaranteed Heads | `TC-UNIT-COIN-004-HAPPY` | `TC-E2E-COIN-005` | COVERED |
+| US-COIN-001 / AC-5 | rows < 6 → no Coin Toss | `TC-UNIT-COIN-006-BOUNDARY` | — | PARTIAL |
+| **US-FGAM-001** | Free Game ×3→×77 multiplier sequence | `TC-UNIT-FG-002-HAPPY`, `TC-UNIT-FG-003-HAPPY`, `TC-UNIT-FG-004-BOUNDARY`, `TC-INT-FG-001-HAPPY`, `TC-INT-FG-002-HAPPY`, `TC-INT-FG-003-HAPPY` | `TC-E2E-FG-001`, `TC-E2E-FG-002`, `TC-E2E-FG-003`, `TC-E2E-FG-004`, `TC-E2E-FG-005`, `TC-E2E-FG-006`, `TC-E2E-FG-007`, `TC-E2E-FG-008`, `TC-E2E-FG-009` | COVERED |
+| US-FGAM-001 / AC-1 | FG round 1: freeGame weights, inherited marks, win × 3 | `TC-INT-FG-001-HAPPY` | `TC-E2E-FG-001` | COVERED |
+| US-FGAM-001 / AC-2 | Heads → ×3→×7 | `TC-UNIT-FG-004-BOUNDARY` | `TC-E2E-FG-002` | COVERED |
+| US-FGAM-001 / AC-3 | At ×77 + Heads → stays ×77 | `TC-UNIT-FG-004-BOUNDARY` | `TC-E2E-FG-005` | COVERED |
+| US-FGAM-001 / AC-4 | Tails → FG ends, marks cleared | `TC-INT-FG-003-HAPPY` | `TC-E2E-FG-006` | COVERED |
+| US-FGAM-001 / AC-5 | buyFG: exactly 5 rounds, all multipliers | `TC-INT-FG-001-HAPPY` | `TC-E2E-FG-001` | COVERED |
+| US-FGAM-001 / AC-6 | FG Bonus multiplier drawn once (×1/×5/×20/×100) | `TC-UNIT-FG-002-HAPPY`, `TC-UNIT-FG-003-HAPPY` | `TC-E2E-FG-004` | COVERED |
+| US-FGAM-001 / AC-7 | ×77 + Tails → immediate FG end, marks cleared | `TC-INT-FG-003-HAPPY` | `TC-E2E-FG-007` | COVERED |
+| **US-FGREC-001** (P1) | FG disconnection recovery | `TC-INT-API-012-HAPPY`, `TC-INT-API-012b-HAPPY`, `TC-INT-API-013-ERROR`, `TC-SEC-SESSION-001` | `TC-E2E-SESS-001`, `TC-E2E-SESS-002`, `TC-E2E-SESS-003`, `TC-E2E-SESS-004`, `TC-E2E-SESS-005`, `TC-E2E-SESS-006` | COVERED |
+| US-FGREC-001 / AC-1 | Valid JWT + FG in progress → restore from Redis | `TC-INT-API-012-HAPPY` | `TC-E2E-SESS-001` | COVERED |
+| US-FGREC-001 / AC-2 | Restored state → frontend resumes correctly | `TC-INT-API-012b-HAPPY` | `TC-E2E-SESS-002` | COVERED |
+| US-FGREC-001 / AC-3 | JWT expired on reconnect → 401, state preserved | `TC-SEC-SESSION-AUTH-001` | `TC-E2E-SESS-005` | COVERED |
+| US-FGREC-001 / AC-4 | FG not in progress → no recovery | `TC-INT-API-013-ERROR` | `TC-E2E-SESS-006` | COVERED |
+| **US-EXBT-001** | Extra Bet — ×3 cost, guaranteed SC | `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-001b-HAPPY`, `TC-UNIT-EXBT-002-HAPPY`, `TC-UNIT-EXBT-003-HAPPY`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-004b-HAPPY`, `TC-INT-BUYF-002b-HAPPY` | `TC-E2E-EXBT-001`, `TC-E2E-EXBT-002`, `TC-E2E-EXBT-003`, `TC-E2E-EXBT-004`, `TC-E2E-EXBT-005`, `TC-E2E-EXBT-006` | COVERED |
+| US-EXBT-001 / AC-1 | EB ON → debit ×3, extraBet weights, SC guaranteed | `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-001b-HAPPY` | `TC-E2E-EXBT-001` | COVERED |
+| US-EXBT-001 / AC-2 | Natural SC → no forced injection | `TC-UNIT-EXBT-002-HAPPY` | `TC-E2E-EXBT-003` | COVERED |
+| US-EXBT-001 / AC-3 | No natural SC → forced inject | `TC-UNIT-EXBT-003-HAPPY` | `TC-E2E-EXBT-004` | COVERED |
+| US-EXBT-001 / AC-4 | EB OFF → mainGame weights, standard debit | `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-004b-HAPPY` | `TC-E2E-EXBT-002` | COVERED |
+| US-EXBT-001 / AC-5 | EB + BuyFG → 300× baseBet | `TC-INT-BUYF-002b-HAPPY` | `TC-E2E-BUY-005` | COVERED |
+| **US-BUYF-001** | Buy Feature — 100× cost, 5 guaranteed Heads, floor ≥ 20× | `TC-INT-BUYF-001-HAPPY`, `TC-INT-BUYF-002-HAPPY`, `TC-INT-BUYF-002`, `TC-INT-BUYF-003-HAPPY`, `TC-UNIT-FLOOR-001-HAPPY`, `TC-INT-BUYF-003`, `TC-INT-BUYF-004`, `TC-INT-API-009-HAPPY` | `TC-E2E-BUY-001`, `TC-E2E-BUY-002`, `TC-E2E-BUY-003`, `TC-E2E-BUY-004`, `TC-E2E-BUY-005`, `TC-E2E-BUY-006`, `TC-E2E-BUY-007` | COVERED |
+| US-BUYF-001 / AC-1 | Balance ≥ 100× → debit, 5 rounds | `TC-INT-BUYF-001-HAPPY`, `TC-INT-API-009-HAPPY` | `TC-E2E-BUY-001` | COVERED |
+| US-BUYF-001 / AC-2 | totalWin < 20× → floor applied | `TC-INT-BUYF-003-HAPPY`, `TC-UNIT-FLOOR-001-HAPPY` | `TC-E2E-BUY-003` | COVERED |
+| US-BUYF-001 / AC-3 | EB + BuyFG → fee=300×, floor=60× | `TC-INT-BUYF-002-HAPPY` | `TC-E2E-BUY-005` | COVERED |
+| US-BUYF-001 / AC-4 | Balance < 100× → 400 | `TC-INT-BUYF-004` | `TC-E2E-BUY-006` | COVERED |
+| US-BUYF-001 / AC-5 | buyFG weights used exclusively | — | — | NOT-COVERED |
+| US-BUYF-001 / AC-6 | EB ON + balance < 300× → 400 | `TC-INT-BUYF-003` | `TC-E2E-BUY-007` | COVERED |
+| **US-NRMS-001** | Near Miss — Excel-defined, no code customization, zero win | — | — | NOT-COVERED |
+| US-NRMS-001 / AC-1 | Excel → build_config.js → GameConfig | — | — | NOT-COVERED |
+| US-NRMS-001 / AC-2 | Near Miss → win=0, no RTP impact | — | — | NOT-COVERED |
+| US-NRMS-001 / AC-3 | No hardcoded Near Miss in SlotEngine.ts | — | — | NOT-COVERED |
+| US-NRMS-001 / AC-4 | Near Miss in all 4 RTP scenarios passes verify.js | `TC-INT-PROB-001` | — | PARTIAL |
+| **US-TOOL-001** | Toolchain Excel → engine_config.json → GameConfig.generated.ts | `TC-UNIT-PROB-001-HAPPY`, `TC-UNIT-PROB-002-BOUNDARY`, `TC-UNIT-PROB-003-ERROR`, `TC-INT-PROB-001` | — | PARTIAL |
+| US-TOOL-001 / AC-1 | Excel DATA → build_config.js → engine_config.json | — | — | NOT-COVERED |
+| US-TOOL-001 / AC-2 | excel_simulator.js → 1M Monte Carlo → SIMULATION tab | — | — | NOT-COVERED |
+| US-TOOL-001 / AC-3 | verify.js → RTP ±1% → PASS | `TC-INT-PROB-001`, `TC-UNIT-PROB-001-HAPPY` | — | PARTIAL |
+| US-TOOL-001 / AC-4 | PASS → engine_generator.js → GameConfig | — | — | NOT-COVERED |
+| US-TOOL-001 / AC-5 | FAIL → engine_generator.js blocked | `TC-UNIT-PROB-003-ERROR` | — | PARTIAL |
+| **US-RTPV-001** | RTP verification — 4 scenarios ±1% Monte Carlo | `TC-UNIT-PROB-001-HAPPY`, `TC-UNIT-PROB-002-BOUNDARY`, `TC-INT-PROB-001` | — | PARTIAL |
+| US-RTPV-001 / AC-1 | Scenario 1 RTP 96.5%–98.5% | `TC-INT-PROB-001` | — | PARTIAL |
+| US-RTPV-001 / AC-2 | Scenario 2 RTP 96.5%–98.5% | `TC-INT-PROB-001` | — | PARTIAL |
+| US-RTPV-001 / AC-3 | Scenario 3 RTP 96.5%–98.5% | `TC-INT-PROB-001` | — | PARTIAL |
+| US-RTPV-001 / AC-4 | Scenario 4 RTP 96.5%–98.5% | `TC-INT-PROB-001` | — | PARTIAL |
+| US-RTPV-001 / AC-5 | Failure → ❌ output, blocks generation | `TC-UNIT-PROB-003-ERROR` | — | PARTIAL |
+| **US-CURR-001** | USD/TWD currency from BetRangeConfig (no hardcoded values) | `TC-INT-CURR-001-HAPPY`, `TC-INT-CURR-001b-HAPPY`, `TC-INT-CURR-001c-HAPPY`, `TC-INT-API-014` | `TC-E2E-BET-001`, `TC-E2E-BET-002`, `TC-E2E-BET-003`, `TC-E2E-BET-004`, `TC-E2E-BET-005`, `TC-E2E-BET-006`, `TC-E2E-BET-007` | COVERED |
+| US-CURR-001 / AC-1 | USD bet range correct | `TC-INT-CURR-001-HAPPY`, `TC-INT-CURR-001b-HAPPY` | `TC-E2E-BET-001` | COVERED |
+| US-CURR-001 / AC-2 | TWD bet range correct | `TC-INT-CURR-001c-HAPPY` | `TC-E2E-BET-002` | COVERED |
+| US-CURR-001 / AC-3 | No hardcoded values in BetRangeService.ts | — | — | NOT-COVERED |
+| US-CURR-001 / AC-4 | Excel change → BetRangeConfig auto-updates | — | — | NOT-COVERED |
+| **US-APIV-001** | Single-trip API + JWT on every spin | `TC-INT-API-001-HAPPY`, `TC-INT-API-002-ERROR`, `TC-INT-API-003-ERROR`, `TC-INT-API-010-HAPPY`, `TC-SEC-AUTH-001`, `TC-SEC-AUTH-001b`, `TC-SEC-AUTH-001c`, `TC-SEC-AUTH-002`, `TC-SEC-AUTH-003`, `TC-SEC-AUTH-004`, `TC-SEC-AUTH-005`, `TC-SEC-AUTH-007`, `TC-INT-API-019`, `TC-INT-API-020` | `TC-E2E-SPIN-001`, `TC-E2E-SESS-001` | COVERED |
+| US-APIV-001 / AC-1 | Main Game + FG in one response | `TC-INT-API-010-HAPPY` | `TC-E2E-FG-001` | COVERED |
+| US-APIV-001 / AC-2 | buyFG: fgRounds=5, multipliers in sequence | `TC-INT-API-009-HAPPY` | `TC-E2E-BUY-001` | COVERED |
+| US-APIV-001 / AC-3 | P99 ≤ 500ms (no FG), ≤ 800ms (FG) | `TC-INT-API-016`, `TC-INT-API-017` | — | PARTIAL |
+| US-APIV-001 / AC-4 | Invalid JWT → 401, no game logic | `TC-SEC-AUTH-001`, `TC-INT-API-002-ERROR` | `TC-E2E-ERR-004` | COVERED |
+| US-APIV-001 / AC-5 | totalWin sole authority | `TC-INT-API-019`, `TC-INT-API-020` | — | PARTIAL |
+| **US-FEND-001** (P1) | Frontend — FullSpinOutcome includes all animation data | — | `TC-E2E-SPIN-001`, `TC-E2E-CASC-001`, `TC-E2E-FG-001` | PARTIAL |
+
+---
+
+## Section 3: API Endpoint Coverage
+
+Maps each API endpoint to the BDD scenarios that test it.
+
+| Endpoint | Method | Description | Server BDD Tags | Client BDD Tags | Coverage |
+|----------|--------|-------------|----------------|-----------------|----------|
+| `/v1/spin` | POST | Execute a spin — core game endpoint | `TC-INT-API-001-HAPPY`, `TC-INT-API-002-ERROR`, `TC-INT-API-003-ERROR`, `TC-INT-API-004-ERROR`, `TC-INT-API-005-ERROR`, `TC-INT-API-006-ERROR`, `TC-INT-API-010-HAPPY`, `TC-INT-API-011`, `TC-INT-API-012`, `TC-INT-API-013`, `TC-INT-API-014`, `TC-INT-API-016`, `TC-INT-API-017`, `TC-INT-API-019`, `TC-INT-API-020`, `TC-INT-API-021`, `TC-INT-BUYF-001-HAPPY`, `TC-INT-BUYF-002-HAPPY`, `TC-INT-BUYF-002b-HAPPY`, `TC-INT-BUYF-003`, `TC-INT-BUYF-004`, `TC-INT-FG-001-HAPPY`, `TC-INT-FG-002-HAPPY`, `TC-INT-FG-003-HAPPY`, `TC-SEC-AUTH-001`, `TC-SEC-AUTH-001b`, `TC-SEC-AUTH-001c`, `TC-SEC-AUTH-002`, `TC-SEC-AUTH-003`, `TC-SEC-AUTH-004`, `TC-SEC-AUTH-005`, `TC-SEC-AUTH-007`, `TC-SEC-BET-001`, `TC-SEC-BET-002`, `TC-SEC-BET-003`, `TC-SEC-INJ-001`, `TC-SEC-INJ-002`, `TC-SEC-CORS-001`, `TC-SEC-CORS-001b`, `TC-UNIT-EXBT-001-HAPPY`, `TC-UNIT-EXBT-001b-HAPPY`, `TC-UNIT-EXBT-002-HAPPY`, `TC-UNIT-EXBT-003-HAPPY`, `TC-UNIT-EXBT-004-HAPPY`, `TC-UNIT-EXBT-004b-HAPPY`, `TC-UNIT-TB-001-HAPPY`, `TC-UNIT-TB-002-HAPPY`, `TC-UNIT-COIN-004-HAPPY`, `TC-UNIT-COIN-006-BOUNDARY`, `TC-UNIT-FG-002-HAPPY`, `TC-UNIT-FG-003-HAPPY`, `TC-UNIT-FG-004-BOUNDARY`, `TC-UNIT-FLOOR-001-HAPPY`, `TC-UNIT-MAXWIN-001-BOUNDARY`, `TC-UNIT-PROB-001-HAPPY`, `TC-UNIT-PROB-002-BOUNDARY`, `TC-INT-API-009-HAPPY` | `TC-E2E-SPIN-001` through `TC-E2E-SPIN-009`, `TC-E2E-CASC-001` through `TC-E2E-CASC-008`, `TC-E2E-TB-001` through `TC-E2E-TB-006`, `TC-E2E-COIN-001` through `TC-E2E-COIN-007`, `TC-E2E-FG-001` through `TC-E2E-FG-009`, `TC-E2E-EXBT-001` through `TC-E2E-EXBT-006`, `TC-E2E-BUY-001` through `TC-E2E-BUY-007`, `TC-E2E-ERR-001` through `TC-E2E-ERR-007`, `TC-E2E-BET-001` through `TC-E2E-BET-007` | COVERED |
+| `/v1/session/:sessionId` | GET | FG reconnect / session state retrieval | `TC-INT-API-012-HAPPY`, `TC-INT-API-012b-HAPPY`, `TC-INT-API-013-ERROR`, `TC-SEC-SESSION-001`, `TC-SEC-SESSION-AUTH-001`, `TC-SEC-AUTH-006` | `TC-E2E-SESS-001` through `TC-E2E-SESS-006` | COVERED |
+| `/v1/config` | GET | Game config + bet ranges (USD/TWD) | `TC-INT-API-014-HAPPY`, `TC-INT-CURR-001-HAPPY`, `TC-INT-CURR-001b-HAPPY`, `TC-INT-CURR-001c-HAPPY`, `TC-SEC-CONFIG-AUTH-001` | `TC-E2E-BET-001` through `TC-E2E-BET-007` | COVERED |
+| `/health` | GET | Health probe (no auth required) | `TC-INT-API-018` (via probability-engine config check) | — | PARTIAL |
+| `/ready` | GET | Readiness probe (DB + Redis healthy) | — | — | NOT-COVERED |
+
+---
+
+## Section 4: Coverage Summary
+
+### 4.1 Requirement Coverage by Req ID
+
+| Metric | Count | Percentage |
+|--------|------:|----------:|
+| Total top-level requirements (PRD US-IDs) | 13 | 100% |
+| Total AC-level requirements (all sub-ACs) | 60 | 100% |
+| **US-ID level: COVERED** | 9 | 69% |
+| **US-ID level: PARTIAL** | 3 | 23% |
+| **US-ID level: NOT-COVERED** | 1 | 8% |
+| **AC level: COVERED** | 35 | 58% |
+| **AC level: PARTIAL** | 14 | 23% |
+| **AC level: NOT-COVERED** | 11 | 18% |
+
+### 4.2 BDD Scenario Count
+
+| Category | Count |
+|----------|------:|
+| **Server BDD tags (unique, non-client features/)** | 73 |
+| **Client BDD tags (unique, features/client/)** | 76 |
+| **Total unique TC tags** | 149 |
+
+### 4.3 Server BDD Tags Breakdown
+
+| Module | Count | Tags |
+|--------|------:|------|
+| API integration (TC-INT-API-*) | 21 | `TC-INT-API-001` through `TC-INT-API-021` |
+| Buy Feature integration (TC-INT-BUYF-*) | 7 | `TC-INT-BUYF-001` through `TC-INT-BUYF-004` |
+| Free Game integration (TC-INT-FG-*) | 3 | `TC-INT-FG-001`, `TC-INT-FG-002`, `TC-INT-FG-003` |
+| Currency integration (TC-INT-CURR-*) | 3 | `TC-INT-CURR-001`, `TC-INT-CURR-001b`, `TC-INT-CURR-001c` |
+| Probability integration (TC-INT-PROB-*) | 1 | `TC-INT-PROB-001` |
+| Security (TC-SEC-*) | 22 | Auth, BET, INJ, CORS, SESSION, CONFIG-AUTH |
+| Unit — Extra Bet (TC-UNIT-EXBT-*) | 6 | `TC-UNIT-EXBT-001` through `TC-UNIT-EXBT-004b` |
+| Unit — Cascade (TC-UNIT-CASC-*) | 1 | `TC-UNIT-CASC-002-HAPPY` |
+| Unit — Thunder Blessing (TC-UNIT-TB-*) | 2 | `TC-UNIT-TB-001`, `TC-UNIT-TB-002` |
+| Unit — Coin Toss (TC-UNIT-COIN-*) | 2 | `TC-UNIT-COIN-004`, `TC-UNIT-COIN-006` |
+| Unit — Free Game (TC-UNIT-FG-*) | 3 | `TC-UNIT-FG-002`, `TC-UNIT-FG-003`, `TC-UNIT-FG-004` |
+| Unit — Floor/MaxWin/Prob (misc) | 4 | `TC-UNIT-FLOOR-001`, `TC-UNIT-MAXWIN-001`, `TC-UNIT-PROB-001`…`003` |
+
+### 4.4 Client BDD Tags Breakdown
+
+| Module | Count |
+|--------|------:|
+| `TC-E2E-SPIN-*` | 9 |
+| `TC-E2E-CASC-*` | 8 |
+| `TC-E2E-TB-*` | 6 |
+| `TC-E2E-COIN-*` | 7 |
+| `TC-E2E-FG-*` | 9 |
+| `TC-E2E-EXBT-*` | 6 |
+| `TC-E2E-BUY-*` | 7 |
+| `TC-E2E-ERR-*` | 8 |
+| `TC-E2E-BET-*` | 7 |
+| `TC-E2E-SESS-*` | 6 |
+| **Total** | **76** |
+
+---
+
+## Section 5: Not-Covered / Risk Items
+
+The following requirements have NO BDD coverage or only PARTIAL coverage. Each is assessed for gap severity and risk.
+
+### 5.1 NOT-COVERED Requirements
+
+| Req ID | Summary | Gap Description | Risk Level | Recommended Action |
+|--------|---------|----------------|:----------:|-------------------|
+| US-CASC-001 / AC-4 | Same payline not double-counted in win calculation | No server or client BDD scenario validates that the same winning position is not counted twice across cascade steps | HIGH | Add `TC-UNIT-CASC-009-BOUNDARY` to `features/spin.feature` testing double-count prevention |
+| US-TBSC-001 / AC-4 | P1 symbol upgrade boundary — stays P1 | The upgrade boundary for the highest-tier symbol (P1→P1) has no BDD coverage; only covered in test-plan description | HIGH | Add `TC-UNIT-TB-004-BOUNDARY` to `features/spin.feature` covering all symbol transition paths (L1/L2/L3/L4→P4, P4→P3, P3→P2, P2→P1, P1→P1) |
+| US-BUYF-001 / AC-5 | buyFG weights used exclusively (no cross-contamination) | Symbol weight isolation between buyFG scenario and other scenarios has no dedicated BDD scenario; RISK-01 flags weight contamination as HIGH risk | HIGH | Add `TC-UNIT-PROB-004-BOUNDARY` testing that `weights.buyFG` is never referenced in mainGame and vice versa |
+| US-NRMS-001 / AC-1 | Near Miss Excel → build_config.js → GameConfig | No BDD scenario covers the toolchain flow for Near Miss configuration | MEDIUM | Add integration test in `features/probability-engine.feature` covering Near Miss config propagation through toolchain |
+| US-NRMS-001 / AC-2 | Near Miss → win=0 (no RTP impact) | No BDD scenario validates that Near Miss arrangements produce zero win | MEDIUM | Add `TC-UNIT-NRMS-001-BOUNDARY` asserting `totalWin=0` when Near Miss is applied (`nearMissApplied=true`) |
+| US-NRMS-001 / AC-3 | No hardcoded Near Miss in SlotEngine.ts | Code review gate only; no automated BDD or unit test | LOW | Add static analysis / code review checklist item; consider CI lint rule against literal symbol arrangement arrays in `SlotEngine.ts` |
+| US-TOOL-001 / AC-1 | Excel DATA → engine_config.json via build_config.js | No BDD scenario covers the full toolchain step execution | MEDIUM | Add `TC-INT-TOOL-001` integration test executing `build_config.js` against fixture Excel and asserting `engine_config.json` output |
+| US-TOOL-001 / AC-2 | excel_simulator.js → 1M Monte Carlo → SIMULATION tab | No BDD scenario covers the simulation runner step | MEDIUM | Add toolchain smoke test asserting `excel_simulator.js` produces non-empty SIMULATION tab output |
+| US-TOOL-001 / AC-4 | verify.js PASS → engine_generator.js → GameConfig | Generation step after PASS not covered by BDD (only FAIL path covered) | MEDIUM | Extend `TC-INT-PROB-001` or add `TC-INT-TOOL-002` asserting `GameConfig.generated.ts` is regenerated after `verify.js` PASS |
+| US-CURR-001 / AC-3 | No hardcoded values in BetRangeService.ts | Code review gate only; no automated validation | LOW | Add a unit test asserting `BetRangeService` instantiates values exclusively from `BetRangeConfig.generated.ts` |
+| US-CURR-001 / AC-4 | Excel BET_MAX_LEVEL change → BetRangeConfig auto-updates | Toolchain propagation for currency config not covered by BDD | MEDIUM | Add `TC-INT-TOOL-003` testing toolchain round-trip: modify Excel BET_MAX_LEVEL → verify `BetRangeConfig.generated.ts` changes |
+
+### 5.2 PARTIAL Coverage — Higher-Risk Items
+
+| Req ID | Summary | Current Coverage | Gap | Risk Level |
+|--------|---------|-----------------|-----|:----------:|
+| US-SPIN-001 / AC-5 | Wild substitution logic | `TC-UNIT-CASC-002-HAPPY` (server only) | No client E2E validates Wild symbol visual replacement | MEDIUM |
+| US-CASC-001 / AC-2 | MAX_ROWS=6 boundary | `TC-E2E-CASC-005` (client only) | No server-side BDD validates the row-cap guard in `CascadeEngine.expandRows()` | HIGH |
+| US-CASC-001 / AC-3 | New spin resets marks + rows | `TC-INT-FG-003-HAPPY` (verifies marks cleared at FG end) | Lacks explicit test for Main Game spin reset without preceding FG | MEDIUM |
+| US-COIN-001 / AC-1 | mgFgTriggerProb (0.009624) gate | `TC-E2E-COIN-001` (client only) | Server-side unit test for trigger probability gate is absent from BDD | HIGH |
+| US-COIN-001 / AC-3 | Coin Toss Tails → no FG | `TC-E2E-COIN-003` (client only) | No server-side BDD validates Tails path returns `fgTriggered=false` | MEDIUM |
+| US-COIN-001 / AC-5 | rows < 6 → no Coin Toss | `TC-UNIT-COIN-006-BOUNDARY` (boundary on threshold values) | Does not explicitly test rows=5 as non-trigger | MEDIUM |
+| US-TBSC-001 / AC-3 | SC + no marks → no trigger | `TC-E2E-TB-006` (client only) | No server BDD scenario for this path | MEDIUM |
+| US-TBSC-001 / AC-5 | Post-TB cascade on new win | `TC-E2E-TB-004` (client only) | No server integration BDD validates cascade continues after Thunder Blessing | HIGH |
+| US-RTPV-001 / AC-1 to AC-4 | 4-scenario RTP via verify.js | `TC-INT-PROB-001` covers all 4 scenarios in one tag | Individual per-scenario FAIL isolation is not separately tagged | MEDIUM |
+| US-APIV-001 / AC-3 | P99 latency targets | `TC-INT-API-016`, `TC-INT-API-017` (listed in test plan) | No separate k6 BDD scenario tags; performance tests are k6 scripts outside BDD | LOW |
+| US-APIV-001 / AC-5 | totalWin sole authority | `TC-INT-API-019`, `TC-INT-API-020` | No client-side E2E asserting `window.__debug_clientComputedWin` undefined | MEDIUM |
+| `/health` | Health probe | `TC-INT-API-018` (indirectly via config test) | No dedicated health probe BDD scenario | LOW |
+| `/ready` | Readiness probe | None | No BDD coverage for readiness (DB+Redis healthy path or 503 path) | MEDIUM |
+
+### 5.3 Priority Remediation Plan
+
+| Priority | Action | Target Req | Estimated Effort |
+|:--------:|--------|-----------|:----------------:|
+| P0 | Add `TC-UNIT-CASC-009-BOUNDARY` — double-count prevention | US-CASC-001/AC-4 | 1 day |
+| P0 | Add `TC-UNIT-TB-004-BOUNDARY` — all symbol upgrade paths | US-TBSC-001/AC-4 | 0.5 day |
+| P0 | Add server BDD for MAX_ROWS=6 boundary (rows never > 6) | US-CASC-001/AC-2 | 0.5 day |
+| P0 | Add server BDD for Coin Toss trigger gate (mgFgTriggerProb) | US-COIN-001/AC-1 | 0.5 day |
+| P0 | Add server BDD for post-Thunder-Blessing cascade continuation | US-TBSC-001/AC-5 | 0.5 day |
+| P0 | Add `TC-UNIT-PROB-004-BOUNDARY` — buyFG weight isolation | US-BUYF-001/AC-5 | 0.5 day |
+| P1 | Add toolchain integration BDD (TC-INT-TOOL-001 to 003) | US-TOOL-001/AC-1,AC-2,AC-4 | 2 days |
+| P1 | Add Near Miss BDD scenarios (zero-win assertion, config propagation) | US-NRMS-001/AC-1,AC-2 | 1 day |
+| P1 | Add readiness probe BDD (TC-INT-READY-001) | `/ready` endpoint | 0.5 day |
+| P2 | Add currency toolchain round-trip BDD | US-CURR-001/AC-4 | 1 day |
+| P2 | Add client E2E for Wild substitution visual | US-SPIN-001/AC-5 | 0.5 day |
+
+---
+
+*Document generated by gendoc D13-RTM agent on 2026-04-26. All traceability mappings are derived from: PRD.md v0.1, EDD.md v1.3, API.md v1.0, SCHEMA.md v1.0, test-plan.md v1.0, and live BDD feature files under `features/`.*
