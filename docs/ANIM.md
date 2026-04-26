@@ -338,6 +338,8 @@ Tint applied via `mix-blend-mode: overlay` on WIN counter container background.
 
 **SFX sync:** `SFX_CASCADE_DROP` fires per symbol at the moment of landing bounce onset (420ms after that symbol's drop starts). The stagger on `SFX_CASCADE_DROP` calls mirrors the visual stagger formula. Total calls per step: up to 30 (5 cols × 6 rows max).
 
+**Surviving symbol opacity restore:** Non-winning symbols that were dimmed during the preceding win animation (opacity 0.5, brightness 0.6, saturate 0.4 per §2.3) animate back to full values (opacity 1.0, brightness 1.0, saturate 1.0) over 200ms using `ease-out-cubic`. This restore is `[PARALLEL]` and begins at the same moment the cascade refill drop starts (t=0ms of §3.2 drop phase), so that dimmed symbols recover concurrent with new symbols falling in.
+
 ### 3.3 Lightning Mark Placement
 
 **Trigger:** Concurrent with the symbol elimination animation within the same `CASCADE_STEP`. `LightningMarkComponent.addMarks(step.newLightningMarks)` is called as each cell is eliminated.
@@ -614,7 +616,7 @@ BGM crossfade to `BGM_COIN_TOSS` (800ms) is state-observer-owned and begins at `
 | Lightning mark display | Same position as main game (1465px X, 90px Y) | Marks persist and accumulate across FG rounds; same visual thresholds as §3.3 |
 | Background scene | Sky Temple (night), starfield continues | Continuous idle |
 
-**Lightning mark persistence in FG:** `fgRounds[i].lightningMarksBefore` positions are restored at the start of each FG round via `LightningMarkComponent.restoreMarks(positions)` (no animation — instant restore; FRONTEND.md §6.3).
+**Lightning mark persistence in FG:** `fgRounds[i].lightningMarksBefore` positions are restored at the start of each FG round via `LightningMarkComponent.restoreMarks(positions)` (no animation — instant restore; FRONTEND.md §6.3). `restoreMarks(positions)` is a **replace/set operation**: it clears the component's internal mark array and sets it to the provided `positions` array. It is NOT additive (append). Implementers must not confuse this with the implicit accumulation behavior in main-game cascades (§3.3); FG round-start marks are always a full replacement of state.
 
 **×77 multiplier HUD state:** When `fgMultiplier = 77` is reached, all 5 progress bar nodes enter a continuous flicker (from VDD §7.3):
 - `filter: brightness` keyframe cycle: 0% → 1.0; 25% → 2.5; 50% → 1.2; 75% → 2.0; 100% → 1.0
@@ -832,6 +834,7 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 | Hover | `brightness` 1.0 → 1.2 (150ms, `--ease-out-cubic`); cursor: pointer | 150ms |
 | Active / Pressed | `scale` 1.0 → 0.93 (80ms, `ease-in`); `brightness` 1.2 → 0.9 | 80ms down |
 | Pressed release | `scale` 0.93 → 1.0 (150ms, `--ease-out-back`) | 150ms |
+| Focus (keyboard nav) | 2px gold outline ring (`outline: 2px solid --color-gold-primary; outline-offset: 3px`); appears instantly on `:focus-visible`; removed on blur; no scale or brightness change | Instant |
 | Disabled | `opacity`: 1.0 → 0.5 (300ms, `ease-in-out-cubic`); `cursor: not-allowed`; all animations paused | — |
 
 **SFX:** `SFX_UI_BUTTON_PRESS` (80ms) fires on SPIN press, BET+/− press, INFO press, SETTINGS press. `SFX_UI_BET_UP` fires on BET+ press; `SFX_UI_BET_DOWN` fires on BET− press.
@@ -994,6 +997,7 @@ Detected via `prefers-reduced-motion: reduce` CSS media query, or the in-game "L
 | Thunder Blessing arc lines + explosions | Mark positions flash once (200ms brightness spike) then symbols swap immediately |
 | Free letter pulse | Letters illuminate at full brightness instantly; no scale animation |
 | Win tier overlays (BIG WIN etc.) | Overlay appears at full opacity immediately; no slide or scale animation |
+| FG multiplier advance (old number explode + scale-in, 800ms; ×77 lightning strike visual, 600ms) | Multiplier number cross-fades to new value: `opacity` 0 → 1.0, 100ms, `linear`. Lightning strike visual omitted. Progress bar still animates to next node (500ms, `ease-in-out-cubic` — informational, not decorative) |
 
 ### 11.2 Colorblind Considerations
 
