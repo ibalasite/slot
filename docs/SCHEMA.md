@@ -290,7 +290,12 @@ CREATE TABLE spins_2026_05 PARTITION OF spins
     FOR VALUES FROM ('2026-05-01') TO ('2026-06-01');
 
 -- ... create 13 months of partitions at deployment, add new month 30 days before start
+
+-- Default partition catches out-of-range spins (e.g., when monthly partition not yet created)
+CREATE TABLE spins_default PARTITION OF spins DEFAULT;
 ```
+
+> **Note on `spins_default`:** The default partition is a safety net. In production, a scheduled job (see §6.7 Partition Management) pre-creates next-month partitions on the 25th of each month. An alert fires when any row is inserted into `spins_default`, indicating the partition management job failed. Any INSERTs landing here must be investigated and moved to the correct monthly partition before the next retention cycle.
 
 **RLS Policies:**
 
@@ -533,10 +538,12 @@ CREATE TABLE wallet_transactions (
     player_id           UUID              NOT NULL
                                           REFERENCES players(id) ON DELETE RESTRICT,
     spin_id             UUID              -- nullable: COMPENSATE may occur before spin row exists
-                                          -- Note: FK to partitioned table (spins) is supported in PG15
-                                          -- but adds overhead on INSERT. If INSERT latency is a concern,
-                                          -- consider converting to a soft reference with app-level integrity.
-                                          REFERENCES spins(id) ON DELETE RESTRICT,
+                                          -- DEFERRABLE INITIALLY DEFERRED: the FK check is postponed to
+                                          -- COMMIT time, allowing the DEBIT wallet_transactions row to be
+                                          -- inserted before the spins row within the same transaction.
+                                          -- See §9.1 for the unified transaction pattern.
+                                          REFERENCES spins(id) ON DELETE RESTRICT
+                                          DEFERRABLE INITIALLY DEFERRED,
     tx_type             wallet_tx_type    NOT NULL,
     amount              DECIMAL(18,2)     NOT NULL CHECK (amount > 0),
     balance_before      DECIMAL(18,2)     NOT NULL CHECK (balance_before >= 0),
@@ -1134,6 +1141,36 @@ UPDATE game_config_versions SET is_active = TRUE, activated_at = NOW(), updated_
 COMMIT;
 ```
 
+### 6.7 Partition Management
+
+Monthly partitions for the `spins` table must be pre-created before the first spin of each new month arrives. The `spins_default` partition (see §2.2) acts as a safety net when a partition is missing, but rows landing there indicate a management failure and must be investigated.
+
+**Pre-creation schedule:** Run on the 25th of each month to create the following month's partition.
+
+```sql
+-- Example: run on 2026-05-25 to create the June 2026 partition
+CREATE TABLE spins_2026_06 PARTITION OF spins
+    FOR VALUES FROM ('2026-06-01') TO ('2026-07-01');
+```
+
+**Alert condition:** Detect rows inserted into `spins_default` — this signals the pre-creation job has failed:
+
+```sql
+-- Alert fires when n_tup_ins > 0 on the default partition
+SELECT relname, n_tup_ins
+FROM pg_stat_user_tables
+WHERE relname = 'spins_default'
+  AND n_tup_ins > 0;
+-- Should always return zero rows in correct operation
+```
+
+**Remediation:** When rows are found in `spins_default`:
+1. Create the missing monthly partition immediately.
+2. Move rows from `spins_default` into the correct partition using `INSERT ... SELECT` + `DELETE` within a transaction.
+3. Investigate and fix the partition pre-creation job.
+
+---
+
 ### 6.6 Buy Feature Session Floor Invariant
 
 **Business rule (from BRD §BR-07):** For Buy Feature spins, `totalWin >= 20 * baseBet`.
@@ -1273,11 +1310,25 @@ The `update_updated_at_column()` function (defined in §2.3) must appear at the 
 ```
 migrations/
 ├── 001_initial_schema.sql         -- All tables, indexes, RLS policies
-├── 002_add_spins_partitions.sql   -- Monthly spin partitions
+├── 002_add_spins_partitions.sql   -- Monthly spin partitions + spins_default partition
 ├── 003_add_fg_session_trigger.sql -- Status transition trigger
 ├── 004_add_wallet_tx_guard.sql    -- Append-only trigger
 ├── 005_add_config_versions.sql    -- game_config_versions table
 └── 006_add_anomaly_indexes.sql    -- Additional analytics indexes
+```
+
+**`002_add_spins_partitions.sql` must include the default partition** (see §2.2):
+
+```sql
+-- 002_add_spins_partitions.sql
+-- Monthly partitions (extend list as part of each monthly release)
+CREATE TABLE spins_2026_04 PARTITION OF spins FOR VALUES FROM ('2026-04-01') TO ('2026-05-01');
+CREATE TABLE spins_2026_05 PARTITION OF spins FOR VALUES FROM ('2026-05-01') TO ('2026-06-01');
+-- ... additional monthly partitions ...
+
+-- Default partition: safety net for out-of-range inserts
+-- See §2.2 and §6.7 for operational guidance.
+CREATE TABLE spins_default PARTITION OF spins DEFAULT;
 ```
 
 **Naming:** `{NNN}_{description}.sql` — three-digit zero-padded sequence number.
@@ -1342,51 +1393,76 @@ For table-level changes that cannot be rolled back safely, a new forward migrati
 
 ### 9.1 Spin Debit/Credit Transaction
 
-The wallet debit and credit operations use PostgreSQL transactions with `SELECT ... FOR UPDATE` to prevent race conditions:
+The debit and credit operations are executed inside a **single PostgreSQL transaction** to guarantee atomicity. A single `SELECT ... FOR UPDATE` at the start locks the player row for both the debit and credit operations, eliminating any risk of a stale `balance_before` on the credit step.
+
+`wallet_transactions.spin_id` uses `DEFERRABLE INITIALLY DEFERRED` (see §2.4 DDL), so the FK check against `spins(id)` occurs at `COMMIT` time — after both the DEBIT `wallet_transactions` row **and** the `spins` row have been inserted within the same transaction.
 
 ```sql
--- Debit pattern (inside SpinUseCase, before engine call)
 BEGIN;
 
+-- Step 1: Lock player row and read balance
+-- A single FOR UPDATE covers both the debit and credit operations within this transaction.
 SELECT balance FROM players
 WHERE id = $playerId AND currency = $currency
-FOR UPDATE;                          -- Row-level lock; prevents concurrent debit
+FOR UPDATE;
 
--- Application checks: balance >= cost
+-- Application checks: balance >= cost; aborts if insufficient funds
 
+-- Step 2: Debit wallet
+-- spin_id FK is DEFERRABLE INITIALLY DEFERRED — spins row does not exist yet.
+-- FK check is deferred to COMMIT (Step 7).
+INSERT INTO wallet_transactions
+    (player_id, spin_id, tx_type, amount, balance_before, balance_after,
+     currency, idempotency_key)
+VALUES
+    ($playerId, $spinId, 'DEBIT', $cost, $balanceBefore, $balanceBefore - $cost,
+     $currency, 'DEBIT:' || $spinId);
+
+-- Step 3: Deduct balance
 UPDATE players
 SET balance = balance - $cost,
     updated_at = NOW()
 WHERE id = $playerId;
 
+-- Step 4: Call spin engine (RPC / internal call while transaction is open)
+-- Engine resolves outcome and returns totalWin.
+-- NOTE: Engine call latency holds an open transaction — monitor for lock contention.
+-- Apply a local timeout: SET LOCAL statement_timeout = '5000ms';
+
+-- Step 5: Insert spins row (FK check on wallet_transactions.spin_id deferred to COMMIT)
+INSERT INTO spins (id, player_id, session_id, bet_level, base_bet, total_bet,
+                   currency, total_win, engine_version, ..., created_at)
+VALUES ($spinId, $playerId, $sessionId, $betLevel, $baseBet, $totalBet,
+        $currency, $totalWin, $engineVersion, ..., NOW());
+
+-- Step 6: Credit wallet
 INSERT INTO wallet_transactions
     (player_id, spin_id, tx_type, amount, balance_before, balance_after,
      currency, idempotency_key)
 VALUES
-    ($playerId, $spinId, 'DEBIT', $cost, $balanceBefore, $balanceAfter,
-     $currency, 'DEBIT:' || $spinId);
+    ($playerId, $spinId, 'CREDIT', $totalWin,
+     $balanceBefore - $cost, $balanceBefore - $cost + $totalWin,
+     $currency, 'CREDIT:' || $spinId);
 
-COMMIT;
-```
-
-```sql
--- Credit pattern (inside SpinUseCase, after engine resolves totalWin)
-BEGIN;
-
+-- Step 7: Credit balance
 UPDATE players
 SET balance = balance + $totalWin,
     updated_at = NOW()
 WHERE id = $playerId;
 
-INSERT INTO wallet_transactions
-    (player_id, spin_id, tx_type, amount, balance_before, balance_after,
-     currency, idempotency_key)
-VALUES
-    ($playerId, $spinId, 'CREDIT', $totalWin, $balanceBefore, $balanceAfter,
-     $currency, 'CREDIT:' || $spinId);
-
 COMMIT;
+-- FK check on wallet_transactions.spin_id executes here.
+-- Both DEBIT and CREDIT wallet_transactions rows now reference the committed spins row.
 ```
+
+**Key properties of this pattern:**
+
+| Property | Detail |
+|----------|--------|
+| Single lock | `SELECT ... FOR UPDATE` in Step 1 covers both debit and credit — no risk of stale `balance_before` on the credit INSERT |
+| Deferred FK | `wallet_transactions.spin_id` FK is `DEFERRABLE INITIALLY DEFERRED`; checked only at `COMMIT` after the `spins` row exists |
+| Atomicity | If any step fails (engine timeout, constraint violation, etc.), the entire transaction rolls back — no partial debit without matching credit |
+| Engine timeout | Engine call in Step 4 holds an open transaction. Set `SET LOCAL statement_timeout = '5000ms'` to bound lock-hold duration. If the engine times out, fall through to the COMPENSATE pattern in §9.2 |
 
 ### 9.2 Engine Timeout Compensation (ARCH §6)
 
