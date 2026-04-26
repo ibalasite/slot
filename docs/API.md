@@ -114,7 +114,7 @@ All error responses from `/v1/*` endpoints use this envelope:
 | 403 | `FORBIDDEN` | POST /v1/spin, GET /v1/session/:sessionId | JWT is valid but the player's account is suspended, or the player is attempting to access another player's session |
 | 404 | `SESSION_NOT_FOUND` | GET /v1/session/:sessionId | Session ID does not exist in Redis (expired after 300s TTL or never created) |
 | 409 | `SPIN_IN_PROGRESS` | POST /v1/spin | A concurrent spin is already in progress for this player (Redis NX lock is held); request is rejected without debiting wallet |
-| 422 | `VALIDATION_ERROR` | POST /v1/spin | Semantically invalid payload (e.g., `extraBet: true` with `buyFeature: true` if not permitted by config) |
+| 422 | `VALIDATION_ERROR` | POST /v1/spin | Semantically invalid payload where `extraBet: true` + `buyFeature: true` is a **valid** combination (costs 300× baseBet) and is NOT itself a validation error. VALIDATION_ERROR occurs only when `betLevel` is out of range for the given currency, or `extraBet`/`buyFeature` is unavailable for the game config. Note: `INSUFFICIENT_FUNDS` (not VALIDATION_ERROR) is returned when balance < 300× baseBet for the extraBet+buyFeature combination. |
 | 429 | `RATE_LIMITED` | POST /v1/spin | Player has exceeded 5 requests/second |
 | 500 | `INTERNAL_ERROR` | All /v1/* | Unexpected engine or infrastructure error not matching any specific code |
 | 503 | `SERVICE_UNAVAILABLE` | POST /v1/spin | Circuit breaker OPEN on PostgreSQL or Redis (cascading failure protection) |
@@ -193,7 +193,19 @@ Response: new `access_token` + rotated single-use `refresh_token`. Refresh token
 - **Response on limit exceeded:** HTTP 429 with rate-limit headers (see §5)
 - **Auth failure lockout:** After 10 consecutive failed JWT verifications from the same IP within 60s, the IP is rate-limited more aggressively (configurable via `RATE_LIMIT_AUTH_FAIL_MAX` env var)
 
-### 2.5 CORS Policy
+### 2.5 Role-Based Endpoint Access
+
+| Endpoint | player | operator | service_role |
+|----------|--------|----------|--------------|
+| POST /v1/spin | ✅ | ❌ (403) | ✅ |
+| GET /v1/session/:sessionId | ✅ (own) | ❌ (403) | ✅ |
+| GET /v1/config | ✅ | ✅ | ✅ |
+| GET /health | ✅ | ✅ | ✅ |
+| GET /ready | ✅ | ✅ | ✅ |
+
+> See EDD §8.1 permission matrix for full authorization rules.
+
+### 2.6 CORS Policy
 
 ```
 Access-Control-Allow-Origin: https://*.yourdomain.com
@@ -252,8 +264,7 @@ In development, `Access-Control-Allow-Origin: *` is permitted. In production, on
     },
     "sessionId": {
       "type": ["string", "null"],
-      "format": "uuid",
-      "description": "Existing session UUID for FG resume; null or omitted for a new spin"
+      "description": "Session identifier (format: sess-{uuid}). Existing session for FG resume; null or omitted for a new spin"
     },
     "betLevel": {
       "type": "integer",
@@ -446,8 +457,8 @@ Full bet table is available via `GET /v1/config`.
     "nearMissApplied", "engineVersion", "timestamp"
   ],
   "properties": {
-    "spinId": { "type": "string", "format": "uuid" },
-    "sessionId": { "type": "string", "format": "uuid" },
+    "spinId": { "type": "string", "description": "Spin identifier (format: spin-{uuid})" },
+    "sessionId": { "type": "string", "description": "Session identifier (format: sess-{uuid})" },
     "playerId": { "type": "string", "format": "uuid" },
     "betLevel": { "type": "integer", "minimum": 1, "maximum": 320 },
     "baseBet": { "type": "number", "description": "Base bet amount in player's currency" },
@@ -481,7 +492,7 @@ Full bet table is available via `GET /v1/config`.
     "upgradedSymbol": {
       "type": ["string", "null"],
       "enum": ["P1", "P2", "P3", "P4", null],
-      "description": "Symbol ID that all Lightning Mark positions were upgraded to on first hit. Null if Thunder Blessing was not triggered."
+      "description": "Symbol ID that all Lightning Mark positions were upgraded to on first hit. Null if Thunder Blessing was not triggered. Convenience shortcut — always equals `thunderBlessingResult.convertedSymbol` when `thunderBlessingTriggered = true`. Null when `thunderBlessingTriggered = false`."
     },
     "thunderBlessingResult": {
       "oneOf": [
@@ -512,7 +523,7 @@ Full bet table is available via `GET /v1/config`.
     },
     "totalFGWin": {
       "type": ["number", "null"],
-      "description": "Total win from all FG rounds (before bonus multiplier application). Null if FG not triggered."
+      "description": "Sum of raw round wins across all FG rounds, before applying fgMultiplier and bonusMultiplier. Effective FG win = totalFGWin × fgMultiplier × bonusMultiplier (capped by maxWin). totalWin is the sole accounting authority. Null if FG not triggered."
     },
     "sessionFloorApplied": { "type": "boolean", "description": "True if Buy Feature session floor (≥ 20× baseBet) was applied" },
     "sessionFloorValue": {
@@ -521,11 +532,13 @@ Full bet table is available via `GET /v1/config`.
     },
     "nearMissApplied": { "type": "boolean" },
     "engineVersion": { "type": "string", "description": "Version of GameConfig.generated.ts used" },
-    "timestamp": { "type": "string", "format": "date-time" }
+    "timestamp": { "type": "string", "format": "date-time" },
+    "rngSeed": { "type": ["string", "null"], "description": "RNG seed for this spin; used for audit replay" }
   },
   "definitions": {
     "CascadeSequence": {
       "type": "object",
+      "description": "Complete cascade result. If totalWin > 0, steps array contains at least one entry.",
       "required": ["steps", "totalWin", "finalGrid", "finalRows", "lightningMarks"],
       "properties": {
         "steps": { "type": "array", "items": { "$ref": "#/definitions/CascadeStep" } },
@@ -615,11 +628,12 @@ Full bet table is available via `GET /v1/config`.
     },
     "FGRound": {
       "type": "object",
+      "description": "Represents a single round within an FG sequence. The bonusMultiplier is drawn once at the start of the FG sequence (before round 1) and is identical in all FGRound objects within the same sequence.",
       "required": ["round", "multiplier", "bonusMultiplier", "grid", "cascadeSequence", "roundWin", "coinTossResult", "lightningMarksBefore", "lightningMarksAfter"],
       "properties": {
         "round": { "type": "integer", "minimum": 1, "maximum": 5, "description": "1-indexed FG round number" },
         "multiplier": { "type": "integer", "enum": [3, 7, 17, 27, 77], "description": "FG multiplier for this round" },
-        "bonusMultiplier": { "type": "integer", "enum": [1, 5, 20, 100], "description": "Bonus multiplier drawn once at end of FG sequence; same value across all rounds" },
+        "bonusMultiplier": { "type": "integer", "enum": [1, 5, 20, 100], "description": "Bonus multiplier drawn once at the start of the FG sequence (before round 1). This value is identical in all FGRound objects within the same sequence. Cross-reference: EDD §5.6." },
         "grid": {
           "type": "array",
           "items": { "type": "array", "items": { "type": "string" } },
@@ -652,6 +666,7 @@ Full bet table is available via `GET /v1/config`.
 | 401 | `UNAUTHORIZED` | JWT missing, expired, or invalid signature |
 | 403 | `FORBIDDEN` | Account suspended |
 | 409 | `SPIN_IN_PROGRESS` | Redis concurrency lock already held for this session |
+| 422 | `VALIDATION_ERROR` | Semantically invalid payload: `betLevel` out of range for currency, or `extraBet`/`buyFeature` unavailable in this game config. Note: `extraBet: true` + `buyFeature: true` is a **valid** combination (costs 300× baseBet); `INSUFFICIENT_FUNDS` is returned when balance < 300× baseBet for this combination. |
 | 429 | `RATE_LIMITED` | More than 5 req/s per player |
 | 500 | `INTERNAL_ERROR` | Unexpected server-side error |
 | 504 | `ENGINE_TIMEOUT` | Engine took > 2000ms; compensating credit issued automatically |
@@ -755,7 +770,7 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
         "cascadeSequence": {
-          "steps": [],
+          "steps": [], // steps abbreviated for brevity; actual response contains cascade step details
           "totalWin": 12.00,
           "finalGrid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
           "finalRows": 3,
@@ -772,7 +787,7 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]],
         "cascadeSequence": {
-          "steps": [],
+          "steps": [], // steps abbreviated for brevity; actual response contains cascade step details
           "totalWin": 8.00,
           "finalGrid": [["L4","P2","W","P1","L2"],["P3","L1","P4","L3","P2"],["W","P4","L2","P3","L4"]],
           "finalRows": 3,
@@ -789,7 +804,7 @@ Content-Type: application/json
         "bonusMultiplier": 5,
         "grid": [["P1","W","L3","P2","L1"],["L4","P3","P1","L2","P4"],["P2","L1","L4","P3","W"]],
         "cascadeSequence": {
-          "steps": [],
+          "steps": [], // steps abbreviated for brevity; actual response contains cascade step details
           "totalWin": 30.00,
           "finalGrid": [["P1","W","L3","P2","L1"],["L4","P3","P1","L2","P4"],["P2","L1","L4","P3","W"]],
           "finalRows": 3,
@@ -812,7 +827,7 @@ Content-Type: application/json
 }
 ```
 
-_Note: `totalWin = mainCascadeWin + (totalFGWin × fgMultiplier × bonusMultiplier) = 3.00 + (50.00 × 17 × … capped to 255.00 in this example). The exact calculation is enforced by `enforceMaxWin()` and `outcome.totalWin` is the sole accounting authority._
+_Note: `totalWin = mainCascadeWin + (totalFGWin × fgMultiplier × bonusMultiplier)` = `3.00 + (50.00 × 17 × 5)` = `3.00 + 4250.00`, capped to `255.00` by `enforceMaxWin()` in this example (maxWin cap applied). The exact calculation is `effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier`, then `totalWin = mainCascadeWin + min(effectiveFGWin, maxWin × baseBet)`. `outcome.totalWin` is the sole accounting authority._
 
 ---
 
@@ -860,6 +875,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
     "buyFeature": false,
     "fgRound": 2,
     "fgMultiplier": 7,
+    "fgBonusMultiplier": 5,
     "totalFGWin": 12.00,
     "lightningMarks": {
       "positions": [
@@ -879,7 +895,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
         "bonusMultiplier": 5,
         "grid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
         "cascadeSequence": {
-          "steps": [],
+          "steps": [], // steps abbreviated for brevity; actual response contains cascade step details
           "totalWin": 12.00,
           "finalGrid": [["P2","L1","P4","W","L3"],["L2","P1","L4","P3","L1"],["P4","L3","W","L2","P2"]],
           "finalRows": 3,
@@ -904,7 +920,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
   "type": "object",
   "required": ["sessionId", "playerId", "status", "baseBet", "currency", "extraBet", "buyFeature", "fgRound", "fgMultiplier", "totalFGWin", "lightningMarks", "floorValue", "completedRounds", "remainingMaxRounds", "ttlSeconds"],
   "properties": {
-    "sessionId": { "type": "string", "format": "uuid" },
+    "sessionId": { "type": "string", "description": "Session identifier (format: sess-{uuid})" },
     "playerId": { "type": "string", "format": "uuid" },
     "status": { "type": "string", "enum": ["SPINNING", "FG_ACTIVE", "COMPLETE"] },
     "baseBet": { "type": "number" },
@@ -912,7 +928,8 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
     "extraBet": { "type": "boolean" },
     "buyFeature": { "type": "boolean" },
     "fgRound": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Current FG round index (0-based; 0 means not yet started)" },
-    "fgMultiplier": { "type": "integer", "enum": [3, 7, 17, 27, 77] },
+    "fgMultiplier": { "type": ["integer", "null"], "enum": [3, 7, 17, 27, 77, null], "description": "Current FG multiplier; null when no active FG sequence" },
+    "fgBonusMultiplier": { "type": ["integer", "null"], "enum": [1, 5, 20, 100, null], "description": "Bonus multiplier drawn at FG sequence start. Null if no FG sequence is active or bonus multiplier has not yet been determined." },
     "totalFGWin": { "type": "number" },
     "lightningMarks": { "$ref": "#/definitions/LightningMarkSet" },
     "floorValue": { "type": "number", "description": "20 × baseBet if buyFeature; 0 otherwise" },
@@ -1009,7 +1026,7 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
           { "level": 200, "baseBet": 600, "extraBetCost": 1800, "buyFeatureCost": 60000 },
           { "level": 320, "baseBet": 600, "extraBetCost": 1800, "buyFeatureCost": 60000 }
         ],
-        "note": "Full TWD level table (1–320) is served; only representative levels shown here for brevity"
+        "note": "Full TWD level table (1–320) is served; only representative levels shown here for brevity. betLevels 200–320 share baseBet cap of 600 TWD per game design (capped tier)."
       }
     },
     "gameParameters": {
@@ -1045,8 +1062,9 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
       },
       "maxWin": {
         "mainGame":   30000,
-        "ebBuyFg":    90000,
+        "extraBetBuyFeature": 90000,
         "unit": "× baseBet"
+        // extraBetBuyFeature: Maximum win cap when both Extra Bet and Buy Feature are active simultaneously.
       },
       "buyFeatureSessionFloor": 20,
       "extraBetCostMultiplier": 3,
@@ -1067,6 +1085,8 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 | HTTP Status | Code | When |
 |-------------|------|------|
 | 401 | `UNAUTHORIZED` | JWT missing or expired |
+| 429 | `RATE_LIMITED` | Rate limit exceeded |
+| 500 | `INTERNAL_ERROR` | Unexpected server error |
 
 ---
 
@@ -1426,7 +1446,8 @@ Retry-After: 30
   "code": "SERVICE_UNAVAILABLE",
   "message": "Service temporarily unavailable. Please try again in 30 seconds.",
   "requestId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f23456789",
-  "timestamp": "2026-04-26T14:02:00.000Z"
+  "timestamp": "2026-04-26T14:02:00.000Z",
+  "retryAfter": 30
 }
 ```
 
@@ -1527,6 +1548,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
 Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
 ```
 
 ### 8.5 Session Ownership Enforcement

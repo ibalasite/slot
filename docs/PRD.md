@@ -224,7 +224,7 @@ C4Context
 | US-SPIN-001 / AC-5 | Wild（W）出現在連線 | 判定中獎連線 | Wild 代替除 SC 外所有符號，獎金依賠率表計算 | Unit |
 
 **邊界條件：**
-- 最小投注：USD $0.25（betLevel 25）→ 正常扣款，回傳 FullSpinOutcome
+- 最小投注：USD $0.10（betLevel 1）→ 正常扣款，回傳 FullSpinOutcome
 - 最大投注：USD $10.00（betLevel 1000）→ 正常扣款，回傳 FullSpinOutcome
 - 並發：同一 session 同時發送 2 個 spin request → 第 2 個返回 409 Conflict
 - 超時：API > 2000ms → 返回 504 Gateway Timeout，不扣款

@@ -296,7 +296,7 @@ src/
 | `WinLineDetected` | Payline evaluation | `{ sessionId, winLines[], cascadeDepth }` | CascadeEngine, WalletAccumulator |
 | `CascadeStepCompleted` | One cascade step done | `{ sessionId, step, lightningMarks[], newRows }` | ThunderBlessingHandler |
 | `ThunderBlessingTriggered` | SC + Lightning Marks present | `{ sessionId, markedCells[], selectedSymbol }` | CascadeEngine (re-evaluate) |
-| `CoinTossResolved` | Max rows + cascade win | `{ sessionId, result: "Heads" or "Tails", fgMultiplier? }` | FreeGameOrchestrator |
+| `CoinTossResolved` | Max rows + cascade win | `{ sessionId, result: "HEADS" or "TAILS", fgMultiplier? }` | FreeGameOrchestrator |
 | `FGRoundStarted` | FG sequence begins | `{ sessionId, roundNumber, multiplier }` | SlotEngine |
 | `FGBonusGranted` | FG bonus multiplier drawn | `{ sessionId, bonusMultiplier }` | WalletAccumulator |
 | `SpinCompleted` | Full outcome resolved | `{ sessionId, outcome: FullSpinOutcome }` | WalletRepository, AuditLogger |
@@ -1106,7 +1106,7 @@ interface FullSpinOutcome {
 
   // Coin Toss
   coinTossTriggered: boolean;
-  coinTossResult?: "Heads" | "Tails";
+  coinTossResult?: "HEADS" | "TAILS";
 
   // Free Game
   fgTriggered: boolean;
@@ -1615,7 +1615,7 @@ env:
 
 ### 8.4 Rate Limiting
 
-- **Strategy:** Token bucket, 5 requests/second per player (keyed by JWT `sub`)
+- **Strategy:** Sliding window counter, 1-second window, 5 requests per player, keyed by JWT `sub`
 - **Implementation:** Redis-based rate limiter (`fastify-rate-limit` with Redis store)
 - **Response on exceed:** HTTP 429, `Retry-After: 1` header
 - **Extra Bet / Buy Feature:** Same rate limit applies (not excluded)
