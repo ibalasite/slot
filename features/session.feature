@@ -25,7 +25,7 @@ Feature: GET /v1/session/:sessionId — FG Session State
     And the response body field "success" should be true
     And the response body field "data.sessionId" should equal "sess-abc123"
     And the response body field "data.playerId" should equal the player UUID for "player_001"
-    And the response body field "data.status" should equal "ACTIVE"
+    And the response body field "data.status" should equal "FG_ACTIVE"
     And the response body field "data.fgMultiplier" should equal 7
     And the response body field "data.fgRound" should equal 2
     And the response body field "data.fgBonusMultiplier" should equal 5

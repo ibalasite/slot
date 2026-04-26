@@ -32,7 +32,7 @@ Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
     And the response body field "data.fgRounds" should have exactly 5 elements
     And each FG round's "coinTossResult" should equal "HEADS" for rounds 1 through 5
     And the FG multiplier sequence across rounds should be 3, 7, 17, 27, 77
-    And the response body field "data.sessionFloorApplied" field should be present
+    And the response data.sessionFloorApplied should be true
     And the response body field "data.sessionFloorValue" should equal 10.00
     And the player balance should be decreased by exactly 50.00 USD
     And the "spins" table should have buy_feature_active set to true for this spin
@@ -76,6 +76,7 @@ Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
   # Error Scenarios
   # ─────────────────────────────────────────────
 
+  @TC-INT-BUYF-002
   Scenario: Buy Feature with insufficient balance returns 400 INSUFFICIENT_FUNDS
     Given the player balance is 40.00 USD
     When I send POST /v1/spin with body:
@@ -90,7 +91,8 @@ Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
     And the player balance should remain 40.00 USD
     And no new record should be inserted into the "spins" table
 
-  Scenario: Buy Feature with Extra Bet ON and insufficient balance for 300× cost returns 400 INSUFFICIENT_FUNDS
+  @TC-INT-BUYF-003
+  Scenario: Extra Bet ON + Buy Feature insufficient balance for 300× returns 400 INSUFFICIENT_FUNDS
     Given the player balance is 100.00 USD
     When I send POST /v1/spin with body:
       | playerId   | player_001 |
@@ -103,6 +105,7 @@ Feature: POST /v1/spin with buyFeature=true — Buy Feature Mechanics
     And the response body field "code" should equal "INSUFFICIENT_FUNDS"
     And the player balance should remain 100.00 USD
 
+  @TC-INT-BUYF-004
   Scenario: Buy Feature rejected due to jurisdiction restriction returns 400 BUY_FEATURE_NOT_ALLOWED
     Given the game configuration has buyFeature disabled for the current jurisdiction
     And the player balance is 5000.00 USD

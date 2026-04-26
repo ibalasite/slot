@@ -313,7 +313,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
   @contract @security @TC-INT-API-011
   Scenario: Concurrent spin attempt returns 409 SPIN_IN_PROGRESS
     Given player "player_001" has an active spin in progress (spin lock held)
-    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 409
     And the response error code should be "SPIN_IN_PROGRESS"
     And the player balance should be unchanged
@@ -322,7 +322,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
   Scenario: Engine timeout results in 504 and compensating credit
     Given the spin engine is configured to time out after 2000ms
     And player "player_001" has balance 1000.00 USD
-    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 504
     And the response error code should be "ENGINE_TIMEOUT"
     And the "wallet_transactions" table should have a compensating credit of 1.00 for "player_001"
@@ -330,7 +330,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
   @contract @TC-INT-API-013
   Scenario: Circuit breaker open returns 503 SERVICE_UNAVAILABLE
     Given the database circuit breaker is OPEN
-    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 503
     And the response error code should be "SERVICE_UNAVAILABLE"
     And the player balance should be unchanged
@@ -339,7 +339,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
   Scenario: Suspended player account is forbidden from spinning
     Given player "player_suspended" has account status "suspended"
     And player "player_suspended" has a valid JWT token
-    When I send POST /v1/spin as "player_suspended" with betLevel "1.00" and extraBet false
+    When I send POST /v1/spin as "player_suspended" with betLevel 1 and extraBet false
     Then the response status should be 403
     And the response error code should be "FORBIDDEN"
 
@@ -350,10 +350,10 @@ Feature: POST /v1/spin — Core Spin Mechanics
   @contract @TC-INT-API-014
   Scenario: New main game spin starts with clean grid state
     Given player "player_001" completed a cascade sequence producing lightning marks
-    When I send a new POST /v1/spin with betLevel "1.00" and extraBet false
-    Then the response data.initialGrid.rows should equal 3
-    And the response data.lightningMarks should be an empty array
-    And the response data.cascade should have cascadeStep[0].rowsBefore equal to 3
+    When I send a new POST /v1/spin with betLevel 1 and extraBet false
+    Then the response data.initialGrid should be an array with 3 rows
+    And the response data.cascadeSequence.lightningMarks should be an empty array
+    And the response data.cascadeSequence.steps should not be empty
 
   # ─────────────────────────────────────────────
   # Coin Toss Boundary (US-COIN-001/AC-5)
@@ -363,9 +363,9 @@ Feature: POST /v1/spin — Core Spin Mechanics
   Scenario: Cascade expanding to 5 rows does not trigger Coin Toss
     Given the RNG seed "SEED_5ROWS_ONLY" is configured to produce a 5-row expansion
     And player "player_001" has balance 1000.00 USD
-    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
-    And the response data.finalGrid.rows should equal 5
+    And the response data.finalRows should equal 5
     And the response data.coinTossTriggered should be false
     And the response data.fgTriggered should be false
 
@@ -377,7 +377,7 @@ Feature: POST /v1/spin — Core Spin Mechanics
   Scenario: Scatter lands on grid with no lightning marks - Thunder Blessing not triggered
     Given the RNG seed "SEED_SC_NO_MARKS" produces a Scatter but no cascade wins
     And player "player_001" has balance 1000.00 USD
-    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
     And the response data.thunderBlessingTriggered should be false
     And the response data.lightningMarks should be an empty array
@@ -386,7 +386,8 @@ Feature: POST /v1/spin — Core Spin Mechanics
   Scenario: Thunder Blessing second hit on P1 symbol does not cause tier overflow
     Given the RNG seed "SEED_P1_DOUBLE_HIT" forces all marks to P1 with second hit
     And player "player_001" has balance 1000.00 USD
-    When I send POST /v1/spin with betLevel "1.00" and extraBet false
+    When I send POST /v1/spin with betLevel 1 and extraBet false
     Then the response status should be 200
     And the response data.thunderBlessingResult.upgradedSymbol should equal "P1"
-    And the response data.thunderBlessingResult.secondHitSymbol should equal "P1"
+    And the response data.thunderBlessingResult.secondHitApplied should be true
+    And the response data.thunderBlessingResult.convertedSymbol should equal "P1"

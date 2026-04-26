@@ -111,6 +111,7 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
     And the response body field "code" should equal "INVALID_BET_LEVEL"
     And the player balance should remain unchanged
 
+  @TC-SEC-BET-002
   Scenario: betLevel as a non-integer string fails JSON schema validation with 400 VALIDATION_ERROR
     Given the player balance is 1000.00 USD
     When I send POST /v1/spin with betLevel set to "abc" as a string value
@@ -135,6 +136,7 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
   # Injection Prevention
   # ─────────────────────────────────────────────
 
+  @TC-SEC-INJ-001
   Scenario: SQL injection attempt in betLevel is rejected with 400 VALIDATION_ERROR
     Given the player balance is 1000.00 USD
     When I send POST /v1/spin with betLevel set to "1; DROP TABLE players;--"
@@ -143,6 +145,7 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
     And the "players" table should still exist and be queryable
     And the player balance should remain unchanged
 
+  @TC-SEC-INJ-002
   Scenario: NoSQL injection attempt in sessionId is rejected with 400 VALIDATION_ERROR
     Given the player balance is 1000.00 USD
     When I send POST /v1/spin with sessionId set to the object {"$gt": ""}
@@ -168,6 +171,7 @@ Feature: Security Constraints — Authentication, Authorization, and Injection P
   # Cross-Player Authorization
   # ─────────────────────────────────────────────
 
+  @TC-SEC-AUTH-005
   Scenario: Player A cannot access an FG session belonging to Player B
     Given a player "player_002" has a valid JWT token
     And an active FG session "sess-belongs-to-player001" exists belonging to "player_001"
