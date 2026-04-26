@@ -1,0 +1,1128 @@
+openapi: "3.1.0"
+info:
+  title: Thunder Blessing Slot Game API
+  description: |
+    REST API for the Thunder Blessing slot game backend. Single-trip spin endpoint
+    returns the complete FullSpinOutcome including all Cascade steps, Thunder Blessing
+    results, Coin Toss outcome, and all Free Game rounds.
+  version: "1.0.0"
+  contact:
+    email: ops@thunderblessing.example.com
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.thunderblessing.example.com
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /v1/spin:
+    post:
+      operationId: postSpin
+      summary: Execute a single spin
+      description: |
+        Single-trip endpoint. One POST returns the complete FullSpinOutcome including
+        all Cascade steps, Thunder Blessing results, Coin Toss outcome, and all Free
+        Game rounds (if triggered). outcome.totalWin is the sole accounting authority.
+      security:
+        - bearerAuth: []
+      tags:
+        - Spin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpinRequest"
+            examples:
+              normalSpin:
+                summary: Normal spin, USD, betLevel 5
+                value:
+                  playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234"
+                  sessionId: null
+                  betLevel: 5
+                  currency: "USD"
+                  extraBet: false
+                  buyFeature: false
+              extraBetSpin:
+                summary: Extra Bet spin
+                value:
+                  playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234"
+                  sessionId: null
+                  betLevel: 5
+                  currency: "USD"
+                  extraBet: true
+                  buyFeature: false
+              buyFeatureSpin:
+                summary: Buy Feature spin
+                value:
+                  playerId: "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234"
+                  sessionId: null
+                  betLevel: 5
+                  currency: "USD"
+                  extraBet: false
+                  buyFeature: true
+      responses:
+        "200":
+          description: Successful spin outcome
+          headers:
+            X-Request-Id:
+              description: Echo of client-provided or server-generated request UUID
+              schema:
+                type: string
+                format: uuid
+            X-Rate-Limit-Remaining:
+              description: Remaining requests in the current rate-limit window
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpinResponse"
+        "400":
+          description: |
+            Bad request. Possible codes: INSUFFICIENT_FUNDS, INVALID_BET_LEVEL,
+            INVALID_CURRENCY, BUY_FEATURE_NOT_ALLOWED, VALIDATION_ERROR
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                insufficientFunds:
+                  summary: Insufficient balance
+                  value:
+                    success: false
+                    code: "INSUFFICIENT_FUNDS"
+                    message: "Insufficient balance to cover the spin cost"
+                    requestId: "550e8400-e29b-41d4-a716-446655440001"
+                    timestamp: "2026-04-26T12:00:00.000Z"
+                invalidBetLevel:
+                  summary: Bet level out of range
+                  value:
+                    success: false
+                    code: "INVALID_BET_LEVEL"
+                    message: "betLevel 9999 is outside the valid range for USD (1–40)"
+                    requestId: "550e8400-e29b-41d4-a716-446655440002"
+                    timestamp: "2026-04-26T12:00:01.000Z"
+        "401":
+          description: Unauthorized — JWT missing, malformed, expired, or signature invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — account suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Conflict — spin already in progress for this session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                spinInProgress:
+                  value:
+                    success: false
+                    code: "SPIN_IN_PROGRESS"
+                    message: "A spin is already in progress for this player. Retry after the lock TTL (up to 10 seconds)."
+                    requestId: "550e8400-e29b-41d4-a716-446655440007"
+                    timestamp: "2026-04-26T12:00:06.000Z"
+        "422":
+          description: Unprocessable — semantically invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limited — more than 5 req/s per player
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                rateLimited:
+                  value:
+                    success: false
+                    code: "RATE_LIMITED"
+                    message: "Rate limit exceeded. Maximum 5 requests per second per player."
+                    requestId: "550e8400-e29b-41d4-a716-446655440009"
+                    timestamp: "2026-04-26T12:00:08.000Z"
+                    retryAfter: 1
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Service unavailable — circuit breaker open
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "504":
+          description: Engine timeout — compensating credit issued automatically
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                engineTimeout:
+                  value:
+                    success: false
+                    code: "ENGINE_TIMEOUT"
+                    message: "Spin engine timed out. Your bet has been refunded automatically."
+                    requestId: "550e8400-e29b-41d4-a716-446655440008"
+                    timestamp: "2026-04-26T12:00:07.000Z"
+
+  /v1/session/{sessionId}:
+    get:
+      operationId: getSession
+      summary: Get in-progress FG session state
+      description: |
+        Reconnect endpoint. Returns the current in-progress FG session state from Redis.
+        Used when the client disconnects mid-FG sequence and needs to resume.
+        Session expires after 1800s of inactivity (TTL auto-renewed on each FG round).
+        Players may only access their own sessions.
+      security:
+        - bearerAuth: []
+      tags:
+        - Session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: "Session ID previously returned in a POST /v1/spin response (format: sess-{uuid})"
+          schema:
+            type: string
+            pattern: "^sess-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          example: "sess-9e2b1a34-6f7c-4d2e-b8a1-c5d9e0f12345"
+      responses:
+        "200":
+          description: Session state retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionStateResponse"
+        "401":
+          description: Unauthorized — JWT missing or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden — playerId in session does not match JWT sub
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Session not found — expired (TTL 1800s) or never created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                sessionNotFound:
+                  value:
+                    success: false
+                    code: "SESSION_NOT_FOUND"
+                    message: "Session not found or expired (TTL 1800s)"
+                    requestId: "550e8400-e29b-41d4-a716-446655440006"
+                    timestamp: "2026-04-26T12:00:05.000Z"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/config:
+    get:
+      operationId: getConfig
+      summary: Get game configuration
+      description: |
+        Returns the game configuration needed by the frontend: bet level table (USD and TWD),
+        game parameters summary, and RTP targets per scenario. Used at game startup to
+        initialize the bet selector UI. Accessible by any valid role.
+      security:
+        - bearerAuth: []
+      tags:
+        - Config
+      parameters:
+        - name: currency
+          in: query
+          required: false
+          description: Filter bet levels to a single currency. If omitted, both USD and TWD are returned.
+          schema:
+            type: string
+            enum: ["USD", "TWD"]
+      responses:
+        "200":
+          description: Game configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigResponse"
+        "401":
+          description: Unauthorized — JWT missing or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        RS256 JWT Bearer token issued by Supabase Auth.
+        Claims: sub (player UUID), role (player|operator|service_role), exp, iat, aud.
+        Token TTL: 3600s. Refresh token TTL: 604800s.
+
+  schemas:
+    # ──────────────────────────────────────────────
+    # REQUEST SCHEMAS
+    # ──────────────────────────────────────────────
+
+    SpinRequest:
+      type: object
+      required:
+        - playerId
+        - betLevel
+        - currency
+        - extraBet
+        - buyFeature
+      additionalProperties: false
+      properties:
+        playerId:
+          type: string
+          format: uuid
+          description: Player UUID — must match the JWT sub claim
+        sessionId:
+          type:
+            - string
+            - "null"
+          description: |
+            Session identifier (format: sess-{uuid}). Provide an existing session ID
+            for FG round continuation; null or omit for a new spin.
+        betLevel:
+          type: integer
+          minimum: 1
+          maximum: 40
+          description: |
+            Bet level index. USD valid range: 1–40. TWD valid range: 1–40.
+            Values outside the currency-specific range return INVALID_BET_LEVEL.
+        currency:
+          type: string
+          enum:
+            - USD
+            - TWD
+          description: Player's selected currency. Determines baseBet from BetRangeConfig.
+        extraBet:
+          type: boolean
+          description: |
+            If true: spin cost is baseBet × 3; a Scatter symbol is guaranteed in the grid.
+        buyFeature:
+          type: boolean
+          description: |
+            If true: spin cost is baseBet × 100; triggers guaranteed Heads × 5 FG sequence;
+            session floor ≥ 20× baseBet is applied.
+
+    # ──────────────────────────────────────────────
+    # RESPONSE SCHEMAS
+    # ──────────────────────────────────────────────
+
+    SpinResponse:
+      type: object
+      required:
+        - success
+        - requestId
+        - timestamp
+        - data
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        requestId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: "#/components/schemas/SpinOutcomeData"
+
+    SpinOutcomeData:
+      type: object
+      required:
+        - spinId
+        - sessionId
+        - playerId
+        - betLevel
+        - baseBet
+        - totalBet
+        - totalWin
+        - newBalance
+        - currency
+        - extraBetActive
+        - buyFeatureActive
+        - initialGrid
+        - finalGrid
+        - finalRows
+        - cascadeSequence
+        - thunderBlessingTriggered
+        - thunderBlessingFirstHit
+        - thunderBlessingSecondHit
+        - upgradedSymbol
+        - thunderBlessingResult
+        - coinTossTriggered
+        - coinTossResult
+        - fgTriggered
+        - fgMultiplier
+        - fgRounds
+        - fgBonusMultiplier
+        - totalFGWin
+        - sessionFloorApplied
+        - sessionFloorValue
+        - nearMissApplied
+        - engineVersion
+        - timestamp
+      properties:
+        spinId:
+          type: string
+          description: "Spin identifier (format: spin-{uuid})"
+        sessionId:
+          type: string
+          description: "Session identifier (format: sess-{uuid})"
+        playerId:
+          type: string
+          format: uuid
+        betLevel:
+          type: integer
+          minimum: 1
+          maximum: 40
+        baseBet:
+          type: number
+          description: Base bet amount in player's currency
+        totalBet:
+          type: number
+          description: |
+            Actual amount debited from balance.
+            baseBet × 1 (normal), × 3 (extraBet only), × 100 (buyFeature only),
+            × 300 (extraBet + buyFeature combined).
+        totalWin:
+          type: number
+          minimum: 0
+          description: Total win credited to wallet. SOLE ACCOUNTING AUTHORITY.
+        newBalance:
+          type: number
+          description: Player wallet balance after this spin (post-credit)
+        currency:
+          type: string
+          enum: [USD, TWD]
+        extraBetActive:
+          type: boolean
+        buyFeatureActive:
+          type: boolean
+        initialGrid:
+          type: array
+          description: |
+            5×3 initial grid before Cascade. Outer array = rows (0-indexed top to bottom),
+            inner = columns (left to right).
+          items:
+            type: array
+            items:
+              type: string
+              enum: [W, SC, P1, P2, P3, P4, L1, L2, L3, L4]
+        finalGrid:
+          type: array
+          description: Final grid after all Cascade steps. Row count equals finalRows.
+          items:
+            type: array
+            items:
+              type: string
+              enum: [W, SC, P1, P2, P3, P4, L1, L2, L3, L4]
+        finalRows:
+          type: integer
+          enum: [3, 4, 5, 6]
+          description: Final row count after Cascade expansion
+        cascadeSequence:
+          $ref: "#/components/schemas/CascadeSequence"
+        thunderBlessingTriggered:
+          type: boolean
+          description: true when Thunder Blessing was triggered (SC + Lightning Marks present)
+        thunderBlessingFirstHit:
+          type: boolean
+        thunderBlessingSecondHit:
+          type: boolean
+          description: true when second hit applied (RNG < 0.40)
+        upgradedSymbol:
+          type:
+            - string
+            - "null"
+          enum: [P1, P2, P3, P4, null]
+          description: Symbol all Lightning Mark positions were upgraded to on first hit. Null if not triggered.
+        thunderBlessingResult:
+          oneOf:
+            - $ref: "#/components/schemas/ThunderBlessingResult"
+            - type: "null"
+        coinTossTriggered:
+          type: boolean
+          description: true when grid reaches 6 rows AND final cascade step had at least one win
+        coinTossResult:
+          type:
+            - string
+            - "null"
+          enum: [HEADS, TAILS, null]
+        fgTriggered:
+          type: boolean
+          description: true when Free Game sequence was entered (coinTossResult = HEADS)
+        fgMultiplier:
+          type:
+            - integer
+            - "null"
+          enum: [3, 7, 17, 27, 77, null]
+          description: Final FG multiplier reached in Coin Toss sequence. Null if FG not triggered.
+        fgRounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/FGRound"
+          description: All FG rounds played (up to 5). Empty array if fgTriggered is false.
+        fgBonusMultiplier:
+          type:
+            - integer
+            - "null"
+          enum: [1, 5, 20, 100, null]
+          description: |
+            Bonus multiplier drawn once at the START of the FG sequence before round 1.
+            All FGRound objects contain the same bonusMultiplier value. Null if FG not triggered.
+        totalFGWin:
+          type:
+            - number
+            - "null"
+          description: |
+            Sum of raw round wins across all FG rounds before multipliers.
+            effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier. Null if FG not triggered.
+        sessionFloorApplied:
+          type: boolean
+          description: True if Buy Feature session floor (≥ 20× baseBet) was applied
+        sessionFloorValue:
+          type:
+            - number
+            - "null"
+          description: |
+            Floor guarantee: 20 × baseBet (buyFeature only) or 60 × baseBet (extraBet + buyFeature).
+            Null if not a Buy Feature spin.
+        nearMissApplied:
+          type: boolean
+        engineVersion:
+          type: string
+          description: Version of GameConfig.generated.ts used
+        timestamp:
+          type: string
+          format: date-time
+        rngSeed:
+          type:
+            - string
+            - "null"
+          description: Optional audit seed; present only when LOG_RNG_VALUES=true. Omitted in production.
+
+    SessionStateResponse:
+      type: object
+      required:
+        - success
+        - requestId
+        - timestamp
+        - data
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        requestId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: "#/components/schemas/SessionStateData"
+
+    SessionStateData:
+      type: object
+      required:
+        - sessionId
+        - playerId
+        - status
+        - baseBet
+        - currency
+        - extraBet
+        - buyFeature
+        - fgRound
+        - fgMultiplier
+        - fgBonusMultiplier
+        - totalFGWin
+        - lightningMarks
+        - floorValue
+        - completedRounds
+        - remainingMaxRounds
+        - ttlSeconds
+      properties:
+        sessionId:
+          type: string
+          description: "Session identifier (format: sess-{uuid})"
+        playerId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [SPINNING, FG_ACTIVE, COMPLETE]
+        baseBet:
+          type: number
+        currency:
+          type: string
+          enum: [USD, TWD]
+        extraBet:
+          type: boolean
+        buyFeature:
+          type: boolean
+        fgRound:
+          type: integer
+          minimum: 0
+          maximum: 5
+          description: |
+            1-indexed: 0 = FG not yet entered; 1 = first round upcoming (none completed);
+            N = Nth round upcoming (N-1 rounds completed).
+        fgMultiplier:
+          type:
+            - integer
+            - "null"
+          enum: [3, 7, 17, 27, 77, null]
+          description: Current FG multiplier; null when no active FG sequence
+        fgBonusMultiplier:
+          type:
+            - integer
+            - "null"
+          enum: [1, 5, 20, 100, null]
+          description: Bonus multiplier drawn at FG sequence start. Null if not yet determined.
+        totalFGWin:
+          type: number
+          minimum: 0
+        lightningMarks:
+          $ref: "#/components/schemas/LightningMarkSet"
+        floorValue:
+          type:
+            - number
+            - "null"
+          description: |
+            Floor guarantee: 20 × baseBet (buyFeature only) or 60 × baseBet (extraBet + buyFeature).
+            Null if not a Buy Feature spin.
+        completedRounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/FGRound"
+        remainingMaxRounds:
+          type: integer
+          minimum: 0
+          maximum: 5
+        ttlSeconds:
+          type: integer
+          description: Seconds remaining before this Redis session key expires
+
+    ConfigResponse:
+      type: object
+      required:
+        - success
+        - requestId
+        - timestamp
+        - data
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        requestId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: "#/components/schemas/ConfigData"
+
+    ConfigData:
+      type: object
+      required:
+        - engineVersion
+        - betRange
+        - gameParameters
+        - rtpTargets
+      properties:
+        engineVersion:
+          type: string
+          description: Active GameConfig version (e.g. "1.0.0")
+        betRange:
+          type: object
+          properties:
+            USD:
+              $ref: "#/components/schemas/BetRangeCurrency"
+            TWD:
+              $ref: "#/components/schemas/BetRangeCurrency"
+        gameParameters:
+          $ref: "#/components/schemas/GameParameters"
+        rtpTargets:
+          $ref: "#/components/schemas/RtpTargets"
+
+    BetRangeCurrency:
+      type: object
+      required:
+        - minBetLevel
+        - maxBetLevel
+        - levels
+      properties:
+        minBetLevel:
+          type: integer
+          minimum: 1
+        maxBetLevel:
+          type: integer
+          minimum: 1
+        levels:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetLevel"
+
+    BetLevel:
+      type: object
+      required:
+        - level
+        - baseBet
+        - extraBetCost
+        - buyFeatureCost
+      properties:
+        level:
+          type: integer
+          minimum: 1
+        baseBet:
+          type: number
+          description: Base bet amount in the currency
+        extraBetCost:
+          type: number
+          description: Extra Bet cost (baseBet × 3)
+        buyFeatureCost:
+          type: number
+          description: Buy Feature cost (baseBet × 100)
+
+    GameParameters:
+      type: object
+      required:
+        - reels
+        - initialRows
+        - maxRows
+        - paylines
+        - symbols
+        - fgMultiplierSequence
+        - fgBonusMultipliers
+        - coinTossProbabilities
+        - maxWin
+        - buyFeatureSessionFloor
+        - extraBetCostMultiplier
+        - buyFeatureCostMultiplier
+      properties:
+        reels:
+          type: integer
+          enum: [5]
+        initialRows:
+          type: integer
+          enum: [3]
+        maxRows:
+          type: integer
+          enum: [6]
+        paylines:
+          type: object
+          properties:
+            at3Rows:
+              type: integer
+              enum: [25]
+            at4Rows:
+              type: integer
+              enum: [33]
+            at5Rows:
+              type: integer
+              enum: [45]
+            at6Rows:
+              type: integer
+              enum: [57]
+        symbols:
+          type: array
+          items:
+            $ref: "#/components/schemas/SymbolDefinition"
+        fgMultiplierSequence:
+          type: array
+          items:
+            type: integer
+            enum: [3, 7, 17, 27, 77]
+          minItems: 5
+          maxItems: 5
+        fgBonusMultipliers:
+          type: array
+          items:
+            type: integer
+            enum: [1, 5, 20, 100]
+          minItems: 4
+          maxItems: 4
+        coinTossProbabilities:
+          type: object
+          properties:
+            stage0_entry:
+              type: number
+              description: Probability at entry (×3 multiplier stage)
+            stage1_x7:
+              type: number
+            stage2_x17:
+              type: number
+            stage3_x27:
+              type: number
+            stage4_x77:
+              type: number
+        maxWin:
+          type: object
+          properties:
+            mainGame:
+              type: integer
+              description: Maximum win multiplier for normal and Extra Bet spins (× baseBet)
+            buyFeature:
+              type: integer
+              description: Maximum win multiplier when Buy Feature is active (× baseBet)
+            extraBetBuyFeature:
+              type: integer
+              description: Maximum win multiplier when both Extra Bet and Buy Feature are active (× baseBet)
+            unit:
+              type: string
+              enum: ["× baseBet"]
+        buyFeatureSessionFloor:
+          type: integer
+          description: Session floor multiplier for Buy Feature spins (× baseBet)
+        extraBetCostMultiplier:
+          type: integer
+          enum: [3]
+        buyFeatureCostMultiplier:
+          type: integer
+          enum: [100]
+
+    SymbolDefinition:
+      type: object
+      required:
+        - id
+        - name
+        - isWild
+        - isScatter
+      properties:
+        id:
+          type: string
+          enum: [W, SC, P1, P2, P3, P4, L1, L2, L3, L4]
+        name:
+          type: string
+        isWild:
+          type: boolean
+        isScatter:
+          type: boolean
+        tier:
+          type: string
+          enum: [premium, low]
+          description: Present on non-special symbols only
+
+    RtpTargets:
+      type: object
+      properties:
+        mainGame:
+          $ref: "#/components/schemas/RtpEntry"
+        extraBet:
+          $ref: "#/components/schemas/RtpEntry"
+        buyFeature:
+          $ref: "#/components/schemas/RtpEntry"
+        ebBuyFeature:
+          $ref: "#/components/schemas/RtpEntry"
+
+    RtpEntry:
+      type: object
+      required:
+        - target
+        - tolerance
+        - unit
+      properties:
+        target:
+          type: number
+          description: RTP target percentage (e.g. 97.5)
+        tolerance:
+          type: number
+          description: Acceptable deviation in percentage points (e.g. 1.0)
+        unit:
+          type: string
+          enum: ["%"]
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - code
+        - message
+        - requestId
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        code:
+          type: string
+          enum:
+            - INSUFFICIENT_FUNDS
+            - INVALID_BET_LEVEL
+            - INVALID_CURRENCY
+            - BUY_FEATURE_NOT_ALLOWED
+            - VALIDATION_ERROR
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - SESSION_NOT_FOUND
+            - SPIN_IN_PROGRESS
+            - RATE_LIMITED
+            - INTERNAL_ERROR
+            - SERVICE_UNAVAILABLE
+            - ENGINE_TIMEOUT
+        message:
+          type: string
+          description: Human-readable message; never exposes raw DB errors or stack traces
+        requestId:
+          type: string
+          format: uuid
+          description: Unique identifier for log correlation; matches X-Request-Id response header
+        timestamp:
+          type: string
+          format: date-time
+        retryAfter:
+          type: integer
+          description: Seconds to wait before retrying; present only on 429 and 503 responses
+
+    # ──────────────────────────────────────────────
+    # SHARED / NESTED SCHEMAS
+    # ──────────────────────────────────────────────
+
+    CascadeSequence:
+      type: object
+      required:
+        - steps
+        - totalWin
+        - finalGrid
+        - finalRows
+        - lightningMarks
+      properties:
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/CascadeStep"
+          description: |
+            One entry per cascade iteration. Non-empty when totalWin > 0.
+        totalWin:
+          type: number
+          minimum: 0
+        finalGrid:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+              enum: [W, SC, P1, P2, P3, P4, L1, L2, L3, L4]
+        finalRows:
+          type: integer
+          enum: [3, 4, 5, 6]
+        lightningMarks:
+          $ref: "#/components/schemas/LightningMarkSet"
+
+    CascadeStep:
+      type: object
+      required:
+        - index
+        - grid
+        - winLines
+        - stepWin
+        - newLightningMarks
+        - rows
+      properties:
+        index:
+          type: integer
+          minimum: 0
+          description: 0-based cascade step index
+        grid:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+              enum: [W, SC, P1, P2, P3, P4, L1, L2, L3, L4]
+          description: Grid state at the start of this cascade step
+        winLines:
+          type: array
+          items:
+            $ref: "#/components/schemas/WinLine"
+        stepWin:
+          type: number
+          minimum: 0
+          description: Total win from all winLines in this cascade step
+        newLightningMarks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Position"
+          description: Positions that received Lightning Marks in this step
+        rows:
+          type: integer
+          enum: [3, 4, 5, 6]
+          description: Row count after this cascade step
+
+    WinLine:
+      type: object
+      required:
+        - paylineId
+        - symbolId
+        - matchCount
+        - positions
+        - payout
+      properties:
+        paylineId:
+          type: integer
+          minimum: 1
+          maximum: 57
+          description: Payline identifier (1–25 at 3 rows; up to 57 at 6 rows)
+        symbolId:
+          type: string
+          enum: [W, P1, P2, P3, P4, L1, L2, L3, L4]
+          description: Winning symbol (Scatter SC does not produce win lines)
+        matchCount:
+          type: integer
+          minimum: 3
+          maximum: 5
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Position"
+        payout:
+          type: number
+          description: Win amount for this payline in the player's currency
+
+    Position:
+      type: object
+      required:
+        - row
+        - col
+      properties:
+        row:
+          type: integer
+          minimum: 0
+          maximum: 5
+          description: 0-indexed row (top = 0)
+        col:
+          type: integer
+          minimum: 0
+          maximum: 4
+          description: 0-indexed column (left = 0)
+
+    LightningMarkSet:
+      type: object
+      required:
+        - positions
+        - count
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Position"
+          description: All accumulated Lightning Mark positions (across all cascade steps)
+        count:
+          type: integer
+          minimum: 0
+
+    ThunderBlessingResult:
+      type: object
+      required:
+        - marksConverted
+        - convertedSymbol
+        - firstHitApplied
+        - secondHitApplied
+      properties:
+        marksConverted:
+          type: array
+          items:
+            $ref: "#/components/schemas/Position"
+          description: Grid positions where Lightning Marks were converted
+        convertedSymbol:
+          type: string
+          enum: [P1, P2, P3, P4]
+          description: Symbol all Lightning Mark positions were upgraded to on first hit
+        firstHitApplied:
+          type: boolean
+        secondHitApplied:
+          type: boolean
+          description: True if second hit (RNG < 0.40) was also applied
+
+    FGRound:
+      type: object
+      description: |
+        Single round within an FG sequence. bonusMultiplier is drawn once at FG sequence
+        start and is identical in all FGRound objects within the same sequence.
+      required:
+        - round
+        - multiplier
+        - bonusMultiplier
+        - grid
+        - cascadeSequence
+        - roundWin
+        - coinTossResult
+        - lightningMarksBefore
+        - lightningMarksAfter
+      properties:
+        round:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: 1-indexed FG round number
+        multiplier:
+          type: integer
+          enum: [3, 7, 17, 27, 77]
+          description: FG multiplier for this round
+        bonusMultiplier:
+          type: integer
+          enum: [1, 5, 20, 100]
+          description: Bonus multiplier drawn once at FG sequence start. Identical across all rounds.
+        grid:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+              enum: [W, SC, P1, P2, P3, P4, L1, L2, L3, L4]
+          description: Initial grid for this FG round (5×3 reset; Lightning Marks persist)
+        cascadeSequence:
+          $ref: "#/components/schemas/CascadeSequence"
+        roundWin:
+          type: number
+          minimum: 0
+          description: Raw win for this FG round before multiplier application
+        coinTossResult:
+          type: string
+          enum: [HEADS, TAILS]
+          description: Coin Toss result at end of this FG round. TAILS ends the FG sequence.
+        lightningMarksBefore:
+          $ref: "#/components/schemas/LightningMarkSet"
+        lightningMarksAfter:
+          $ref: "#/components/schemas/LightningMarkSet"

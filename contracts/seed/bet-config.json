@@ -1,0 +1,304 @@
+{
+  "$schema": "https://thunderblessing.example.com/schemas/bet-config.json",
+  "description": "Machine-readable bet configuration for Thunder Blessing Slot Game (D17-CONTRACTS seed)",
+  "generatedAt": "2026-04-26T00:00:00.000Z",
+  "engineVersion": "1.0.0",
+  "betRange": {
+    "USD": {
+      "currency": "USD",
+      "minBetLevel": 1,
+      "maxBetLevel": 40,
+      "stepBaseBet": 0.25,
+      "minBaseBet": 0.25,
+      "maxBaseBet": 10,
+      "extraBetMultiplier": 3,
+      "buyFeatureMultiplier": 100,
+      "levels": [
+        {
+          "level": 1,
+          "baseBet": 0.25,
+          "extraBetCost": 0.75,
+          "buyFeatureCost": 25
+        },
+        {
+          "level": 2,
+          "baseBet": 0.5,
+          "extraBetCost": 1.5,
+          "buyFeatureCost": 50
+        },
+        {
+          "level": 3,
+          "baseBet": 0.75,
+          "extraBetCost": 2.25,
+          "buyFeatureCost": 75
+        },
+        {
+          "level": 4,
+          "baseBet": 1,
+          "extraBetCost": 3,
+          "buyFeatureCost": 100
+        },
+        {
+          "level": 5,
+          "baseBet": 1.25,
+          "extraBetCost": 3.75,
+          "buyFeatureCost": 125
+        },
+        {
+          "level": 6,
+          "baseBet": 1.5,
+          "extraBetCost": 4.5,
+          "buyFeatureCost": 150
+        },
+        {
+          "level": 7,
+          "baseBet": 1.75,
+          "extraBetCost": 5.25,
+          "buyFeatureCost": 175
+        },
+        {
+          "level": 8,
+          "baseBet": 2,
+          "extraBetCost": 6,
+          "buyFeatureCost": 200
+        },
+        {
+          "level": 9,
+          "baseBet": 2.25,
+          "extraBetCost": 6.75,
+          "buyFeatureCost": 225
+        },
+        {
+          "level": 10,
+          "baseBet": 2.5,
+          "extraBetCost": 7.5,
+          "buyFeatureCost": 250
+        },
+        {
+          "level": 11,
+          "baseBet": 2.75,
+          "extraBetCost": 8.25,
+          "buyFeatureCost": 275
+        },
+        {
+          "level": 12,
+          "baseBet": 3,
+          "extraBetCost": 9,
+          "buyFeatureCost": 300
+        },
+        {
+          "level": 13,
+          "baseBet": 3.25,
+          "extraBetCost": 9.75,
+          "buyFeatureCost": 325
+        },
+        {
+          "level": 14,
+          "baseBet": 3.5,
+          "extraBetCost": 10.5,
+          "buyFeatureCost": 350
+        },
+        {
+          "level": 15,
+          "baseBet": 3.75,
+          "extraBetCost": 11.25,
+          "buyFeatureCost": 375
+        },
+        {
+          "level": 16,
+          "baseBet": 4,
+          "extraBetCost": 12,
+          "buyFeatureCost": 400
+        },
+        {
+          "level": 17,
+          "baseBet": 4.25,
+          "extraBetCost": 12.75,
+          "buyFeatureCost": 425
+        },
+        {
+          "level": 18,
+          "baseBet": 4.5,
+          "extraBetCost": 13.5,
+          "buyFeatureCost": 450
+        },
+        {
+          "level": 19,
+          "baseBet": 4.75,
+          "extraBetCost": 14.25,
+          "buyFeatureCost": 475
+        },
+        {
+          "level": 20,
+          "baseBet": 5,
+          "extraBetCost": 15,
+          "buyFeatureCost": 500
+        },
+        {
+          "level": 21,
+          "baseBet": 5.25,
+          "extraBetCost": 15.75,
+          "buyFeatureCost": 525
+        },
+        {
+          "level": 22,
+          "baseBet": 5.5,
+          "extraBetCost": 16.5,
+          "buyFeatureCost": 550
+        },
+        {
+          "level": 23,
+          "baseBet": 5.75,
+          "extraBetCost": 17.25,
+          "buyFeatureCost": 575
+        },
+        {
+          "level": 24,
+          "baseBet": 6,
+          "extraBetCost": 18,
+          "buyFeatureCost": 600
+        },
+        {
+          "level": 25,
+          "baseBet": 6.25,
+          "extraBetCost": 18.75,
+          "buyFeatureCost": 625
+        },
+        {
+          "level": 26,
+          "baseBet": 6.5,
+          "extraBetCost": 19.5,
+          "buyFeatureCost": 650
+        },
+        {
+          "level": 27,
+          "baseBet": 6.75,
+          "extraBetCost": 20.25,
+          "buyFeatureCost": 675
+        },
+        {
+          "level": 28,
+          "baseBet": 7,
+          "extraBetCost": 21,
+          "buyFeatureCost": 700
+        },
+        {
+          "level": 29,
+          "baseBet": 7.25,
+          "extraBetCost": 21.75,
+          "buyFeatureCost": 725
+        },
+        {
+          "level": 30,
+          "baseBet": 7.5,
+          "extraBetCost": 22.5,
+          "buyFeatureCost": 750
+        },
+        {
+          "level": 31,
+          "baseBet": 7.75,
+          "extraBetCost": 23.25,
+          "buyFeatureCost": 775
+        },
+        {
+          "level": 32,
+          "baseBet": 8,
+          "extraBetCost": 24,
+          "buyFeatureCost": 800
+        },
+        {
+          "level": 33,
+          "baseBet": 8.25,
+          "extraBetCost": 24.75,
+          "buyFeatureCost": 825
+        },
+        {
+          "level": 34,
+          "baseBet": 8.5,
+          "extraBetCost": 25.5,
+          "buyFeatureCost": 850
+        },
+        {
+          "level": 35,
+          "baseBet": 8.75,
+          "extraBetCost": 26.25,
+          "buyFeatureCost": 875
+        },
+        {
+          "level": 36,
+          "baseBet": 9,
+          "extraBetCost": 27,
+          "buyFeatureCost": 900
+        },
+        {
+          "level": 37,
+          "baseBet": 9.25,
+          "extraBetCost": 27.75,
+          "buyFeatureCost": 925
+        },
+        {
+          "level": 38,
+          "baseBet": 9.5,
+          "extraBetCost": 28.5,
+          "buyFeatureCost": 950
+        },
+        {
+          "level": 39,
+          "baseBet": 9.75,
+          "extraBetCost": 29.25,
+          "buyFeatureCost": 975
+        },
+        {
+          "level": 40,
+          "baseBet": 10,
+          "extraBetCost": 30,
+          "buyFeatureCost": 1000
+        }
+      ]
+    },
+    "TWD": {
+      "currency": "TWD",
+      "minBetLevel": 1,
+      "maxBetLevel": 32,
+      "stepBaseBet": 10,
+      "minBaseBet": 10,
+      "maxBaseBet": 320,
+      "extraBetMultiplier": 3,
+      "buyFeatureMultiplier": 100,
+      "levels": [
+        {"level": 1,  "baseBet": 10,  "extraBetCost": 30,  "buyFeatureCost": 1000},
+        {"level": 2,  "baseBet": 20,  "extraBetCost": 60,  "buyFeatureCost": 2000},
+        {"level": 3,  "baseBet": 30,  "extraBetCost": 90,  "buyFeatureCost": 3000},
+        {"level": 4,  "baseBet": 40,  "extraBetCost": 120, "buyFeatureCost": 4000},
+        {"level": 5,  "baseBet": 50,  "extraBetCost": 150, "buyFeatureCost": 5000},
+        {"level": 6,  "baseBet": 60,  "extraBetCost": 180, "buyFeatureCost": 6000},
+        {"level": 7,  "baseBet": 70,  "extraBetCost": 210, "buyFeatureCost": 7000},
+        {"level": 8,  "baseBet": 80,  "extraBetCost": 240, "buyFeatureCost": 8000},
+        {"level": 9,  "baseBet": 90,  "extraBetCost": 270, "buyFeatureCost": 9000},
+        {"level": 10, "baseBet": 100, "extraBetCost": 300, "buyFeatureCost": 10000},
+        {"level": 11, "baseBet": 110, "extraBetCost": 330, "buyFeatureCost": 11000},
+        {"level": 12, "baseBet": 120, "extraBetCost": 360, "buyFeatureCost": 12000},
+        {"level": 13, "baseBet": 130, "extraBetCost": 390, "buyFeatureCost": 13000},
+        {"level": 14, "baseBet": 140, "extraBetCost": 420, "buyFeatureCost": 14000},
+        {"level": 15, "baseBet": 150, "extraBetCost": 450, "buyFeatureCost": 15000},
+        {"level": 16, "baseBet": 160, "extraBetCost": 480, "buyFeatureCost": 16000},
+        {"level": 17, "baseBet": 170, "extraBetCost": 510, "buyFeatureCost": 17000},
+        {"level": 18, "baseBet": 180, "extraBetCost": 540, "buyFeatureCost": 18000},
+        {"level": 19, "baseBet": 190, "extraBetCost": 570, "buyFeatureCost": 19000},
+        {"level": 20, "baseBet": 200, "extraBetCost": 600, "buyFeatureCost": 20000},
+        {"level": 21, "baseBet": 210, "extraBetCost": 630, "buyFeatureCost": 21000},
+        {"level": 22, "baseBet": 220, "extraBetCost": 660, "buyFeatureCost": 22000},
+        {"level": 23, "baseBet": 230, "extraBetCost": 690, "buyFeatureCost": 23000},
+        {"level": 24, "baseBet": 240, "extraBetCost": 720, "buyFeatureCost": 24000},
+        {"level": 25, "baseBet": 250, "extraBetCost": 750, "buyFeatureCost": 25000},
+        {"level": 26, "baseBet": 260, "extraBetCost": 780, "buyFeatureCost": 26000},
+        {"level": 27, "baseBet": 270, "extraBetCost": 810, "buyFeatureCost": 27000},
+        {"level": 28, "baseBet": 280, "extraBetCost": 840, "buyFeatureCost": 28000},
+        {"level": 29, "baseBet": 290, "extraBetCost": 870, "buyFeatureCost": 29000},
+        {"level": 30, "baseBet": 300, "extraBetCost": 900, "buyFeatureCost": 30000},
+        {"level": 31, "baseBet": 310, "extraBetCost": 930, "buyFeatureCost": 31000},
+        {"level": 32, "baseBet": 320, "extraBetCost": 960, "buyFeatureCost": 32000}
+      ]
+    }
+  }
+}

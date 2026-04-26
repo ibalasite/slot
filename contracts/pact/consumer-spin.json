@@ -1,0 +1,227 @@
+{
+  "consumer": {
+    "name": "ThunderBlessingFrontend"
+  },
+  "provider": {
+    "name": "ThunderBlessingBackend"
+  },
+  "interactions": [
+    {
+      "description": "Happy path: valid spin with betLevel=5, currency=USD, extraBet=false, buyFeature=false returns 200 with totalWin>=0",
+      "providerStates": [
+        {
+          "name": "player a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234 exists with sufficient balance and a valid session"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "path": "/v1/spin",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.test-token"
+        },
+        "body": {
+          "playerId": "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
+          "sessionId": null,
+          "betLevel": 5,
+          "currency": "USD",
+          "extraBet": false,
+          "buyFeature": false
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "success": true,
+          "requestId": "550e8400-e29b-41d4-a716-446655440000",
+          "timestamp": "2026-04-26T14:22:31.445Z",
+          "data": {
+            "spinId": "spin-7d3a9b2c-1e4f-4c8d-a5b6-9e0f12345678",
+            "sessionId": "sess-9e2b1a34-6f7c-4d2e-b8a1-c5d9e0f12345",
+            "playerId": "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
+            "betLevel": 5,
+            "baseBet": 0.25,
+            "totalBet": 0.25,
+            "totalWin": 0.00,
+            "newBalance": 99.75,
+            "currency": "USD",
+            "extraBetActive": false,
+            "buyFeatureActive": false,
+            "initialGrid": [
+              ["P2", "L1", "P4", "W", "L3"],
+              ["L2", "P1", "L4", "P3", "L1"],
+              ["P4", "L3", "W", "L2", "P2"]
+            ],
+            "finalGrid": [
+              ["P2", "L1", "P4", "W", "L3"],
+              ["L2", "P1", "L4", "P3", "L1"],
+              ["P4", "L3", "W", "L2", "P2"]
+            ],
+            "finalRows": 3,
+            "cascadeSequence": {
+              "steps": [],
+              "totalWin": 0.00,
+              "finalGrid": [
+                ["P2", "L1", "P4", "W", "L3"],
+                ["L2", "P1", "L4", "P3", "L1"],
+                ["P4", "L3", "W", "L2", "P2"]
+              ],
+              "finalRows": 3,
+              "lightningMarks": {
+                "positions": [],
+                "count": 0
+              }
+            },
+            "thunderBlessingTriggered": false,
+            "thunderBlessingFirstHit": false,
+            "thunderBlessingSecondHit": false,
+            "upgradedSymbol": null,
+            "thunderBlessingResult": null,
+            "coinTossTriggered": false,
+            "coinTossResult": null,
+            "fgTriggered": false,
+            "fgMultiplier": null,
+            "fgRounds": [],
+            "fgBonusMultiplier": null,
+            "totalFGWin": null,
+            "sessionFloorApplied": false,
+            "sessionFloorValue": null,
+            "nearMissApplied": false,
+            "engineVersion": "1.0.0",
+            "timestamp": "2026-04-26T14:22:31.445Z"
+          }
+        },
+        "matchingRules": {
+          "body": {
+            "$.success": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.requestId": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.timestamp": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.data.spinId": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.data.sessionId": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.data.playerId": {
+              "matchers": [{ "match": "regex", "regex": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" }]
+            },
+            "$.data.betLevel": {
+              "matchers": [{ "match": "integer" }]
+            },
+            "$.data.baseBet": {
+              "matchers": [{ "match": "decimal" }]
+            },
+            "$.data.totalBet": {
+              "matchers": [{ "match": "decimal" }]
+            },
+            "$.data.totalWin": {
+              "matchers": [{ "match": "number", "min": 0 }]
+            },
+            "$.data.newBalance": {
+              "matchers": [{ "match": "decimal" }]
+            },
+            "$.data.currency": {
+              "matchers": [{ "match": "regex", "regex": "^(USD|TWD)$" }]
+            },
+            "$.data.extraBetActive": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.data.buyFeatureActive": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.data.initialGrid": {
+              "matchers": [{ "match": "type", "min": 3 }]
+            },
+            "$.data.finalGrid": {
+              "matchers": [{ "match": "type", "min": 3 }]
+            },
+            "$.data.finalRows": {
+              "matchers": [{ "match": "integer" }]
+            },
+            "$.data.fgRounds": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.data.engineVersion": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.data.timestamp": {
+              "matchers": [{ "match": "type" }]
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "Invalid betLevel 9999 returns 400 INVALID_BET_LEVEL",
+      "providerStates": [
+        {
+          "name": "player a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234 exists with sufficient balance"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "path": "/v1/spin",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.test-token"
+        },
+        "body": {
+          "playerId": "a3f7c2d1-8b4e-4f9a-bc12-d5e6f7891234",
+          "sessionId": null,
+          "betLevel": 9999,
+          "currency": "USD",
+          "extraBet": false,
+          "buyFeature": false
+        }
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "success": false,
+          "code": "INVALID_BET_LEVEL",
+          "message": "betLevel 9999 is outside the valid range for USD (1–40)",
+          "requestId": "550e8400-e29b-41d4-a716-446655440002",
+          "timestamp": "2026-04-26T12:00:01.000Z"
+        },
+        "matchingRules": {
+          "body": {
+            "$.success": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.code": {
+              "matchers": [{ "match": "equality" }]
+            },
+            "$.message": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.requestId": {
+              "matchers": [{ "match": "type" }]
+            },
+            "$.timestamp": {
+              "matchers": [{ "match": "type" }]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    },
+    "createdAt": "2026-04-26T00:00:00.000Z",
+    "description": "Consumer contract for POST /v1/spin — ThunderBlessingFrontend → ThunderBlessingBackend"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://thunderblessing.example.com/schemas/spin-request.json",
+  "title": "SpinRequest",
+  "description": "Request body for POST /v1/spin — Thunder Blessing Slot Game",
+  "type": "object",
+  "required": ["playerId", "betLevel", "currency", "extraBet", "buyFeature"],
+  "additionalProperties": false,
+  "properties": {
+    "playerId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Player UUID — must match the JWT sub claim"
+    },
+    "sessionId": {
+      "type": ["string", "null"],
+      "description": "Session identifier (format: sess-{uuid}). Provide for FG round continuation; null or omit for a new spin."
+    },
+    "betLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 40,
+      "description": "Bet level index. USD valid range: 1–40. TWD valid range: 1–40. Values outside currency-specific range return INVALID_BET_LEVEL."
+    },
+    "currency": {
+      "type": "string",
+      "enum": ["USD", "TWD"],
+      "description": "Player's selected currency. Determines baseBet amount from BetRangeConfig."
+    },
+    "extraBet": {
+      "type": "boolean",
+      "description": "If true: spin cost is baseBet × 3; a Scatter symbol is guaranteed to appear in the grid."
+    },
+    "buyFeature": {
+      "type": "boolean",
+      "description": "If true: spin cost is baseBet × 100; triggers guaranteed Heads × 5 FG sequence; session floor ≥ 20× baseBet is applied."
+    }
+  }
+}

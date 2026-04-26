@@ -1,0 +1,422 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://thunderblessing.example.com/schemas/spin-response.json",
+  "title": "SpinResponse",
+  "description": "Successful response data object for POST /v1/spin (the `data` field inside the envelope). outcome.totalWin is the SOLE ACCOUNTING AUTHORITY — Thunder Blessing Slot Game",
+  "type": "object",
+  "required": [
+    "spinId",
+    "sessionId",
+    "playerId",
+    "betLevel",
+    "baseBet",
+    "totalBet",
+    "totalWin",
+    "newBalance",
+    "currency",
+    "extraBetActive",
+    "buyFeatureActive",
+    "initialGrid",
+    "finalGrid",
+    "finalRows",
+    "cascadeSequence",
+    "thunderBlessingTriggered",
+    "thunderBlessingFirstHit",
+    "thunderBlessingSecondHit",
+    "upgradedSymbol",
+    "thunderBlessingResult",
+    "coinTossTriggered",
+    "coinTossResult",
+    "fgTriggered",
+    "fgMultiplier",
+    "fgRounds",
+    "fgBonusMultiplier",
+    "totalFGWin",
+    "sessionFloorApplied",
+    "sessionFloorValue",
+    "nearMissApplied",
+    "engineVersion",
+    "timestamp"
+  ],
+  "properties": {
+    "spinId": {
+      "type": "string",
+      "description": "Spin identifier (format: spin-{uuid})"
+    },
+    "sessionId": {
+      "type": "string",
+      "description": "Session identifier (format: sess-{uuid})"
+    },
+    "playerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "betLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 40
+    },
+    "baseBet": {
+      "type": "number",
+      "description": "Base bet amount in player's currency"
+    },
+    "totalBet": {
+      "type": "number",
+      "description": "Actual amount debited: baseBet × 1 (normal), × 3 (extraBet only), × 100 (buyFeature only), × 300 (extraBet + buyFeature combined)"
+    },
+    "totalWin": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total win credited to wallet. SOLE ACCOUNTING AUTHORITY. 0 if no win."
+    },
+    "newBalance": {
+      "type": "number",
+      "description": "Player wallet balance after this spin (post-credit)"
+    },
+    "currency": {
+      "type": "string",
+      "enum": ["USD", "TWD"]
+    },
+    "extraBetActive": {
+      "type": "boolean",
+      "description": "true when Extra Bet (3× cost) is active for this spin"
+    },
+    "buyFeatureActive": {
+      "type": "boolean",
+      "description": "true when Buy Feature (100× cost) is active for this spin"
+    },
+    "initialGrid": {
+      "type": "array",
+      "description": "5×3 initial grid before Cascade. Outer array = rows (0-indexed top to bottom), inner = columns (left to right).",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "array",
+        "minItems": 5,
+        "maxItems": 5,
+        "items": {
+          "type": "string",
+          "enum": ["W", "SC", "P1", "P2", "P3", "P4", "L1", "L2", "L3", "L4"]
+        }
+      }
+    },
+    "finalGrid": {
+      "type": "array",
+      "description": "Final grid after all Cascade steps. Row count equals finalRows.",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": {
+        "type": "array",
+        "minItems": 5,
+        "maxItems": 5,
+        "items": {
+          "type": "string",
+          "enum": ["W", "SC", "P1", "P2", "P3", "P4", "L1", "L2", "L3", "L4"]
+        }
+      }
+    },
+    "finalRows": {
+      "type": "integer",
+      "enum": [3, 4, 5, 6],
+      "description": "Final row count after Cascade expansion"
+    },
+    "cascadeSequence": {
+      "$ref": "#/definitions/CascadeSequence"
+    },
+    "thunderBlessingTriggered": {
+      "type": "boolean",
+      "description": "true when Thunder Blessing was triggered (SC Scatter landed while at least one Lightning Mark existed)"
+    },
+    "thunderBlessingFirstHit": {
+      "type": "boolean",
+      "description": "true when first Scatter hit occurred (all Lightning Mark positions converted to premium symbol)"
+    },
+    "thunderBlessingSecondHit": {
+      "type": "boolean",
+      "description": "true when second Thunder Blessing hit applied (RNG < 0.40)"
+    },
+    "upgradedSymbol": {
+      "type": ["string", "null"],
+      "enum": ["P1", "P2", "P3", "P4", null],
+      "description": "Symbol all Lightning Mark positions were upgraded to on first hit. Null if Thunder Blessing was not triggered."
+    },
+    "thunderBlessingResult": {
+      "oneOf": [
+        { "$ref": "#/definitions/ThunderBlessingResult" },
+        { "type": "null" }
+      ]
+    },
+    "coinTossTriggered": {
+      "type": "boolean",
+      "description": "true when grid reaches 6 rows AND final cascade step had at least one win"
+    },
+    "coinTossResult": {
+      "type": ["string", "null"],
+      "enum": ["HEADS", "TAILS", null]
+    },
+    "fgTriggered": {
+      "type": "boolean",
+      "description": "true when Free Game sequence was entered (coinTossResult = HEADS)"
+    },
+    "fgMultiplier": {
+      "type": ["integer", "null"],
+      "enum": [3, 7, 17, 27, 77, null],
+      "description": "Final FG multiplier reached in Coin Toss sequence. Null if FG was not triggered."
+    },
+    "fgRounds": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/FGRound" },
+      "description": "All FG rounds played (up to 5). Empty array if fgTriggered is false."
+    },
+    "fgBonusMultiplier": {
+      "type": ["integer", "null"],
+      "enum": [1, 5, 20, 100, null],
+      "description": "Bonus multiplier drawn once at the START of the FG sequence before round 1. Null if FG not triggered."
+    },
+    "totalFGWin": {
+      "type": ["number", "null"],
+      "description": "Sum of raw round wins across all FG rounds before multipliers. effectiveFGWin = totalFGWin × fgMultiplier × bonusMultiplier. Null if FG not triggered."
+    },
+    "sessionFloorApplied": {
+      "type": "boolean",
+      "description": "True if Buy Feature session floor (≥ 20× baseBet) was applied"
+    },
+    "sessionFloorValue": {
+      "type": ["number", "null"],
+      "description": "Floor guarantee: 20 × baseBet (buyFeature only) or 60 × baseBet (extraBet + buyFeature). Null if not a Buy Feature spin."
+    },
+    "nearMissApplied": {
+      "type": "boolean",
+      "description": "true when near-miss weighting was applied to the reel stop positions"
+    },
+    "engineVersion": {
+      "type": "string",
+      "description": "Version of GameConfig.generated.ts used"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rngSeed": {
+      "type": ["string", "null"],
+      "description": "Optional audit/replay seed; present only when LOG_RNG_VALUES=true. Omitted in production responses."
+    }
+  },
+  "definitions": {
+    "CascadeSequence": {
+      "type": "object",
+      "description": "Complete cascade result. steps is non-empty when totalWin > 0.",
+      "required": ["steps", "totalWin", "finalGrid", "finalRows", "lightningMarks"],
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CascadeStep" }
+        },
+        "totalWin": {
+          "type": "number",
+          "minimum": 0
+        },
+        "finalGrid": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 6,
+          "items": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": { "type": "string" }
+          }
+        },
+        "finalRows": {
+          "type": "integer",
+          "enum": [3, 4, 5, 6]
+        },
+        "lightningMarks": { "$ref": "#/definitions/LightningMarkSet" }
+      }
+    },
+    "CascadeStep": {
+      "type": "object",
+      "required": ["index", "grid", "winLines", "stepWin", "newLightningMarks", "rows"],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-based cascade step index"
+        },
+        "grid": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 6,
+          "items": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": { "type": "string" }
+          },
+          "description": "Grid state at the start of this cascade step"
+        },
+        "winLines": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/WinLine" }
+        },
+        "stepWin": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Total win from all winLines in this cascade step"
+        },
+        "newLightningMarks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Position" },
+          "description": "Positions that received Lightning Marks in this step"
+        },
+        "rows": {
+          "type": "integer",
+          "enum": [3, 4, 5, 6],
+          "description": "Row count after this cascade step"
+        }
+      }
+    },
+    "WinLine": {
+      "type": "object",
+      "required": ["paylineId", "symbolId", "matchCount", "positions", "payout"],
+      "properties": {
+        "paylineId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 57,
+          "description": "Payline identifier (1–25 at 3 rows; up to 57 at 6 rows)"
+        },
+        "symbolId": {
+          "type": "string",
+          "enum": ["W", "P1", "P2", "P3", "P4", "L1", "L2", "L3", "L4"],
+          "description": "Winning symbol (Scatter SC does not produce win lines)"
+        },
+        "matchCount": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 5
+        },
+        "positions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Position" }
+        },
+        "payout": {
+          "type": "number",
+          "description": "Win amount for this payline in the player's currency"
+        }
+      }
+    },
+    "Position": {
+      "type": "object",
+      "required": ["row", "col"],
+      "properties": {
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "0-indexed row (top = 0)"
+        },
+        "col": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4,
+          "description": "0-indexed column (left = 0)"
+        }
+      }
+    },
+    "LightningMarkSet": {
+      "type": "object",
+      "required": ["positions", "count"],
+      "properties": {
+        "positions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Position" },
+          "description": "All accumulated Lightning Mark positions (across all cascade steps)"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "ThunderBlessingResult": {
+      "type": "object",
+      "required": ["marksConverted", "convertedSymbol", "firstHitApplied", "secondHitApplied"],
+      "properties": {
+        "marksConverted": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Position" },
+          "description": "Grid positions where Lightning Marks were converted to the upgraded symbol"
+        },
+        "convertedSymbol": {
+          "type": "string",
+          "enum": ["P1", "P2", "P3", "P4"],
+          "description": "Symbol all Lightning Mark positions were upgraded to on first hit"
+        },
+        "firstHitApplied": { "type": "boolean" },
+        "secondHitApplied": {
+          "type": "boolean",
+          "description": "True if second hit (RNG < tbSecondHit probability of 0.40) was applied"
+        }
+      }
+    },
+    "FGRound": {
+      "type": "object",
+      "description": "Single round within an FG sequence. bonusMultiplier is drawn once at FG start and is identical across all rounds in the sequence.",
+      "required": [
+        "round",
+        "multiplier",
+        "bonusMultiplier",
+        "grid",
+        "cascadeSequence",
+        "roundWin",
+        "coinTossResult",
+        "lightningMarksBefore",
+        "lightningMarksAfter"
+      ],
+      "properties": {
+        "round": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "1-indexed FG round number"
+        },
+        "multiplier": {
+          "type": "integer",
+          "enum": [3, 7, 17, 27, 77],
+          "description": "FG multiplier for this round"
+        },
+        "bonusMultiplier": {
+          "type": "integer",
+          "enum": [1, 5, 20, 100],
+          "description": "Bonus multiplier drawn once at FG sequence start. Identical in all FGRound objects."
+        },
+        "grid": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": { "type": "string" }
+          },
+          "description": "Initial grid for this FG round (5×3 reset per round; Lightning Marks persist)"
+        },
+        "cascadeSequence": { "$ref": "#/definitions/CascadeSequence" },
+        "roundWin": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Raw win for this FG round before multiplier application (for frontend display)"
+        },
+        "coinTossResult": {
+          "type": "string",
+          "enum": ["HEADS", "TAILS"],
+          "description": "Coin Toss result at end of this FG round. TAILS ends the FG sequence."
+        },
+        "lightningMarksBefore": { "$ref": "#/definitions/LightningMarkSet" },
+        "lightningMarksAfter": { "$ref": "#/definitions/LightningMarkSet" }
+      }
+    }
+  }
+}
