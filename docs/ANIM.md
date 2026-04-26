@@ -120,6 +120,8 @@ The reel grid uses a column-row addressing scheme where column indices are 1–5
 | Col 5, Row 3 | 1360px | 580px |
 | Col 5, Row 6 (max) | 1360px | 1180px |
 
+**Viewport adaptation (1080p):** At 1920×1080, the 6-row grid extends to Y_center = 80 + (6−1)×200 + 100 = 1180px, exceeding the 1080px viewport height. The reel container applies uniform `scaleY` to compress all rows within the visible area when `rowCount > 3`; scale factor = `(viewport_height − 80) / (rowCount × 200)`. For example, at rowCount=6 on a 1080px canvas: scale = (1080 − 80) / (6 × 200) = 1000/1200 ≈ 0.833. Verify the authoritative canvas dimensions against VDD §6.1 before implementing — VDD §6.1 defines the reel artboard height which may exceed 1080px to accommodate the full 6-row grid without scaling.
+
 **Particle spawn points:** Particles emitted from symbol elimination spawn at the cell center of the eliminated symbol. Particles emitted from Lightning Mark appearances spawn at the cell center of the marked cell. Arc line emitters for Thunder Blessing spawn along a Bezier path from the Scatter symbol cell center to each marked cell center.
 
 ---
@@ -258,7 +260,7 @@ Win animations play when a symbol participates in a winning payline during a `CA
 **SFX to win tier mapping (fired at WIN counter start, t=0ms):**
 - Step win < 5× baseBet: `SFX_WIN_SMALL` (600ms)
 - Step win 5–20× baseBet: `SFX_WIN_MEDIUM` (900ms)
-- Step win ≥ 20× baseBet: no tier SFX here — reserved for `WIN_DISPLAY` step evaluated against cumulative `totalWin` (per AUDIO.md §5.2 and §5.8).
+- Step win ≥ 20× baseBet: no tier SFX here — cumulative `totalWin` evaluation is reserved for the `WIN_DISPLAY` step (AUDIO.md §5.8, which defines the WIN_DISPLAY tier SFX). AUDIO.md §5.2 documents the ≥20× deferral rule itself; §5.8 is the destination where the deferred evaluation fires.
 
 ### 2.4 Reel Expansion Animation
 
@@ -446,7 +448,7 @@ At t=200ms, `SFX_LIGHTNING_ACTIVATE` fires and the following animations begin si
 - Each arc line draws from SC cell center to the target mark cell center using a Bezier path.
 - Arc draw duration: 200ms per line, staggered 20ms apart from nearest to farthest mark.
 - Arc line: 2px stroke, `--color-arc-white`, Additive blend, opacity 0.8.
-- Arc lines persist (flicker at 0.8 opacity ± 0.2, 80ms period) from t=200ms through t=800ms.
+- Arc lines persist (flicker at 0.8 opacity ± 0.2, 80ms period) from t=200ms through t=3000ms. The lines remain rendered through the mark explosion (t=800ms) and symbol upgrade (t=1500ms) phases — they are not cleared at mark explosion. At t=3000ms (settle phase, §4.5) they fade opacity 0.8 → 0.0 over 300ms.
 
 ### 4.3 Mark Explosion and Symbol Upgrade (t=800ms → t=1500ms)
 
@@ -727,7 +729,7 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 - SFX: `SFX_MAX_WIN_LEGENDARY` (10000ms, separately mastered).
 - Overlay: "LEGENDARY WIN" text stacked above "×90,000"; dual-color text (gold + divine white).
 - All 30,000× effects plus:
-  - Extended coin rain: 3000 particles desktop (3s burst before settling to 500 continuous).
+  - Extended coin rain: 3000 particles desktop (3s burst before settling to 500 continuous); **mobile: 600 particles maximum** (VDD §5.4 exception; same 3s burst window, settling to 150 continuous) — see §8.1 `PS_WIN_LEGENDARY`.
   - Multiple Zeus lightning strikes: 3 sequential strikes at 0ms, 1500ms, 3000ms.
   - Screen remains at 70% gold ambient brightness for full 10s duration.
 - Duration: 10000ms minimum; dismiss possible after 5000ms.
@@ -880,11 +882,11 @@ Overlays display on top of the frozen reel state (using the ResultScene overlay 
 |:------------:|:---------------:|:----------------:|----------------------|
 | `NEAR_MISS` | §2.1 (Near Miss Twitch) | 200ms | `SFX_NEAR_MISS` at t=0ms |
 | `REEL_SPIN` (implicit; pre-AQ) | §2.1 | Variable (until API response) | `SFX_SPIN_START` immediate; `SFX_REEL_STOP_1–5` staggered 120ms |
-| `CASCADE_STEP` | §2.3, §3.1, §3.2, §3.3, §3.4 | 1500ms–2500ms | `SFX_WIN` / `SFX_SCATTER_WIN` at t=0ms; `SFX_CASCADE_EXPLODE` at ~800ms; `SFX_LIGHTNING_MARK` concurrent with elimination; `SFX_REEL_EXPAND` at ~1000ms; `SFX_FREE_LETTER` concurrent; `SFX_CASCADE_DROP` staggered at drop-land |
+| `CASCADE_STEP` | §2.3, §3.1, §3.2, §3.3, §3.4 | 1500ms–2500ms | `SFX_WIN` / `SFX_SCATTER_WIN` at t=0ms; `SFX_CASCADE_EXPLODE` at ~800ms (no SC in step) or ~1800ms (SC present in win line — waits for 1800ms SC win animation per AUDIO.md §5.2); `SFX_LIGHTNING_MARK` concurrent with elimination; `SFX_REEL_EXPAND` at ~1000ms; `SFX_FREE_LETTER` concurrent; `SFX_CASCADE_DROP` staggered at drop-land |
 | `THUNDER_BLESSING` | §4 | 3000ms (or 3000ms+) | `SFX_LIGHTNING_ACTIVATE` at t=200ms; `SFX_THUNDER_BLESSING` + `SFX_TB_FIRST_HIT` at t=800ms; `SFX_TB_SYMBOL_UPGRADE` at t=1500ms; `SFX_SECOND_HIT` at t=2300ms (if applicable); `SFX_TB_SETTLE` at t=3000ms |
 | `COIN_TOSS` | §5 | 3000ms–3500ms | `SFX_COIN_TOSS_START` at t=0ms; `SFX_COIN_TOSS_FLIP` [loop] at t=500ms; `SFX_COIN_HEADS` or `SFX_COIN_TAILS` at ~t=3500ms; `SFX_COIN_MULT_PROGRESS` on HEADS |
 | `FG_ENTRY` | §6.1 | ~2600ms | `SFX_FG_ENTER` at t=0ms; `SFX_FG_BONUS_REVEAL` / `SFX_FG_BONUS_5X` / `SFX_FG_BONUS_20X` / `SFX_FG_BONUS_100X` at t=1800ms |
-| `FG_ROUND` | §6.2, §6.3 | Variable (cascade + coin toss per round) | `SFX_FG_ROUND_START` at t=0ms; cascade SFX per §5.2; coin toss SFX per §5.4; `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` or `SFX_FG_MULT_77` on HEADS |
+| `FG_ROUND` | §6.2, §6.3 | Variable (cascade + coin toss per round) | `SFX_FG_ROUND_START` at t=0ms; cascade SFX per AUDIO.md §5.2; coin toss SFX per AUDIO.md §5.4; visual cascade animation per ANIM.md §6.2; visual coin toss animation per ANIM.md §6.3; `SFX_FG_MULT_UP` + `SFX_COIN_MULT_PROGRESS` or `SFX_FG_MULT_77` on HEADS |
 | `FG_COMPLETE` | §6.4 | 3500ms+ | `SFX_FG_COMPLETE` at t=0ms; `SFX_WIN_ROLLUP_TICK` during roll-up; win tier SFX at roll-up end |
 | `WIN_DISPLAY` | §7.1, §7.2, §7.3 | 200ms–10,000ms | Win tier SFX at t=0ms; `SFX_WIN_ROLLUP_TICK` throttled during roll-up |
 
