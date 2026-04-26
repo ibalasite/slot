@@ -252,7 +252,7 @@ Maps each API endpoint to the BDD scenarios that test it.
 | Total AC-level requirements (all sub-ACs) | 70 | 100% |
 | **US-ID level: COVERED** | 10 | 71% |
 | **US-ID level: PARTIAL** | 3 | 21% |
-| **US-ID level: NOT-COVERED** | 1 | 8% |
+| **US-ID level: NOT-COVERED** | 1 | 7% |
 | **AC level: COVERED** | 36 | 51% |
 | **AC level: PARTIAL** | 23 | 33% |
 | **AC level: NOT-COVERED** | 11 | 16% |
