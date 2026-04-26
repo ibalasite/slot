@@ -107,11 +107,11 @@ The following architecture decisions have been recorded and tracked. Full ADR en
 | ADR-002 | Clean Architecture (Domain←Application←Adapters←Infrastructure) | Accepted | 2026-04-26 | Full system |
 | ADR-003 | Single-trip POST /spin returns complete FullSpinOutcome | Accepted | 2026-04-26 | API design |
 | ADR-004 | Redis for FG session state (not PostgreSQL) | Accepted | 2026-04-26 | Data layer |
-| ADR-005 | Excel as the sole probability configuration source | Accepted | 2026-04-26 | Toolchain |
-| ADR-006 | verify.js as hard gate before engine_generator.js | Accepted | 2026-04-26 | Toolchain |
+| ADR-005 | verify.js as hard gate before engine_generator.js | Accepted | 2026-04-26 | Toolchain |
+| ADR-006 | outcome.totalWin as sole accounting authority (wallet credit) | Accepted | 2026-04-26 | Domain |
 | ADR-007 | Supabase PostgreSQL + RLS for wallet/audit persistence | Accepted | 2026-04-26 | Data layer |
 | ADR-008 | Kubernetes Canary deploy for production, Blue-Green for staging | Accepted | 2026-04-26 | Deployment |
-| ADR-009 | outcome.totalWin as sole accounting authority | Accepted | 2026-04-26 | Domain |
+| ADR-009 | Excel (Thunder_Config.xlsx) as sole probability configuration source | Accepted | 2026-04-26 | Toolchain |
 
 > New decisions must first be drafted as ADR proposals and reviewed before this index is updated.
 
@@ -769,6 +769,21 @@ interface ErrorResponse {
 }
 ```
 
+### Partial Failure Compensation (Debit → Spin → Credit)
+
+The spin flow is: **acquire lock → debit wallet → run engine → credit wallet → release lock → log spin**. If credit fails after a successful debit, the player is financially harmed. Compensation strategy:
+
+| Failure Point | Detection | Compensation |
+|--------------|-----------|-------------|
+| Lock acquire fails | Redis NX returns 0 | 409 SPIN_IN_PROGRESS; no debit |
+| Debit fails | DB transaction rollback | 400/500; no spin; no credit needed |
+| Engine throws / times out | Exception caught in SpinUseCase | **Compensating credit** issued immediately for the debited amount via `WalletRepository.credit(playerId, debitedAmount, "spin_abort_refund")`. A `spin_abort` entry is written to `spin_logs`. |
+| Credit fails after engine success | Exception in credit step | Retry credit up to 3× (exponential backoff 50ms/100ms/200ms). If all retries fail: record `unresolved_debit` event in `wallet_transactions`; trigger **async reconciliation job** (runs every 5 minutes) that detects `wallet_transactions` rows with type="debit" not matched by a corresponding "credit"/"refund" within 60s, and issues compensating credits. On-call PagerDuty alert triggered. |
+| Lock release fails | Redis DEL fails | Acceptable — lock TTL=10s auto-expiry; no player impact |
+| Spin log write fails | Supabase write error | Non-fatal; log to structured logging; retry async; does NOT fail the spin response (player already credited) |
+
+> **Invariant**: A player must never lose funds due to a server-side failure. Compensation always errs on the side of crediting the player.
+
 ---
 
 ## §7 High Availability Design
@@ -1175,6 +1190,7 @@ graph TD
 | DB Client | Supabase JS Client | 2.x | Type-safe PostgreSQL queries; RLS transparent | MIT |
 | Testing (Unit/Integration) | Vitest + Supertest | latest | Unit tests (domain); integration tests (API + DB) | MIT |
 | Excel Parsing | exceljs | latest | Thunder_Config.xlsx tab parsing in build_config.js | MIT |
+| Excel Parsing (alt) | xlsx (SheetJS) | latest | Used alongside exceljs for binary .xlsx format compatibility in build_config.js | Apache-2.0 |
 | DI Container | tsyringe (or manual factory) | latest | Constructor injection; Domain receives only interfaces | MIT |
 | Container | Docker | 24+ | Containerization; multi-stage build | Apache 2.0 |
 | Orchestration | Kubernetes | 1.29+ | Production deployment; HPA, PDB, NetworkPolicy | Apache 2.0 |
@@ -1329,6 +1345,21 @@ Key metrics exposed at `/metrics` (Prometheus format):
 | High (P1) | Supabase Auth | All player authentication fails; no new spins possible |
 | Medium (P2) | GitHub Actions, OpenTelemetry | CI pipeline halts; observability blind; no new deployments |
 | Low (P3) | Grafana dashboards | Alert visibility reduced; PagerDuty still works independently |
+
+### Frontend Static Asset Delivery (CDN)
+
+The Cocos Creator / PixiJS frontend produces large static assets (game sprites, audio files, animation JSON, WebAssembly binaries). These must be delivered via CDN to minimize load times for players globally.
+
+| Concern | Phase 1 Solution | Phase 2+ |
+|---------|-----------------|----------|
+| **CDN Origin** | S3-compatible object storage (e.g., GCS, AWS S3) or GitHub Releases | Same; multi-region replication |
+| **CDN Provider** | Cloudflare (free tier for Phase 1) or CloudFront | Cloudflare Pro / CloudFront with origin shield |
+| **Cache Strategy** | Immutable assets: `Cache-Control: max-age=31536000, immutable` (content-hash filenames from build tooling). Index/manifest: `max-age=60, must-revalidate` | Same + edge cache warming on deploy |
+| **Cache Invalidation** | CI deploy step runs `cloudflare-purge` or CDN invalidation API for manifest files. Immutable hashed assets never need explicit purge. | Automated via CI/CD |
+| **Asset Types** | Sprites (PNG/WebP), audio (OGG/MP3), animation JSON, WASM | Same |
+| **Security** | Hotlink protection (Referer header check); rate limiting on CDN edge | Signed URLs for private assets |
+
+> Phase 1 minimal statement: Static assets served from S3 + Cloudflare CDN; invalidated per release via CI deploy step. Content-hash filenames ensure cache correctness without purge for game assets.
 
 ---
 
@@ -1611,33 +1642,40 @@ Production uses Canary with automated rollback: route 5% traffic to new pods; pr
 
 ---
 
-### ADR-009: outcome.totalWin Carved Out as Sole Accounting Authority
+### ADR-009: Excel (Thunder_Config.xlsx) as Sole Probability Configuration Source
 
 ```
 ADR-ID: ADR-009
 Status: Accepted
 Date: 2026-04-26
-Deciders: Engineering Lead, Compliance, CTO
+Deciders: Engineering Lead, Game Designer
 ```
 
 **Context:**
 
-The Thunder Blessing spin sequence accumulates wins across multiple sources: cascade step wins, FG round wins × FG multiplier × FG bonus multiplier, and optional session floor guards. The UI displays a `session.roundWin` rolling counter for animation. There is a risk of:
-- Double-counting: UI summing intermediate wins AND accounting uses `totalWin`
-- Under-crediting: Using `session.roundWin` (pre-floor, pre-maxWin) instead of `outcome.totalWin`
-- Over-crediting: Missing the `enforceMaxWin()` cap in accounting path
+The Thunder Blessing slot game has hundreds of configurable probability parameters: symbol weights per reel per scenario, payline definitions, FG multiplier weights, Coin Toss probabilities per stage, Near Miss configuration, and extra bet adjustments. These must all target RTP=97.5% across four independent scenarios. Game designers need to adjust parameters iteratively (sometimes 50+ changes per tuning session) without touching TypeScript source code. The configuration must be version-controlled and auditable.
+
+**Options Considered:**
+
+| Option | Designer-Friendly | Version Control | Type Safety | Decision |
+|--------|-----------------|----------------|-------------|----------|
+| Excel DATA tab (single source) | Yes (native UI) | Git (binary) | Generated TypeScript | **Selected** |
+| JSON files in git | No (text editing) | Yes (text diff) | Manual types | Rejected |
+| Admin UI + DB | Yes | Yes | Dynamic, no compile-time checks | Rejected — adds infra complexity |
+| YAML files | No (complex structure) | Yes (text diff) | Manual types | Rejected |
 
 **Decision:**
 
-`outcome.totalWin` returned by `SlotEngine.spin()` is the ONLY value ever passed to `WalletRepository.credit()`. `session.roundWin` is a UI-only display counter, never used for wallet operations. `enforceMaxWin()` is called inside the domain before `totalWin` is finalized in `FullSpinOutcome`. A CI lint rule (`grep -r "credit" src/ | grep -v totalWin`) enforces this constraint automatically.
+`Thunder_Config.xlsx` DATA tab is the single source of truth for all probability parameters. No parameter may be hand-coded in TypeScript. The toolchain (build_config.js → excel_simulator.js → verify.js → engine_generator.js) enforces that any Excel edit must pass 1M Monte Carlo simulation and 4-scenario RTP verification before generating TypeScript. `GameConfig.generated.ts` must never be modified manually.
 
 **Consequences:**
 
-- Positive: Single source of truth eliminates all classes of accounting discrepancy
-- Positive: CI lint gate provides automated enforcement; no manual code review required
-- Positive: `outcome.totalWin` is auditable: logged in `spin_logs.total_win` for every spin
-- Negative: Frontend must be carefully designed to use `fgRounds[].win` for animation only
-- Risk: Frontend bug (displaying `totalWin` but crediting `roundWin`) must be caught in E2E tests
+- Positive: Game designers work in a familiar tool; no coding required for parameter tuning
+- Positive: Toolchain acts as a compile-time type system for probability parameters
+- Positive: Single file to audit for compliance and regulatory inspection
+- Negative: Excel binary format produces unreadable git diffs; changes require explicit toolchain re-run
+- Negative: Requires all team members to run the full toolchain locally; cannot edit config during CI
+- Risk: Excel corruption or format change requires toolchain recovery procedure
 
 ---
 
