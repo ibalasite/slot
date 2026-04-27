@@ -104,9 +104,9 @@
 <h2>Interactive Demos</h2>
 <table>
 <tr><th>連結</th><th>說明</th></tr>
-<tr><td><a href="docs/pages/prototype/index.html" target="_blank" rel="noopener">📱 Interactive Prototype</a></td><td>可點擊的前端原型（12 個畫面，含動畫音效）</td></tr>
-<tr><td><a href="docs/pages/prototype/api-explorer/index.html" target="_blank" rel="noopener">🔌 API Explorer</a></td><td>互動式 API 試打介面（JavaScript Mock）</td></tr>
-<tr><td><a href="docs/pages/index.html" target="_blank" rel="noopener">📚 文件站</a></td><td>完整工程文件</td></tr>
+<tr><td><a href="prototype/index.html" target="_blank" rel="noopener">📱 Interactive Prototype</a></td><td>可點擊的前端原型（12 個畫面，含動畫音效）</td></tr>
+<tr><td><a href="prototype/api-explorer/index.html" target="_blank" rel="noopener">🔌 API Explorer</a></td><td>互動式 API 試打介面（JavaScript Mock）</td></tr>
+<tr><td><a href="index.html" target="_blank" rel="noopener">📚 文件站</a></td><td>完整工程文件</td></tr>
 </table>
 <hr>
 <h2>Overview</h2>
@@ -117,10 +117,10 @@
 <p>The project is governed by the upstream documents below; every design decision maps to a tracked requirement:</p>
 <table>
 <tr><th>Document</th><th>Purpose</th></tr>
-<tr><td><a href="docs/BRD.md" target="_blank" rel="noopener">BRD</a></td><td>Business goals, success metrics, stakeholder sign-off</td></tr>
-<tr><td><a href="docs/PRD.md" target="_blank" rel="noopener">PRD</a></td><td>User stories, acceptance criteria, priority tiers</td></tr>
-<tr><td><a href="docs/PDD.md" target="_blank" rel="noopener">PDD</a></td><td>UX flows, interaction specs, design tokens</td></tr>
-<tr><td><a href="docs/EDD.md" target="_blank" rel="noopener">EDD</a></td><td>Architecture decisions, technology choices, data models</td></tr>
+<tr><td><a href="https://github.com/ibalasite/slot/blob/main/docs/BRD.md" target="_blank" rel="noopener">BRD</a></td><td>Business goals, success metrics, stakeholder sign-off</td></tr>
+<tr><td><a href="https://github.com/ibalasite/slot/blob/main/docs/PRD.md" target="_blank" rel="noopener">PRD</a></td><td>User stories, acceptance criteria, priority tiers</td></tr>
+<tr><td><a href="https://github.com/ibalasite/slot/blob/main/docs/PDD.md" target="_blank" rel="noopener">PDD</a></td><td>UX flows, interaction specs, design tokens</td></tr>
+<tr><td><a href="https://github.com/ibalasite/slot/blob/main/docs/EDD.md" target="_blank" rel="noopener">EDD</a></td><td>Architecture decisions, technology choices, data models</td></tr>
 </table>
 <hr>
 <h2>Core Features</h2>
@@ -179,7 +179,7 @@
     C --> I
     B --> J
     B --> K</pre></div>
-<blockquote><p>Full C4 Model (L1/L2/L3), ADR records, and data flow diagrams: <a href="docs/ARCH.md" target="_blank" rel="noopener">docs/ARCH.md</a> | <a href="docs/pages/arch.html" target="_blank" rel="noopener">arch.html</a></p></blockquote>
+<blockquote><p>Full C4 Model (L1/L2/L3), ADR records, and data flow diagrams: <a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md" target="_blank" rel="noopener">docs/ARCH.md</a> | <a href="arch.html" target="_blank" rel="noopener">arch.html</a></p></blockquote>
 <hr>
 <h2>Tech Stack</h2>
 <table>
@@ -289,7 +289,7 @@ npm run dev</code></pre>
 </table>
 <p><strong>Rate limit:</strong> 5 req/s per player (HTTP 429 on exceed)</p>
 <p>For full request/response schemas, error codes, and pagination see:</p>
-<ul><li>Markdown: <a href="docs/API.md" target="_blank" rel="noopener">docs/API.md</a></li><li>HTML: <a href="docs/pages/api.html" target="_blank" rel="noopener">docs/pages/api.html</a></li><li>Interactive: <a href="docs/pages/prototype/api-explorer/index.html" target="_blank" rel="noopener">docs/pages/prototype/api-explorer/index.html</a></li></ul>
+<ul><li>Markdown: <a href="https://github.com/ibalasite/slot/blob/main/docs/API.md" target="_blank" rel="noopener">docs/API.md</a></li><li>HTML: <a href="api.html" target="_blank" rel="noopener">docs/pages/api.html</a></li><li>Interactive: <a href="prototype/api-explorer/index.html" target="_blank" rel="noopener">docs/pages/prototype/api-explorer/index.html</a></li></ul>
 <hr>
 <h2>Directory Structure</h2>
 <pre><code class="">thunder-blessing-slot/
@@ -367,25 +367,25 @@ npm run dev</code></pre>
 <p>The full documentation suite is rendered as a static HTML site at <code>docs/pages/index.html</code>.</p>
 <table>
 <tr><th>Document</th><th>Markdown Source</th><th>HTML</th><th>Description</th></tr>
-<tr><td>IDEA</td><td><a href="docs/IDEA.md" target="_blank" rel="noopener">docs/IDEA.md</a></td><td><a href="docs/pages/idea.html" target="_blank" rel="noopener">idea.html</a></td><td>Project concept and problem statement</td></tr>
-<tr><td>BRD</td><td><a href="docs/BRD.md" target="_blank" rel="noopener">docs/BRD.md</a></td><td><a href="docs/pages/brd.html" target="_blank" rel="noopener">brd.html</a></td><td>Business goals, success metrics, stakeholder sign-off</td></tr>
-<tr><td>PRD</td><td><a href="docs/PRD.md" target="_blank" rel="noopener">docs/PRD.md</a></td><td><a href="docs/pages/prd.html" target="_blank" rel="noopener">prd.html</a></td><td>User stories, acceptance criteria, priority tiers</td></tr>
-<tr><td>PDD</td><td><a href="docs/PDD.md" target="_blank" rel="noopener">docs/PDD.md</a></td><td><a href="docs/pages/pdd.html" target="_blank" rel="noopener">pdd.html</a></td><td>UX flows, interaction specs, design tokens</td></tr>
-<tr><td>VDD</td><td><a href="docs/VDD.md" target="_blank" rel="noopener">docs/VDD.md</a></td><td><a href="docs/pages/vdd.html" target="_blank" rel="noopener">vdd.html</a></td><td>Visual design system, animation tokens</td></tr>
-<tr><td>CONSTANTS</td><td><a href="docs/CONSTANTS.md" target="_blank" rel="noopener">docs/CONSTANTS.md</a></td><td><a href="docs/pages/constants.html" target="_blank" rel="noopener">constants.html</a></td><td>Game constants reference</td></tr>
-<tr><td>EDD</td><td><a href="docs/EDD.md" target="_blank" rel="noopener">docs/EDD.md</a></td><td><a href="docs/pages/edd.html" target="_blank" rel="noopener">edd.html</a></td><td>Architecture decisions, technology choices, data models</td></tr>
-<tr><td>ARCH</td><td><a href="docs/ARCH.md" target="_blank" rel="noopener">docs/ARCH.md</a></td><td><a href="docs/pages/arch.html" target="_blank" rel="noopener">arch.html</a></td><td>C4 Model, ADRs, deployment topology</td></tr>
-<tr><td>API</td><td><a href="docs/API.md" target="_blank" rel="noopener">docs/API.md</a></td><td><a href="docs/pages/api.html" target="_blank" rel="noopener">api.html</a></td><td>REST API endpoints, schemas, error codes</td></tr>
-<tr><td>SCHEMA</td><td><a href="docs/SCHEMA.md" target="_blank" rel="noopener">docs/SCHEMA.md</a></td><td><a href="docs/pages/schema.html" target="_blank" rel="noopener">schema.html</a></td><td>PostgreSQL + Redis data model</td></tr>
-<tr><td>FRONTEND</td><td><a href="docs/FRONTEND.md" target="_blank" rel="noopener">docs/FRONTEND.md</a></td><td><a href="docs/pages/frontend.html" target="_blank" rel="noopener">frontend.html</a></td><td>Frontend technical design (Cocos/PixiJS)</td></tr>
-<tr><td>AUDIO</td><td><a href="docs/AUDIO.md" target="_blank" rel="noopener">docs/AUDIO.md</a></td><td><a href="docs/pages/audio.html" target="_blank" rel="noopener">audio.html</a></td><td>SFX/BGM catalogue and audio design</td></tr>
-<tr><td>ANIM</td><td><a href="docs/ANIM.md" target="_blank" rel="noopener">docs/ANIM.md</a></td><td><a href="docs/pages/anim.html" target="_blank" rel="noopener">anim.html</a></td><td>Animation and VFX specification</td></tr>
-<tr><td>Test Plan</td><td><a href="docs/test-plan.md" target="_blank" rel="noopener">docs/test-plan.md</a></td><td><a href="docs/pages/test-plan.html" target="_blank" rel="noopener">test-plan.html</a></td><td>Test strategy and coverage targets</td></tr>
-<tr><td>BDD Server</td><td><a href="features/" target="_blank" rel="noopener">features/</a></td><td><a href="docs/pages/bdd-server.html" target="_blank" rel="noopener">bdd-server.html</a></td><td>Server-side Gherkin feature files</td></tr>
-<tr><td>BDD Client</td><td><a href="features/client/" target="_blank" rel="noopener">features/client/</a></td><td><a href="docs/pages/bdd-client.html" target="_blank" rel="noopener">bdd-client.html</a></td><td>Client-side E2E feature files</td></tr>
-<tr><td>RTM</td><td><a href="docs/RTM.md" target="_blank" rel="noopener">docs/RTM.md</a></td><td><a href="docs/pages/rtm.html" target="_blank" rel="noopener">rtm.html</a></td><td>Requirements Traceability Matrix</td></tr>
-<tr><td>Runbook</td><td><a href="docs/runbook.md" target="_blank" rel="noopener">docs/runbook.md</a></td><td><a href="docs/pages/runbook.html" target="_blank" rel="noopener">runbook.html</a></td><td>Production operations runbook</td></tr>
-<tr><td>Local Deploy</td><td><a href="docs/LOCAL_DEPLOY.md" target="_blank" rel="noopener">docs/LOCAL_DEPLOY.md</a></td><td><a href="docs/pages/local_deploy.html" target="_blank" rel="noopener">local_deploy.html</a></td><td>Local development setup guide</td></tr>
+<tr><td>IDEA</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/IDEA.md" target="_blank" rel="noopener">docs/IDEA.md</a></td><td><a href="idea.html" target="_blank" rel="noopener">idea.html</a></td><td>Project concept and problem statement</td></tr>
+<tr><td>BRD</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/BRD.md" target="_blank" rel="noopener">docs/BRD.md</a></td><td><a href="brd.html" target="_blank" rel="noopener">brd.html</a></td><td>Business goals, success metrics, stakeholder sign-off</td></tr>
+<tr><td>PRD</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/PRD.md" target="_blank" rel="noopener">docs/PRD.md</a></td><td><a href="prd.html" target="_blank" rel="noopener">prd.html</a></td><td>User stories, acceptance criteria, priority tiers</td></tr>
+<tr><td>PDD</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/PDD.md" target="_blank" rel="noopener">docs/PDD.md</a></td><td><a href="pdd.html" target="_blank" rel="noopener">pdd.html</a></td><td>UX flows, interaction specs, design tokens</td></tr>
+<tr><td>VDD</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/VDD.md" target="_blank" rel="noopener">docs/VDD.md</a></td><td><a href="vdd.html" target="_blank" rel="noopener">vdd.html</a></td><td>Visual design system, animation tokens</td></tr>
+<tr><td>CONSTANTS</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/CONSTANTS.md" target="_blank" rel="noopener">docs/CONSTANTS.md</a></td><td><a href="constants.html" target="_blank" rel="noopener">constants.html</a></td><td>Game constants reference</td></tr>
+<tr><td>EDD</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/EDD.md" target="_blank" rel="noopener">docs/EDD.md</a></td><td><a href="edd.html" target="_blank" rel="noopener">edd.html</a></td><td>Architecture decisions, technology choices, data models</td></tr>
+<tr><td>ARCH</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md" target="_blank" rel="noopener">docs/ARCH.md</a></td><td><a href="arch.html" target="_blank" rel="noopener">arch.html</a></td><td>C4 Model, ADRs, deployment topology</td></tr>
+<tr><td>API</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/API.md" target="_blank" rel="noopener">docs/API.md</a></td><td><a href="api.html" target="_blank" rel="noopener">api.html</a></td><td>REST API endpoints, schemas, error codes</td></tr>
+<tr><td>SCHEMA</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/SCHEMA.md" target="_blank" rel="noopener">docs/SCHEMA.md</a></td><td><a href="schema.html" target="_blank" rel="noopener">schema.html</a></td><td>PostgreSQL + Redis data model</td></tr>
+<tr><td>FRONTEND</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/FRONTEND.md" target="_blank" rel="noopener">docs/FRONTEND.md</a></td><td><a href="frontend.html" target="_blank" rel="noopener">frontend.html</a></td><td>Frontend technical design (Cocos/PixiJS)</td></tr>
+<tr><td>AUDIO</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/AUDIO.md" target="_blank" rel="noopener">docs/AUDIO.md</a></td><td><a href="audio.html" target="_blank" rel="noopener">audio.html</a></td><td>SFX/BGM catalogue and audio design</td></tr>
+<tr><td>ANIM</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ANIM.md" target="_blank" rel="noopener">docs/ANIM.md</a></td><td><a href="anim.html" target="_blank" rel="noopener">anim.html</a></td><td>Animation and VFX specification</td></tr>
+<tr><td>Test Plan</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/test-plan.md" target="_blank" rel="noopener">docs/test-plan.md</a></td><td><a href="test-plan.html" target="_blank" rel="noopener">test-plan.html</a></td><td>Test strategy and coverage targets</td></tr>
+<tr><td>BDD Server</td><td><a href="https://github.com/ibalasite/slot/tree/main/features/" target="_blank" rel="noopener">features/</a></td><td><a href="bdd-server.html" target="_blank" rel="noopener">bdd-server.html</a></td><td>Server-side Gherkin feature files</td></tr>
+<tr><td>BDD Client</td><td><a href="https://github.com/ibalasite/slot/tree/main/features/client/" target="_blank" rel="noopener">features/client/</a></td><td><a href="bdd-client.html" target="_blank" rel="noopener">bdd-client.html</a></td><td>Client-side E2E feature files</td></tr>
+<tr><td>RTM</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/RTM.md" target="_blank" rel="noopener">docs/RTM.md</a></td><td><a href="rtm.html" target="_blank" rel="noopener">rtm.html</a></td><td>Requirements Traceability Matrix</td></tr>
+<tr><td>Runbook</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/runbook.md" target="_blank" rel="noopener">docs/runbook.md</a></td><td><a href="runbook.html" target="_blank" rel="noopener">runbook.html</a></td><td>Production operations runbook</td></tr>
+<tr><td>Local Deploy</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/LOCAL_DEPLOY.md" target="_blank" rel="noopener">docs/LOCAL_DEPLOY.md</a></td><td><a href="local_deploy.html" target="_blank" rel="noopener">local_deploy.html</a></td><td>Local development setup guide</td></tr>
 </table>
 <hr>
 <h2>Testing</h2>
@@ -468,7 +468,7 @@ kubectl set image deployment/thunder-blessing \
 
 # Verify pods are healthy
 kubectl rollout status deployment/thunder-blessing -n thunder-blessing</code></pre>
-<p>For detailed runbook steps including database rollback: <a href="docs/runbook.md" target="_blank" rel="noopener">docs/runbook.md</a> | <a href="docs/pages/runbook.html" target="_blank" rel="noopener">runbook.html</a></p>
+<p>For detailed runbook steps including database rollback: <a href="https://github.com/ibalasite/slot/blob/main/docs/runbook.md" target="_blank" rel="noopener">docs/runbook.md</a> | <a href="runbook.html" target="_blank" rel="noopener">runbook.html</a></p>
 <hr>
 <h2>Troubleshooting</h2>
 <table>
@@ -500,18 +500,18 @@ kubectl rollout status deployment/thunder-blessing -n thunder-blessing</code></p
 <h2>Architecture Quick Reference</h2>
 <table>
 <tr><th>Key Decision</th><th>Choice</th><th>Document</th></tr>
-<tr><td>API paradigm</td><td>REST (single-trip POST /spin returns complete FullSpinOutcome)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-003</a></td></tr>
-<tr><td>Backend framework</td><td>Fastify 4 (over Express/NestJS)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-001</a></td></tr>
-<tr><td>Architecture pattern</td><td>Clean Architecture (Domain←Application←Adapters←Infrastructure)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-002</a></td></tr>
-<tr><td>Primary database</td><td>Supabase PostgreSQL (wallet, audit, spin history)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-007</a></td></tr>
-<tr><td>Session store</td><td>Redis / Upstash (FG session state, locks, rate limits)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-004</a></td></tr>
-<tr><td>Authentication</td><td>RS256 JWT Bearer (Supabase Auth)</td><td><a href="docs/API.md#authentication" target="_blank" rel="noopener">docs/API.md — §1.3</a></td></tr>
-<tr><td>Probability source</td><td>Excel workbook (<code>Thunder_Config.xlsx</code>) — sole source of truth</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-009</a></td></tr>
-<tr><td>Accounting authority</td><td><code>outcome.totalWin</code> only (never <code>session.roundWin</code>)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-006</a></td></tr>
-<tr><td>Deployment platform</td><td>Kubernetes (Canary prod, Blue-Green staging)</td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-008</a></td></tr>
-<tr><td>Toolchain gate</td><td><code>verify.js</code> PASS required before <code>engine_generator.js</code></td><td><a href="docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-005</a></td></tr>
+<tr><td>API paradigm</td><td>REST (single-trip POST /spin returns complete FullSpinOutcome)</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-003</a></td></tr>
+<tr><td>Backend framework</td><td>Fastify 4 (over Express/NestJS)</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-001</a></td></tr>
+<tr><td>Architecture pattern</td><td>Clean Architecture (Domain←Application←Adapters←Infrastructure)</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-002</a></td></tr>
+<tr><td>Primary database</td><td>Supabase PostgreSQL (wallet, audit, spin history)</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-007</a></td></tr>
+<tr><td>Session store</td><td>Redis / Upstash (FG session state, locks, rate limits)</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-004</a></td></tr>
+<tr><td>Authentication</td><td>RS256 JWT Bearer (Supabase Auth)</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/API.md#authentication" target="_blank" rel="noopener">docs/API.md — §1.3</a></td></tr>
+<tr><td>Probability source</td><td>Excel workbook (<code>Thunder_Config.xlsx</code>) — sole source of truth</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-009</a></td></tr>
+<tr><td>Accounting authority</td><td><code>outcome.totalWin</code> only (never <code>session.roundWin</code>)</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-006</a></td></tr>
+<tr><td>Deployment platform</td><td>Kubernetes (Canary prod, Blue-Green staging)</td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-008</a></td></tr>
+<tr><td>Toolchain gate</td><td><code>verify.js</code> PASS required before <code>engine_generator.js</code></td><td><a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#adr" target="_blank" rel="noopener">docs/ARCH.md — ADR-005</a></td></tr>
 </table>
-<p>Main ADR index: <a href="docs/ARCH.md#architecture-decision-record-adr-index" target="_blank" rel="noopener">docs/ARCH.md § Architecture Decision Record Index</a></p>
+<p>Main ADR index: <a href="https://github.com/ibalasite/slot/blob/main/docs/ARCH.md#architecture-decision-record-adr-index" target="_blank" rel="noopener">docs/ARCH.md § Architecture Decision Record Index</a></p>
 <hr>
 <h2>Contributing</h2>
 <p>Contributions are welcome. Please read this section before submitting a pull request.</p>
@@ -535,7 +535,7 @@ kubectl rollout status deployment/thunder-blessing -n thunder-blessing</code></p
 <p>This project adopts the <a href="https://www.contributor-covenant.org/" target="_blank" rel="noopener">Contributor Covenant</a> v2.1 as its Code of Conduct. See <a href="CODE_OF_CONDUCT.md" target="_blank" rel="noopener">CODE_OF_CONDUCT.md</a>.</p>
 <p>For violations, contact: <code>conduct@thunder-blessing-slot.example</code></p>
 <hr>
-<blockquote><p>📋 <strong>Generated by <a href="https://github.com/gendoc" target="_blank" rel="noopener">gendoc</a></strong> — Full design and specification suite for Thunder Blessing generated via the gendoc pipeline. See <a href="docs/pages/index.html" target="_blank" rel="noopener">docs/pages/index.html</a> for the complete HTML documentation site.</p></blockquote><section style="margin-top:3rem;padding:1.5rem;background:#fff;border:1px solid var(--border);border-radius:8px;"><h2 style="margin-top:0">📊 專案健康狀態</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-top:1rem"><div style="text-align:center;padding:1rem;background:var(--page-bg);border-radius:6px"><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem">已完成步驟</div><div style="font-size:1.5rem;font-weight:700;color:var(--accent)">0</div></div><div style="text-align:center;padding:1rem;background:var(--page-bg);border-radius:6px"><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem">目前步驟</div><div style="font-size:1rem;font-weight:600;color:var(--text)">完成</div></div></div></section></main>
+<blockquote><p>📋 <strong>Generated by <a href="https://github.com/gendoc" target="_blank" rel="noopener">gendoc</a></strong> — Full design and specification suite for Thunder Blessing generated via the gendoc pipeline. See <a href="index.html" target="_blank" rel="noopener">docs/pages/index.html</a> for the complete HTML documentation site.</p></blockquote><section style="margin-top:3rem;padding:1.5rem;background:#fff;border:1px solid var(--border);border-radius:8px;"><h2 style="margin-top:0">📊 專案健康狀態</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-top:1rem"><div style="text-align:center;padding:1rem;background:var(--page-bg);border-radius:6px"><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem">已完成步驟</div><div style="font-size:1.5rem;font-weight:700;color:var(--accent)">0</div></div><div style="text-align:center;padding:1rem;background:var(--page-bg);border-radius:6px"><div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem">目前步驟</div><div style="font-size:1rem;font-weight:600;color:var(--text)">完成</div></div></div></section></main>
   </div>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
