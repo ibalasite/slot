@@ -912,7 +912,7 @@ function handleCoinToss() {
   if (window.fxEngine) {
     window.fxEngine.coinFlip(coinEl, result, () => processCoinResult(result));
   } else {
-    setTimeout(() => processCoinResult(result), 750);
+    setTimeout(() => processCoinResult(result), 3200);
   }
 }
 
@@ -927,6 +927,7 @@ function processCoinResult(result) {
       fgMultiplierLevel: Math.min(newHeads - 1, GAME_CONFIG.fgMultipliers.length - 1),
     });
     if (newHeads >= 5) {
+      if (window.audioEngine) window.audioEngine.playBGM('BGM_77X');
       setTimeout(() => router.navigate('screen-07', { forceRender: true }), 400);
       return;
     }
@@ -1282,7 +1283,13 @@ function renderScreen11() {
 
           </div>
 
-          <div class="paytable-section-title" style="margin-top:16px;">遊戲資訊</div>
+          <div class="paytable-section-title" style="margin-top:16px;">本局記錄</div>
+          <button id="btn-session-history"
+                  style="width:100%;padding:10px;background:rgba(220,163,49,0.15);border:1px solid rgba(220,163,49,0.4);border-radius:8px;color:var(--color-gold-bright);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;">
+            📋 查看旋轉記錄 (${gameState.lastSpins.length} 筆)
+          </button>
+
+          <div class="paytable-section-title">遊戲資訊</div>
           <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;color:rgba(245,240,232,0.5);">
             <div style="display:flex;justify-content:space-between;">
               <span>RTP</span><span style="color:var(--color-gold-bright);">96.5%</span>
@@ -1355,6 +1362,7 @@ function renderPaytableCard(sym) {
 
 function bindScreen11Events() {
   document.getElementById('paytable-close-btn')?.addEventListener('click', () => router.back());
+  document.getElementById('btn-session-history')?.addEventListener('click', () => router.navigate('screen-12'));
 
   // Tab switching
   document.querySelectorAll('.paytable-tab').forEach(tab => {

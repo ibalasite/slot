@@ -29,6 +29,20 @@ const BGM_DEFS = {
     drone: 55, droneVol: 0.06,
     beat: { freq: 60, rate: 0.545, beatVol: 0.08 },
   },
+  // Coin Toss: tense, pulsing minor-key loop — distinct from main game
+  BGM_COIN_TOSS: {
+    notes: [220, 233, 220, 196, 220, 233, 246, 220],
+    noteDur: 0.38, type: 'triangle', baseVol: 0.13,
+    drone: 55, droneVol: 0.08,
+    beat: { freq: 80, rate: 0.76, beatVol: 0.10 },
+  },
+  // ×77 escalation: triumphant, fast-paced fanfare
+  BGM_77X: {
+    notes: [523, 659, 784, 880, 1047, 880, 784, 659],
+    noteDur: 0.18, type: 'square', baseVol: 0.12,
+    drone: 65.4, droneVol: 0.09,
+    beat: { freq: 100, rate: 0.44, beatVol: 0.12 },
+  },
 };
 
 // ============================================================
@@ -59,7 +73,7 @@ const SCREEN_BGM = {
   'screen-04': 'BGM_MAINGAME',
   'screen-05': 'BGM_MAINGAME',
   'screen-06': null,           // thunder sequence overrides
-  'screen-07': 'BGM_MAINGAME',
+  'screen-07': 'BGM_COIN_TOSS',
   'screen-08': 'BGM_FG',
   'screen-09': null,           // win sound overrides
   'screen-10': 'BGM_LOBBY',
